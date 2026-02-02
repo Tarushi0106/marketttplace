@@ -1,10 +1,22 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let razorpay: Razorpay | null = null;
+
+function getRazorpay() {
+  if (!razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error("Razorpay keys missing");
+    }
+
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+
+  return razorpay;
+}
 
 export async function createRazorpayOrder({
   amount,
@@ -17,14 +29,14 @@ export async function createRazorpayOrder({
   receipt: string;
   notes?: Record<string, string>;
 }) {
-  const order = await razorpay.orders.create({
-    amount: Math.round(amount * 100), // Convert to paise
+  const razorpay = getRazorpay();
+
+  return razorpay.orders.create({
+    amount: Math.round(amount * 100),
     currency,
     receipt,
     notes,
   });
-
-  return order;
 }
 
 export function verifyRazorpaySignature({
@@ -36,7 +48,8 @@ export function verifyRazorpaySignature({
   paymentId: string;
   signature: string;
 }): boolean {
-  const body = orderId + "|" + paymentId;
+  const body = `${orderId}|${paymentId}`;
+
   const expectedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
     .update(body)
@@ -46,6 +59,7 @@ export function verifyRazorpaySignature({
 }
 
 export async function fetchRazorpayPayment(paymentId: string) {
+  const razorpay = getRazorpay();
   return razorpay.payments.fetch(paymentId);
 }
 
@@ -56,11 +70,11 @@ export async function refundRazorpayPayment({
   paymentId: string;
   amount?: number;
 }) {
-  const refund = await razorpay.payments.refund(paymentId, {
+  const razorpay = getRazorpay();
+
+  return razorpay.payments.refund(paymentId, {
     amount: amount ? Math.round(amount * 100) : undefined,
   });
-
-  return refund;
 }
 
 export function formatAmountForRazorpay(amount: number): number {
