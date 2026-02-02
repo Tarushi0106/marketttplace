@@ -121,10 +121,11 @@ function getSubCategoryIcon(iconName: string | null, index: number, className: s
   const icon = iconName || subCategoryIcons[index % subCategoryIcons.length];
   const IconComponent = iconComponents[icon];
   const color = textColor || subCategoryColors[index % subCategoryColors.length].text;
-  if (IconComponent) {
-    return <IconComponent className={className} style={{ color }} />;
-  }
-  return <Folder className={className} style={{ color }} />;
+if (IconComponent) {
+  return <IconComponent className={`${className} text-[${color}]`} />;
+}
+return <Folder className={`${className} text-[${color}]`} />;
+
 }
 
 function getSubCategoryColor(iconBgColor: string | null, index: number) {
