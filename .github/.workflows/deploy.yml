@@ -21,14 +21,16 @@ jobs:
     ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
 
-    - name: Deploy on EC2
+- name: Deploy on EC2
   run: |
-    ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-      cd ~/marketttplace || exit 1
+    ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+    ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+      cd /home/ubuntu/marketttplace || exit 1
       git pull origin main
       npm install
       npm run build
       pm2 restart marketplace || pm2 start npm --name marketplace -- start
       pm2 save
     EOF
+
 
