@@ -1,0 +1,1484 @@
+{
+  "exportedAt": "2026-02-02T06:19:34.276Z",
+  "version": "1.0.0",
+  "users": [
+    {
+      "id": "cml0qcgpn0000aw9qj165fpt5",
+      "email": "admin@shaurryatele.com",
+      "name": "Admin User",
+      "phone": null,
+      "role": "SUPER_ADMIN",
+      "createdAt": "2026-01-30T10:18:10.715Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cml184r560007nl051xmsox3k",
+      "name": "Business Applications",
+      "slug": "business-applications",
+      "description": "ERP, accounting, CRM, HRMS, finance & core business software",
+      "image": null,
+      "heroImage": null,
+      "icon": "briefcase",
+      "iconBgColor": "#FEF3C7",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.074Z",
+      "updatedAt": "2026-01-30T18:36:04.074Z"
+    },
+    {
+      "id": "cml184r5m000inl052rj4a9vv",
+      "name": "Connectivity",
+      "slug": "connectivity",
+      "description": "SDWAN and network connectivity solutions",
+      "image": null,
+      "heroImage": null,
+      "icon": "wifi",
+      "iconBgColor": "#D1FAE5",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.090Z",
+      "updatedAt": "2026-01-30T18:36:04.090Z"
+    },
+    {
+      "id": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Workplace & Collaboration",
+      "slug": "workplace-collaboration",
+      "description": "Microsoft 365, email, cloud telephony, meetings, unified communications",
+      "image": null,
+      "heroImage": null,
+      "icon": "users",
+      "iconBgColor": "#E9D5FF",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T18:36:04.095Z",
+      "updatedAt": "2026-01-30T18:36:04.095Z"
+    },
+    {
+      "id": "cml184r63000wnl05y1j7n1oi",
+      "name": "Cybersecurity",
+      "slug": "cybersecurity",
+      "description": "Acronis Cyber Security and protection solutions",
+      "image": null,
+      "heroImage": null,
+      "icon": "shield",
+      "iconBgColor": "#FFE4E4",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T18:36:04.107Z",
+      "updatedAt": "2026-01-30T18:36:04.107Z"
+    },
+    {
+      "id": "cml184r6c0013nl055u4fzxqg",
+      "name": "Data, AI & Intelligence",
+      "slug": "data-ai-intelligence",
+      "description": "Analytics platforms, AI tools, reporting, data platforms",
+      "image": null,
+      "heroImage": null,
+      "icon": "brain",
+      "iconBgColor": "#DBEAFE",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 5,
+      "createdAt": "2026-01-30T18:36:04.116Z",
+      "updatedAt": "2026-01-30T18:36:04.116Z"
+    },
+    {
+      "id": "cml184r6m001cnl051c1l59fm",
+      "name": "Industry Solutions",
+      "slug": "industry-solutions",
+      "description": "Drone as a Service, industry-specific monitoring, smart infrastructure",
+      "image": null,
+      "heroImage": null,
+      "icon": "settings",
+      "iconBgColor": "#F5F5F5",
+      "isTrending": false,
+      "isActive": true,
+      "sortOrder": 6,
+      "createdAt": "2026-01-30T18:36:04.127Z",
+      "updatedAt": "2026-01-30T18:36:04.127Z"
+    },
+    {
+      "id": "cml184r4s0000nl05xuqrokxn",
+      "name": "Cloud & Infrastructure",
+      "slug": "cloud-infrastructure",
+      "description": "Cloud servers and hosting, domains, virtual machines",
+      "image": "https://img.freepik.com/premium-photo/cloud-computing-technology-online-data-storage-alteration-data-sharing_31965-78164.jpg",
+      "heroImage": null,
+      "icon": "cloud",
+      "iconBgColor": "#DBEAFE",
+      "isTrending": true,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.061Z",
+      "updatedAt": "2026-01-30T18:49:34.818Z"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": "cml184r4w0002nl05ce1u77kz",
+      "categoryId": "cml184r4s0000nl05xuqrokxn",
+      "name": "Cloud Servers & Hosting",
+      "slug": "cloud-servers-hosting",
+      "description": "Managed cloud hosting solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.065Z",
+      "updatedAt": "2026-01-30T18:36:04.065Z"
+    },
+    {
+      "id": "cml184r510004nl05l5lnqlwx",
+      "categoryId": "cml184r4s0000nl05xuqrokxn",
+      "name": "Domains",
+      "slug": "domains",
+      "description": "Domain registration and management",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.069Z",
+      "updatedAt": "2026-01-30T18:36:04.069Z"
+    },
+    {
+      "id": "cml184r530006nl053nzfe3q7",
+      "categoryId": "cml184r4s0000nl05xuqrokxn",
+      "name": "Virtual Machines",
+      "slug": "virtual-machines",
+      "description": "Scalable virtual machine instances",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.072Z",
+      "updatedAt": "2026-01-30T18:36:04.072Z"
+    },
+    {
+      "id": "cml184r580009nl05dbq2r5hq",
+      "categoryId": "cml184r560007nl051xmsox3k",
+      "name": "Tally on Cloud",
+      "slug": "tally-on-cloud",
+      "description": "Cloud-based Tally accounting solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.076Z",
+      "updatedAt": "2026-01-30T18:36:04.076Z"
+    },
+    {
+      "id": "cml184r5b000bnl05f6lx9egw",
+      "categoryId": "cml184r560007nl051xmsox3k",
+      "name": "ERP & Accounting",
+      "slug": "erp-accounting",
+      "description": "Enterprise resource planning software",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.079Z",
+      "updatedAt": "2026-01-30T18:36:04.079Z"
+    },
+    {
+      "id": "cml184r5f000dnl05pvm1srzi",
+      "categoryId": "cml184r560007nl051xmsox3k",
+      "name": "CRM",
+      "slug": "crm",
+      "description": "Customer relationship management",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.083Z",
+      "updatedAt": "2026-01-30T18:36:04.083Z"
+    },
+    {
+      "id": "cml184r5h000fnl05leea0lib",
+      "categoryId": "cml184r560007nl051xmsox3k",
+      "name": "HRMS",
+      "slug": "hrms",
+      "description": "Human resource management systems",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T18:36:04.086Z",
+      "updatedAt": "2026-01-30T18:36:04.086Z"
+    },
+    {
+      "id": "cml184r5j000hnl054ppjq23a",
+      "categoryId": "cml184r560007nl051xmsox3k",
+      "name": "Finance Software",
+      "slug": "finance-software",
+      "description": "Core business finance tools",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T18:36:04.088Z",
+      "updatedAt": "2026-01-30T18:36:04.088Z"
+    },
+    {
+      "id": "cml184r5o000knl05hgn4o1bz",
+      "categoryId": "cml184r5m000inl052rj4a9vv",
+      "name": "SDWAN",
+      "slug": "sdwan",
+      "description": "Software-defined wide area networking",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.093Z",
+      "updatedAt": "2026-01-30T18:36:04.093Z"
+    },
+    {
+      "id": "cml184r5t000nnl059cfcauxv",
+      "categoryId": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Microsoft 365",
+      "slug": "microsoft-365",
+      "description": "Microsoft productivity suite",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.097Z",
+      "updatedAt": "2026-01-30T18:36:04.097Z"
+    },
+    {
+      "id": "cml184r5v000pnl05z046ar57",
+      "categoryId": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Email Solutions",
+      "slug": "email-solutions",
+      "description": "Business email services",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.100Z",
+      "updatedAt": "2026-01-30T18:36:04.100Z"
+    },
+    {
+      "id": "cml184r5x000rnl05e6hduket",
+      "categoryId": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Cloud Telephony (ATA Cloud)",
+      "slug": "cloud-telephony",
+      "description": "Cloud-based phone systems",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.102Z",
+      "updatedAt": "2026-01-30T18:36:04.102Z"
+    },
+    {
+      "id": "cml184r5z000tnl05e6tskto1",
+      "categoryId": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Meetings & Video",
+      "slug": "meetings-video",
+      "description": "Video conferencing solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T18:36:04.103Z",
+      "updatedAt": "2026-01-30T18:36:04.103Z"
+    },
+    {
+      "id": "cml184r61000vnl05jykne85k",
+      "categoryId": "cml184r5q000lnl05l7jpq7ep",
+      "name": "Unified Communications",
+      "slug": "unified-communications",
+      "description": "Integrated communication platforms",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T18:36:04.105Z",
+      "updatedAt": "2026-01-30T18:36:04.105Z"
+    },
+    {
+      "id": "cml184r65000ynl05ejhjxagd",
+      "categoryId": "cml184r63000wnl05y1j7n1oi",
+      "name": "Acronis Cyber Security",
+      "slug": "acronis-cyber-security",
+      "description": "Comprehensive cyber protection",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.109Z",
+      "updatedAt": "2026-01-30T18:36:04.109Z"
+    },
+    {
+      "id": "cml184r670010nl054xqwyvns",
+      "categoryId": "cml184r63000wnl05y1j7n1oi",
+      "name": "Endpoint Protection",
+      "slug": "endpoint-protection",
+      "description": "Device security solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.111Z",
+      "updatedAt": "2026-01-30T18:36:04.111Z"
+    },
+    {
+      "id": "cml184r690012nl05ov82fs62",
+      "categoryId": "cml184r63000wnl05y1j7n1oi",
+      "name": "Backup & Recovery",
+      "slug": "backup-recovery",
+      "description": "Data backup and disaster recovery",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.113Z",
+      "updatedAt": "2026-01-30T18:36:04.113Z"
+    },
+    {
+      "id": "cml184r6e0015nl05f8gdxg91",
+      "categoryId": "cml184r6c0013nl055u4fzxqg",
+      "name": "Analytics Platforms",
+      "slug": "analytics-platforms",
+      "description": "Business intelligence and analytics",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.118Z",
+      "updatedAt": "2026-01-30T18:36:04.118Z"
+    },
+    {
+      "id": "cml184r6g0017nl05xk00f9kl",
+      "categoryId": "cml184r6c0013nl055u4fzxqg",
+      "name": "AI Tools",
+      "slug": "ai-tools",
+      "description": "Artificial intelligence solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.121Z",
+      "updatedAt": "2026-01-30T18:36:04.121Z"
+    },
+    {
+      "id": "cml184r6i0019nl05jfve8q34",
+      "categoryId": "cml184r6c0013nl055u4fzxqg",
+      "name": "Reporting",
+      "slug": "reporting",
+      "description": "Data reporting and visualization",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.123Z",
+      "updatedAt": "2026-01-30T18:36:04.123Z"
+    },
+    {
+      "id": "cml184r6k001bnl05oz8rtzus",
+      "categoryId": "cml184r6c0013nl055u4fzxqg",
+      "name": "Data Platforms (Fueady)",
+      "slug": "data-platforms",
+      "description": "Enterprise data management",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T18:36:04.125Z",
+      "updatedAt": "2026-01-30T18:36:04.125Z"
+    },
+    {
+      "id": "cml184r6o001enl054okjoawg",
+      "categoryId": "cml184r6m001cnl051c1l59fm",
+      "name": "Drone as a Service",
+      "slug": "drone-as-a-service",
+      "description": "Commercial drone solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T18:36:04.129Z",
+      "updatedAt": "2026-01-30T18:36:04.129Z"
+    },
+    {
+      "id": "cml184r6q001gnl05e3vmau2r",
+      "categoryId": "cml184r6m001cnl051c1l59fm",
+      "name": "Industry Monitoring",
+      "slug": "industry-monitoring",
+      "description": "Industry-specific monitoring tools",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T18:36:04.131Z",
+      "updatedAt": "2026-01-30T18:36:04.131Z"
+    },
+    {
+      "id": "cml184r6s001inl05uju41it8",
+      "categoryId": "cml184r6m001cnl051c1l59fm",
+      "name": "Smart Infrastructure",
+      "slug": "smart-infrastructure",
+      "description": "IoT and smart solutions",
+      "image": null,
+      "icon": null,
+      "iconBgColor": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T18:36:04.133Z",
+      "updatedAt": "2026-01-30T18:36:04.133Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "cml0qcgrm000taw9qhhd9o94e",
+      "categoryId": null,
+      "subCategoryId": null,
+      "name": "Load Balancer Enterprise",
+      "slug": "load-balancer-enterprise",
+      "brandLogo": null,
+      "shortDescription": "Distribute traffic efficiently across your infrastructure",
+      "description": "High-availability load balancing with automatic failover.",
+      "features": [
+        "SSL Termination",
+        "Health Checks",
+        "Sticky Sessions",
+        "Auto-scaling"
+      ],
+      "specifications": {
+        "Throughput": "10 Gbps",
+        "Connections": "100K concurrent"
+      },
+      "sku": "LB-ENT-001",
+      "barcode": null,
+      "basePrice": "79.99",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "taxRate": null,
+      "productType": "WITH_ADDONS",
+      "status": "ARCHIVED",
+      "isFeatured": true,
+      "isDigital": true,
+      "requiresShipping": true,
+      "trackInventory": true,
+      "allowBackorder": false,
+      "stockQuantity": 100,
+      "lowStockThreshold": 5,
+      "weight": null,
+      "weightUnit": "kg",
+      "sortOrder": 0,
+      "viewCount": 16,
+      "salesCount": 0,
+      "averageRating": null,
+      "reviewCount": 0,
+      "createdAt": "2026-01-30T10:18:10.786Z",
+      "updatedAt": "2026-01-30T18:46:03.107Z"
+    },
+    {
+      "id": "cml0qcgqz000daw9qtxbajmjx",
+      "categoryId": null,
+      "subCategoryId": null,
+      "name": "Virtual Machine Pro",
+      "slug": "virtual-machine-pro",
+      "brandLogo": null,
+      "shortDescription": "High-performance cloud computing with dedicated resources",
+      "description": "Enterprise-grade virtual machines with dedicated CPU and memory resources. Perfect for applications that require consistent performance.",
+      "features": [
+        "Dedicated vCPU cores",
+        "NVMe SSD Storage",
+        "Private Networking",
+        "Automatic Backups",
+        "99.99% Uptime SLA"
+      ],
+      "specifications": {
+        "CPU": "8 vCPU (Dedicated)",
+        "RAM": "32GB DDR4",
+        "Network": "10 Gbps",
+        "Storage": "500GB NVMe SSD"
+      },
+      "sku": "VM-PRO-001",
+      "barcode": null,
+      "basePrice": "98.99",
+      "compareAtPrice": "149.99",
+      "costPrice": null,
+      "taxRate": null,
+      "productType": "CONFIGURABLE",
+      "status": "ARCHIVED",
+      "isFeatured": true,
+      "isDigital": true,
+      "requiresShipping": true,
+      "trackInventory": true,
+      "allowBackorder": false,
+      "stockQuantity": 100,
+      "lowStockThreshold": 5,
+      "weight": null,
+      "weightUnit": "kg",
+      "sortOrder": 0,
+      "viewCount": 90,
+      "salesCount": 0,
+      "averageRating": null,
+      "reviewCount": 0,
+      "createdAt": "2026-01-30T10:18:10.763Z",
+      "updatedAt": "2026-01-30T18:46:07.770Z"
+    },
+    {
+      "id": "cml1apkob000113ibtf4r68mh",
+      "categoryId": "cml184r63000wnl05y1j7n1oi",
+      "subCategoryId": "cml184r65000ynl05ejhjxagd",
+      "name": "Acronis Cyber Protect Cloud",
+      "slug": "acronis-cyber-protect-cloud",
+      "brandLogo": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=200&h=200&fit=crop",
+      "shortDescription": "All-in-one cyber protection solution integrating backup, disaster recovery, AI-based malware protection, and remote management.",
+      "description": "<h2>Complete Cyber Protection for Modern Businesses</h2>\n<p>Acronis Cyber Protect Cloud is the only solution that natively integrates cybersecurity, data protection, and endpoint protection management to safeguard endpoints, systems, and data. This integration eliminates complexity so service providers can protect customers better while keeping costs down.</p>\n\n<h3>Why Choose Acronis Cyber Protect Cloud?</h3>\n<p>Traditional security solutions are no longer enough. Today's threats require a new approach that combines backup, disaster recovery, next-generation anti-malware, and endpoint management into one integrated solution.</p>\n\n<h3>Key Capabilities</h3>\n<ul>\n  <li><strong>Backup & Recovery:</strong> Reliable image-based backup for physical and virtual systems with flexible recovery options</li>\n  <li><strong>Anti-Malware & Antivirus:</strong> AI and ML-based protection against malware, ransomware, and zero-day attacks</li>\n  <li><strong>URL Filtering:</strong> Block malicious URLs and web-based threats before they reach endpoints</li>\n  <li><strong>Vulnerability Assessments:</strong> Identify security gaps and prioritize patches</li>\n  <li><strong>Patch Management:</strong> Automate patch deployment across Windows, macOS, and Linux</li>\n  <li><strong>Remote Desktop:</strong> Secure remote access to managed endpoints</li>\n  <li><strong>Hardware Inventory:</strong> Track and manage hardware assets across your organization</li>\n</ul>\n\n<h3>Advanced Protection Packs</h3>\n<p>Extend your protection with specialized add-on packs:</p>\n<ul>\n  <li><strong>Advanced Security:</strong> Enhanced threat detection with EDR capabilities</li>\n  <li><strong>Advanced Backup:</strong> Continuous data protection and SAP HANA support</li>\n  <li><strong>Advanced Disaster Recovery:</strong> Orchestrated failover to Acronis Cloud</li>\n  <li><strong>Advanced Email Security:</strong> Protection against email-borne threats</li>\n  <li><strong>Advanced Data Loss Prevention:</strong> Prevent sensitive data leakage</li>\n</ul>",
+      "features": [
+        "AI-powered anti-malware with behavioral detection",
+        "Integrated backup and disaster recovery",
+        "Automated patch management for 300+ applications",
+        "URL filtering with real-time threat intelligence",
+        "Vulnerability assessments and remediation",
+        "Centralized management console",
+        "Remote desktop and assistance",
+        "Hardware and software inventory",
+        "Continuous Data Protection (CDP)",
+        "Microsoft 365 and Google Workspace backup",
+        "Forensic backup capabilities",
+        "Blockchain-based notarization",
+        "Active Protection against ransomware",
+        "Safe recovery with anti-malware scanning",
+        "Fail-safe patching with automatic backup"
+      ],
+      "specifications": {
+        "API": "REST API for integration and automation",
+        "Compliance": "GDPR, HIPAA, SOC 2 Type II compliant",
+        "Data Centers": "50+ worldwide with geo-redundancy",
+        "Supported OS": "Windows 7/8/10/11, Windows Server 2008 R2-2022, macOS 10.13+, Linux (major distributions)",
+        "Recovery Options": "Full system, File-level, Universal Restore, Instant Restore",
+        "Management Console": "Web-based, multi-tenant architecture",
+        "Anti-malware Engine": "AI/ML-based with signature and behavioral detection",
+        "Backup Destinations": "Local, Network, Acronis Cloud, Azure, AWS, Google Cloud"
+      },
+      "sku": null,
+      "barcode": null,
+      "basePrice": "0",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "taxRate": null,
+      "productType": "CONFIGURABLE",
+      "status": "ACTIVE",
+      "isFeatured": true,
+      "isDigital": true,
+      "requiresShipping": false,
+      "trackInventory": false,
+      "allowBackorder": false,
+      "stockQuantity": 9999,
+      "lowStockThreshold": 5,
+      "weight": null,
+      "weightUnit": "kg",
+      "sortOrder": 0,
+      "viewCount": 13,
+      "salesCount": 0,
+      "averageRating": null,
+      "reviewCount": 0,
+      "createdAt": "2026-01-30T19:48:14.699Z",
+      "updatedAt": "2026-01-31T12:10:25.203Z"
+    }
+  ],
+  "productImages": [
+    {
+      "id": "cml1apkol000213ibabgyn83k",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "url": "https://www.acronis.com/en-us/media/images/content/2023/cyber-protect-cloud-console.png",
+      "alt": "Acronis Cyber Protect Cloud Console",
+      "width": null,
+      "height": null,
+      "sortOrder": 0,
+      "isPrimary": true,
+      "createdAt": "2026-01-30T19:48:14.709Z"
+    },
+    {
+      "id": "cml1apkol000313ibhviij7a5",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "url": "https://www.acronis.com/en-us/media/images/content/2023/cyber-protect-dashboard.png",
+      "alt": "Acronis Dashboard",
+      "width": null,
+      "height": null,
+      "sortOrder": 1,
+      "isPrimary": false,
+      "createdAt": "2026-01-30T19:48:14.709Z"
+    }
+  ],
+  "productVariants": [
+    {
+      "id": "cml0qcgr7000haw9qxl8qlq8t",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Basic",
+      "sku": "VM-PRO-BASIC",
+      "price": "49.99",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "stockQuantity": 100,
+      "attributes": {
+        "cpu": "4 vCPU",
+        "ram": "16GB",
+        "tier": "basic"
+      },
+      "isDefault": false,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.771Z",
+      "updatedAt": "2026-01-30T10:18:10.771Z"
+    },
+    {
+      "id": "cml0qcgr7000iaw9q5cj5hwci",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Pro",
+      "sku": "VM-PRO-PRO",
+      "price": "99.99",
+      "compareAtPrice": "149.99",
+      "costPrice": null,
+      "stockQuantity": 100,
+      "attributes": {
+        "cpu": "8 vCPU",
+        "ram": "32GB",
+        "tier": "pro"
+      },
+      "isDefault": true,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T10:18:10.771Z",
+      "updatedAt": "2026-01-30T10:18:10.771Z"
+    },
+    {
+      "id": "cml0qcgr7000jaw9qme39fzqy",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Enterprise",
+      "sku": "VM-PRO-ENT",
+      "price": "199.99",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "stockQuantity": 100,
+      "attributes": {
+        "cpu": "16 vCPU",
+        "ram": "64GB",
+        "tier": "enterprise"
+      },
+      "isDefault": false,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T10:18:10.771Z",
+      "updatedAt": "2026-01-30T10:18:10.771Z"
+    },
+    {
+      "id": "cml1apkoq000413ibu3kh3ysl",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Starter",
+      "sku": "ACRONIS-STARTER",
+      "price": "2999",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "stockQuantity": 0,
+      "attributes": {
+        "Servers": "1",
+        "Support": "Email",
+        "Workstations": "Up to 10",
+        "Cloud Storage": "50 GB"
+      },
+      "isDefault": true,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T19:48:14.715Z",
+      "updatedAt": "2026-01-30T19:48:14.715Z"
+    },
+    {
+      "id": "cml1apkoq000513ib330rwubm",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Business",
+      "sku": "ACRONIS-BUSINESS",
+      "price": "7999",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "stockQuantity": 0,
+      "attributes": {
+        "Servers": "5",
+        "Support": "Email + Phone",
+        "Workstations": "Up to 50",
+        "Cloud Storage": "250 GB"
+      },
+      "isDefault": false,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T19:48:14.715Z",
+      "updatedAt": "2026-01-30T19:48:14.715Z"
+    },
+    {
+      "id": "cml1apkoq000613ib6htmoqso",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Enterprise",
+      "sku": "ACRONIS-ENTERPRISE",
+      "price": "19999",
+      "compareAtPrice": null,
+      "costPrice": null,
+      "stockQuantity": 0,
+      "attributes": {
+        "Servers": "Unlimited",
+        "Support": "24/7 Priority",
+        "Workstations": "Unlimited",
+        "Cloud Storage": "1 TB"
+      },
+      "isDefault": false,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T19:48:14.715Z",
+      "updatedAt": "2026-01-30T19:48:14.715Z"
+    }
+  ],
+  "productAddons": [
+    {
+      "id": "cml0qcgre000maw9qnzzmjgry",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Managed Backups",
+      "description": "Daily automated backups with 30-day retention",
+      "price": "15",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T10:18:10.778Z",
+      "updatedAt": "2026-01-30T10:18:10.778Z"
+    },
+    {
+      "id": "cml0qcgre000naw9qarxn8bqa",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Additional IPv4 Address",
+      "description": "Get an additional dedicated IPv4 address",
+      "price": "5",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.778Z",
+      "updatedAt": "2026-01-30T10:18:10.778Z"
+    },
+    {
+      "id": "cml1apkp1000b13ibnpmiogou",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Advanced Security Pack",
+      "description": "Enhanced threat detection with EDR, exploit prevention, and threat intelligence feeds",
+      "price": "1500",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    },
+    {
+      "id": "cml1apkp1000c13ib606jrptu",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Advanced Backup Pack",
+      "description": "Continuous Data Protection, SAP HANA support, and enhanced backup features",
+      "price": "1200",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    },
+    {
+      "id": "cml1apkp1000d13ibg21adzbb",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Advanced Disaster Recovery",
+      "description": "Production and test failover to Acronis Cloud with orchestrated runbooks",
+      "price": "2500",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    },
+    {
+      "id": "cml1apkp1000e13ibmqsd7w16",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Advanced Email Security",
+      "description": "Protection against spam, phishing, malware, and advanced email threats",
+      "price": "800",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    },
+    {
+      "id": "cml1apkp1000f13ib5sqo7wxf",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Advanced DLP",
+      "description": "Data Loss Prevention to protect sensitive data across endpoints and cloud",
+      "price": "1000",
+      "pricingType": "RECURRING_MONTHLY",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    },
+    {
+      "id": "cml1apkp1000g13ibj74wpeac",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Professional Services - Implementation",
+      "description": "Expert deployment and configuration by certified Acronis engineers",
+      "price": "25000",
+      "pricingType": "ONE_TIME",
+      "isRequired": false,
+      "isActive": true,
+      "sortOrder": 5,
+      "createdAt": "2026-01-30T19:48:14.726Z",
+      "updatedAt": "2026-01-30T19:48:14.726Z"
+    }
+  ],
+  "productConfigs": [
+    {
+      "id": "cml0qcgri000qaw9qrvqwbm1k",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Data Center Region",
+      "type": "SELECT",
+      "options": [
+        {
+          "label": "US East (N. Virginia)",
+          "value": "us-east",
+          "priceModifier": 0
+        },
+        {
+          "label": "US West (Oregon)",
+          "value": "us-west",
+          "priceModifier": 0
+        },
+        {
+          "label": "EU West (Ireland)",
+          "value": "eu-west",
+          "priceModifier": 5
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "us-east",
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T10:18:10.782Z",
+      "updatedAt": "2026-01-30T10:18:10.782Z"
+    },
+    {
+      "id": "cml0qcgri000raw9qaexfef77",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "name": "Operating System",
+      "type": "SELECT",
+      "options": [
+        {
+          "label": "Ubuntu 22.04 LTS",
+          "value": "ubuntu-22",
+          "priceModifier": 0
+        },
+        {
+          "label": "Debian 12",
+          "value": "debian-12",
+          "priceModifier": 0
+        },
+        {
+          "label": "Windows Server 2022",
+          "value": "windows-2022",
+          "priceModifier": 25
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "ubuntu-22",
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.782Z",
+      "updatedAt": "2026-01-30T10:18:10.782Z"
+    },
+    {
+      "id": "cml1apkov000713ibsmuikwob",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Number of Workstations",
+      "type": "SELECT",
+      "options": [
+        {
+          "label": "Up to 10 Workstations",
+          "value": "10",
+          "priceModifier": "0"
+        },
+        {
+          "label": "Up to 25 Workstations",
+          "value": "25",
+          "priceModifier": "2000"
+        },
+        {
+          "label": "Up to 50 Workstations",
+          "value": "50",
+          "priceModifier": "4000"
+        },
+        {
+          "label": "Up to 100 Workstations",
+          "value": "100",
+          "priceModifier": "7500"
+        },
+        {
+          "label": "Unlimited Workstations",
+          "value": "unlimited",
+          "priceModifier": "12000"
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "10",
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T19:48:14.720Z",
+      "updatedAt": "2026-01-30T19:48:14.720Z"
+    },
+    {
+      "id": "cml1apkov000813ibq6510nrp",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Number of Servers",
+      "type": "SELECT",
+      "options": [
+        {
+          "label": "1 Server",
+          "value": "1",
+          "priceModifier": "0"
+        },
+        {
+          "label": "Up to 3 Servers",
+          "value": "3",
+          "priceModifier": "3000"
+        },
+        {
+          "label": "Up to 5 Servers",
+          "value": "5",
+          "priceModifier": "5000"
+        },
+        {
+          "label": "Up to 10 Servers",
+          "value": "10",
+          "priceModifier": "9000"
+        },
+        {
+          "label": "Unlimited Servers",
+          "value": "unlimited",
+          "priceModifier": "15000"
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "1",
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T19:48:14.720Z",
+      "updatedAt": "2026-01-30T19:48:14.720Z"
+    },
+    {
+      "id": "cml1apkov000913ib1eqid3vv",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Cloud Storage",
+      "type": "SELECT",
+      "options": [
+        {
+          "label": "50 GB Cloud Storage",
+          "value": "50",
+          "priceModifier": "0"
+        },
+        {
+          "label": "100 GB Cloud Storage",
+          "value": "100",
+          "priceModifier": "500"
+        },
+        {
+          "label": "250 GB Cloud Storage",
+          "value": "250",
+          "priceModifier": "1200"
+        },
+        {
+          "label": "500 GB Cloud Storage",
+          "value": "500",
+          "priceModifier": "2200"
+        },
+        {
+          "label": "1 TB Cloud Storage",
+          "value": "1000",
+          "priceModifier": "4000"
+        },
+        {
+          "label": "5 TB Cloud Storage",
+          "value": "5000",
+          "priceModifier": "15000"
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "50",
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T19:48:14.720Z",
+      "updatedAt": "2026-01-30T19:48:14.720Z"
+    },
+    {
+      "id": "cml1apkov000a13ibg2bixs69",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "name": "Billing Cycle",
+      "type": "RADIO",
+      "options": [
+        {
+          "label": "Monthly Billing",
+          "value": "monthly",
+          "priceModifier": "0"
+        },
+        {
+          "label": "Annual Billing (Save 20%)",
+          "value": "annual",
+          "priceModifier": "-20%"
+        }
+      ],
+      "isRequired": true,
+      "defaultValue": "monthly",
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T19:48:14.720Z",
+      "updatedAt": "2026-01-30T19:48:14.720Z"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "cml0qcgrs000uaw9q1twdacgc",
+      "name": "Startup Bundle",
+      "slug": "startup-bundle",
+      "description": "Everything you need to launch your startup",
+      "shortDescription": "Perfect for startups and small teams",
+      "image": null,
+      "price": "199.99",
+      "compareAtPrice": "349.99",
+      "discountType": "FIXED",
+      "discountValue": "150",
+      "status": "ACTIVE",
+      "isFeatured": true,
+      "isCustomizable": false,
+      "minItems": null,
+      "maxItems": null,
+      "validFrom": null,
+      "validUntil": null,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.792Z",
+      "updatedAt": "2026-01-30T10:18:10.792Z"
+    }
+  ],
+  "bundleItems": [
+    {
+      "id": "cml0qcgs1000waw9qksp1me69",
+      "bundleId": "cml0qcgrs000uaw9q1twdacgc",
+      "productId": "cml0qcgqz000daw9qtxbajmjx",
+      "quantity": 1,
+      "isRequired": true,
+      "isDefault": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.801Z"
+    },
+    {
+      "id": "cml0qcgs7000yaw9qd36om9kl",
+      "bundleId": "cml0qcgrs000uaw9q1twdacgc",
+      "productId": "cml0qcgrm000taw9qhhd9o94e",
+      "quantity": 1,
+      "isRequired": true,
+      "isDefault": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.807Z"
+    }
+  ],
+  "pricingTiers": [],
+  "discounts": [],
+  "companyInfo": [
+    {
+      "id": "company-info",
+      "name": "Shaurrya Teleservices",
+      "legalName": "Shaurrya Teleservices Private Limited",
+      "email": "contact@shaurryatele.com",
+      "phone": "+91-8698080000",
+      "address": "Mumbai",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "India",
+      "postalCode": "400001",
+      "taxId": null,
+      "logo": null,
+      "favicon": null,
+      "socialLinks": {
+        "twitter": "https://twitter.com/shaurryatele",
+        "facebook": "https://facebook.com/shaurryatele",
+        "linkedin": "https://linkedin.com/company/shaurryatele",
+        "instagram": "https://instagram.com/shaurryatele"
+      },
+      "supportEmail": "support@shaurryatele.com",
+      "supportPhone": "+91 (999) 987-6543",
+      "businessHours": null,
+      "currency": "INR",
+      "currencySymbol": "₹",
+      "timezone": "Asia/Kolkata",
+      "createdAt": "2026-01-30T10:18:10.811Z",
+      "updatedAt": "2026-01-30T14:03:49.263Z"
+    }
+  ],
+  "settings": [
+    {
+      "id": "79a1ecfb-1a81-49a0-8030-a7fdf2543106",
+      "key": "site_title",
+      "value": "Test Title",
+      "group": "site",
+      "createdAt": "2026-01-30T12:25:49.960Z",
+      "updatedAt": "2026-01-30T14:03:49.266Z"
+    },
+    {
+      "id": "b12a7a88-814a-42fc-8390-1ebeda04f094",
+      "key": "site_tagline",
+      "value": "Enterprise Teleservices Solutions",
+      "group": "site",
+      "createdAt": "2026-01-30T12:25:49.960Z",
+      "updatedAt": "2026-01-30T14:03:49.269Z"
+    },
+    {
+      "id": "cml0w4kq30008149dmbhckfan",
+      "key": "meta_description",
+      "value": "",
+      "group": "site",
+      "createdAt": "2026-01-30T13:00:00.363Z",
+      "updatedAt": "2026-01-30T14:03:49.272Z"
+    },
+    {
+      "id": "cml0w4kq50009149d242k7rhz",
+      "key": "site_logo",
+      "value": "/uploads/branding/1769780289939-aocuy8.svg",
+      "group": "site",
+      "createdAt": "2026-01-30T13:00:00.366Z",
+      "updatedAt": "2026-01-30T14:03:49.275Z"
+    },
+    {
+      "id": "cml0yejpi0015149d6pe3g229",
+      "key": "logo_dark",
+      "value": "/uploads/branding/1769781810342-4xokct.jpg",
+      "group": "site",
+      "createdAt": "2026-01-30T14:03:44.839Z",
+      "updatedAt": "2026-01-30T14:03:49.278Z"
+    },
+    {
+      "id": "cml0yejpm0016149dmj2lk0g1",
+      "key": "logo_light",
+      "value": "/uploads/branding/1769781813806-izrj6.svg",
+      "group": "site",
+      "createdAt": "2026-01-30T14:03:44.842Z",
+      "updatedAt": "2026-01-30T14:03:49.281Z"
+    },
+    {
+      "id": "cml0w4kq8000a149djzjybxnh",
+      "key": "site_favicon",
+      "value": "/uploads/branding/1769780321759-ni48qk.png",
+      "group": "site",
+      "createdAt": "2026-01-30T13:00:00.368Z",
+      "updatedAt": "2026-01-30T14:03:49.283Z"
+    },
+    {
+      "id": "cml0w4kqa000b149de0ltlv17",
+      "key": "header_logo",
+      "value": "/uploads/branding/1769780293183-0153z.svg",
+      "group": "site",
+      "createdAt": "2026-01-30T13:00:00.371Z",
+      "updatedAt": "2026-01-30T14:03:49.286Z"
+    },
+    {
+      "id": "cml0w4kqd000c149d17t6rd1o",
+      "key": "footer_logo",
+      "value": "/uploads/branding/1769781821643-qmh7r.svg",
+      "group": "site",
+      "createdAt": "2026-01-30T13:00:00.373Z",
+      "updatedAt": "2026-01-30T14:03:49.288Z"
+    }
+  ],
+  "pages": [
+    {
+      "id": "cml0qcgsi000zaw9q8yko2nq8",
+      "title": "Home",
+      "slug": "home",
+      "description": "NaaS Market Homepage",
+      "status": "PUBLISHED",
+      "template": "default",
+      "isHomepage": true,
+      "sortOrder": 0,
+      "publishedAt": "2026-01-30T10:18:10.816Z",
+      "createdAt": "2026-01-30T10:18:10.818Z",
+      "updatedAt": "2026-01-30T10:18:10.818Z"
+    }
+  ],
+  "pageSections": [
+    {
+      "id": "cml0qcgso0010aw9qxxv1wz8l",
+      "pageId": "cml0qcgsi000zaw9q8yko2nq8",
+      "type": "hero",
+      "title": "Welcome to NaaS Market",
+      "content": {
+        "ctaLink": "/products",
+        "ctaText": "Browse Products",
+        "heading": "Network-as-a-Service Marketplace",
+        "subheading": "Scale your infrastructure with enterprise-grade cloud services"
+      },
+      "settings": null,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T10:18:10.824Z",
+      "updatedAt": "2026-01-30T10:18:10.824Z"
+    },
+    {
+      "id": "cml0qcgso0011aw9qy36tbl4x",
+      "pageId": "cml0qcgsi000zaw9q8yko2nq8",
+      "type": "featured-products",
+      "title": "Featured Products",
+      "content": {
+        "count": 4,
+        "heading": "Popular Services"
+      },
+      "settings": null,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T10:18:10.824Z",
+      "updatedAt": "2026-01-30T10:18:10.824Z"
+    },
+    {
+      "id": "cml0qcgso0012aw9qnsoo3x68",
+      "pageId": "cml0qcgsi000zaw9q8yko2nq8",
+      "type": "categories",
+      "title": "Categories",
+      "content": {
+        "heading": "Browse by Category"
+      },
+      "settings": null,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T10:18:10.824Z",
+      "updatedAt": "2026-01-30T10:18:10.824Z"
+    }
+  ],
+  "seoMetadata": [
+    {
+      "id": "cml1apkp7000i13ibe8pqzpon",
+      "productId": "cml1apkob000113ibtf4r68mh",
+      "categoryId": null,
+      "subCategoryId": null,
+      "bundleId": null,
+      "pageId": null,
+      "metaTitle": "Acronis Cyber Protect Cloud | Complete Cyber Protection Solution",
+      "metaDescription": "Protect your business with Acronis Cyber Protect Cloud. All-in-one solution for backup, disaster recovery, anti-malware, and endpoint management. Start your free trial today.",
+      "metaKeywords": "acronis, cyber protect, backup, disaster recovery, anti-malware, ransomware protection, endpoint protection, cloud backup",
+      "canonicalUrl": null,
+      "ogTitle": "Acronis Cyber Protect Cloud - Enterprise Cyber Protection",
+      "ogDescription": "All-in-one cyber protection integrating backup, disaster recovery, AI-based anti-malware, and endpoint management.",
+      "ogImage": null,
+      "twitterCard": "summary_large_image",
+      "structuredData": null,
+      "noIndex": false,
+      "noFollow": false,
+      "createdAt": "2026-01-30T19:48:14.731Z",
+      "updatedAt": "2026-01-30T19:48:14.731Z"
+    }
+  ],
+  "menus": [],
+  "menuItems": [],
+  "media": [],
+  "trendingCategories": [
+    {
+      "id": "cml0tp74k00006j7vwakjq2u1",
+      "name": "Wi-Fi",
+      "description": "Reliable enterprise connectivity built for speed, stability, & seamless performance.",
+      "icon": "wifi",
+      "iconBgColor": "#000000",
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T11:52:03.667Z",
+      "updatedAt": "2026-01-30T11:52:03.667Z"
+    },
+    {
+      "id": "cml0tp7x600016j7v1ds5hluh",
+      "name": "Security",
+      "description": "Protecting networks with intelligent threat detection for unmatched digital safety.",
+      "icon": "shield",
+      "iconBgColor": "#D4A574",
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T11:52:04.699Z",
+      "updatedAt": "2026-01-30T11:52:04.699Z"
+    },
+    {
+      "id": "cml0tp8ox00026j7v7er16pcu",
+      "name": "Cloud",
+      "description": "Scalable cloud technology powering simplified workflows across modern businesses.",
+      "icon": "cloud",
+      "iconBgColor": "#E5E5E5",
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T11:52:05.697Z",
+      "updatedAt": "2026-01-30T11:52:05.697Z"
+    },
+    {
+      "id": "cml0tp99p00036j7vn4u8kn0a",
+      "name": "Automation",
+      "description": "Streamlining complex operations using intelligent automated processes for efficiency.",
+      "icon": "settings",
+      "iconBgColor": "#FFE4E4",
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T11:52:06.445Z",
+      "updatedAt": "2026-01-30T11:52:06.445Z"
+    },
+    {
+      "id": "cml0tp9tj00046j7venaeqkh3",
+      "name": "AI-Core",
+      "description": "Advanced artificial intelligence enabling smart decisions across your network.",
+      "icon": "brain",
+      "iconBgColor": "#FFE4E4",
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T11:52:07.159Z",
+      "updatedAt": "2026-01-30T11:52:07.159Z"
+    },
+    {
+      "id": "cml0tpad500056j7vt3v58x1m",
+      "name": "IoT",
+      "description": "Connecting devices intelligently to automate tasks and enhance productivity.",
+      "icon": "share2",
+      "iconBgColor": "#F5F5F5",
+      "isActive": true,
+      "sortOrder": 5,
+      "createdAt": "2026-01-30T11:52:07.865Z",
+      "updatedAt": "2026-01-30T11:52:07.865Z"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "cml0tpk4e00066j7v4qvl6i1m",
+      "clientName": "Rajesh Menon",
+      "designation": "IT Services",
+      "company": null,
+      "quote": "Shaurrya's network infrastructure transformed our operations. The uptime and support are exceptional. We've seen a 40% improvement in connectivity across all our branches.",
+      "title": "Shaurrya's Services are Unmatched",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+      "rating": 5,
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T11:52:20.510Z",
+      "updatedAt": "2026-01-30T11:52:20.510Z"
+    },
+    {
+      "id": "cml0tpkxo00076j7v7b4iptro",
+      "clientName": "Arjun Desai",
+      "designation": "Bank Manager",
+      "company": null,
+      "quote": "The security solutions provided by Shaurrya give us peace of mind. Their 24/7 monitoring and quick response time have been invaluable for our financial operations.",
+      "title": "Shaurrya's Services are Unmatched",
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+      "rating": 5,
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T11:52:21.565Z",
+      "updatedAt": "2026-01-30T11:52:21.565Z"
+    },
+    {
+      "id": "cml0tploh00086j7vkdmaoz8j",
+      "clientName": "Priya Sharma",
+      "designation": "CTO",
+      "company": "TechStart Solutions",
+      "quote": "Moving to Shaurrya's cloud infrastructure was the best decision we made. Scalable, reliable, and cost-effective. Their team made the migration seamless.",
+      "title": "Best Cloud Partner We've Had",
+      "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face",
+      "rating": 5,
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T11:52:22.530Z",
+      "updatedAt": "2026-01-30T11:52:22.530Z"
+    }
+  ],
+  "companyLogos": [
+    {
+      "id": "cml0tyj9h0000149dn8mrh3b7",
+      "name": "Microsoft",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png",
+      "website": "https://microsoft.com",
+      "isActive": true,
+      "sortOrder": 0,
+      "createdAt": "2026-01-30T11:59:19.302Z",
+      "updatedAt": "2026-01-30T11:59:19.302Z"
+    },
+    {
+      "id": "cml0tykki0001149dhbz3z3vg",
+      "name": "Google",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png",
+      "website": "https://google.com",
+      "isActive": true,
+      "sortOrder": 1,
+      "createdAt": "2026-01-30T11:59:20.993Z",
+      "updatedAt": "2026-01-30T11:59:20.993Z"
+    },
+    {
+      "id": "cml0tym9e0002149dbsfcqg1g",
+      "name": "Amazon",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/512px-Amazon_logo.svg.png",
+      "website": "https://amazon.com",
+      "isActive": true,
+      "sortOrder": 2,
+      "createdAt": "2026-01-30T11:59:23.187Z",
+      "updatedAt": "2026-01-30T11:59:23.187Z"
+    },
+    {
+      "id": "cml0tynlz0003149dt0qznxvl",
+      "name": "Cisco",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Cisco_logo_blue_2016.svg/512px-Cisco_logo_blue_2016.svg.png",
+      "website": "https://cisco.com",
+      "isActive": true,
+      "sortOrder": 3,
+      "createdAt": "2026-01-30T11:59:24.935Z",
+      "updatedAt": "2026-01-30T11:59:24.935Z"
+    },
+    {
+      "id": "cml0typ1n0004149dxiuyvawd",
+      "name": "IBM",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/512px-IBM_logo.svg.png",
+      "website": "https://ibm.com",
+      "isActive": true,
+      "sortOrder": 4,
+      "createdAt": "2026-01-30T11:59:26.795Z",
+      "updatedAt": "2026-01-30T11:59:26.795Z"
+    },
+    {
+      "id": "cml0tyqd10005149dt4tm25z9",
+      "name": "Oracle",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Oracle_logo.svg/512px-Oracle_logo.svg.png",
+      "website": "https://oracle.com",
+      "isActive": true,
+      "sortOrder": 5,
+      "createdAt": "2026-01-30T11:59:28.502Z",
+      "updatedAt": "2026-01-30T11:59:28.502Z"
+    }
+  ]
+}

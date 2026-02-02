@@ -2,26 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%;
+    --foreground: 220 13% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 9%;
+    --primary: 0 73% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 9% 46%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 0 73% 42%;
+    --radius: 0.75rem;
   }
-}
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Selection */
+::selection {
+  background: rgba(185, 28, 28, 0.15);
+  color: #991b1b;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar utility class */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Auto-scrolling animation for company logos */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 30s linear infinite;
+}
+
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-elevated hover:-translate-y-0.5;
+}
+
+/* Solution card backgrounds */
+.solution-card-pink {
+  background: linear-gradient(180deg, #FEE2E2 0%, #FECACA 100%);
+}
+
+.solution-card-beige {
+  background: linear-gradient(180deg, #FDF6E9 0%, #FEF3C7 100%);
+}
+
+.solution-card-gray {
+  background: linear-gradient(180deg, #F3F4F6 0%, #E5E7EB 100%);
+}
+
+.solution-card-dark {
+  background: linear-gradient(180deg, #1F2937 0%, #111827 100%);
 }
