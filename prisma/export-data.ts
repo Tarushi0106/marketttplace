@@ -11,7 +11,7 @@ async function exportData() {
     exportedAt: new Date().toISOString(),
     version: "1.0.0",
 
-    // Users (excluding sensitive data like passwords)
+   
     users: await prisma.user.findMany({
       select: {
         id: true,
