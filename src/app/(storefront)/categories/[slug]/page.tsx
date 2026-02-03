@@ -121,10 +121,12 @@ function getSubCategoryIcon(iconName: string | null, index: number, className: s
   const icon = iconName || subCategoryIcons[index % subCategoryIcons.length];
   const IconComponent = iconComponents[icon];
   const color = textColor || subCategoryColors[index % subCategoryColors.length].text;
-  if (IconComponent) {
-    return <IconComponent className={className} style={{ color }} />;
-  }
-  return <Folder className={className} style={{ color }} />;
+const Icon = IconComponent as React.ComponentType<
+  React.SVGProps<SVGSVGElement>
+>;
+
+return <Icon className={className} style={{ color }} />;
+
 }
 
 function getSubCategoryColor(iconBgColor: string | null, index: number) {
