@@ -20,6 +20,9 @@ export interface CartItem {
   }[];
   unitPrice: number;
   totalPrice: number;
+  // Billing information
+  billingCycle?: "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+  isRecurring?: boolean;
 }
 
 interface CartState {

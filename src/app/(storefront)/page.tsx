@@ -173,12 +173,12 @@ export default async function HomePage() {
             <div className="relative h-full flex items-end pb-12 md:pb-16 px-8 md:px-12 lg:px-16">
               <div className="max-w-2xl">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Powering Enterprise
+                  The Digital Solution
                   <br />
-                  Digital Transformation
+                  for growing companies
                 </h1>
                 <p className="mt-6 text-base md:text-lg text-gray-200 leading-relaxed max-w-xl">
-                  Accelerate your business growth with our comprehensive suite of enterprise-grade connectivity, cloud infrastructure, and SaaS solutions. Trusted by leading organizations worldwide.
+                  The Right Digital Solution. In 10 Seconds
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
                   <Button
@@ -187,7 +187,7 @@ export default async function HomePage() {
                     asChild
                   >
                     <Link href="/products">
-                      Explore Solutions
+                      Explore Marketplace
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
@@ -197,7 +197,7 @@ export default async function HomePage() {
                     className="border-white text-white hover:bg-white/10 rounded-lg h-12 px-8"
                     asChild
                   >
-                    <Link href="/contact">Contact Sales</Link>
+                    <Link href="/solutions">View Solutions</Link>
                   </Button>
                 </div>
               </div>

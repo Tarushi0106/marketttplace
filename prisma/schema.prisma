@@ -131,6 +131,7 @@ model Category {
 
   subCategories SubCategory[]
   products      Product[]
+  configs       CategoryConfig[]
   seoMetadata   SeoMetadata?
 
   @@map("categories")
@@ -205,6 +206,7 @@ model Product {
   images          ProductImage[]
   bundleItems     BundleItem[]
   pricingTiers    PricingTier[]
+  recurringPrices ProductRecurringPrice[]
   orderItems      OrderItem[]
   wishlistItems   WishlistItem[]
   reviews         Review[]
@@ -251,6 +253,7 @@ model ProductVariant {
 
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
+  recurringPrices ProductRecurringPrice[]
 
   @@map("product_variants")
 }
@@ -275,19 +278,59 @@ model ProductAddon {
 }
 
 model ProductConfig {
-  id           String   @id @default(cuid())
-  productId    String
-  name         String   // e.g., "RAM", "Storage", "Users"
-  type         ConfigType @default(SELECT)
-  options      Json     // Array of { value, label, priceModifier }
-  isRequired   Boolean  @default(false)
-  defaultValue String?
-  sortOrder    Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
+  id              String              @id @default(cuid())
+  productId       String
+  
+  // Template reference (optional - can use template or custom)
+  templateId      String?
+  categoryConfigId String?
+  
+  // Configuration Details
+  name            String              // e.g., "RAM", "Storage", "Users"
+  displayName     String?             // e.g., "Memory", "Disk Space"
+  description     String?             @db.Text
+  unit            String?             // e.g., "GB", "TB", "Users"
+  unitPlural      String?             // e.g., "GB", "TB", "Users"
+  icon            String?
+  
+  // Pricing (can inherit from template if null)
+  pricingModel    PricingModel?       @default(PER_UNIT)
+  basePrice       Decimal?            @db.Decimal(10, 2)
+  pricePerUnit    Decimal?            @db.Decimal(10, 2)
+  currency        String?             @default("USD")
+  
+  // Billing
+  billingCycle    BillingCycle?       @default(ONE_TIME)
+  isRecurring     Boolean?            @default(false)
+  
+  // Input
+  inputType       ConfigInputType?    @default(SELECT)
+  minValue        Int?
+  maxValue        Int?
+  stepValue       Int?                @default(1)
+  defaultValue    String?
+  isRequired      Boolean?            @default(false)
+  allowCustom     Boolean?            @default(false)
+  
+  // Validation
+  validationRules Json?
+  
+  // Inheritance Control
+  inheritFrom     InheritSource?
+  inheritConfigId String?
+  
+  // Status
+  isActive        Boolean             @default(true)
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  product         Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  template        ProductConfigTemplate? @relation(fields: [templateId], references: [id])
+  categoryConfig  CategoryConfig?     @relation(fields: [categoryConfigId], references: [id])
+  options         ProductConfigOption[]
+  
   @@map("product_configs")
 }
 
@@ -315,6 +358,198 @@ enum ConfigType {
   RADIO
   CHECKBOX
   NUMBER
+}
+
+// ============================================
+// CONFIGURATION TEMPLATES (Reusable Configs)
+// ============================================
+
+model ProductConfigTemplate {
+  id              String                @id @default(cuid())
+  name            String                // e.g., "Cloud Server Config", "Storage Config"
+  description     String?               @db.Text
+  scope           ConfigurationScope    @default(PRODUCT)
+  
+  // Configuration Details
+  unit            String?               // e.g., "GB", "TB", "Users"
+  unitPlural      String?               // e.g., "GB", "TB", "Users"
+  icon            String?
+  
+  // Pricing
+  pricingModel    PricingModel          @default(PER_UNIT)
+  basePrice       Decimal?              @db.Decimal(10, 2)
+  pricePerUnit    Decimal?              @db.Decimal(10, 2)
+  currency        String                @default("USD")
+  
+  // Billing
+  billingCycle    BillingCycle          @default(ONE_TIME)
+  isRecurring     Boolean               @default(false)
+  
+  // Input
+  inputType       ConfigInputType       @default(SELECT)
+  minValue        Int?
+  maxValue        Int?
+  stepValue       Int?                  @default(1)
+  defaultValue    String?
+  isRequired      Boolean               @default(false)
+  allowCustom     Boolean               @default(false)
+  
+  // Validation
+  validationRules Json?
+  
+  // Status
+  isActive        Boolean               @default(true)
+  sortOrder       Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  // Relations
+  options         ConfigTemplateOption[]
+  categoryConfigs CategoryConfig[]
+  productConfigs  ProductConfig[]
+  
+  @@map("product_config_templates")
+}
+
+model ConfigTemplateOption {
+  id              String                @id @default(cuid())
+  templateId      String
+  value           String
+  label           String
+  description     String?               @db.Text
+  
+  // Pricing
+  priceModifier   Decimal?              @db.Decimal(10, 2)
+  isPercentage    Boolean               @default(false)
+  modifierType    ModifierType          @default(ADD)
+  
+  // Availability
+  isAvailable     Boolean               @default(true)
+  stockStatus     String?
+  sortOrder       Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  template        ProductConfigTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  @@map("config_template_options")
+}
+
+// ============================================
+// CATEGORY CONFIGURATIONS
+// ============================================
+
+model CategoryConfig {
+  id              String                @id @default(cuid())
+  categoryId      String
+  templateId      String
+  
+  // Override template settings for this category
+  name            String?               // Override template name
+  unit            String?               // Override template unit
+  pricingModel    PricingModel?         @default(PER_UNIT)
+  basePrice       Decimal?              @db.Decimal(10, 2)
+  pricePerUnit    Decimal?              @db.Decimal(10, 2)
+  currency        String?               @default("USD")
+  
+  // Billing
+  billingCycle    BillingCycle?         @default(ONE_TIME)
+  isRecurring     Boolean?              @default(false)
+  
+  // Input Overrides
+  inputType       ConfigInputType?
+  minValue        Int?
+  maxValue        Int?
+  stepValue       Int?
+  defaultValue    String?
+  isRequired      Boolean?              @default(false)
+  allowCustom     Boolean?              @default(false)
+  
+  // Validation
+  validationRules Json?
+  
+  // Status
+  isActive        Boolean               @default(true)
+  isInherited     Boolean               @default(true)  // Can products override?
+  sortOrder       Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  // Relations
+  category        Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  template        ProductConfigTemplate @relation(fields: [templateId], references: [id])
+  productConfigs  ProductConfig[]
+  
+  @@unique([categoryId, templateId])
+  @@map("category_configs")
+}
+
+model ProductConfigOption {
+  id              String          @id @default(cuid())
+  configId        String
+  templateOptionId String?        // Reference to template option
+  
+  // Values
+  value           String
+  label           String
+  description     String?
+  
+  // Pricing
+  priceModifier   Decimal?        @db.Decimal(10, 2)
+  isPercentage    Boolean         @default(false)
+  modifierType    ModifierType    @default(ADD)
+  
+  // Override template option pricing
+  customPriceModifier Decimal?    @db.Decimal(10, 2)
+  useCustomPrice      Boolean    @default(false)
+  
+  // Availability
+  isAvailable     Boolean         @default(true)
+  stockStatus     String?
+  sortOrder       Int             @default(0)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  config          ProductConfig   @relation(fields: [configId], references: [id], onDelete: Cascade)
+  
+  @@map("product_config_options")
+}
+
+// ============================================
+// PRODUCT RECURRING PRICES
+// ============================================
+
+model ProductRecurringPrice {
+  id              String        @id @default(cuid())
+  productId       String
+  variantId       String?       // Optional variant-specific pricing
+  
+  // Billing Cycle Pricing
+  monthlyPrice    Decimal?      @db.Decimal(10, 2)
+  quarterlyPrice  Decimal?      @db.Decimal(10, 2)
+  yearlyPrice     Decimal?      @db.Decimal(10, 2)
+  biennialPrice   Decimal?      @db.Decimal(10, 2)
+  triennialPrice  Decimal?      @db.Decimal(10, 2)
+  
+  // Savings
+  monthlySavings  Decimal?      @db.Decimal(5, 2)  // Percentage
+  yearlySavings   Decimal?      @db.Decimal(5, 2)
+  
+  currency        String        @default("USD")
+  
+  isActive        Boolean       @default(true)
+  validFrom       DateTime?
+  validUntil      DateTime?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  
+  @@unique([productId, variantId])
+  @@map("product_recurring_prices")
 }
 
 // ============================================
@@ -370,6 +605,60 @@ model BundleItem {
 // ============================================
 // PRICING & DISCOUNTS
 // ============================================
+
+// --- Configuration Enums ---
+
+enum PricingModel {
+  FIXED           // One-time fixed price
+  PER_UNIT        // Price per unit (e.g., per GB, per user)
+  TIERED          // Volume-based pricing tiers
+  HYBRID          // Base fee + per unit
+}
+
+enum BillingCycle {
+  ONE_TIME        // One-time payment
+  MONTHLY         // Monthly recurring
+  QUARTERLY       // Quarterly recurring
+  YEARLY          // Yearly recurring
+  BIENNIAL        // Every 2 years
+  TRIENNIAL       // Every 3 years
+}
+
+enum ConfigInputType {
+  SELECT          // Dropdown select
+  RADIO           // Radio buttons
+  CHECKBOX        // Checkboxes
+  NUMBER          // Numeric input with min/max
+  SLIDER          // Slider with range
+  TEXT            // Free text input
+}
+
+enum ModifierType {
+  ADD         // Add to base price
+  MULTIPLY    // Multiply base price
+  REPLACE     // Replace base price
+}
+
+enum ChargeType {
+  USAGE           // Based on usage (per unit)
+  SETUP           // One-time setup fee
+  LICENSE         // License fee
+  SUPPORT         // Support fee
+  STORAGE         // Storage-based
+  BANDWIDTH       // Bandwidth-based
+}
+
+enum ConfigurationScope {
+  GLOBAL      // Applied to entire system
+  CATEGORY    // Applied to all products in category
+  PRODUCT     // Product-specific configuration
+}
+
+enum InheritSource {
+  CATEGORY      // Inherit from category
+  TEMPLATE      // Inherit from template
+  NONE          // Use custom values only
+}
 
 model PricingTier {
   id         String   @id @default(cuid())
@@ -474,7 +763,15 @@ model OrderItem {
   quantity        Int
   unitPrice       Decimal  @db.Decimal(10, 2)
   totalPrice      Decimal  @db.Decimal(10, 2)
+  
+  // Configuration Details
   configuration   Json?    // Selected configs
+  
+  // Billing Information
+  billingCycle    BillingCycle @default(ONE_TIME)
+  isRecurring     Boolean      @default(false)
+  recurringPrice  Decimal?     @db.Decimal(10, 2)  // Price per billing cycle
+  
   createdAt       DateTime @default(now())
 
   order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -493,6 +790,11 @@ model OrderItemAddon {
   name        String
   price       Decimal  @db.Decimal(10, 2)
   quantity    Int      @default(1)
+  
+  // Billing Information
+  billingCycle    BillingCycle @default(ONE_TIME)
+  isRecurring     Boolean      @default(false)
+  
   createdAt   DateTime @default(now())
 
   orderItem OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)

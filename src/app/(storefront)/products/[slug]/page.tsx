@@ -237,7 +237,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   {hasPricing ? (
                     <>
                       <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                        <a href="#pricing"><ShoppingBag className="h-4 w-4 mr-2" />Buy Now</a>
+                        <Link href={`/products/${product.slug}/configure`}><ShoppingBag className="h-4 w-4 mr-2" />Configure & Buy</Link>
                       </Button>
                       <Button size="lg" variant="outline" className="border-gray-500 text-white hover:bg-white/10 hover:border-gray-400" asChild>
                         <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>

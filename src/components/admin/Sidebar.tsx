@@ -23,6 +23,7 @@ import {
   TrendingUp,
   MessageSquareQuote,
   Building2,
+  Sliders,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,11 @@ const navigation = [
     name: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+  },
+  {
+    name: "Configuration Templates",
+    href: "/admin/config-templates",
+    icon: Sliders,
   },
   {
     name: "Products",

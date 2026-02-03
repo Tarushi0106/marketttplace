@@ -94,8 +94,13 @@ interface MenuItem {
 
 // Fallback nav links if no menu is configured
 const defaultNavLinks = [
-  { label: "All Products", href: "/products", badge: null },
-  { label: "Bundles", href: "/bundles", badge: "Sale" },
+  { label: "Plans", href: "/products", badge: null, icon: "layout-grid" },
+  { label: "Applications", href: "/products?category=applications", badge: null, icon: "box" },
+  { label: "Why NetNxt", href: "/about", badge: null, icon: "brain" },
+  { label: "Comparison", href: "/comparison", badge: null, icon: "share2" },
+  { label: "Industries We Serve", href: "/industries", badge: null, icon: "globe" },
+  { label: "About Us", href: "/about-us", badge: null, icon: "folder" },
+  { label: "Contact Us", href: "/contact", badge: null, icon: "mail" },
 ];
 
 export function Header() {
@@ -208,24 +213,24 @@ export function Header() {
               {session?.user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="hidden md:flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all duration-200 group">
+                    <button className="hidden md:flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all duration-200 group" suppressHydrationWarning>
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B1D1D] to-[#6B1515] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B1D1D] to-[#6B1515] flex items-center justify-center text-white text-sm font-semibold shadow-sm" suppressHydrationWarning>
                           {session.user.name?.charAt(0).toUpperCase() || "U"}
                         </div>
                         <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
                       </div>
-                      <div className="hidden lg:block text-left">
-                        <p className="text-[11px] text-gray-500 font-medium">Welcome back</p>
-                        <p className="text-sm font-semibold text-gray-900">{session.user.name?.split(' ')[0] || 'User'}</p>
+                      <div className="hidden lg:block text-left" suppressHydrationWarning>
+                        <p className="text-[11px] text-gray-500 font-medium" suppressHydrationWarning>Welcome back</p>
+                        <p className="text-sm font-semibold text-gray-900" suppressHydrationWarning>{session.user.name?.split(' ')[0] || 'User'}</p>
                       </div>
                       <ChevronDown className="h-4 w-4 text-gray-400 hidden lg:block group-hover:text-gray-600 transition-colors" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-60 p-2 rounded-xl shadow-xl border-gray-200">
-                    <div className="px-3 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-lg mb-1">
-                      <p className="text-sm font-semibold text-gray-900">{session.user.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{session.user.email}</p>
+                    <div className="px-3 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-lg mb-1" suppressHydrationWarning>
+                      <p className="text-sm font-semibold text-gray-900" suppressHydrationWarning>{session.user.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5" suppressHydrationWarning>{session.user.email}</p>
                     </div>
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard" className="flex items-center gap-3 cursor-pointer rounded-lg py-2.5">
@@ -280,10 +285,10 @@ export function Header() {
                   href="/login"
                   className="hidden md:flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors" suppressHydrationWarning>
                     <User className="h-5 w-5 text-gray-600" />
                   </div>
-                  <div className="hidden lg:block text-left">
+                  <div className="hidden lg:block text-left" suppressHydrationWarning>
                     <p className="text-[11px] text-gray-500 font-medium">Hello, Sign in</p>
                     <p className="text-sm font-semibold text-gray-900">Account</p>
                   </div>
@@ -394,25 +399,29 @@ export function Header() {
 
             {/* Navigation Links */}
             <nav className="hidden lg:flex items-center h-full ml-6">
-              {navLinks.map((link, index) => (
-                <Link
-                  key={link.id || index}
-                  href={link.href || "#"}
-                  target={link.target === "_blank" ? "_blank" : undefined}
-                  className="relative flex items-center gap-1.5 h-full px-4 text-sm font-medium text-gray-600 hover:text-[#8B1D1D] transition-colors duration-200 group"
-                >
-                  {link.label}
-                  {link.badge && (
-                    <span
-                      className="px-1.5 py-0.5 text-white text-[10px] font-bold rounded"
-                      style={{ backgroundColor: link.badgeColor || "#8B1D1D" }}
-                    >
-                      {link.badge}
-                    </span>
-                  )}
-                  <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#8B1D1D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
-                </Link>
-              ))}
+              {navLinks.map((link, index) => {
+                const IconComponent = getIconComponent(link.icon);
+                return (
+                  <Link
+                    key={link.id || index}
+                    href={link.href || "#"}
+                    target={link.target === "_blank" ? "_blank" : undefined}
+                    className="relative flex items-center gap-2 h-full px-3 text-sm font-medium text-gray-600 hover:text-[#8B1D1D] transition-colors duration-200 group"
+                  >
+                    {link.icon && <IconComponent className="h-4 w-4" />}
+                    <span>{link.label}</span>
+                    {link.badge && (
+                      <span
+                        className="px-1.5 py-0.5 text-white text-[10px] font-bold rounded"
+                        style={{ backgroundColor: link.badgeColor || "#8B1D1D" }}
+                      >
+                        {link.badge}
+                      </span>
+                    )}
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B1D1D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right side */}

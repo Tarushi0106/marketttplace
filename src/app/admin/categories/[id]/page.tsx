@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, FolderTree, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, FolderTree, Trash2, Settings, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +70,8 @@ export default function EditCategoryPage() {
   const [deleting, setDeleting] = useState(false);
   const [productCount, setProductCount] = useState(0);
   const [subCategoryCount, setSubCategoryCount] = useState(0);
+  const [attachedConfigs, setAttachedConfigs] = useState<any[]>([]);
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -85,6 +87,7 @@ export default function EditCategoryPage() {
 
   useEffect(() => {
     fetchCategory();
+    fetchCategoryConfigs();
   }, [id]);
 
   async function fetchCategory() {
@@ -117,6 +120,27 @@ export default function EditCategoryPage() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchCategoryConfigs() {
+    try {
+      const response = await fetch(`/api/categories/${id}/configs`);
+      const data = await response.json();
+      if (data.data) {
+        setAttachedConfigs(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching category configs:", error);
+    }
+
+    // Also fetch available templates
+    try {
+      const templatesResponse = await fetch("/api/config-templates");
+      const templatesData = await templatesResponse.json();
+      setAvailableTemplates(templatesData);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
     }
   }
 
@@ -448,6 +472,110 @@ export default function EditCategoryPage() {
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configurations Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sliders className="h-5 w-5" />
+                  Configurations
+                </CardTitle>
+                <CardDescription>
+                  Attach configuration templates to this category. All products in this category will inherit these configurations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Available Configuration Templates</Label>
+                  <Select
+                    onValueChange={async (templateId) => {
+                      if (!templateId) return;
+                      
+                      // Add the template to the category
+                      const response = await fetch(`/api/categories/${id}/configs`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          templateId,
+                          isInherited: true,
+                        }),
+                      });
+
+                      if (response.ok) {
+                        toast({
+                          title: "Success",
+                          description: "Configuration template attached successfully",
+                        });
+                        fetchCategoryConfigs(); // Refresh configs
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "Failed to attach configuration template",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a template to attach" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTemplates.map((template: any) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name} ({template.inputType})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium mb-2 block">
+                    Attached Configurations ({attachedConfigs.length})
+                  </Label>
+                  
+                  {attachedConfigs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No configurations attached. Select a template above to add one.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {attachedConfigs.map((config: any) => (
+                        <div
+                          key={config.id}
+                          className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{config.template?.name || "Configuration"}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={async () => {
+                              const response = await fetch(`/api/categories/${id}/configs/${config.id}`, {
+                                method: "DELETE",
+                              });
+
+                              if (response.ok) {
+                                toast({
+                                  title: "Success",
+                                  description: "Configuration removed",
+                                });
+                                fetchCategory();
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

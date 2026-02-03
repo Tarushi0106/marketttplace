@@ -93,6 +93,68 @@ export type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 export type AddonPricingType = "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
 export type ConfigType = "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
 
+// Extended Configuration Types
+export type PricingModel = "FIXED" | "PER_UNIT" | "TIERED" | "HYBRID";
+export type BillingCycle = "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+export type ConfigInputType = "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER" | "SLIDER" | "TEXT";
+export type ModifierType = "ADD" | "MULTIPLY" | "REPLACE";
+export type ChargeType = "USAGE" | "SETUP" | "LICENSE" | "SUPPORT" | "STORAGE" | "BANDWIDTH";
+export type ConfigurationScope = "GLOBAL" | "CATEGORY" | "PRODUCT";
+export type InheritSource = "CATEGORY" | "TEMPLATE" | "NONE";
+
+export interface ExtendedConfigOption {
+  id: string;
+  value: string;
+  label: string;
+  description?: string;
+  priceModifier?: number;
+  isPercentage?: boolean;
+  modifierType?: ModifierType;
+  isAvailable?: boolean;
+  stockStatus?: string;
+}
+
+export interface ExtendedProductConfig {
+  id: string;
+  name: string;
+  displayName?: string;
+  description?: string;
+  unit?: string;
+  unitPlural?: string;
+  icon?: string;
+  pricingModel?: PricingModel;
+  basePrice?: number;
+  pricePerUnit?: number;
+  currency?: string;
+  billingCycle?: BillingCycle;
+  isRecurring?: boolean;
+  inputType?: ConfigInputType;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
+  defaultValue?: string;
+  isRequired?: boolean;
+  allowCustom?: boolean;
+  source: "PRODUCT" | "CATEGORY" | "TEMPLATE";
+  inheritedFromId?: string;
+  options: ExtendedConfigOption[];
+}
+
+export interface ProductRecurringPrice {
+  id: string;
+  productId: string;
+  variantId?: string;
+  monthlyPrice?: number;
+  quarterlyPrice?: number;
+  yearlyPrice?: number;
+  biennialPrice?: number;
+  triennialPrice?: number;
+  monthlySavings?: number;
+  yearlySavings?: number;
+  currency?: string;
+  isActive?: boolean;
+}
+
 // ============================================
 // CATEGORY TYPES
 // ============================================
