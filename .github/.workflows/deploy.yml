@@ -1,3 +1,10 @@
+name: Deploy Marketplace
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -6,19 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
- - name: Setup SSH
-  shell: bash
-  run: |
-    set -e
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.EC2_SSH_KEY }}
 
-    mkdir -p "$HOME/.ssh"
-    chmod 700 "$HOME/.ssh"
-
-    echo "${{ secrets.EC2_SSH_KEY }}" > "$HOME/.ssh/id_ed25519"
-    chmod 600 "$HOME/.ssh/id_ed25519"
-
-    ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> "$HOME/.ssh/known_hosts"
-
+      - name: Add EC2 host to known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         run: |
@@ -28,5 +31,5 @@ jobs:
             npm install
             npx prisma generate
             npm run build
-            pm2 restart all || pm2 start npm --name marketplace -- start
+            pm2 restart all || pm2 start npm --name marketplace -- run start
           EOF
