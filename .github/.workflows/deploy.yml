@@ -1,15 +1,6 @@
-name: Deploy Marketplace
-
-on:
-  push:
-    branches:
-      - main
-
 jobs:
   deploy:
-   runs-on: [self-hosted, Linux, X64]
-
-
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -30,5 +21,5 @@ jobs:
             npm install
             npx prisma generate
             npm run build
-            pm2 restart marketplace
+            pm2 restart all || pm2 start npm --name marketplace -- start
           EOF
