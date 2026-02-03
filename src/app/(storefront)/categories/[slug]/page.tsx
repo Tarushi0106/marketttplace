@@ -121,11 +121,14 @@ function getSubCategoryIcon(iconName: string | null, index: number, className: s
   const icon = iconName || subCategoryIcons[index % subCategoryIcons.length];
   const IconComponent = iconComponents[icon];
   const color = textColor || subCategoryColors[index % subCategoryColors.length].text;
-const Icon = IconComponent as React.ComponentType<
-  React.SVGProps<SVGSVGElement>
->;
+const Icon = IconComponent as React.ComponentType<{
+  className?: string;
+  color?: string;
+}>;
 
-return <Icon className={className} style={{ color }} />;
+return <Icon className={className} color={color} />;
+
+
 
 }
 
