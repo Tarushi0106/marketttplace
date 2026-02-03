@@ -218,7 +218,7 @@ function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
 
-        {/* Price & CTA Buttons */}
+       
         <div className="mt-auto pt-3 border-t border-gray-100">
           {hasPrice && (
             <div className="mb-3">
