@@ -14,26 +14,44 @@ jobs:
 
       - name: Setup SSH
         run: |
-          # Use /tmp/.ssh instead of ~/.ssh to avoid permission issues
-          mkdir -p /tmp/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/.ssh/id_rsa
-          chmod 600 /tmp/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> /tmp/.ssh/known_hosts
+          # Create SSH directory in workspace instead
+          SSH_DIR="$HOME/ssh-setup"
+          mkdir -p "$SSH_DIR"
           
-          # Ensure SSH uses our custom directory
-          echo "IdentityFile /tmp/.ssh/id_rsa" >> /tmp/.ssh/config
-          chmod 600 /tmp/.ssh/config
+          # Save private key
+          echo "${{ secrets.EC2_SSH_KEY }}" > "$SSH_DIR/id_rsa"
+          chmod 600 "$SSH_DIR/id_rsa"
+          
+          # Get host key and save to known_hosts
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" > "$SSH_DIR/known_hosts"
+          
+          # Create SSH config
+          echo "Host ec2-deploy" >> "$SSH_DIR/config"
+          echo "  HostName ${{ secrets.EC2_HOST }}" >> "$SSH_DIR/config"
+          echo "  User ${{ secrets.EC2_USER }}" >> "$SSH_DIR/config"
+          echo "  IdentityFile $SSH_DIR/id_rsa" >> "$SSH_DIR/config"
+          echo "  UserKnownHostsFile $SSH_DIR/known_hosts" >> "$SSH_DIR/config"
+          echo "  StrictHostKeyChecking yes" >> "$SSH_DIR/config"
+          chmod 600 "$SSH_DIR/config"
+
+      - name: Debug (optional)
+        run: |
+          echo "Checking SSH setup:"
+          ls -la "$HOME/ssh-setup/" || echo "Directory doesn't exist"
+          echo "Home directory: $HOME"
+          echo "Whoami: $(whoami)"
 
       - name: Deploy to EC2
         env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          SSH_DIR: ${{ github.workspace }}/.ssh-temp
         run: |
-          # Use the custom SSH directory
-          export GIT_SSH_COMMAND="ssh -F /tmp/.ssh/config -o UserKnownHostsFile=/tmp/.ssh/known_hosts"
+          SSH_DIR="$HOME/ssh-setup"
           
-          ssh -F /tmp/.ssh/config \
-              -o StrictHostKeyChecking=yes \
-              "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" << 'EOF'
+          # Test SSH connection first
+          ssh -F "$SSH_DIR/config" ec2-deploy "echo 'SSH connection successful!'"
+          
+          # Deploy commands
+          ssh -F "$SSH_DIR/config" ec2-deploy << 'EOF'
             set -e
             cd /var/www/marketplace
             git pull origin main
