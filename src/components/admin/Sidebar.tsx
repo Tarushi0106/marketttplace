@@ -24,6 +24,7 @@ import {
   MessageSquareQuote,
   Building2,
   Sliders,
+  Layout,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,8 +49,8 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
-    name: "Configuration Templates",
-    href: "/admin/config-templates",
+    name: "Product Configs",
+    href: "/admin/product-configurations",
     icon: Sliders,
   },
   {
@@ -113,6 +114,11 @@ const contentNav = [
 ];
 
 const settingsNav = [
+  {
+    name: "Landing Page",
+    href: "/admin/landing-page",
+    icon: Layout,
+  },
   {
     name: "Settings",
     href: "/admin/settings",

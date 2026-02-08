@@ -114,19 +114,39 @@ const addonSchema = z.object({
 });
 
 const configOptionSchema = z.object({
+  id: z.string().optional(),
   value: z.string(),
   label: z.string(),
+  description: z.string().optional(),
   priceModifier: z.number().default(0),
+  monthlyPriceModifier: z.number().default(0),
+  yearlyPriceModifier: z.number().default(0),
+  isPercentage: z.boolean().default(false),
+  modifierType: z.enum(["ADD", "MULTIPLY", "REPLACE"]).default("ADD"),
+  sortOrder: z.number().default(0),
+  isAvailable: z.boolean().default(true),
+  stockStatus: z.string().optional().nullable(),
 });
 
 const configSchema = z.object({
   id: z.string().optional(),
+  configType: z.string().optional(),
   name: z.string().min(1),
-  type: z.enum(["SELECT", "RADIO", "CHECKBOX", "NUMBER"]).default("SELECT"),
-  options: z.array(configOptionSchema),
-  isRequired: z.boolean().default(false),
+  displayName: z.string().optional(),
+  description: z.string().optional(),
+  unit: z.string().optional(),
+  unitPlural: z.string().optional(),
+  inputType: z.enum(["SELECT", "RADIO", "CHECKBOX", "SLIDER", "NUMBER"]).default("SELECT"),
+  minValue: z.number().optional(),
+  maxValue: z.number().optional(),
+  stepValue: z.number().default(1),
   defaultValue: z.string().optional(),
+  isRequired: z.boolean().default(false),
+  allowCustom: z.boolean().default(false),
   sortOrder: z.number().default(0),
+  basePrice: z.number().default(0),
+  pricePerUnit: z.number().default(0),
+  options: z.array(configOptionSchema),
 });
 
 const seoSchema = z.object({
@@ -236,6 +256,34 @@ export async function PUT(
           { status: 400 }
         );
       }
+    }
+
+    // Validate categoryId if provided
+    if (productData.categoryId && productData.categoryId.trim() !== "") {
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: productData.categoryId },
+      });
+      if (!categoryExists) {
+        // Set to null if category doesn't exist
+        productData.categoryId = null;
+      }
+    } else {
+      // Set to null if empty string or falsy
+      productData.categoryId = null;
+    }
+
+    // Validate subCategoryId if provided
+    if (productData.subCategoryId && productData.subCategoryId.trim() !== "") {
+      const subCategoryExists = await prisma.subCategory.findUnique({
+        where: { id: productData.subCategoryId },
+      });
+      if (!subCategoryExists) {
+        // Set to null if subCategory doesn't exist
+        productData.subCategoryId = null;
+      }
+    } else {
+      // Set to null if empty string or falsy
+      productData.subCategoryId = null;
     }
 
     // Update product with all related data in a transaction
@@ -389,18 +437,25 @@ export async function PUT(
           });
         }
 
-        // Update or create configs
+        // Update or create configs (basic fields only - use Configurations API for full management)
         for (const config of configs) {
           if (config.id && existingConfigIds.includes(config.id)) {
             // Update existing
             await tx.productConfig.update({
               where: { id: config.id },
               data: {
+                // @ts-ignore - configType may not exist in generated types yet
+                configType: config.configType,
                 name: config.name,
-                type: config.type,
-                options: config.options,
+                // @ts-ignore - displayName may not exist in generated types yet
+                displayName: config.displayName,
+                // @ts-ignore - basePrice may not exist in generated types yet
+                basePrice: config.basePrice,
+                // @ts-ignore - pricePerUnit may not exist in generated types yet
+                pricePerUnit: config.pricePerUnit,
+                // @ts-ignore - inputType may not exist in generated types yet
+                inputType: config.inputType,
                 isRequired: config.isRequired,
-                defaultValue: config.defaultValue,
                 sortOrder: config.sortOrder,
               },
             });
@@ -409,12 +464,31 @@ export async function PUT(
             await tx.productConfig.create({
               data: {
                 productId: id,
+                // @ts-ignore - configType may not exist in generated types yet
+                configType: config.configType || "STANDARD",
                 name: config.name,
-                type: config.type,
-                options: config.options,
-                isRequired: config.isRequired,
-                defaultValue: config.defaultValue,
-                sortOrder: config.sortOrder,
+                // @ts-ignore - displayName may not exist in generated types yet
+                displayName: config.displayName,
+                // @ts-ignore - basePrice may not exist in generated types yet
+                basePrice: config.basePrice ?? 0,
+                // @ts-ignore - pricePerUnit may not exist in generated types yet
+                pricePerUnit: config.pricePerUnit ?? 0,
+                // @ts-ignore - inputType may not exist in generated types yet
+                inputType: config.inputType ?? "SELECT",
+                isRequired: config.isRequired ?? false,
+                sortOrder: config.sortOrder ?? 0,
+                options: {
+                  create: config.options.map((opt: any) => ({
+                    value: opt.value,
+                    label: opt.label,
+                    description: opt.description,
+                    priceModifier: opt.priceModifier ?? 0,
+                    isPercentage: opt.isPercentage ?? false,
+                    modifierType: opt.modifierType ?? "ADD",
+                    isAvailable: opt.isAvailable ?? true,
+                    sortOrder: opt.sortOrder ?? 0,
+                  })),
+                },
               },
             });
           }
@@ -461,13 +535,18 @@ export async function PUT(
   } catch (error) {
     console.error("Error updating product:", error);
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
         { error: "Invalid request data", details: error.issues },
         { status: 400 }
       );
     }
+    // Log more details about Prisma errors
+    if (typeof error === 'object' && error !== null) {
+      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    }
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: "Failed to update product", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

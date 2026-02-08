@@ -32,6 +32,7 @@ import {
   Layers,
   Rocket,
   Target,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -703,9 +704,9 @@ function ProductCard({ product, category }: { product: any; category: any }) {
                   className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
                   asChild
                 >
-                  <Link href={`/products/${product.slug}#pricing`}>
-                    <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                    Buy Now
+                  <Link href={`/products/${product.slug}`}>
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                    Product Details
                   </Link>
                 </Button>
                 <Button
@@ -809,9 +810,9 @@ function CompactProductCard({ product }: { product: any }) {
               className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
               asChild
             >
-              <Link href={`/products/${product.slug}#pricing`}>
-                <ShoppingBag className="h-3 w-3 mr-1" />
-                Buy Now
+              <Link href={`/products/${product.slug}`}>
+                <Eye className="h-3 w-3 mr-1" />
+                Product Details
               </Link>
             </Button>
           ) : (
@@ -916,9 +917,9 @@ function ProductListItem({ product, category }: { product: any; category: any })
               {hasPrice ? (
                 <>
                   <Button size="sm" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap" asChild>
-                    <Link href={`/products/${product.slug}#pricing`}>
-                      <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                      Buy Now
+                    <Link href={`/products/${product.slug}`}>
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      Product Details
                     </Link>
                   </Button>
                   <Button size="sm" variant="outline" className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg" asChild>

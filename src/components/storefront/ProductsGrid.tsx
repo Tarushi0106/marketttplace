@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Building2, Package, Sparkles, ShoppingBag, MessageCircle } from "lucide-react";
+import { Star, Building2, Package, Sparkles, ShoppingBag, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -233,41 +233,26 @@ function ProductCard({ product }: { product: Product }) {
             </div>
           )}
           <div className="flex gap-2">
-            {hasPrice ? (
-              <>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-                  asChild
-                >
-                  <Link href={`/products/${product.slug}#pricing`}>
-                    <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                    Buy Now
-                  </Link>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D]"
-                  asChild
-                >
-                  <Link href="/contact">
-                    <MessageCircle className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="sm"
-                className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-                asChild
-              >
-                <Link href="/contact">
-                  <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Contact Us
-                </Link>
-              </Button>
-            )}
+            <Button
+              size="sm"
+              className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+              asChild
+            >
+              <Link href={`/products/${product.slug}`}>
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                Product Details
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D]"
+              asChild
+            >
+              <Link href="/contact">
+                <MessageCircle className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -378,29 +363,16 @@ function CompactProductCard({ product }: { product: Product }) {
 
         {/* CTA Button */}
         <div className="mt-auto pt-2">
-          {hasPrice ? (
-            <Button
-              size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-              asChild
-            >
-              <Link href={`/products/${product.slug}#pricing`}>
-                <ShoppingBag className="h-3 w-3 mr-1" />
-                Buy Now
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-              asChild
-            >
-              <Link href="/contact">
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Contact
-              </Link>
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+            asChild
+          >
+            <Link href={`/products/${product.slug}`}>
+              <Eye className="h-3 w-3 mr-1" />
+              Product Details
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
@@ -526,42 +498,27 @@ function ProductListItem({ product }: { product: Product }) {
               </div>
             )}
             <div className="flex gap-2">
-              {hasPrice ? (
-                <>
-                  <Button
-                    size="sm"
-                    className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
-                    asChild
-                  >
-                    <Link href={`/products/${product.slug}#pricing`}>
-                      <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                      Buy Now
-                    </Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg"
-                    asChild
-                  >
-                    <Link href="/contact">
-                      <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                      Contact
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
-                  asChild
-                >
-                  <Link href="/contact">
-                    <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                    Contact Us
-                  </Link>
-                </Button>
-              )}
+              <Button
+                size="sm"
+                className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
+                asChild
+              >
+                <Link href={`/products/${product.slug}`}>
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  Product Details
+                </Link>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg"
+                asChild
+              >
+                <Link href="/contact">
+                  <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
+                  Contact
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

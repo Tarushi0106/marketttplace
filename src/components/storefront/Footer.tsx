@@ -132,15 +132,13 @@ export function Footer() {
   }, []);
 
   const DefaultLogo = () => (
-    <div className="flex items-center gap-3">
-      <div className="w-12 h-12 bg-[#8B1D1D] rounded-2xl flex items-center justify-center">
-        <span className="text-white font-black text-2xl">S</span>
-      </div>
-      <div>
-        <span className="text-2xl font-bold text-white tracking-tight">Shaurrya</span>
-        <p className="text-[10px] text-white/50 font-semibold tracking-[0.2em] uppercase">Teleservices</p>
-      </div>
-    </div>
+    <Image
+      src="/uploads/branding/iconf.png"
+      alt="iconf"
+      width={200}
+      height={64}
+      className="h-16 w-auto object-contain"
+    />
   );
 
   const address = [settings.city, settings.state, settings.country].filter(Boolean).join(", ") || settings.address;
@@ -157,7 +155,7 @@ export function Footer() {
               <span>Start your journey today</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white max-w-3xl mx-auto leading-tight">
-              Let&apos;s build something amazing together
+              Let's build something amazing together
             </h2>
             <p className="mt-6 text-lg text-white/60 max-w-xl mx-auto">
               Join thousands of businesses transforming their operations with our solutions.
@@ -191,16 +189,16 @@ export function Footer() {
                   <Image
                     src={settings.footerLogo || settings.logoLight || settings.siteLogo || ""}
                     alt={settings.name}
-                    width={160}
-                    height={50}
-                    className="h-12 w-auto object-contain brightness-0 invert"
+                    width={200}
+                    height={64}
+                    className="h-16 w-auto object-contain"
                   />
                 ) : (
                   <DefaultLogo />
                 )}
               </Link>
               <p className="mt-6 text-white/50 text-sm leading-relaxed max-w-xs">
-                {settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
+                {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
               </p>
 
               {/* Contact */}
@@ -282,14 +280,16 @@ export function Footer() {
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-white/50">
-              © {new Date().getFullYear()} {settings.legalName || settings.name}. All rights reserved.
+              {settings.footerCopyright 
+                ? settings.footerCopyright.replace("{year}", new Date().getFullYear().toString())
+                : `© ${new Date().getFullYear()} ${settings.legalName || settings.name}. All rights reserved.`}
             </p>
 
             <div className="flex items-center gap-6">
               <Link href="/privacy" className="text-sm text-white/50 hover:text-white transition-colors">Privacy</Link>
               <Link href="/terms" className="text-sm text-white/50 hover:text-white transition-colors">Terms</Link>
 
-              {/* Social */}
+              {/* social */}
               <div className="flex items-center gap-1 ml-4">
                 {socialLinks.map((social, index) => {
                   const IconComponent = social.icon ? socialIconMap[social.icon.toLowerCase()] : null;

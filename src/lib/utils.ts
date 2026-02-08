@@ -7,9 +7,13 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(
   amount: number,
-  currency: string = "USD",
-  locale: string = "en-US"
+  currency: string = "INR",
+  locale: string = "en-IN"
 ): string {
+  // Handle NaN, undefined, or invalid values
+  if (isNaN(amount) || amount === undefined || amount === null || !isFinite(amount)) {
+    return "₹0";
+  }
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

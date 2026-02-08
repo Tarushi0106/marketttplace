@@ -3,30 +3,17 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
-  Server,
   Cloud,
   Shield,
-  Globe,
   Zap,
   Users,
   BarChart3,
   Lock,
-  Database,
-  Wifi,
-  Cpu,
-  Briefcase,
-  Calculator,
   Phone,
   Mail,
-  FileSpreadsheet,
   Building,
-  Drone,
-  Brain,
-  HardDrive,
-  Network,
-  Settings,
-  Lock as Security,
-  ChevronRight,
+  Globe,
+  Wifi,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -46,7 +33,7 @@ const solutions = [
   },
   {
     id: "business-applications",
-    icon: Briefcase,
+    icon: Users,
     title: "Business Applications",
     description: "ERP, accounting (Tally on Cloud), CRM, HRMS, finance & core business software",
     features: ["ERP Solutions", "Tally on Cloud", "CRM Software", "HRMS Platform"],
@@ -54,7 +41,7 @@ const solutions = [
   },
   {
     id: "connectivity",
-    icon: Network,
+    icon: Globe,
     title: "Connectivity – SDWAN",
     description: "Secure Wide Area Network solutions for seamless connectivity",
     features: ["SD-WAN Implementation", "Network Optimization", "Secure Connectivity", "Remote Access"],
@@ -70,7 +57,7 @@ const solutions = [
   },
   {
     id: "cybersecurity",
-    icon: Security,
+    icon: Shield,
     title: "Cybersecurity",
     description: "Acronis Cyber Security and comprehensive protection solutions",
     features: ["Acronis Cyber Security", "Threat Protection", "Data Encryption", "Endpoint Security"],
@@ -78,7 +65,7 @@ const solutions = [
   },
   {
     id: "data-ai",
-    icon: Brain,
+    icon: BarChart3,
     title: "Data, AI & Intelligence",
     description: "Analytics platforms, AI tools, reporting, data platforms (fueady)",
     features: ["Analytics Platforms", "AI Tools", "Business Intelligence", "Data Platforms"],
@@ -86,7 +73,7 @@ const solutions = [
   },
   {
     id: "industry-solutions",
-    icon: Drone,
+    icon: Globe,
     title: "Industry Solutions",
     description: "Drone as a Service, industry-specific monitoring, smart infrastructure solutions",
     features: ["Drone as a Service", "Industry Monitoring", "Smart Infrastructure", "Custom Solutions"],
@@ -94,7 +81,7 @@ const solutions = [
   },
   {
     id: "pricing",
-    icon: Calculator,
+    icon: ArrowRight,
     title: "Get Pricing",
     description: "Use our calculators to estimate your costs and plan your budget",
     features: ["Cost Calculator", "Pricing Estimator", "Budget Planner", "Quote Generator"],
@@ -159,31 +146,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* Solutions Navigation Bar */}
-      <section className="bg-white border-b border-gray-200 py-4 sticky top-[70px] z-40 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <Link
-              href="#"
-              className="flex-shrink-0 px-4 py-2 bg-[#8B1D1D] text-white rounded-lg text-sm font-medium whitespace-nowrap"
-            >
-              All Solutions
-            </Link>
-            {solutions.map((solution) => (
-              <Link
-                key={solution.id}
-                href={solution.href}
-                className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
-              >
-                <solution.icon className="h-4 w-4" />
-                {solution.title}
-                <ChevronRight className="h-3 w-3 ml-1" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Solutions Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4">
@@ -231,7 +193,6 @@ export default function SolutionsPage() {
       <section className="py-16 bg-gradient-to-br from-[#8B1D1D] to-[#6B1515]">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <Calculator className="h-16 w-16 mx-auto mb-6 text-white/80" />
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Get Your Pricing
             </h2>

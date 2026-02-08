@@ -9,7 +9,8 @@ interface WishlistItem {
   variant?: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedConfigs?: Record<string, any>;
-  selectedAddons?: Record<string, { quantity: number; selected: boolean }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  selectedAddons?: Record<string, any>;
   unitPrice: number;
   billingCycle?: string;
   addedAt: string;

@@ -51,20 +51,33 @@ interface CartState {
   getItemCount: () => number;
 }
 
+// Helper function to safely convert values to numbers
+const safeNumber = (value: unknown): number => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
 const calculateItemTotal = (item: Omit<CartItem, "id" | "totalPrice">): number => {
-  let total = item.unitPrice * item.quantity;
+  const unitPrice = safeNumber(item.unitPrice);
+  const quantity = safeNumber(item.quantity);
+  let total = unitPrice * quantity;
 
-  // Add addon prices
-  for (const addon of item.selectedAddons) {
-    total += addon.addon.price * addon.quantity * item.quantity;
-  }
+  return total || 0;
+};
 
-  // Add config price modifiers
-  for (const config of item.selectedConfigs) {
-    total += config.priceModifier * item.quantity;
-  }
-
-  return total;
+const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
+  const productId = item.product?.id || item.bundle?.id || "";
+  const variantId = item.variant?.id || "default";
+  const configsHash = JSON.stringify(item.selectedConfigs || []);
+  const addonsHash = JSON.stringify(
+    (item.selectedAddons || []).map(a => ({ id: a.addon?.id || "", qty: a.quantity })).sort((a, b) => a.id.localeCompare(b.id))
+  );
+  return `${productId}-${variantId}-${configsHash}-${addonsHash}`;
 };
 
 export const useCartStore = create<CartState>()(
@@ -76,28 +89,41 @@ export const useCartStore = create<CartState>()(
       discountAmount: 0,
 
       addItem: (item) => {
-        const id = `${item.product?.id || item.bundle?.id}-${item.variant?.id || "default"}-${JSON.stringify(item.selectedConfigs)}`;
-        const existingItemIndex = get().items.findIndex((i) => i.id === id);
+        try {
+          // Validate item data
+          if (!item.product && !item.bundle) {
+            console.error("Invalid cart item: no product or bundle");
+            return;
+          }
+          
+          const unitPrice = safeNumber(item.unitPrice);
+          const id = calculateItemId(item);
+          const existingItemIndex = get().items.findIndex((i) => i.id === id);
 
-        if (existingItemIndex > -1) {
-          // Update existing item quantity
-          const items = [...get().items];
-          items[existingItemIndex].quantity += item.quantity;
-          items[existingItemIndex].totalPrice = calculateItemTotal(
-            items[existingItemIndex]
-          );
-          set({ items });
-        } else {
-          // Add new item
-          const newItem: CartItem = {
-            ...item,
-            id,
-            totalPrice: calculateItemTotal(item),
-          };
-          set({ items: [...get().items, newItem] });
+          if (existingItemIndex > -1) {
+            // Update existing item quantity
+            const items = [...get().items];
+            items[existingItemIndex].quantity = safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity);
+            items[existingItemIndex].totalPrice = calculateItemTotal(
+              items[existingItemIndex]
+            );
+            set({ items });
+          } else {
+            // Add new item
+            const newItem: CartItem = {
+              ...item,
+              quantity: safeNumber(item.quantity),
+              unitPrice,
+              id,
+              totalPrice: calculateItemTotal({ ...item, unitPrice }),
+            };
+            set({ items: [...get().items, newItem] });
+          }
+
+          set({ isOpen: true });
+        } catch (error) {
+          console.error("Error adding item to cart:", error);
         }
-
-        set({ isOpen: true });
       },
 
       removeItem: (id) => {
@@ -105,14 +131,15 @@ export const useCartStore = create<CartState>()(
       },
 
       updateQuantity: (id, quantity) => {
-        if (quantity < 1) {
+        const qty = safeNumber(quantity);
+        if (qty < 1) {
           get().removeItem(id);
           return;
         }
 
         const items = get().items.map((item) => {
           if (item.id === id) {
-            const updatedItem = { ...item, quantity };
+            const updatedItem = { ...item, quantity: qty };
             return { ...updatedItem, totalPrice: calculateItemTotal(updatedItem) };
           }
           return item;
@@ -140,7 +167,7 @@ export const useCartStore = create<CartState>()(
       },
 
       applyDiscount: (code, amount) => {
-        set({ discountCode: code, discountAmount: amount });
+        set({ discountCode: code, discountAmount: safeNumber(amount) });
       },
 
       removeDiscount: () => {
@@ -148,23 +175,23 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        return get().items.reduce((sum, item) => sum + item.totalPrice, 0);
+        return get().items.reduce((sum, item) => sum + safeNumber(item.totalPrice), 0);
       },
 
       getTax: () => {
-        // Calculate 10% tax
-        return get().getSubtotal() * 0.1;
+        // Calculate 18% tax
+        return get().getSubtotal() * 0.18;
       },
 
       getTotal: () => {
         const subtotal = get().getSubtotal();
         const tax = get().getTax();
-        const discount = get().discountAmount;
+        const discount = safeNumber(get().discountAmount);
         return Math.max(0, subtotal + tax - discount);
       },
 
       getItemCount: () => {
-        return get().items.reduce((sum, item) => sum + item.quantity, 0);
+        return get().items.reduce((sum, item) => sum + safeNumber(item.quantity), 0);
       },
     }),
     {
@@ -178,3 +205,25 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+
+// Subscribe to store changes and recalculate totals on hydration/rehydration
+if (typeof window !== "undefined") {
+  useCartStore.subscribe((state: CartState) => {
+    const items = state.items;
+    // Check if any items have invalid totalPrice and recalculate
+    const needsRecalculation = items.some(
+      (item: CartItem) => 
+        typeof item.totalPrice !== "number" || 
+        isNaN(item.totalPrice) || 
+        !isFinite(item.totalPrice)
+    );
+    
+    if (needsRecalculation) {
+      const recalculatedItems = items.map((item: CartItem) => ({
+        ...item,
+        totalPrice: calculateItemTotal(item as Omit<CartItem, "id" | "totalPrice">),
+      }));
+      useCartStore.setState({ items: recalculatedItems });
+    }
+  });
+}

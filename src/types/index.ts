@@ -86,6 +86,8 @@ export interface ConfigOption {
   value: string;
   label: string;
   priceModifier: number;
+  monthlyPriceModifier?: number;
+  yearlyPriceModifier?: number;
 }
 
 export type ProductType = "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE";
@@ -108,6 +110,8 @@ export interface ExtendedConfigOption {
   label: string;
   description?: string;
   priceModifier?: number;
+  monthlyPriceModifier?: number;
+  yearlyPriceModifier?: number;
   isPercentage?: boolean;
   modifierType?: ModifierType;
   isAvailable?: boolean;
@@ -318,9 +322,13 @@ export interface Order {
   shippingAmount: number;
   total: number;
   currency: string;
+  discountId: string | null;
+  shippingAddressId: string | null;
+  billingAddressId: string | null;
+  notes: string | null;
+  metadata: Record<string, unknown> | null;
   items: OrderItem[];
   shippingAddress: Address | null;
-  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -337,6 +345,9 @@ export interface OrderItem {
   unitPrice: number;
   totalPrice: number;
   configuration: Record<string, string> | null;
+  billingCycle: BillingCycle;
+  isRecurring: boolean;
+  recurringPrice: number | null;
   addons: OrderItemAddon[];
 }
 
@@ -347,6 +358,8 @@ export interface OrderItemAddon {
   name: string;
   price: number;
   quantity: number;
+  billingCycle: BillingCycle;
+  isRecurring: boolean;
 }
 
 export type OrderStatus =

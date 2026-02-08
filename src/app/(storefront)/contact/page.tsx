@@ -173,9 +173,11 @@ export default function ContactPage() {
                     <p className="text-gray-600">
                       Shaurrya Teleservices Pvt. Ltd.
                       <br />
-                      [Your Full Address Here]
+                      Laxmi Plaza, 213, Off New Link Rd,
                       <br />
-                      City, State - PIN Code
+                      Laxmi Industrial Estate, Milat Nagar,
+                      <br />
+                      Andheri West, Mumbai, Maharashtra 400053
                       <br />
                       India
                     </p>

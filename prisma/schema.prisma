@@ -132,9 +132,50 @@ model Category {
   subCategories SubCategory[]
   products      Product[]
   configs       CategoryConfig[]
+  addons        CategoryAddon[]
   seoMetadata   SeoMetadata?
 
   @@map("categories")
+}
+
+model CategoryAddon {
+  id          String          @id @default(cuid())
+  categoryId  String
+  name        String
+  description String?         @db.Text
+  icon        String?
+  price       Decimal?        @db.Decimal(10, 2)
+  monthlyPrice Decimal?       @db.Decimal(10, 2)
+  yearlyPrice  Decimal?       @db.Decimal(10, 2)
+  pricingType AddonPricingType @default(ONE_TIME)
+  options     Json?          // Array of addon options
+  isRequired  Boolean         @default(false)
+  isActive    Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  category    Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products    CategoryAddonProduct[]
+  productAddons ProductAddon[]
+
+  @@map("category_addons")
+}
+
+model CategoryAddonProduct {
+  id              String        @id @default(cuid())
+  categoryAddonId String
+  productId       String
+  sortOrder       Int           @default(0)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  categoryAddon CategoryAddon @relation(fields: [categoryAddonId], references: [id], onDelete: Cascade)
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryAddonId, productId])
+  @@map("category_addon_products")
 }
 
 model SubCategory {
@@ -205,6 +246,7 @@ model Product {
   configs         ProductConfig[]
   images          ProductImage[]
   bundleItems     BundleItem[]
+  categoryAddonProducts CategoryAddonProduct[]
   pricingTiers    PricingTier[]
   recurringPrices ProductRecurringPrice[]
   orderItems      OrderItem[]
@@ -259,19 +301,21 @@ model ProductVariant {
 }
 
 model ProductAddon {
-  id          String          @id @default(cuid())
-  productId   String
-  name        String
-  description String?         @db.Text
-  price       Decimal         @db.Decimal(10, 2)
-  pricingType AddonPricingType @default(ONE_TIME)
-  isRequired  Boolean         @default(false)
-  isActive    Boolean         @default(true)
-  sortOrder   Int             @default(0)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  productId       String
+  categoryAddonId String?
+  name            String
+  description     String?         @db.Text
+  price           Decimal         @db.Decimal(10, 2)
+  pricingType     AddonPricingType @default(ONE_TIME)
+  isRequired      Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  categoryAddon   CategoryAddon?   @relation(fields: [categoryAddonId], references: [id])
   orderItemAddons OrderItemAddon[]
 
   @@map("product_addons")
@@ -284,6 +328,9 @@ model ProductConfig {
   // Template reference (optional - can use template or custom)
   templateId      String?
   categoryConfigId String?
+  
+  // Configuration Type (OS, CPU, RAM, STORAGE, GPU, etc.)
+  configType      String?            // e.g., "OS", "CPU", "RAM", "STORAGE", "GPU", "DATA_CENTER"
   
   // Configuration Details
   name            String              // e.g., "RAM", "Storage", "Users"
@@ -498,6 +545,10 @@ model ProductConfigOption {
   priceModifier   Decimal?        @db.Decimal(10, 2)
   isPercentage    Boolean         @default(false)
   modifierType    ModifierType    @default(ADD)
+  
+  // Monthly/Yearly pricing per option
+  monthlyPriceModifier Decimal?    @db.Decimal(10, 2)
+  yearlyPriceModifier Decimal?    @db.Decimal(10, 2)
   
   // Override template option pricing
   customPriceModifier Decimal?    @db.Decimal(10, 2)
@@ -745,6 +796,7 @@ model Order {
   discount        Discount?  @relation(fields: [discountId], references: [id])
   shippingAddress Address?   @relation(fields: [shippingAddressId], references: [id])
   items           OrderItem[]
+  invoice         Invoice?
 
   @@index([userId])
   @@index([status])
@@ -819,6 +871,32 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+}
+
+// ============================================
+// INVOICES
+// ============================================
+
+model Invoice {
+  id             String        @id @default(cuid())
+  orderId        String        @unique
+  invoiceNumber  String        @unique
+  pdfUrl         String?
+  status         InvoiceStatus @default(DRAFT)
+  issuedAt       DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  order          Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
 }
 
 // ============================================

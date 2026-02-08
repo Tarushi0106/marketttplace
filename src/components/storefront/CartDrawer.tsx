@@ -60,7 +60,7 @@ export function CartDrawer() {
               <ShoppingBag className="h-16 w-16 text-muted-foreground" />
               <p className="text-lg font-medium">Your cart is empty</p>
               <p className="text-sm text-muted-foreground text-center">
-                Looks like you haven&apos;t added anything to your cart yet.
+                Looks like you haven't added anything to your cart yet.
               </p>
               <Button asChild onClick={() => setIsOpen(false)}>
                 <Link href="/products">Browse Products</Link>
@@ -191,7 +191,7 @@ export function CartDrawer() {
 
                 <div className="mt-4 space-y-2">
                   <Button asChild className="w-full" size="lg">
-                    <Link href="/checkout" onClick={() => setIsOpen(false)}>
+                    <Link href="/cart" onClick={() => setIsOpen(false)}>
                       Checkout
                     </Link>
                   </Button>
@@ -201,7 +201,7 @@ export function CartDrawer() {
                     asChild
                     onClick={() => setIsOpen(false)}
                   >
-                    <Link href="/cart">View Cart</Link>
+                    <Link href="/products">Continue Shopping</Link>
                   </Button>
                 </div>
               </div>

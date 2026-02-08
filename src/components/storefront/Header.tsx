@@ -44,9 +44,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCartStore } from "@/store/cart-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { useUIStore } from "@/store/ui-store";
 import { cn } from "@/lib/utils";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
+
+// Wishlist badge component to show item count
+function WishlistBadgeInner() {
+  const items = useWishlistStore((state) => state.items);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return items.length > 0 ? (
+    <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm">
+      {items.length > 9 ? "9+" : items.length}
+    </span>
+  ) : null;
+}
 
 // Icon mapping for dynamic categories
 const iconMap: Record<string, LucideIcon> = {
@@ -100,19 +119,34 @@ const defaultNavLinks = [
   { label: "Comparison", href: "/comparison", badge: null, icon: "share2" },
   { label: "Industries We Serve", href: "/industries", badge: null, icon: "globe" },
   { label: "About Us", href: "/about-us", badge: null, icon: "folder" },
-  { label: "Contact Us", href: "/contact", badge: null, icon: "mail" },
+  { label: "Support", href: "/contact", badge: null, icon: "mail" },
 ];
 
 export function Header() {
   const { data: session } = useSession();
-  const { setIsOpen: setCartOpen, getItemCount } = useCartStore();
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const settings = useSiteSettings();
-  const itemCount = getItemCount();
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [navLinks, setNavLinks] = useState<MenuItem[]>([]);
+
+  // Update item count when cart changes - use a callback to get current state
+  // Using the hook directly with selector for proper reactivity
+  const items = useCartStore((state) => state.items);
+  const setIsOpen = useCartStore((state) => state.setIsOpen);
+  const [mounted, setMounted] = useState(false);
+  const [itemCount, setItemCount] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      setItemCount(items.reduce((sum, item) => sum + item.quantity, 0));
+    }
+  }, [items, mounted]);
 
   // Fetch categories and nav menu dynamically
   useEffect(() => {
@@ -151,25 +185,13 @@ export function Header() {
   }, []);
 
   const DefaultLogo = () => (
-    <div className="flex flex-col">
-      <div className="flex items-center">
-        <span className="text-2xl font-bold text-gray-900 tracking-tight">SH</span>
-        <span className="text-2xl font-bold text-[#8B1D1D]">
-          <svg viewBox="0 0 24 36" className="w-4 h-7 inline-block -mx-0.5">
-            <path
-              fill="#8B1D1D"
-              d="M12 0L12 8M12 8L6 14M12 8L18 14M12 8L12 28M8 28L16 28M6 14L6 20M18 14L18 20M4 20L8 20M16 20L20 20"
-              stroke="#8B1D1D"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <circle cx="12" cy="32" r="3" fill="#8B1D1D"/>
-          </svg>
-        </span>
-        <span className="text-2xl font-bold text-gray-900 tracking-tight">URRYA</span>
-      </div>
-      <span className="text-[#8B1D1D] text-[10px] font-semibold tracking-[0.2em] uppercase">Teleservices</span>
-    </div>
+    <Image
+      src="/uploads/branding/iconf.png"
+      alt="iconf"
+      width={200}
+      height={64}
+      className="h-16 w-auto object-contain"
+    />
   );
 
   return (
@@ -184,9 +206,9 @@ export function Header() {
                 <Image
                   src={settings.headerLogo || settings.logoDark || settings.siteLogo || ""}
                   alt={settings.name}
-                  width={160}
-                  height={48}
-                  className="h-11 w-auto object-contain"
+                  width={200}
+                  height={64}
+                  className="h-16 w-auto object-contain"
                 />
               ) : (
                 <DefaultLogo />
@@ -298,25 +320,14 @@ export function Header() {
               {/* Divider */}
               <div className="hidden lg:block w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent mx-1" />
 
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
-                className="hidden md:flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-gray-50 transition-all duration-200 group"
-              >
-                <div className="relative">
-                  <Heart className="h-5 w-5 text-gray-600 group-hover:text-[#8B1D1D] transition-colors" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-500 mt-1">Wishlist</span>
-              </Link>
-
               {/* Cart */}
               <button
-                onClick={() => setCartOpen(true)}
+                onClick={() => setIsOpen(true)}
                 className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
               >
                 <div className="relative">
                   <ShoppingCart className="h-5 w-5 text-gray-600 group-hover:text-[#8B1D1D] transition-colors" />
-                  {itemCount > 0 && (
+                  {mounted && itemCount > 0 && (
                     <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-[#8B1D1D] text-[10px] font-bold text-white shadow-sm">
                       {itemCount > 9 ? "9+" : itemCount}
                     </span>
@@ -324,6 +335,18 @@ export function Header() {
                 </div>
                 <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#8B1D1D] transition-colors">Cart</span>
               </button>
+
+              {/* Wishlist */}
+              <Link
+                href="/wishlist"
+                className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
+              >
+                <div className="relative">
+                  <Heart className="h-5 w-5 text-gray-600 group-hover:text-[#8B1D1D] transition-colors" />
+                  <WishlistBadgeInner />
+                </div>
+                <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#8B1D1D] transition-colors">Wishlist</span>
+              </Link>
 
               {/* Mobile menu button */}
               <button
@@ -337,99 +360,77 @@ export function Header() {
         </div>
       </div>
 
-      {/* Navigation Bar */}
+      {/* Navigation Bar - With Categories */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex h-12 items-center">
-            {/* Categories Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 h-9 px-4 border-2 border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:border-[#8B1D1D] hover:text-[#8B1D1D] transition-all duration-200">
-                  <LayoutGrid className="h-4 w-4" />
-                  <span>All Categories</span>
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-80 p-3 rounded-xl shadow-2xl border-0">
-                <div className="flex items-center gap-2 px-2 pb-3 mb-2 border-b border-gray-100">
-                  <Sparkles className="h-4 w-4 text-[#8B1D1D]" />
-                  <p className="text-sm font-semibold text-gray-900">Browse Categories</p>
-                </div>
-                <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          <div className="flex h-12 items-center justify-between">
+            {/* Categories dropdown */}
+            <div className="hidden xl:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#8B1D1D] hover:bg-gray-50 rounded-lg transition-colors">
+                    <LayoutGrid className="h-4 w-4" />
+                    <span>Categories</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 p-2 rounded-xl shadow-xl border-gray-200">
                   {categoriesLoading ? (
-                    <div className="py-8 text-center text-sm text-gray-500">Loading categories...</div>
+                    <div className="py-4 text-center text-sm text-gray-500">Loading...</div>
                   ) : categories.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-gray-500">No categories found</div>
+                    <div className="py-4 text-center text-sm text-gray-500">No categories</div>
                   ) : (
-                    categories.map((category) => {
+                    categories.slice(0, 10).map((category) => {
                       const IconComponent = getIconComponent(category.icon || null);
                       return (
-                        <DropdownMenuItem key={category.id} asChild className="p-0 focus:bg-transparent">
+                        <DropdownMenuItem key={category.id} asChild>
                           <Link
                             href={`/categories/${category.slug}`}
-                            className="flex items-center gap-3 px-2 py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 group transition-all duration-200"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-[#8B1D1D] flex items-center justify-center transition-all duration-200">
-                              <IconComponent className="h-5 w-5 text-gray-600 group-hover:text-white transition-colors" />
+                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <IconComponent className="h-4 w-4 text-[#8B1D1D]" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors">{category.name}</p>
-                              <p className="text-xs text-gray-500 truncate">
-                                {category.description || `${category._count?.products || 0} products`}
-                              </p>
+                            <div>
+                              <div className="font-medium text-gray-900">{category.name}</div>
+                              {category._count?.products !== undefined && (
+                                <div className="text-xs text-gray-500">{category._count.products} products</div>
+                              )}
                             </div>
-                            <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-[#8B1D1D] group-hover:translate-x-1 transition-all duration-200" />
                           </Link>
                         </DropdownMenuItem>
                       );
                     })
                   )}
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <Link
-                    href="/categories"
-                    className="flex items-center justify-center gap-2 py-3 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all duration-200"
-                  >
-                    <span>View All Categories</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {categories.length > 10 && (
+                    <>
+                      <DropdownMenuSeparator className="my-1" />
+                      <DropdownMenuItem asChild>
+                        <Link href="/categories" className="justify-center text-[#8B1D1D] font-medium">
+                          View All Categories
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-            {/* Navigation Links */}
-            <nav className="hidden lg:flex items-center h-full ml-6">
-              {navLinks.map((link, index) => {
-                const IconComponent = getIconComponent(link.icon);
-                return (
-                  <Link
-                    key={link.id || index}
-                    href={link.href || "#"}
-                    target={link.target === "_blank" ? "_blank" : undefined}
-                    className="relative flex items-center gap-2 h-full px-3 text-sm font-medium text-gray-600 hover:text-[#8B1D1D] transition-colors duration-200 group"
-                  >
-                    {link.icon && <IconComponent className="h-4 w-4" />}
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span
-                        className="px-1.5 py-0.5 text-white text-[10px] font-bold rounded"
-                        style={{ backgroundColor: link.badgeColor || "#8B1D1D" }}
-                      >
-                        {link.badge}
-                      </span>
-                    )}
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B1D1D] scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
-                  </Link>
-                );
-              })}
+            {/* Navigation Links - Simplified */}
+            <nav className="hidden xl:flex items-center gap-1">
+              {/* Only keep Support link since Categories dropdown is already present */}
             </nav>
 
-            {/* Right side */}
-            <div className="hidden xl:flex items-center ml-auto">
+            {/* Right side - Support */}
+            <div className="flex items-center gap-6">
               <Link href="/contact" className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#8B1D1D] transition-colors duration-200">
                 <Headphones className="h-4 w-4" />
                 <span>Support</span>
               </Link>
+              <a href="tel:+912261891110" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#8B1D1D] transition-colors duration-200">
+                <Phone className="h-4 w-4" />
+                <span className="font-medium">+91 22-61891110</span>
+              </a>
             </div>
           </div>
         </div>

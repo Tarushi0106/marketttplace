@@ -36,6 +36,12 @@ export async function GET() {
             "site_favicon",
             "header_logo",
             "footer_logo",
+            "footer_company_name",
+            "footer_tagline",
+            "footer_address",
+            "footer_phone",
+            "footer_email",
+            "footer_copyright",
           ],
         },
       },
@@ -60,6 +66,12 @@ export async function GET() {
         siteFavicon: settingsMap.site_favicon || null,
         headerLogo: settingsMap.header_logo || null,
         footerLogo: settingsMap.footer_logo || null,
+        footerCompanyName: settingsMap.footer_company_name || "",
+        footerTagline: settingsMap.footer_tagline || "",
+        footerAddress: settingsMap.footer_address || "",
+        footerPhone: settingsMap.footer_phone || "",
+        footerEmail: settingsMap.footer_email || "",
+        footerCopyright: settingsMap.footer_copyright || "",
       },
     });
   } catch (error) {
@@ -103,6 +115,12 @@ export async function PUT(request: NextRequest) {
       headerLogo,
       footerLogo,
       socialLinks,
+      footerCompanyName,
+      footerTagline,
+      footerAddress,
+      footerPhone,
+      footerEmail,
+      footerCopyright,
     } = body;
 
     // Update or create company info
@@ -156,6 +174,12 @@ export async function PUT(request: NextRequest) {
       { key: "site_favicon", value: siteFavicon },
       { key: "header_logo", value: headerLogo },
       { key: "footer_logo", value: footerLogo },
+      { key: "footer_company_name", value: footerCompanyName },
+      { key: "footer_tagline", value: footerTagline },
+      { key: "footer_address", value: footerAddress },
+      { key: "footer_phone", value: footerPhone },
+      { key: "footer_email", value: footerEmail },
+      { key: "footer_copyright", value: footerCopyright },
     ];
 
     for (const setting of settingsToUpdate) {

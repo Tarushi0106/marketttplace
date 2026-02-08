@@ -6,6 +6,8 @@ import { ChevronRight, ArrowLeft, Building2 } from "lucide-react";
 import Image from "next/image";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
 
+export const dynamic = 'force-dynamic';
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -79,6 +81,8 @@ export default async function ConfigureProductPage({ params }: Props) {
     orderBy: { sortOrder: "asc" },
   });
 
+  const allConfigs = configs;
+
   // Get inherited configs from category
   let inheritedConfigs: any[] = [];
   if (product.categoryId) {
@@ -99,8 +103,8 @@ export default async function ConfigureProductPage({ params }: Props) {
 
     // Filter out configs that are already applied to the product
     const productConfigTemplateIds = configs
-      .filter((c) => c.categoryConfigId)
-      .map((c) => c.categoryConfigId);
+      .filter((c: any) => c.categoryConfigId)
+      .map((c: any) => c.categoryConfigId);
 
     inheritedConfigs = categoryConfigs
       .filter((c) => !productConfigTemplateIds?.includes(c.id))
@@ -109,9 +113,9 @@ export default async function ConfigureProductPage({ params }: Props) {
         categoryConfigId: catConfig.id,
         name: catConfig.name || catConfig.template.name,
         displayName: catConfig.template.name,
-        description: catConfig.description,
-        unit: catConfig.unit || catConfig.template.unit,
-        unitPlural: catConfig.unitPlural || catConfig.template.unitPlural,
+        description: catConfig.template.description || "",
+        unit: catConfig.unit || catConfig.template.unit || "",
+        unitPlural: catConfig.template.unitPlural || catConfig.unit || "",
         icon: catConfig.template.icon,
         pricingModel: catConfig.pricingModel || catConfig.template.pricingModel,
         basePrice: catConfig.basePrice,
@@ -146,6 +150,9 @@ export default async function ConfigureProductPage({ params }: Props) {
   const recurringPrices = await prisma.productRecurringPrice.findFirst({
     where: { productId: product.id },
   });
+
+  // Category addons - placeholder for future implementation
+  const categoryAddons: any[] = [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -248,8 +255,9 @@ export default async function ConfigureProductPage({ params }: Props) {
             productType: product.productType,
             images: product.images,
           }}
-          configs={configs.map((config: any) => ({
+          configs={allConfigs.map((config: any) => ({
             id: config.id,
+            configType: config.configType || "STANDARD",
             name: config.name,
             displayName: config.displayName,
             description: config.description,
@@ -277,6 +285,8 @@ export default async function ConfigureProductPage({ params }: Props) {
               label: opt.label,
               description: opt.description,
               priceModifier: opt.priceModifier,
+              monthlyPriceModifier: opt.monthlyPriceModifier,
+              yearlyPriceModifier: opt.yearlyPriceModifier,
               isPercentage: opt.isPercentage,
               modifierType: opt.modifierType,
               isAvailable: opt.isAvailable,
@@ -284,7 +294,7 @@ export default async function ConfigureProductPage({ params }: Props) {
             })),
           }))}
           inheritedConfigs={inheritedConfigs}
-          addons={product.addons.map((addon: any) => ({
+          productAddons={product.addons.map((addon: any) => ({
             id: addon.id,
             name: addon.name,
             description: addon.description,
@@ -296,21 +306,35 @@ export default async function ConfigureProductPage({ params }: Props) {
             isSelectedByDefault: false,
             maxQuantity: null,
             addonGroup: null,
+            source: 'product',
+            uniqueId: `product-${addon.id}`,
+          }))}
+          categoryAddons={categoryAddons.map((addon: any) => ({
+            id: addon.id,
+            name: addon.name,
+            description: addon.description,
+            price: Number(addon.price),
+            pricePerUnit: addon.pricePerUnit,
+            unit: addon.unit,
+            pricingType: addon.pricingType,
+            isRequired: addon.isRequired,
+            isSelectedByDefault: false,
+            maxQuantity: null,
+            addonGroup: null,
+            source: 'category',
+            uniqueId: `category-${addon.id}`,
           }))}
           recurringPrices={
             recurringPrices
               ? {
                   monthlyPrice: Number(recurringPrices.monthlyPrice),
-                  quarterlyPrice: Number(recurringPrices.quarterlyPrice),
                   yearlyPrice: Number(recurringPrices.yearlyPrice),
-                  biennialPrice: Number(recurringPrices.biennialPrice),
-                  triennialPrice: Number(recurringPrices.triennialPrice),
                   monthlySavings: recurringPrices.monthlySavings
                     ? Number(recurringPrices.monthlySavings)
-                    : null,
+                    : undefined,
                   yearlySavings: recurringPrices.yearlySavings
                     ? Number(recurringPrices.yearlySavings)
-                    : null,
+                    : undefined,
                 }
               : null
           }

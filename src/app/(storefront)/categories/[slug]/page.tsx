@@ -47,6 +47,7 @@ import {
   Target,
   Award,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -453,9 +454,9 @@ export default async function CategoryPage({
                                 className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
                                 asChild
                               >
-                                <Link href={`/products/${product.slug}#pricing`}>
-                                  <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                                  Buy Now
+                                <Link href={`/products/${product.slug}`}>
+                                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                  Product Details
                                 </Link>
                               </Button>
                               <Button

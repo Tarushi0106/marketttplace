@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   CreditCard,
@@ -27,6 +28,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrency } from "@/lib/utils";
+import { auth } from "@/lib/auth";
 
 const countries = [
   { code: "US", name: "United States" },
@@ -38,6 +40,7 @@ const countries = [
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { items, getSubtotal, getTax, getTotal, discountCode, discountAmount, clearCart } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,6 +60,20 @@ export default function CheckoutPage() {
     country: "US",
   });
 
+  // Auto-fill user details if logged in
+  useEffect(() => {
+    if (session?.user) {
+      const user = session.user as { email?: string | null; name?: string | null };
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || prev.email,
+        phone: prev.phone,
+        firstName: user.name?.split(" ")[0] || prev.firstName,
+        lastName: user.name?.split(" ").slice(1).join(" ") || prev.lastName,
+      }));
+    }
+  }, [session]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -70,24 +87,29 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((item) => ({
-            productId: item.product?.id,
-            variantId: item.variant?.id,
-            bundleId: item.bundle?.id,
-            quantity: item.quantity,
-            addons: item.selectedAddons.map((a) => ({
-              addonId: a.addon.id,
-              quantity: a.quantity,
+          items: items
+            .filter((item) => item.product?.id || item.bundle?.id)
+            .map((item) => ({
+              productId: item.product?.id || undefined,
+              variantId: item.variant?.id || undefined,
+              bundleId: item.bundle?.id || undefined,
+              quantity: item.quantity,
+              addons: (item.selectedAddons || [])
+                .filter((a) => a.addon?.id)
+                .map((a) => ({
+                  addonId: a.addon.id,
+                  quantity: a.quantity,
+                })),
+              configs: (item.selectedConfigs || []).map((c) => ({
+                configId: c.configId,
+                value: c.value,
+              })),
             })),
-            configs: item.selectedConfigs.map((c) => ({
-              configId: c.configId,
-              value: c.value,
-            })),
-          })),
           paymentMethod,
           email: formData.email,
           phone: formData.phone,
           shippingAddress: {
+            phone: formData.phone,
             firstName: formData.firstName,
             lastName: formData.lastName,
             company: formData.company,
@@ -105,7 +127,8 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Checkout failed");
+        console.error("Checkout API error:", data);
+        throw new Error(data.error || data.details || "Checkout failed");
       }
 
       if (paymentMethod === "stripe" && data.data.payment.url) {
@@ -376,7 +399,7 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Items */}
                 <div className="space-y-3">
-                  {items.map((item) => (
+                  {items.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="flex-1 truncate">
                         {item.product?.name || item.bundle?.name}
@@ -404,7 +427,7 @@ export default function CheckoutPage() {
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (10%)</span>
+                    <span className="text-muted-foreground">Tax (18%)</span>
                     <span>{formatCurrency(getTax())}</span>
                   </div>
                   <Separator />

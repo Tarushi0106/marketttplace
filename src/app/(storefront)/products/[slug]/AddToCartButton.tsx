@@ -78,7 +78,8 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ?.filter((addon: any) => selectedAddons[addon.id])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((addon: any) => ({ addon, quantity: 1 })) || [];
+      .map((addon: any) => ({ addon, quantity: 1 }))
+      .filter((item: { addon: any; quantity: number }) => item.addon !== undefined) || [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const configs = product.configs
@@ -101,7 +102,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       variant: selectedVariant as unknown as import("@/types").ProductVariant | undefined,
       quantity,
       selectedAddons: addons as unknown as Array<{ addon: import("@/types").ProductAddon; quantity: number }>,
-      selectedConfigs: configs,
+      selectedConfigs: configs as { configId: string; configName: string; value: string; priceModifier: number }[],
       unitPrice: Number(selectedVariant?.price || product.basePrice),
     });
   };

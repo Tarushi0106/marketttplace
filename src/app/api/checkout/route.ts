@@ -7,14 +7,14 @@ import { generateOrderNumber } from "@/lib/utils";
 import { z } from "zod";
 
 const checkoutItemSchema = z.object({
-  productId: z.string().optional(),
-  variantId: z.string().optional(),
-  bundleId: z.string().optional(),
-  quantity: z.number().int().min(1),
+  productId: z.string().optional().nullable(),
+  variantId: z.string().optional().nullable(),
+  bundleId: z.string().optional().nullable(),
+  quantity: z.number().int().min(1).default(1),
   addons: z
     .array(
       z.object({
-        addonId: z.string(),
+        addonId: z.string().optional().nullable(),
         quantity: z.number().int().min(1).default(1),
       })
     )
@@ -22,8 +22,8 @@ const checkoutItemSchema = z.object({
   configs: z
     .array(
       z.object({
-        configId: z.string(),
-        value: z.string(),
+        configId: z.string().optional().nullable(),
+        value: z.string().optional().nullable(),
       })
     )
     .optional(),
@@ -32,23 +32,23 @@ const checkoutItemSchema = z.object({
 const checkoutSchema = z.object({
   items: z.array(checkoutItemSchema).min(1),
   paymentMethod: z.enum(["stripe", "razorpay"]),
-  email: z.string().email(),
+  email: z.string().email().or(z.string().min(1)),
   phone: z.string().optional(),
   shippingAddress: z
     .object({
-      firstName: z.string().min(1),
-      lastName: z.string().min(1),
+      firstName: z.string().min(1).optional(),
+      lastName: z.string().min(1).optional(),
       company: z.string().optional(),
-      address1: z.string().min(1),
+      address1: z.string().min(1).optional(),
       address2: z.string().optional(),
-      city: z.string().min(1),
-      state: z.string().min(1),
-      postalCode: z.string().min(1),
-      country: z.string().min(1),
+      city: z.string().min(1).optional(),
+      state: z.string().min(1).optional(),
+      postalCode: z.string().min(1).optional(),
+      country: z.string().min(1).optional(),
       phone: z.string().optional(),
     })
     .optional(),
-  discountCode: z.string().optional(),
+  discountCode: z.string().nullable().optional(),
   notes: z.string().optional(),
 });
 
@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     const body = await request.json();
+    console.log("Checkout request body:", JSON.stringify(body, null, 2));
     const data = checkoutSchema.parse(body);
 
     // Calculate order totals
@@ -63,6 +64,11 @@ export async function POST(request: NextRequest) {
     const orderItems: any[] = [];
 
     for (const item of data.items) {
+      if (!item.productId && !item.bundleId) {
+        console.warn("Skipping item without productId or bundleId:", item);
+        continue;
+      }
+
       let unitPrice = 0;
       let itemName = "";
       let sku = "";
@@ -73,7 +79,7 @@ export async function POST(request: NextRequest) {
           include: {
             variants: true,
             addons: true,
-            configs: true,
+            configs: { include: { options: true } },
           },
         });
 
@@ -127,15 +133,15 @@ export async function POST(request: NextRequest) {
 
         orderItems.push({
           productId: product.id,
-          variantId: item.variantId,
+          variantId: item.variantId || null,
           name: itemName,
           sku,
-          quantity: item.quantity,
+          quantity: item.quantity || 1,
           unitPrice,
-          totalPrice: unitPrice * item.quantity,
-          configuration: item.configs
+          totalPrice: unitPrice * (item.quantity || 1),
+          configuration: item.configs && item.configs.length > 0
             ? Object.fromEntries(
-                item.configs.map((c) => [c.configId, c.value])
+                item.configs.map((c) => [c.configId || "", c.value || ""])
               )
             : null,
         });
@@ -157,13 +163,13 @@ export async function POST(request: NextRequest) {
         orderItems.push({
           bundleId: bundle.id,
           name: itemName,
-          quantity: item.quantity,
+          quantity: item.quantity || 1,
           unitPrice,
-          totalPrice: unitPrice * item.quantity,
+          totalPrice: unitPrice * (item.quantity || 1),
         });
       }
 
-      subtotal += unitPrice * item.quantity;
+      subtotal += unitPrice * (item.quantity || 1);
     }
 
     // Apply discount
@@ -181,15 +187,24 @@ export async function POST(request: NextRequest) {
           ],
           AND: [
             { OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }] },
-            { OR: [{ usageLimit: null }, { usageCount: { lt: prisma.discount.fields.usageLimit } }] },
           ],
         },
       });
 
+      // Check usage limit after fetching
+      if (discount && discount.usageLimit !== null && discount.usageCount >= discount.usageLimit) {
+        // Discount has reached its usage limit, don't apply it
+        console.log("Discount usage limit reached");
+        return NextResponse.json(
+          { error: "This discount code has reached its usage limit" },
+          { status: 400 }
+        );
+      }
+
       if (discount) {
         if (discount.minPurchase && subtotal < Number(discount.minPurchase)) {
           return NextResponse.json(
-            { error: `Minimum purchase of $${discount.minPurchase} required for this discount` },
+            { error: `Minimum purchase of ₹${discount.minPurchase} required for this discount` },
             { status: 400 }
           );
         }
@@ -208,8 +223,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calculate tax (10%)
-    const taxRate = 0.1;
+    // Calculate tax (18%)
+    const taxRate = 0.18;
     const taxAmount = (subtotal - discountAmount) * taxRate;
 
     // Shipping (free for now)
@@ -236,6 +251,7 @@ export async function POST(request: NextRequest) {
         taxAmount,
         shippingAmount,
         total,
+        currency: "INR", // Use Indian Rupees
         discountId,
         notes: data.notes,
         items: {
@@ -253,7 +269,7 @@ export async function POST(request: NextRequest) {
     if (data.paymentMethod === "stripe") {
       const lineItems = order.items.map((item) => ({
         price_data: {
-          currency: "usd",
+          currency: "inr",
           product_data: {
             name: item.name,
           },
@@ -266,7 +282,7 @@ export async function POST(request: NextRequest) {
       if (taxAmount > 0) {
         lineItems.push({
           price_data: {
-            currency: "usd",
+            currency: "inr",
             product_data: {
               name: "Tax",
             },
@@ -279,7 +295,7 @@ export async function POST(request: NextRequest) {
       const checkoutSession = await createCheckoutSession({
         lineItems,
         customerEmail: data.email,
-        successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?order=${order.id}`,
+        successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?order=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?cancelled=true`,
         metadata: {
           orderId: order.id,
@@ -323,13 +339,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating checkout:", error);
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
-        { error: "Invalid request data", details: error.issues },
+        { error: "Invalid request data", details: error.issues.map(i => i.message).join(", ") },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Failed to create checkout", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

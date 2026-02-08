@@ -123,7 +123,8 @@ interface ProductAddon {
 interface ProductConfig {
   id?: string;
   name: string;
-  type: "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
+  configType: string; // e.g., CPU, RAM, STORAGE, OS, DATA_CENTER, GPU, BANDWIDTH, USERS, etc.
+  inputType: "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
   options: { value: string; label: string; priceModifier: string }[];
   isRequired: boolean;
   defaultValue: string;
@@ -356,7 +357,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             product.configs.map((c: any) => ({
               id: c.id,
               name: c.name,
-              type: c.type || "SELECT",
+              configType: c.configType || "STANDARD",
+              inputType: c.inputType || "SELECT",
               options: c.options || [],
               isRequired: c.isRequired || false,
               defaultValue: c.defaultValue || "",
@@ -580,6 +582,13 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     }
     setShowAddonModal(false);
     setEditingAddon(null);
+    
+    // Show toast to remind user to save the form
+    toast({
+      title: "Add-on saved locally",
+      description: "Click 'Save Changes' at the top to persist this add-on to the database.",
+      duration: 5000,
+    });
   }
 
   function removeAddon(index: number) {
@@ -593,7 +602,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     } else {
       setEditingConfig({
         name: "",
-        type: "SELECT",
+        configType: "STANDARD",
+        inputType: "SELECT",
         options: [{ value: "", label: "", priceModifier: "0" }],
         isRequired: false,
         defaultValue: "",
@@ -1798,7 +1808,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium">{config.name}</h4>
-                                <Badge variant="outline">{config.type}</Badge>
+                                <Badge variant="outline">{config.configType}</Badge>
+                                <Badge variant="secondary">{config.inputType}</Badge>
                                 {config.isRequired && (
                                   <Badge variant="destructive">Required</Badge>
                                 )}
@@ -2218,23 +2229,39 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Configuration Name *</Label>
-                  <Input
-                    value={editingConfig.name}
-                    onChange={(e) =>
-                      setEditingConfig({ ...editingConfig, name: e.target.value })
+                  <Label>Configuration Type *</Label>
+                  <Select
+                    value={editingConfig.configType}
+                    onValueChange={(value) =>
+                      setEditingConfig({ ...editingConfig, configType: value })
                     }
-                    placeholder="e.g., RAM, Storage, Users"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CPU">CPU / Processor</SelectItem>
+                      <SelectItem value="RAM">RAM / Memory</SelectItem>
+                      <SelectItem value="STORAGE">Storage / Disk</SelectItem>
+                      <SelectItem value="GPU">GPU / Graphics</SelectItem>
+                      <SelectItem value="BANDWIDTH">Bandwidth / Transfer</SelectItem>
+                      <SelectItem value="USERS">Users / Seats</SelectItem>
+                      <SelectItem value="OS">Operating System</SelectItem>
+                      <SelectItem value="DATA_CENTER">Data Center / Region</SelectItem>
+                      <SelectItem value="LICENSE">License</SelectItem>
+                      <SelectItem value="SUPPORT">Support Tier</SelectItem>
+                      <SelectItem value="STANDARD">Other / Standard</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Input Type</Label>
                   <Select
-                    value={editingConfig.type}
+                    value={editingConfig.inputType}
                     onValueChange={(value) =>
                       setEditingConfig({
                         ...editingConfig,
-                        type: value as any,
+                        inputType: value as any,
                       })
                     }
                   >
@@ -2249,6 +2276,17 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Configuration Name *</Label>
+                <Input
+                  value={editingConfig.name}
+                  onChange={(e) =>
+                    setEditingConfig({ ...editingConfig, name: e.target.value })
+                  }
+                  placeholder="e.g., RAM Size, Disk Space, OS Edition"
+                />
               </div>
 
               <div className="space-y-2">

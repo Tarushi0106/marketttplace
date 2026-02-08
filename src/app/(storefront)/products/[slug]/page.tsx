@@ -234,20 +234,12 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {hasPricing ? (
-                    <>
-                      <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                        <Link href={`/products/${product.slug}/configure`}><ShoppingBag className="h-4 w-4 mr-2" />Configure & Buy</Link>
-                      </Button>
-                      <Button size="lg" variant="outline" className="border-gray-500 text-white hover:bg-white/10 hover:border-gray-400" asChild>
-                        <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                      <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
-                    </Button>
-                  )}
+                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Configure & Buy</Link>
+                  </Button>
+                  <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
+                    <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -541,8 +533,10 @@ export default async function ProductDetailPage({ params }: Props) {
                               ))}
                             </ul>
                           )}
-                          <Button className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
-                            Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                          <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
+                            <Link href={`/products/${product.slug}/configure`}>
+                              Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                            </Link>
                           </Button>
                         </div>
                       ))}
@@ -555,8 +549,10 @@ export default async function ProductDetailPage({ params }: Props) {
                       </p>
                       {hasDiscount && <p className="text-gray-400 line-through mb-6">{formatCurrency(Number(product.compareAtPrice))}</p>}
                       <div className="space-y-3">
-                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14">
-                          <ShoppingBag className="h-5 w-5 mr-2" /> Buy Now
+                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14" asChild>
+                          <Link href={`/products/${product.slug}/configure/`}>
+                            <ShoppingBag className="h-5 w-5 mr-2" /> Configure & Buy
+                          </Link>
                         </Button>
                         <Button size="lg" variant="outline" className="w-full h-14" asChild>
                           <Link href="/contact">Contact Sales</Link>

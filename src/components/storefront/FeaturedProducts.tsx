@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart } from "lucide-react";
+import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart, Box, Wifi, Shield, Server, Database, Cloud, Cpu, Headphones, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart-store";
@@ -30,17 +30,19 @@ interface Product {
   };
 }
 
-// Color schemes for product cards
-const cardColors = [
-  { bg: "bg-[#1A1A1A]", text: "text-white", accent: "text-[#00E5A0]" },
-  { bg: "bg-[#2563EB]", text: "text-white", accent: "text-white" },
-  { bg: "bg-white border border-gray-200", text: "text-[#00A8E0]", accent: "text-[#00A8E0]" },
-  { bg: "bg-[#1A1A1A]", text: "text-white", accent: "text-white" },
-  { bg: "bg-white border border-gray-200", text: "text-[#2563EB]", accent: "text-[#2563EB]" },
-  { bg: "bg-[#8B1D1D]", text: "text-white", accent: "text-white" },
-  { bg: "bg-[#059669]", text: "text-white", accent: "text-white" },
-  { bg: "bg-[#7C3AED]", text: "text-white", accent: "text-white" },
-];
+// Function to get icon based on product name
+const getProductIcon = (productName: string) => {
+  const name = productName.toLowerCase();
+  if (name.includes("wifi") || name.includes("router") || name.includes("network")) return <Wifi className="w-10 h-10 text-red-600" />;
+  if (name.includes("security") || name.includes("firewall") || name.includes("protect")) return <Shield className="w-10 h-10 text-red-600" />;
+  if (name.includes("server") || name.includes("hosting")) return <Server className="w-10 h-10 text-red-600" />;
+  if (name.includes("database") || name.includes("data")) return <Database className="w-10 h-10 text-red-600" />;
+  if (name.includes("cloud")) return <Cloud className="w-10 h-10 text-red-600" />;
+  if (name.includes("cpu") || name.includes("processor") || name.includes("compute")) return <Cpu className="w-10 h-10 text-red-600" />;
+  if (name.includes("support") || name.includes("service") || name.includes("managed")) return <Headphones className="w-10 h-10 text-red-600" />;
+  if (name.includes("business") || name.includes("enterprise") || name.includes("solution")) return <Briefcase className="w-10 h-10 text-red-600" />;
+  return <Box className="w-10 h-10 text-red-600" />;
+};
 
 export function FeaturedProducts() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -96,12 +98,21 @@ export function FeaturedProducts() {
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    const price = Number(product.basePrice);
+    console.log("Adding to cart - basePrice:", product.basePrice, "converted:", price);
+    
+    if (isNaN(price) || price === 0) {
+      console.error("Invalid price for product:", product.name, product.basePrice);
+      return;
+    }
+    
     addItem({
       product: product as any,
       quantity: 1,
       selectedAddons: [],
       selectedConfigs: [],
-      unitPrice: product.basePrice,
+      unitPrice: price,
     });
   };
 
@@ -180,8 +191,7 @@ export function FeaturedProducts() {
             ref={scrollRef}
             className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory items-start"
           >
-            {products.map((product, index) => {
-              const colorScheme = cardColors[index % cardColors.length];
+            {products.map((product) => {
               const hasSales = product.salesCount > 0;
 
               return (
@@ -207,9 +217,7 @@ export function FeaturedProducts() {
                       </button>
 
                       {/* Brand Logo Area */}
-                      <div
-                        className={`h-48 ${colorScheme.bg} flex items-center justify-center`}
-                      >
+                      <div className="h-48 bg-white flex items-center justify-center">
                         {product.images[0]?.url ? (
                           <img
                             src={product.images[0].url}
@@ -217,8 +225,8 @@ export function FeaturedProducts() {
                             className="max-h-32 max-w-[80%] object-contain"
                           />
                         ) : (
-                          <div className={`text-4xl font-bold ${colorScheme.text}`}>
-                            {product.name.substring(0, 2).toUpperCase()}
+                          <div className="w-16 h-16 rounded-xl bg-red-50 flex items-center justify-center">
+                            {getProductIcon(product.name)}
                           </div>
                         )}
                       </div>
@@ -292,12 +300,14 @@ export function FeaturedProducts() {
                               <ShoppingCart className="h-4 w-4" />
                               Add To Cart
                             </Button>
-                            <Button
-                              variant="outline"
-                              className="w-full border-gray-300 text-gray-700 rounded-lg h-10"
-                            >
-                              Buy Now
-                            </Button>
+                            <Link href={`/products/${product.slug}`} className="block w-full">
+                              <Button
+                                variant="outline"
+                                className="w-full border-gray-300 text-gray-700 rounded-lg h-10 hover:bg-gray-50"
+                              >
+                                Product Details
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       </div>
