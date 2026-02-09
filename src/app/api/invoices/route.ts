@@ -173,12 +173,13 @@ export async function POST(request: NextRequest) {
     // Generate PDF
     let pdfBuffer: Buffer;
     try {
+      console.log("Starting PDF generation...");
       pdfBuffer = await generateInvoicePDF(orderForPdf);
-      console.log("PDF generated, size:", pdfBuffer.length);
+      console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
       return NextResponse.json(
-        { error: "Failed to generate invoice PDF" },
+        { error: "Failed to generate invoice PDF", details: pdfError instanceof Error ? pdfError.message : String(pdfError) },
         { status: 500 }
       );
     }
@@ -266,7 +267,34 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get("orderId");
-    console.log("GET /api/invoices - orderId:", orderId);
+    const deleteInvoice = searchParams.get("delete") === "true";
+    console.log("GET /api/invoices - orderId:", orderId, "delete:", deleteInvoice);
+
+    // If orderId is provided and delete is true, delete existing invoice
+    if (orderId && deleteInvoice) {
+      try {
+        const existingInvoice = await invoices.invoice.findUnique({
+          where: { orderId },
+        });
+        
+        if (existingInvoice) {
+          await invoices.invoice.delete({
+            where: { id: existingInvoice.id },
+          });
+          console.log("Invoice deleted:", existingInvoice.id);
+          return NextResponse.json({
+            success: true,
+            message: "Invoice deleted successfully",
+          });
+        }
+      } catch (deleteError) {
+        console.error("Error deleting invoice:", deleteError);
+        return NextResponse.json(
+          { error: "Failed to delete invoice" },
+          { status: 500 }
+        );
+      }
+    }
 
     // If orderId is provided, find invoice for that order
     if (orderId) {

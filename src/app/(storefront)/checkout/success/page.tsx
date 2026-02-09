@@ -3,12 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, Download, Loader2, FileText, ArrowRight } from "lucide-react";
+import { CheckCircle, Download, Loader2, FileText, ArrowRight, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { formatCurrency } from "@/lib/utils";
+
+interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  configuration?: Record<string, any> | null;
+}
 
 interface Order {
   id: string;
@@ -18,14 +27,21 @@ interface Order {
   total: number;
   currency: string;
   email: string;
+  phone?: string | null;
   createdAt: string;
-  items: Array<{
-    id: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-  }>;
+  items: OrderItem[];
+  shippingAddress?: {
+    firstName: string;
+    lastName: string;
+    company?: string | null;
+    address1: string;
+    address2?: string | null;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    phone?: string | null;
+  } | null;
 }
 
 interface Invoice {
@@ -33,6 +49,39 @@ interface Invoice {
   invoiceNumber: string;
   pdfUrl: string;
   status: string;
+}
+
+// Configuration label mappings
+const configLabels: Record<string, string> = {
+  cpu: "CPU",
+  ram: "RAM",
+  storage: "Storage",
+  tier: "Tier",
+  os: "OS",
+  bandwidth: "Bandwidth",
+  gpu: "GPU",
+  data_center: "Data Center",
+};
+
+function formatConfigValue(key: string, value: string): string {
+  const lowerKey = key.toLowerCase();
+  
+  if (lowerKey === "cpu" || lowerKey === "vcpu") {
+    if (value.match(/^\d+$/)) return `${value} vCPU`;
+    return value;
+  }
+  if (lowerKey === "ram" || lowerKey === "memory") {
+    if (value.match(/^\d+$/)) return `${value} GB`;
+    return value;
+  }
+  if (lowerKey === "storage" || lowerKey === "disk") {
+    if (value.match(/^\d+$/)) return `${value} GB`;
+    return value;
+  }
+  if (lowerKey === "tier") {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+  return value;
 }
 
 export default function CheckoutSuccessPage() {
@@ -60,48 +109,33 @@ export default function CheckoutSuccessPage() {
 
   const fetchOrderAndInvoice = async () => {
     try {
-      // Always try to verify Stripe session if available
       if (sessionId) {
-        console.log("Verifying Stripe session:", sessionId);
         const verifyResponse = await fetch("/api/checkout/verify-stripe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId, orderId }),
         });
-
         if (verifyResponse.ok) {
-          const verifyData = await verifyResponse.json();
-          console.log("Stripe verification result:", verifyData);
+          verifyResponse.json();
         }
       }
 
-      // Fetch order details
-      console.log("Fetching order:", orderId);
       const orderResponse = await fetch(`/api/orders/${orderId}`);
       
       if (!orderResponse.ok) {
-        console.error("Order not found:", orderResponse.status);
         setLoading(false);
         return;
       }
       
       const orderData = await orderResponse.json();
-      console.log("Order data:", orderData);
       const orderResult = orderData.data || orderData;
       setOrder(orderResult as Order);
 
-      // Try to get or generate invoice using the actual order ID
-      console.log("Checking for invoice:", orderResult.id);
-      
-      // First try to fetch existing invoice
       try {
         const invoiceResponse = await fetch(`/api/invoices?orderId=${orderResult.id}`);
         if (invoiceResponse.ok) {
           const invoiceData = await invoiceResponse.json();
-          console.log("Invoice response:", invoiceData);
-          
           if (invoiceData.invoice) {
-            // Invoice exists, show it
             setInvoice(invoiceData.invoice);
             setLoading(false);
             return;
@@ -111,8 +145,6 @@ export default function CheckoutSuccessPage() {
         console.error("Error checking invoice:", invError);
       }
 
-      // No invoice found, generate one
-      console.log("Generating new invoice...");
       await generateInvoice();
       setLoading(false);
     } catch (error) {
@@ -130,31 +162,24 @@ export default function CheckoutSuccessPage() {
     setGeneratingInvoice(true);
     setError(null);
     try {
-      console.log("Generating invoice for order:", order.id, "sendEmail:", sendEmail);
       const response = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: order.id, sendEmail }),
       });
 
-      console.log("Invoice response status:", response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log("Invoice generated:", data);
         setInvoice(data.invoice);
         if (data.emailSent) {
           setEmailSent(true);
         }
       } else if (response.status === 409) {
-        // Invoice already exists
         const data = await response.json();
-        console.log("Invoice already exists:", data.invoice);
         setInvoice(data.invoice);
       } else {
         const errorData = await response.json();
-        console.error("Failed to generate invoice:", errorData);
-        setError(errorData.error || errorData.details || "Failed to generate invoice. Please try again later.");
+        setError(errorData.error || errorData.details || "Failed to generate invoice.");
       }
     } catch (error) {
       console.error("Error generating invoice:", error);
@@ -210,6 +235,32 @@ export default function CheckoutSuccessPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
         {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Customer Details */}
+          {order.shippingAddress && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Customer Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <p className="font-medium">
+                  {order.shippingAddress.company || `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`}
+                </p>
+                <p className="text-muted-foreground">
+                  {order.shippingAddress.address1}
+                  {order.shippingAddress.address2 && `, ${order.shippingAddress.address2}`}
+                </p>
+                <p className="text-muted-foreground">
+                  {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.postalCode}
+                </p>
+                <p className="text-muted-foreground">Phone: {order.shippingAddress.phone || order.phone}</p>
+                <p className="text-muted-foreground">Email: {order.email}</p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -243,16 +294,23 @@ export default function CheckoutSuccessPage() {
               <div className="space-y-3">
                 <h3 className="font-medium">Items Ordered</h3>
                 {order.items?.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <div className="flex-1">
+                  <div key={item.id} className="p-3 border rounded-lg">
+                    <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">{item.name}</span>
-                      {item.quantity > 1 && (
-                        <span className="text-muted-foreground ml-2">x{item.quantity}</span>
-                      )}
+                      <span className="font-medium">
+                        {formatCurrency(item.totalPrice, order.currency)}
+                      </span>
                     </div>
-                    <span className="font-medium ml-4">
-                      {formatCurrency(item.totalPrice, order.currency)}
-                    </span>
+                    {item.configuration && Object.keys(item.configuration).length > 0 && (
+                      <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                        {Object.entries(item.configuration).map(([key, value]) => (
+                          <span key={key} className="mr-3">
+                            {configLabels[key.toLowerCase()] || key.charAt(0).toUpperCase() + key.slice(1)}: {formatConfigValue(key, String(value))}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}</p>
                   </div>
                 ))}
               </div>

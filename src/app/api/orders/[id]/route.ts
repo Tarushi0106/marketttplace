@@ -43,10 +43,32 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Try to fetch with relations, but gracefully handle errors
-    let order = basicOrder;
+    // Prepare order data with items
+    const orderData: any = {
+      id: basicOrder.id,
+      orderNumber: basicOrder.orderNumber,
+      status: basicOrder.status,
+      paymentStatus: basicOrder.paymentStatus,
+      paymentMethod: basicOrder.paymentMethod,
+      subtotal: Number(basicOrder.subtotal) || 0,
+      discountAmount: Number(basicOrder.discountAmount) || 0,
+      taxAmount: Number(basicOrder.taxAmount) || 0,
+      shippingAmount: Number(basicOrder.shippingAmount) || 0,
+      total: Number(basicOrder.total) || 0,
+      currency: basicOrder.currency,
+      email: basicOrder.email,
+      phone: basicOrder.phone,
+      notes: basicOrder.notes,
+      createdAt: basicOrder.createdAt,
+      updatedAt: basicOrder.updatedAt,
+      items: [],
+      shippingAddress: null,
+      billingAddress: null,
+    };
+
+    // Try to fetch with relations
     try {
-      order = await prisma.order.findUnique({
+      const orderWithRelations = await (prisma as any).order.findUnique({
         where: { id },
         include: {
           items: {
@@ -71,39 +93,11 @@ export async function GET(
             },
           },
           shippingAddress: true,
-          discount: true,
         },
       });
-    } catch (includeError) {
-      console.warn("Could not fetch order with relations, returning basic data");
-    }
 
-    // Prepare order data with items
-    const orderData = {
-      id: basicOrder.id,
-      orderNumber: basicOrder.orderNumber,
-      status: basicOrder.status,
-      paymentStatus: basicOrder.paymentStatus,
-      paymentMethod: basicOrder.paymentMethod,
-      subtotal: Number(basicOrder.subtotal) || 0,
-      discountAmount: Number(basicOrder.discountAmount) || 0,
-      taxAmount: Number(basicOrder.taxAmount) || 0,
-      shippingAmount: Number(basicOrder.shippingAmount) || 0,
-      total: Number(basicOrder.total) || 0,
-      currency: basicOrder.currency,
-      email: basicOrder.email,
-      phone: basicOrder.phone,
-      notes: basicOrder.notes,
-      createdAt: basicOrder.createdAt,
-      updatedAt: basicOrder.updatedAt,
-      items: [],
-      shippingAddress: null,
-    };
-
-    // Add items if available
-    if (order && 'items' in order) {
-      try {
-        orderData.items = (order.items as any[]).map((item) => ({
+      if (orderWithRelations) {
+        orderData.items = orderWithRelations.items.map((item: any) => ({
           id: item.id,
           name: item.name,
           quantity: item.quantity,
@@ -117,10 +111,10 @@ export async function GET(
           isRecurring: item.isRecurring,
           recurringPrice: Number(item.recurringPrice) || 0,
         }));
-        orderData.shippingAddress = order.shippingAddress || null;
-      } catch (mapError) {
-        console.warn("Error mapping order items:", mapError);
+        orderData.shippingAddress = orderWithRelations.shippingAddress;
       }
+    } catch (includeError) {
+      console.warn("Could not fetch order with relations, using basic data");
     }
 
     return NextResponse.json({

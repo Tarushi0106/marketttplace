@@ -120,12 +120,20 @@ interface ProductAddon {
   sortOrder: number;
 }
 
+interface ProductConfigOption {
+  value: string;
+  label: string;
+  priceModifier: string;
+  monthlyPriceModifier?: string;
+  yearlyPriceModifier?: string;
+}
+
 interface ProductConfig {
   id?: string;
   name: string;
   configType: string; // e.g., CPU, RAM, STORAGE, OS, DATA_CENTER, GPU, BANDWIDTH, USERS, etc.
   inputType: "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
-  options: { value: string; label: string; priceModifier: string }[];
+  options: ProductConfigOption[];
   isRequired: boolean;
   defaultValue: string;
   sortOrder: number;
@@ -157,6 +165,10 @@ interface ProductFormData {
   compareAtPrice: string;
   costPrice: string;
   taxRate: string;
+  monthlyPrice?: string;
+  yearlyPrice?: string;
+  monthlySavings?: string;
+  yearlySavings?: string;
   categoryId: string;
   subCategoryId: string;
   productType: "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE";
@@ -202,6 +214,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     compareAtPrice: "",
     costPrice: "",
     taxRate: "",
+    monthlyPrice: "",
+    yearlyPrice: "",
+    monthlySavings: "",
+    yearlySavings: "",
     categoryId: "",
     subCategoryId: "",
     productType: "STANDALONE",
@@ -284,6 +300,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           compareAtPrice: product.compareAtPrice?.toString() || "",
           costPrice: product.costPrice?.toString() || "",
           taxRate: product.taxRate?.toString() || "",
+          monthlyPrice: product.monthlyPrice?.toString() || "",
+          yearlyPrice: product.yearlyPrice?.toString() || "",
+          monthlySavings: product.monthlySavings?.toString() || "",
+          yearlySavings: product.yearlySavings?.toString() || "",
           categoryId: product.categoryId || "",
           subCategoryId: product.subCategoryId || "",
           productType: product.productType || "STANDALONE",
@@ -359,7 +379,13 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               name: c.name,
               configType: c.configType || "STANDARD",
               inputType: c.inputType || "SELECT",
-              options: c.options || [],
+              options: (c.options || []).map((o: any) => ({
+                value: o.value || "",
+                label: o.label || o.value || "",
+                priceModifier: o.priceModifier?.toString() || "0",
+                monthlyPriceModifier: o.monthlyPriceModifier?.toString() || o.priceModifier?.toString() || "0",
+                yearlyPriceModifier: o.yearlyPriceModifier?.toString() || o.priceModifier?.toString() || "0",
+              })),
               isRequired: c.isRequired || false,
               defaultValue: c.defaultValue || "",
               sortOrder: c.sortOrder || 0,
@@ -645,6 +671,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           : null,
         costPrice: formData.costPrice ? parseFloat(formData.costPrice) : null,
         taxRate: formData.taxRate ? parseFloat(formData.taxRate) : null,
+        monthlyPrice: formData.monthlyPrice ? parseFloat(formData.monthlyPrice) : null,
+        yearlyPrice: formData.yearlyPrice ? parseFloat(formData.yearlyPrice) : null,
+        monthlySavings: formData.monthlySavings ? parseFloat(formData.monthlySavings) : null,
+        yearlySavings: formData.yearlySavings ? parseFloat(formData.yearlySavings) : null,
         stockQuantity: parseInt(formData.stockQuantity) || 0,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
         weight: formData.weight ? parseFloat(formData.weight) : null,
@@ -675,6 +705,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           options: c.options.map((o) => ({
             ...o,
             priceModifier: parseFloat(o.priceModifier) || 0,
+            monthlyPriceModifier: o.monthlyPriceModifier ? parseFloat(o.monthlyPriceModifier) : null,
+            yearlyPriceModifier: o.yearlyPriceModifier ? parseFloat(o.yearlyPriceModifier) : null,
           })),
           sortOrder: idx,
         })),
@@ -1537,6 +1569,72 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 </CardContent>
               </Card>
 
+              {/* Recurring Prices */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recurring Prices</CardTitle>
+                  <CardDescription>Set billing cycle pricing for subscription products</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyPrice">Monthly Price (₹)</Label>
+                      <Input
+                        id="monthlyPrice"
+                        type="number"
+                        step="0.01"
+                        value={formData.monthlyPrice || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, monthlyPrice: e.target.value })
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="yearlyPrice">Yearly Price (₹)</Label>
+                      <Input
+                        id="yearlyPrice"
+                        type="number"
+                        step="0.01"
+                        value={formData.yearlyPrice || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, yearlyPrice: e.target.value })
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlySavings">Monthly Savings (%)</Label>
+                      <Input
+                        id="monthlySavings"
+                        type="number"
+                        step="0.01"
+                        value={formData.monthlySavings || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, monthlySavings: e.target.value })
+                        }
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="yearlySavings">Yearly Savings (%)</Label>
+                      <Input
+                        id="yearlySavings"
+                        type="number"
+                        step="0.01"
+                        value={formData.yearlySavings || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, yearlySavings: e.target.value })
+                        }
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {!formData.isDigital && (
                 <Card>
                   <CardHeader>
@@ -1816,15 +1914,17 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {config.options.map((opt, optIdx) => (
-                                  <Badge key={optIdx} variant="secondary">
-                                    {opt.label}
-                                    {parseFloat(opt.priceModifier) !== 0 && (
-                                      <span className="ml-1 text-xs">
-                                        {parseFloat(opt.priceModifier) > 0
-                                          ? `+₹${opt.priceModifier}`
-                                          : `-₹${Math.abs(parseFloat(opt.priceModifier))}`}
-                                      </span>
-                                    )}
+                                  <Badge key={optIdx} variant="secondary" className="flex flex-col items-start py-1 px-2">
+                                    <span>{opt.label}</span>
+                                    <span className="text-xs opacity-75">
+                                      M: {parseFloat(opt.monthlyPriceModifier || opt.priceModifier) !== 0 
+                                        ? (parseFloat(opt.monthlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `₹${opt.monthlyPriceModifier || opt.priceModifier}`
+                                        : 'Included'}
+                                      {' | '}
+                                      Y: {parseFloat(opt.yearlyPriceModifier || opt.priceModifier) !== 0 
+                                        ? (parseFloat(opt.yearlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `₹${opt.yearlyPriceModifier || opt.priceModifier}`
+                                        : 'Included'}
+                                    </span>
                                   </Badge>
                                 ))}
                               </div>
@@ -2290,6 +2390,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
 
               <div className="space-y-2">
+                <Label>Pricing per Billing Cycle</Label>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Set different prices for monthly and yearly billing cycles
+                </div>
                 <div className="flex items-center justify-between">
                   <Label>Options</Label>
                   <Button
@@ -2301,7 +2405,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         ...editingConfig,
                         options: [
                           ...editingConfig.options,
-                          { value: "", label: "", priceModifier: "0" },
+                          { value: "", label: "", priceModifier: "0", monthlyPriceModifier: "0", yearlyPriceModifier: "0" },
                         ],
                       })
                     }
@@ -2339,20 +2443,36 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         }}
                         className="flex-1"
                       />
-                      <Input
-                        type="number"
-                        placeholder="Price +/-"
-                        value={option.priceModifier}
-                        onChange={(e) => {
-                          const newOptions = [...editingConfig.options];
-                          newOptions[idx].priceModifier = e.target.value;
-                          setEditingConfig({
-                            ...editingConfig,
-                            options: newOptions,
-                          });
-                        }}
-                        className="w-24"
-                      />
+                      <div className="flex flex-col gap-1">
+                        <Input
+                          type="number"
+                          placeholder="Monthly +/-"
+                          value={option.monthlyPriceModifier ?? option.priceModifier}
+                          onChange={(e) => {
+                            const newOptions = [...editingConfig.options];
+                            newOptions[idx].monthlyPriceModifier = e.target.value;
+                            setEditingConfig({
+                              ...editingConfig,
+                              options: newOptions,
+                            });
+                          }}
+                          className="w-24 text-xs"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Yearly +/-"
+                          value={option.yearlyPriceModifier ?? option.priceModifier}
+                          onChange={(e) => {
+                            const newOptions = [...editingConfig.options];
+                            newOptions[idx].yearlyPriceModifier = e.target.value;
+                            setEditingConfig({
+                              ...editingConfig,
+                              options: newOptions,
+                            });
+                          }}
+                          className="w-24 text-xs"
+                        />
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"

@@ -182,6 +182,8 @@ const configOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
   priceModifier: z.number().default(0),
+  monthlyPriceModifier: z.number().nullable().optional(),
+  yearlyPriceModifier: z.number().nullable().optional(),
 });
 
 const configSchema = z.object({
@@ -216,6 +218,10 @@ const createProductSchema = z.object({
   compareAtPrice: z.number().min(0).optional().nullable(),
   costPrice: z.number().min(0).optional().nullable(),
   taxRate: z.number().min(0).optional().nullable(),
+  monthlyPrice: z.number().min(0).optional().nullable(),
+  yearlyPrice: z.number().min(0).optional().nullable(),
+  monthlySavings: z.number().min(0).optional().nullable(),
+  yearlySavings: z.number().min(0).optional().nullable(),
   productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).default("STANDALONE"),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).default("DRAFT"),
   categoryId: z.string().optional().nullable(),

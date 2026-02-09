@@ -146,10 +146,27 @@ export default async function ConfigureProductPage({ params }: Props) {
       }));
   }
 
-  // Get recurring prices
+  // Get recurring prices - use Product model fields as fallback
   const recurringPrices = await prisma.productRecurringPrice.findFirst({
     where: { productId: product.id },
   });
+
+  // Build recurring prices object - use ProductRecurringPrice if available, otherwise use Product model
+  const productRecurringPrices = recurringPrices
+    ? {
+        monthlyPrice: Number(recurringPrices.monthlyPrice) || null,
+        yearlyPrice: Number(recurringPrices.yearlyPrice) || null,
+        monthlySavings: recurringPrices.monthlySavings ? Number(recurringPrices.monthlySavings) : null,
+        yearlySavings: recurringPrices.yearlySavings ? Number(recurringPrices.yearlySavings) : null,
+      }
+    : product.monthlyPrice || product.yearlyPrice
+      ? {
+          monthlyPrice: product.monthlyPrice ? Number(product.monthlyPrice) : null,
+          yearlyPrice: product.yearlyPrice ? Number(product.yearlyPrice) : null,
+          monthlySavings: product.monthlySavings ? Number(product.monthlySavings) : null,
+          yearlySavings: product.yearlySavings ? Number(product.yearlySavings) : null,
+        }
+      : null;
 
   // Category addons - placeholder for future implementation
   const categoryAddons: any[] = [];
@@ -255,6 +272,14 @@ export default async function ConfigureProductPage({ params }: Props) {
             productType: product.productType,
             images: product.images,
           }}
+          variants={product.productType === "CONFIGURABLE" ? product.variants.map((variant: any) => ({
+            id: variant.id,
+            name: variant.name,
+            price: Number(variant.price),
+            compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
+            attributes: variant.attributes as Record<string, string> || {},
+            isDefault: variant.isDefault || false,
+          })) : []}
           configs={allConfigs.map((config: any) => ({
             id: config.id,
             configType: config.configType || "STANDARD",

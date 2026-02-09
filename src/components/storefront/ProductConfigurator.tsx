@@ -113,6 +113,14 @@ interface ProductConfiguratorProps {
     productType: string;
     images: any[];
   };
+  variants?: {
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice?: number | null;
+    attributes?: Record<string, string>;
+    isDefault?: boolean;
+  }[];
   configs?: ProductConfig[];
   inheritedConfigs?: ProductConfig[];
   productAddons?: AddonWithSource[];
@@ -139,6 +147,7 @@ const BILLING_CYCLE_MULTIPLIERS = {
 
 export function ProductConfigurator({
   product,
+  variants = [],
   configs = [],
   inheritedConfigs = [],
   productAddons = [],
@@ -158,6 +167,11 @@ export function ProductConfigurator({
   const [billingCycle, setBillingCycle] = useState<string>("MONTHLY");
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  // Variant selection state - use default variant or first variant
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(
+    variants.find(v => v.isDefault)?.id || variants[0]?.id || null
+  );
 
   // Initialize selections from config defaults (only once on mount)
   useEffect(() => {
@@ -186,9 +200,13 @@ export function ProductConfigurator({
   // All configs grouped together under "Configurations" section
   const allConfigs = configs;
   
+  // Get selected variant
+  const currentVariant = variants.find(v => v.id === selectedVariant);
+  
   // Calculate total price
   const pricing = useMemo(() => {
-    let subtotal = Number(product.basePrice) || 0;
+    // Use variant price if available, otherwise use product basePrice
+    let subtotal = currentVariant ? Number(currentVariant.price) : Number(product.basePrice) || 0;
     const configBreakdown: any[] = [];
     const addonBreakdown: any[] = [];
 
@@ -210,7 +228,10 @@ export function ProductConfigurator({
         // Handle select/radio/checkbox with price modifiers
         const option = config.options?.find((opt) => opt.value === value);
         if (option) {
-          const modifier = Number(option.priceModifier) || 0;
+          // Use monthly/yearly modifier based on billing cycle
+          const modifier = billingCycle === "YEARLY"
+            ? Number(option.yearlyPriceModifier || option.priceModifier || 0)
+            : Number(option.monthlyPriceModifier || option.priceModifier || 0);
           configPrice = basePrice + modifier;
         } else {
           configPrice = basePrice;
@@ -335,7 +356,7 @@ export function ProductConfigurator({
 
     const cartItem = {
       product,
-      variant: undefined,
+      variant: currentVariant || undefined,
       quantity: 1,
       selectedConfigs: selectedConfigsArray,
       selectedAddons: Object.entries(selectedAddons)

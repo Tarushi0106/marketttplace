@@ -155,6 +155,12 @@ export default async function ProductDetailPage({ params }: Props) {
   const reviewCount = product.reviewCount || 0;
 
   const hasPricing = Number(product.basePrice) > 0 || product.variants.length > 0;
+  const isConfigurable = product.productType === "CONFIGURABLE";
+  
+  // For configurable products, use lowest variant price as starting price
+  const startingPrice = isConfigurable && product.variants.length > 0
+    ? Math.min(...product.variants.map((v: any) => Number(v.price)))
+    : Number(product.basePrice);
 
   return (
     <div className="min-h-screen bg-white">
@@ -438,9 +444,11 @@ export default async function ProductDetailPage({ params }: Props) {
 
                     {/* Quick CTA */}
                     <div className="bg-[#8B1D1D] rounded-2xl p-6 text-center">
-                      <p className="text-white/80 text-sm mb-2">Starting from</p>
+                      <p className="text-white/80 text-sm mb-2">
+                        {isConfigurable ? "Starting from" : "Price"}
+                      </p>
                       <p className="text-3xl font-bold text-white mb-4">
-                        {hasPricing ? formatCurrency(Number(product.basePrice)) : "Custom"}
+                        {hasPricing ? formatCurrency(startingPrice) : "Custom"}
                         {hasPricing && <span className="text-lg font-normal">/mo</span>}
                       </p>
                       <Button className="w-full bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
@@ -501,11 +509,18 @@ export default async function ProductDetailPage({ params }: Props) {
                     <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
                       <Rocket className="h-4 w-4 mr-1" /> Pricing
                     </Badge>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your plan</h2>
-                    <p className="text-gray-500 max-w-xl mx-auto">Flexible pricing options to fit your needs.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                      {isConfigurable ? "Choose your plan" : "Simple pricing"}
+                    </h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">
+                      {isConfigurable 
+                        ? "Flexible pricing options to fit your needs."
+                        : "One straightforward price, no hidden fees."}
+                    </p>
                   </div>
 
-                  {product.variants.length > 0 ? (
+                  {/* Variants Pricing */}
+                  {isConfigurable && product.variants.length > 0 ? (
                     <div className="grid md:grid-cols-3 gap-6">
                       {product.variants.map((variant: any) => (
                         <div
@@ -521,9 +536,16 @@ export default async function ProductDetailPage({ params }: Props) {
                               {formatCurrency(Number(variant.price))}
                               <span className="text-base font-normal text-gray-500">/mo</span>
                             </p>
+                            {(product as any).monthlyPrice && (product as any).yearlyPrice && (
+                              <div className="flex items-center justify-center gap-3 mt-2 text-xs text-gray-500">
+                                <span>Monthly: {formatCurrency(Number((product as any).monthlyPrice))}</span>
+                                <span>|</span>
+                                <span>Yearly: {formatCurrency(Number((product as any).yearlyPrice))}</span>
+                              </div>
+                            )}
                           </div>
                           {variant.attributes && (
-                            <ul className="space-y-3 mb-8">
+                            <ul className="space-y-3 mb-4">
                               {Object.entries(variant.attributes as Record<string, string>).map(([key, value]) => (
                                 <li key={key} className="flex items-center gap-3 text-sm">
                                   <CheckCircle className="h-5 w-5 text-green-500" />
@@ -533,6 +555,16 @@ export default async function ProductDetailPage({ params }: Props) {
                               ))}
                             </ul>
                           )}
+                          {product.configs.length > 0 && (
+                            <div className="mb-4">
+                              {product.configs.map((config: any) => (
+                                <div key={config.id} className="flex items-center gap-2 text-sm text-gray-600">
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                  <span>{config.name || config.displayName}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
                             <Link href={`/products/${product.slug}/configure`}>
                               Get Started <ArrowRight className="h-4 w-4 ml-2" />
@@ -541,13 +573,43 @@ export default async function ProductDetailPage({ params }: Props) {
                         </div>
                       ))}
                     </div>
-                  ) : hasPricing ? (
-                    <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
-                      <p className="text-5xl font-bold text-gray-900 mb-1">
-                        {formatCurrency(Number(product.basePrice))}
+                  ) : !isConfigurable && hasPricing ? (
+                    <>
+                      {product.configs.length > 0 && (
+                        <div className="mb-6">
+                          {product.configs.map((config: any) => (
+                            <div key={config.id} className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span>{config.name || config.displayName}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
+                      <p className="text-sm text-gray-500 mb-2">
+                        {!isConfigurable ? "One-time price" : "Starting from"}
+                      </p>
+                      <p className="text-5xl font-bold text-gray-900 mb-2">
+                        {formatCurrency(isConfigurable ? startingPrice : Number(product.basePrice))}
                         <span className="text-xl font-normal text-gray-500">/mo</span>
                       </p>
-                      {hasDiscount && <p className="text-gray-400 line-through mb-6">{formatCurrency(Number(product.compareAtPrice))}</p>}
+                      {(product as any).monthlyPrice && (product as any).yearlyPrice && (
+                        <div className="flex items-center justify-center gap-4 mb-4 text-sm">
+                          <span className="text-gray-500">Monthly: {formatCurrency(Number((product as any).monthlyPrice))}</span>
+                          <span className="text-gray-300">|</span>
+                          <span className="text-gray-500">Yearly: {formatCurrency(Number((product as any).yearlyPrice))}</span>
+                        </div>
+                      )}
+                      {!isConfigurable && hasDiscount && (
+                        <p className="text-gray-400 line-through mb-6">
+                          {formatCurrency(Number(product.compareAtPrice))}
+                        </p>
+                      )}
+                      {!isConfigurable && !hasDiscount && product.compareAtPrice && (
+                        <p className="text-gray-400 line-through mb-6">
+                          {formatCurrency(Number(product.compareAtPrice))}
+                        </p>
+                      )}
                       <div className="space-y-3">
                         <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14" asChild>
                           <Link href={`/products/${product.slug}/configure/`}>
@@ -559,7 +621,8 @@ export default async function ProductDetailPage({ params }: Props) {
                         </Button>
                       </div>
                     </div>
-                  ) : (
+                  </>
+                ) : (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
                       <p className="text-2xl font-semibold text-white mb-2">Custom Pricing</p>
                       <p className="text-gray-400 mb-8">Get a personalized quote for your business</p>
