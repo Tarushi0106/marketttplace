@@ -41,7 +41,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
-import { RecurringBillingSection, type RecurringData, type BillingCycleType, BILLING_CYCLE_LABELS, BILLING_CYCLE_PERIODS } from "./RecurringBillingSection";
+import { RecurringBillingSection, type RecurringData, type BillingCycleType, BILLING_CYCLE_LABELS } from "./RecurringBillingSection";
+
+// Billing cycle periods (copied from RecurringBillingSection)
+const BILLING_CYCLE_PERIODS: Record<string, string> = {
+  MONTHLY: "/month",
+  BIMONTHLY: "/2 months",
+  QUARTERLY: "/quarter",
+  FOUR_MONTHLY: "/4 months",
+  SEMI_ANNUAL: "/6 months",
+  TRI_ANNUAL: "/4 months",
+  YEARLY: "/year",
+  BIENNIAL: "/2 years",
+  TRIENNIAL: "/3 years",
+};
 
 // Types for configuration
 interface ConfigOption {
@@ -171,14 +184,6 @@ interface ConfigInstanceWithAddons {
   quantity: number;
   addons: Record<string, { quantity: number; selected: boolean; source: string }>;
 }
-
-const BILLING_CYCLE_LABELS = {
-  ONE_TIME: "One-time",
-  MONTHLY: "Monthly",
-  YEARLY: "Yearly",
-  BIENNIAL: "Biennial",
-  TRIENNIAL: "Triennial",
-};
 
 const BILLING_CYCLE_MULTIPLIERS = {
   ONE_TIME: 1,
@@ -377,7 +382,7 @@ export function ProductConfigurator({
       setupFee = recurringData.setupFee;
       savingsPercentage = recurringData.savingsPercentage;
       monthlyEquivalent = recurringData.monthlyEquivalent;
-      totalForPeriod = recurringData.pricePerCycle + recurringData.setupFee;
+      totalForPeriod = basePrice + recurringData.pricePerCycle + recurringData.setupFee;
     } else {
       // Fallback for products without recurring prices configured
       // Calculate billing prices based on billingCycle
@@ -607,8 +612,8 @@ export function ProductConfigurator({
       };
     });
 
-    // Calculate the total unit price using pricing from recurringData
-    const unitPrice = pricing.pricePerCycle;
+    // Calculate the total unit price using all components
+    const unitPrice = pricing.basePrice + pricing.pricePerCycle + pricing.setupFee;
     const setupFee = pricing.setupFee;
 
     const cartItem = {
@@ -657,7 +662,7 @@ export function ProductConfigurator({
       product,
       variant: undefined,
       instances,
-      unitPrice: pricing.pricePerCycle,
+      unitPrice: pricing.basePrice + pricing.pricePerCycle + pricing.setupFee,
       billingCycle: pricing.billingCycle,
     };
 
@@ -1085,8 +1090,8 @@ export function ProductConfigurator({
                                     {/* Billing Plan Price */}
                                     {pricing.billingCycle !== "ONE_TIME" && (
                                       <div className="flex justify-between">
-                                        <span className="text-gray-600">
-                                          {BILLING_CYCLE_LABELS[billingCycle as BillingCycleType] || billingCycle}
+                                        <span className="text-gray-500 text-sm">
+                                          {pricing.billingCycle ? BILLING_CYCLE_LABELS[pricing.billingCycle] : 'Billing Plan'}
                                         </span>
                                         <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
                                       </div>
@@ -1109,9 +1114,9 @@ export function ProductConfigurator({
                                         {formatCurrency(pricing.basePrice + pricing.pricePerCycle + pricing.setupFee)}
                                         {pricing.billingCycle === "ONE_TIME" ? (
                                           <span className="text-sm font-normal text-gray-500"> one-time</span>
-                                        ) : pricing.billingCycle ? (
+                                        ) : pricing.billingCycle && BILLING_CYCLE_PERIODS[pricing.billingCycle] ? (
                                           <span className="text-sm font-normal text-gray-500">
-                                            {BILLING_CYCLE_PERIODS[pricing.billingCycle] || "/cycle"}
+                                            {BILLING_CYCLE_PERIODS[pricing.billingCycle]}
                                           </span>
                                         ) : null}
                                       </span>
