@@ -111,7 +111,16 @@ export async function GET(
           isRecurring: item.isRecurring,
           recurringPrice: Number(item.recurringPrice) || 0,
         }));
-        orderData.shippingAddress = orderWithRelations.shippingAddress;
+        
+        // Use shippingAddress from relation if available, otherwise try metadata
+        if (orderWithRelations.shippingAddress) {
+          orderData.shippingAddress = orderWithRelations.shippingAddress;
+        } else if (basicOrder.metadata && typeof basicOrder.metadata === 'object') {
+          const metadata = basicOrder.metadata as Record<string, any>;
+          if (metadata.shippingAddress) {
+            orderData.shippingAddress = metadata.shippingAddress;
+          }
+        }
       }
     } catch (includeError) {
       console.warn("Could not fetch order with relations, using basic data");

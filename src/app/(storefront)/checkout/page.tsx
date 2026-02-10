@@ -46,6 +46,18 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
+  const [shippingAddress, setShippingAddress] = useState({
+    firstName: "",
+    lastName: "",
+    company: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "US",
+  });
+
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -78,6 +90,10 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleShippingAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShippingAddress((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
@@ -108,18 +124,31 @@ export default function CheckoutPage() {
           paymentMethod,
           email: formData.email,
           phone: formData.phone,
-          shippingAddress: {
-            phone: formData.phone,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            company: formData.company,
-            address1: formData.address1,
-            address2: formData.address2,
-            city: formData.city,
-            state: formData.state,
-            postalCode: formData.postalCode,
-            country: formData.country,
-          },
+          shippingAddress: sameAsShipping
+            ? {
+                phone: formData.phone,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                company: formData.company,
+                address1: formData.address1,
+                address2: formData.address2,
+                city: formData.city,
+                state: formData.state,
+                postalCode: formData.postalCode,
+                country: formData.country,
+              }
+            : {
+                phone: formData.phone,
+                firstName: shippingAddress.firstName,
+                lastName: shippingAddress.lastName,
+                company: shippingAddress.company,
+                address1: shippingAddress.address1,
+                address2: shippingAddress.address2,
+                city: shippingAddress.city,
+                state: shippingAddress.state,
+                postalCode: shippingAddress.postalCode,
+                country: shippingAddress.country,
+              },
           discountCode,
         }),
       });
@@ -349,6 +378,141 @@ export default function CheckoutPage() {
                     </Select>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Shipping Address */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Address</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="sameAsShipping"
+                    checked={sameAsShipping}
+                    onCheckedChange={(checked) => setSameAsShipping(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="sameAsShipping"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Same as billing address
+                  </label>
+                </div>
+
+                {!sameAsShipping && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingFirstName">First Name *</Label>
+                        <Input
+                          id="shippingFirstName"
+                          name="firstName"
+                          value={shippingAddress.firstName}
+                          onChange={handleShippingAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingLastName">Last Name *</Label>
+                        <Input
+                          id="shippingLastName"
+                          name="lastName"
+                          value={shippingAddress.lastName}
+                          onChange={handleShippingAddressChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingCompany">Company (Optional)</Label>
+                      <Input
+                        id="shippingCompany"
+                        name="company"
+                        value={shippingAddress.company}
+                        onChange={handleShippingAddressChange}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingAddress1">Address *</Label>
+                      <Input
+                        id="shippingAddress1"
+                        name="address1"
+                        placeholder="Street address"
+                        value={shippingAddress.address1}
+                        onChange={handleShippingAddressChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingAddress2">Address Line 2</Label>
+                      <Input
+                        id="shippingAddress2"
+                        name="address2"
+                        placeholder="Apartment, suite, etc."
+                        value={shippingAddress.address2}
+                        onChange={handleShippingAddressChange}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="space-y-2 col-span-2 sm:col-span-1">
+                        <Label htmlFor="shippingCity">City *</Label>
+                        <Input
+                          id="shippingCity"
+                          name="city"
+                          value={shippingAddress.city}
+                          onChange={handleShippingAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingState">State *</Label>
+                        <Input
+                          id="shippingState"
+                          name="state"
+                          value={shippingAddress.state}
+                          onChange={handleShippingAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingPostalCode">ZIP Code *</Label>
+                        <Input
+                          id="shippingPostalCode"
+                          name="postalCode"
+                          value={shippingAddress.postalCode}
+                          onChange={handleShippingAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2 sm:col-span-1">
+                        <Label htmlFor="shippingCountry">Country *</Label>
+                        <Select
+                          value={shippingAddress.country}
+                          onValueChange={(value) =>
+                            setShippingAddress((prev) => ({ ...prev, country: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country.code} value={country.code}>
+                                {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 

@@ -91,8 +91,21 @@ export async function POST(request: NextRequest) {
         });
 
         if (fullOrder) {
+          // Prepare order data for invoice - handle shipping address from metadata if needed
+          const orderDataForInvoice: any = {
+            ...fullOrder,
+          };
+          
+          // If no shippingAddress relation, try to get from metadata
+          if (!orderDataForInvoice.shippingAddress && fullOrder.metadata && typeof fullOrder.metadata === 'object') {
+            const metadata = fullOrder.metadata as Record<string, any>;
+            if (metadata.shippingAddress) {
+              orderDataForInvoice.shippingAddress = metadata.shippingAddress;
+            }
+          }
+
           const invoiceNumber = generateInvoiceNumber();
-          const pdfBuffer = await generateInvoicePDF(fullOrder as any);
+          const pdfBuffer = await generateInvoicePDF(orderDataForInvoice);
 
           const invoicesDir = path.join(process.cwd(), "public", "uploads", "invoices");
           if (!fs.existsSync(invoicesDir)) {

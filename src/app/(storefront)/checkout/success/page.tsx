@@ -235,13 +235,13 @@ export default function CheckoutSuccessPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
         {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Customer Details */}
+          {/* Shipping Address */}
           {order.shippingAddress && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Customer Details
+                  <MapPin className="h-5 w-5" />
+                  Shipping Address
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm space-y-2">

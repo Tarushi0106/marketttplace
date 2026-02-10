@@ -1,843 +1,1150 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { Order } from '@/types';
-import path from 'path';
-import { readFile } from 'fs/promises';
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fs from "fs";
+import path from "path";
 
-// Company configuration
-const COMPANY_CONFIG = {
-  name: 'Shaurryya Teleservices Pvt Ltd',
-  address: 'Plot No. 45, Sector 12, Industrial Area',
-  city: 'Noida',
-  state: 'Uttar Pradesh',
-  pincode: '201301',
-  phone: '+91 98765 43210',
-  email: 'info@shaurryateleservices.com',
-  gstin: '09AABCS1234A1Z5',
-  website: 'www.shaurryateleservices.com',
-  logoPath: '/uploads/branding/iconf.png', // Company logo path
-};
+interface OrderItemInterface {
+  id?: string | null;
+  name?: string | null;
+  description?: string | null;
+  quantity?: number | null;
+  unitPrice?: number | null;
+  totalPrice?: number | null;
+  product?: { name?: string | null } | null;
+  variant?: { name?: string | null } | null | boolean;
+  configuration?: Record<string, any> | null | boolean;
+  bundle?: { name?: string | null } | null | boolean;
+  hsnCode?: string | null;
+  cgstRate?: number | null;
+  sgstRate?: number | null;
+  [key: string]: any;
+}
 
-// Bank details
-const BANK_DETAILS = {
-  bankName: 'HDFC Bank',
-  accountNumber: '50100234567890',
-  ifscCode: 'HDFC0001234',
-  branch: 'Sector 12, Noida',
-};
+interface OrderInterface {
+  id?: string | null;
+  orderNumber?: string | null;
+  user?: any;
+  email?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  paymentStatus?: string | null;
+  paymentMethod?: string | null;
+  paymentId?: string | null;
+  subtotal?: number | null;
+  discountAmount?: number | null;
+  taxAmount?: number | null;
+  cgstAmount?: number | null;
+  sgstAmount?: number | null;
+  shippingAmount?: number | null;
+  total?: number | null;
+  currency?: string | null;
+  notes?: string | null;
+  createdAt?: Date | null;
+  items?: OrderItemInterface[] | null;
+  billingAddress?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    address1?: string | null;
+    address2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+    gstin?: string | null;
+  } | null;
+  shippingAddress?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    company?: string | null;
+    address1?: string | null;
+    address2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+    phone?: string | null;
+    gstin?: string | null;
+  } | null;
+  discount?: any;
+  invoice?: any;
+  // Additional fields for GST invoice
+  poNumber?: string | null;
+  billingCycle?: string | null;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  billingFrequency?: string | null;
+  hostname?: string | null;
+  placeOfSupply?: string | null;
+  dueDate?: Date | string | null;
+  paymentMade?: number | null;
+  [key: string]: any;
+}
 
 /**
  * Generate a unique invoice number
  */
 export function generateInvoiceNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, '0');
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
   return `INV-${year}${month}-${random}`;
-}
-
-/**
- * Format currency value
- */
-function formatCurrency(value: number, currency: string = 'INR'): string {
-  // Use Rs. instead of ₹ symbol since standard PDF fonts don't support it
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value).replace('₹', 'Rs.');
-}
-
-/**
- * Format date for display
- */
-function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date));
-}
-
-/**
- * Get configuration string from item configuration
- */
-function getConfigurationString(configuration: Record<string, string> | null): string {
-  if (!configuration) return '';
-  
-  const configLabels: Record<string, string> = {
-    cpu: 'CPU',
-    ram: 'RAM',
-    storage: 'Storage',
-    tier: 'Tier',
-    os: 'OS',
-    bandwidth: 'Bandwidth',
-    gpu: 'GPU',
-    data_center: 'Data Center',
-  };
-  
-  const parts = [];
-  for (const [key, value] of Object.entries(configuration)) {
-    const label = configLabels[key.toLowerCase()] || key;
-    
-    let formattedValue = value;
-    const lowerKey = key.toLowerCase();
-    
-    if (lowerKey === 'cpu' || lowerKey === 'vcpu') {
-      formattedValue = `${value} vCPU`;
-    } else if (lowerKey === 'ram' || lowerKey === 'memory') {
-      formattedValue = `${value} GB`;
-    } else if (lowerKey === 'storage' || lowerKey === 'disk') {
-      formattedValue = `${value} GB`;
-    } else if (lowerKey === 'tier') {
-      formattedValue = value.charAt(0).toUpperCase() + value.slice(1);
-    }
-    
-    parts.push(`${label}: ${formattedValue}`);
-  }
-  
-  return parts.join(' | ');
 }
 
 /**
  * Load company logo image
  */
-async function loadCompanyLogo(pdfDoc: PDFDocument): Promise<{ image: any; width: number; height: number } | null> {
-  try {
-    const logoFilePath = path.join(process.cwd(), 'public', COMPANY_CONFIG.logoPath);
-    const logoBytes = await readFile(logoFilePath);
-    
-    // Check if PNG or JPG
-    const isPng = logoBytes[0] === 0x89 && logoBytes[1] === 0x50 && logoBytes[2] === 0x4E && logoBytes[3] === 0x47;
-    
-    let logoImage;
-    if (isPng) {
-      logoImage = await pdfDoc.embedPng(logoBytes);
-    } else {
-      logoImage = await pdfDoc.embedJpg(logoBytes);
+async function loadCompanyLogo(): Promise<Uint8Array | null> {
+  const logoPath = path.join(process.cwd(), "public", "uploads", "branding", "iconf.png");
+  
+  if (fs.existsSync(logoPath)) {
+    try {
+      return fs.readFileSync(logoPath);
+    } catch (error) {
+      console.warn("Could not read logo file:", error);
+      return null;
     }
-    
-    // Scale logo to reasonable dimensions (max 120x50)
-    const maxWidth = 120;
-    const maxHeight = 50;
-    const scale = Math.min(maxWidth / logoImage.width, maxHeight / logoImage.height);
-    
-    return {
-      image: logoImage,
-      width: logoImage.width * scale,
-      height: logoImage.height * scale,
-    };
-  } catch (error) {
-    console.error('Error loading company logo:', error);
-    return null;
   }
+  
+  console.warn("Logo file not found at:", logoPath);
+  return null;
 }
 
 /**
- * Generate a PDF invoice for an order
+ * Format currency for display
  */
-export async function generateInvoicePDF(order: Order): Promise<Buffer> {
+function formatCurrency(amount: number): string {
+  return `Rs ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/**
+ * Format date for display
+ */
+function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return "";
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/**
+ * Generate invoice PDF buffer - Professional GST Compliant Invoice
+ */
+export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Array> {
+  // Create new PDF document
   const pdfDoc = await PDFDocument.create();
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
-  const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+  // Add page - A4 size
+  const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
   
-  const fontSize = {
-    title: 20,
-    subtitle: 14,
-    header: 11,
-    body: 10,
-    small: 9,
-    tiny: 8,
-  };
+  // Load fonts
+  const helveticaFont = await pdfDoc.embed.Helvetica);
+  const helveticaFont(StandardFontsBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
-  // Brand colors - Red theme (#8B1D1D)
+  // Colors
   const primaryColor = rgb(0.1, 0.1, 0.1);
   const secondaryColor = rgb(0.3, 0.3, 0.3);
-  const lightGray = rgb(0.95, 0.95, 0.95);
-  const white = rgb(1, 1, 1);
-  const red = rgb(0.8, 0.1, 0.1);
-  const green = rgb(0.1, 0.5, 0.1);
-  // Brand red color: #8B1D1D = rgb(0.545, 0.114, 0.114)
-  const brandRed = rgb(0.545, 0.114, 0.114);
-  const lightRed = rgb(0.98, 0.92, 0.92);
+  const lightGray = rgb(0.7, 0.7, 0.7);
+  const veryLightGray = rgb(0.95, 0.95, 0.95);
+  const greenColor = rgb(0.1, 0.5, 0.1);
+  const whiteColor = rgb(1, 1, 1);
+  
+  // Font sizes
+  const fontSize = {
+    header: 18,
+    title: 16,
+    subtitle: 12,
+    body: 9,
+    small: 8,
+    tiny: 7,
+  };
+  
+  let yPos = height - 40;
+  const leftMargin = 45;
+  const rightMargin = width - 45;
   
   // ==================== HEADER SECTION ====================
-  // Load and draw company logo
-  let logoData = await loadCompanyLogo(pdfDoc);
-  let currentY = height - 50;
+  // Add company logo at top left
+  const logoBytes = await loadCompanyLogo();
+  let logoHeight = 0;
   
-  if (logoData) {
-    page.drawImage(logoData.image, {
-      x: 50,
-      y: currentY - logoData.height,
-      width: logoData.width,
-      height: logoData.height,
-    });
-    // Move text to the right of logo
-    currentY = currentY - logoData.height + 5;
+  if (logoBytes) {
+    try {
+      const logoImage = await pdfDoc.embedPng(logoBytes);
+      const logoDims = logoImage.scale(0.4);
+      page.drawImage(logoImage, {
+        x: leftMargin,
+        y: yPos - logoDims.height,
+        width: logoDims.width,
+        height: logoDims.height,
+      });
+      logoHeight = logoDims.height + 10;
+    } catch (e) {
+      console.warn("Could not embed logo:", e);
+    }
   }
   
-  // Company name (next to logo or alone)
-  const textStartX = logoData ? 50 + logoData.width + 20 : 50;
-  page.drawText(COMPANY_CONFIG.name, {
-    x: textStartX,
-    y: currentY,
-    size: fontSize.title,
+  // Company name
+  page.drawText("Shaurrya Teleservices Pvt. Ltd", {
+    x: leftMargin,
+    y: yPos - logoHeight - 5,
+    size: fontSize.header,
     font: helveticaBold,
-    color: brandRed,
+    color: primaryColor,
   });
   
-  // Company details
-  page.drawText(`${COMPANY_CONFIG.address}, ${COMPANY_CONFIG.city} - ${COMPANY_CONFIG.pincode}`, {
-    x: textStartX,
-    y: currentY - 20,
-    size: fontSize.small,
+  // Company address block
+  yPos -= logoHeight + 25;
+  page.drawText("603, Laxmi Plaza, Laxmi Industrial Estate", {
+    x: leftMargin,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 12;
+  page.drawText("Sab TV Lane, Andheri West, Mumbai 400053", {
+    x: leftMargin,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 12;
+  page.drawText("GSTIN: 27ABCCS1234A1Z5 | CIN: U72200MH2020PTC123456", {
+    x: leftMargin,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 12;
+  page.drawText("PAN: ABCCS1234A | MSME: MH27D0012345", {
+    x: leftMargin,
+    y: yPos,
+    size: fontSize.body,
     font: helveticaFont,
     color: secondaryColor,
   });
   
-  page.drawText(`Ph: ${COMPANY_CONFIG.phone} | Email: ${COMPANY_CONFIG.email}`, {
-    x: textStartX,
-    y: currentY - 35,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  
-  page.drawText(`GSTIN: ${COMPANY_CONFIG.gstin} | ${COMPANY_CONFIG.website}`, {
-    x: textStartX,
-    y: currentY - 50,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  
-  // Invoice title box with red brand color
-  page.drawRectangle({
-    x: width - 130,
-    y: currentY - 10,
-    width: 80,
-    height: 30,
-    color: brandRed,
-  });
-  
-  page.drawText('INVOICE', {
-    x: width - 118,
-    y: currentY + 7,
-    size: fontSize.subtitle,
-    font: helveticaBold,
-    color: white,
-  });
-  
-  // ==================== INVOICE DETAILS ====================
-  let yPos = currentY - 80;
-  
-  // Invoice Details Box
-  page.drawText('Invoice No:', {
-    x: 50,
-    y: yPos,
-    size: fontSize.body,
+  // Right side - TAX INVOICE title
+  page.drawText("TAX INVOICE", {
+    x: width - 180,
+    y: yPos + 40,
+    size: fontSize.header,
     font: helveticaBold,
     color: primaryColor,
   });
-  page.drawText(generateInvoiceNumber(), {
-    x: 120,
+  
+  // Invoice number and date
+  const invoiceNumber = generateInvoiceNumber();
+  yPos += 15;
+  page.drawText(`Invoice #: ${invoiceNumber}`, {
+    x: width - 200,
     y: yPos,
     size: fontSize.body,
     font: helveticaFont,
     color: primaryColor,
-  });
-  
-  page.drawText('Invoice Date:', {
-    x: 300,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-  page.drawText(formatDate(order.createdAt), {
-    x: 395,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  
-  yPos -= 18;
-  
-  page.drawText('Order No:', {
-    x: 50,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-  page.drawText(order.orderNumber, {
-    x: 120,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  
-  page.drawText('Payment Status:', {
-    x: 300,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-  const statusColor = order.paymentStatus === 'PAID' ? green : red;
-  page.drawText(order.paymentStatus, {
-    x: 395,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: statusColor,
-  });
-  
-  // ==================== BILL TO & SHIP TO ====================
-  yPos -= 35;
-  
-  // Divider line with brand red
-  page.drawRectangle({
-    x: 50,
-    y: yPos,
-    width: 495,
-    height: 1,
-    color: lightGray,
   });
   
   yPos -= 15;
-  
-  // Bill To Section
-  const billingAddress = order.shippingAddress;
-  let addressStartY = yPos;
-  
-  page.drawText('BILL TO:', {
-    x: 50,
-    y: addressStartY,
-    size: fontSize.header,
-    font: helveticaBold,
-    color: brandRed,
-  });
-  
-  if (billingAddress) {
-    let billY = addressStartY - 15;
-    
-    // Customer name/company
-    const customerName = billingAddress.company 
-      ? `${billingAddress.company}\nAttn: ${billingAddress.firstName} ${billingAddress.lastName}`
-      : `${billingAddress.firstName} ${billingAddress.lastName}`;
-    
-    page.drawText(customerName, {
-      x: 50,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
-    });
-    
-    billY -= billingAddress.company ? 35 : 20;
-    
-    // Address lines
-    page.drawText(`${billingAddress.address1}`, {
-      x: 50,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    billY -= 14;
-    
-    if (billingAddress.address2) {
-      page.drawText(`${billingAddress.address2}`, {
-        x: 50,
-        y: billY,
-        size: fontSize.body,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-      billY -= 14;
-    }
-    
-    page.drawText(`${billingAddress.city}, ${billingAddress.state} - ${billingAddress.postalCode}`, {
-      x: 50,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    billY -= 14;
-    
-    page.drawText(`${billingAddress.country}`, {
-      x: 50,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    billY -= 14;
-    
-    page.drawText(`Ph: ${billingAddress.phone || 'N/A'}`, {
-      x: 50,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    
-    page.drawText(`Email: ${order.email}`, {
-      x: 250,
-      y: billY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-  }
-  
-  // Ship To Section (if different from Bill To)
-  page.drawText('SHIP TO:', {
-    x: 320,
-    y: addressStartY,
-    size: fontSize.header,
-    font: helveticaBold,
-    color: brandRed,
-  });
-  
-  if (billingAddress) {
-    let shipY = addressStartY - 15;
-    
-    const customerName = billingAddress.company 
-      ? `${billingAddress.company}\nAttn: ${billingAddress.firstName} ${billingAddress.lastName}`
-      : `${billingAddress.firstName} ${billingAddress.lastName}`;
-    
-    page.drawText(customerName, {
-      x: 320,
-      y: shipY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
-    });
-    
-    shipY -= billingAddress.company ? 35 : 20;
-    
-    page.drawText(`${billingAddress.address1}`, {
-      x: 320,
-      y: shipY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    shipY -= 14;
-    
-    if (billingAddress.address2) {
-      page.drawText(`${billingAddress.address2}`, {
-        x: 320,
-        y: shipY,
-        size: fontSize.body,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-      shipY -= 14;
-    }
-    
-    page.drawText(`${billingAddress.city}, ${billingAddress.state} - ${billingAddress.postalCode}`, {
-      x: 320,
-      y: shipY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    shipY -= 14;
-    
-    page.drawText(`${billingAddress.country}`, {
-      x: 320,
-      y: shipY,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-  }
-  
-  // ==================== LINE ITEMS TABLE ====================
-  yPos = addressStartY - 100;
-  
-  // Table header with brand red color
-  page.drawRectangle({
-    x: 50,
+  page.drawText(`Date: ${formatDate(order.createdAt)}`, {
+    x: width - 200,
     y: yPos,
-    width: 495,
-    height: 25,
-    color: brandRed,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: secondaryColor,
   });
   
-  page.drawText('Description', {
-    x: 55,
-    y: yPos + 7,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: white,
-  });
-  page.drawText('Qty', {
-    x: 360,
-    y: yPos + 7,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: white,
-  });
-  page.drawText('Rate', {
-    x: 420,
-    y: yPos + 7,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: white,
-  });
-  page.drawText('Amount', {
-    x: 500,
-    y: yPos + 7,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: white,
+  // PAID status box
+  if (order.paymentStatus === "PAID") {
+    page.drawRectangle({
+      x: width - 105,
+      y: yPos - 20,
+      width: 85,
+      height: 22,
+      color: greenColor,
+    });
+    page.drawText("PAID", {
+      x: width - 95,
+      y: yPos - 10,
+      size: fontSize.title,
+      font: helveticaBold,
+      color: whiteColor,
+    });
+  }
+  
+  // Divider line
+  yPos -= 25;
+  page.drawLine({
+    start: { x: leftMargin, y: yPos },
+    end: { x: rightMargin, y: yPos },
+    thickness: 1,
+    color: lightGray,
   });
   
-  yPos += 25;
-  const rowHeight = 30;
+  // ==================== INVOICE INFO SECTION (3 COLUMNS) ====================
+  yPos -= 15;
+  const col1X = leftMargin;
+  const col2X = leftMargin + 140;
+  const col3X = leftMargin + 300;
   
-  order.items.forEach((item, index) => {
-    const isEven = index % 2 === 0;
-    if (isEven) {
-      page.drawRectangle({
-        x: 50,
+  // LEFT COLUMN - Invoice Details
+  page.drawText("Invoice Date", {
+    x: col1X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  page.drawText(formatDate(order.createdAt), {
+    x: col1X,
+    y: yPos - 10,
+    size: fontSize.body,
+    font: helveticaBold,
+    color: primaryColor,
+  });
+  
+  yPos -= 25;
+  page.drawText("Terms", {
+    x: col1X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  page.drawText("Due on Receipt", {
+    x: col1X,
+    y: yPos - 10,
+    size: fontSize.body,
+    font: helveticaBold,
+    color: primaryColor,
+  });
+  
+  yPos -= 25;
+  page.drawText("Due Date", {
+    x: col1X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  page.drawText(formatDate(order.dueDate), {
+    x: col1X,
+    y: yPos - 10,
+    size: fontSize.body,
+    font: helveticaBold,
+    color: primaryColor,
+  });
+  
+  yPos -= 25;
+  if (order.poNumber) {
+    page.drawText("P.O #", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(order.poNumber, {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 25;
+  }
+  
+  if (order.billingCycle) {
+    page.drawText("Billing Cycle", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(order.billingCycle, {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 25;
+  }
+  
+  if (order.startDate) {
+    page.drawText("Start Date", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(formatDate(order.startDate), {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 25;
+  }
+  
+  if (order.endDate) {
+    page.drawText("End Date", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(formatDate(order.endDate), {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 25;
+  }
+  
+  if (order.billingFrequency) {
+    page.drawText("Frequency", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(order.billingFrequency, {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 25;
+  }
+  
+  if (order.hostname) {
+    page.drawText("Hostname", {
+      x: col1X,
+      y: yPos,
+      size: fontSize.tiny,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    page.drawText(order.hostname, {
+      x: col1X,
+      y: yPos - 10,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+  }
+  
+  // Reset yPos for right columns
+  yPos = height - 165;
+  
+  // MIDDLE COLUMN - Bill To
+  page.drawText("Bill To:", {
+    x: col2X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaBold,
+    color: secondaryColor,
+  });
+  yPos -= 12;
+  
+  const billingAddr = order.billingAddress || order.shippingAddress;
+  if (billingAddr?.company) {
+    page.drawText(billingAddr.company, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (billingAddr?.firstName || billingAddr?.lastName) {
+    page.drawText(`${billingAddr.firstName || ''} ${billingAddr.lastName || ''}`, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (billingAddr?.address1) {
+    page.drawText(billingAddr.address1, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (billingAddr?.address2) {
+    page.drawText(billingAddr.address2, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  const cityLine = `${billingAddr?.city || ''}${billingAddr?.city && billingAddr?.state ? ', ' : ''}${billingAddr?.state || ''} ${billingAddr?.postalCode || ''}`;
+  if (cityLine.trim()) {
+    page.drawText(cityLine, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (billingAddr?.gstin) {
+    page.drawText(`GSTIN: ${billingAddr.gstin}`, {
+      x: col2X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+  }
+  
+  // RIGHT COLUMN - Ship To
+  yPos = height - 165;
+  page.drawText("Ship To:", {
+    x: col3X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaBold,
+    color: secondaryColor,
+  });
+  yPos -= 12;
+  
+  const shippingAddr = order.shippingAddress;
+  if (shippingAddr?.company) {
+    page.drawText(shippingAddr.company, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (shippingAddr?.firstName || shippingAddr?.lastName) {
+    page.drawText(`${shippingAddr.firstName || ''} ${shippingAddr.lastName || ''}`, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (shippingAddr?.address1) {
+    page.drawText(shippingAddr.address1, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (shippingAddr?.address2) {
+    page.drawText(shippingAddr.address2, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  const shipCityLine = `${shippingAddr?.city || ''}${shippingAddr?.city && shippingAddr?.state ? ', ' : ''}${shippingAddr?.state || ''} ${shippingAddr?.postalCode || ''}`;
+  if (shipCityLine.trim()) {
+    page.drawText(shipCityLine, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 12;
+  }
+  
+  if (shippingAddr?.gstin) {
+    page.drawText(`GSTIN: ${shippingAddr.gstin}`, {
+      x: col3X,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+  }
+  
+  // Place of Supply
+  yPos -= 20;
+  const placeOfSupply = order.placeOfSupply || billingAddr?.state || "Maharashtra";
+  const placeOfSupplyCode = order.placeOfSupply ? "" : " (27)";
+  page.drawText(`Place of Supply: ${placeOfSupply}${placeOfSupplyCode}`, {
+    x: col3X,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaBold,
+    color: primaryColor,
+  });
+  
+  // Divider line
+  yPos -= 15;
+  page.drawLine({
+    start: { x: leftMargin, y: yPos },
+    end: { x: rightMargin, y: yPos },
+    thickness: 1,
+    color: lightGray,
+  });
+  
+  // ==================== ITEMS TABLE ====================
+  yPos -= 10;
+  
+  // Table header background
+  page.drawRectangle({
+    x: leftMargin,
+    y: yPos - 3,
+    width: width - 90,
+    height: 18,
+    color: veryLightGray,
+  });
+  
+  // Table header text
+  const colX = {
+    item: leftMargin + 5,
+    desc: leftMargin + 60,
+    hsn: leftMargin + 220,
+    qty: leftMargin + 275,
+    unit: leftMargin + 310,
+    rate: leftMargin + 355,
+    cgst: leftMargin + 400,
+    sgst: leftMargin + 445,
+    amount: leftMargin + 490,
+  };
+  
+  page.drawText("Item", { x: colX.item, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Description", { x: colX.desc, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("HSN/SAC", { x: colX.hsn, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Qty", { x: colX.qty, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Units", { x: colX.unit, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Rate", { x: colX.rate, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("CGST", { x: colX.cgst, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("SGST", { x: colX.sgst, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Amount", { x: colX.amount, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  
+  yPos -= 22;
+  page.drawLine({
+    start: { x: leftMargin, y: yPos },
+    end: { x: rightMargin, y: yPos },
+    thickness: 0.5,
+    color: lightGray,
+  });
+  yPos -= 5;
+  
+  // Draw items
+  const items = order.items || [];
+  let subtotal = 0;
+  let totalCgst = 0;
+  let totalSgst = 0;
+  
+  for (const item of items) {
+    if (!item) continue;
+    
+    const quantity = Number(item.quantity) || 1;
+    const unitPrice = Number(item.unitPrice) || 0;
+    const itemTotal = quantity * unitPrice;
+    const cgstRate = Number(item.cgstRate) || 9;
+    const sgstRate = Number(item.sgstRate) || 9;
+    const cgstAmount = (itemTotal * cgstRate) / 100;
+    const sgstAmount = (itemTotal * sgstRate) / 100;
+    
+    subtotal += itemTotal;
+    totalCgst += cgstAmount;
+    totalSgst += sgstAmount;
+    
+    const itemName = item.name || item.product?.name || "Item";
+    const description = item.description || "";
+    const hsnCode = item.hsnCode || "998313"; // Default HSN for IT services
+    
+    // Item name
+    page.drawText(itemName.substring(0, 20), {
+      x: colX.item,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    
+    // Description (split if too long)
+    const descLines = description.length > 60 ? [description.substring(0, 60), description.substring(60)] : [description];
+    page.drawText(descLines[0].substring(0, 50), {
+      x: colX.desc,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // HSN/SAC
+    page.drawText(hsnCode, {
+      x: colX.hsn,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // Quantity
+    page.drawText(quantity.toString(), {
+      x: colX.qty,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // Units
+    page.drawText("NOS", {
+      x: colX.unit,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // Rate
+    page.drawText(formatCurrency(unitPrice), {
+      x: colX.rate,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // CGST
+    page.drawText(`${cgstRate}%`, {
+      x: colX.cgst,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // SGST
+    page.drawText(`${sgstRate}%`, {
+      x: colX.sgst,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaFont,
+      color: secondaryColor,
+    });
+    
+    // Amount
+    page.drawText(formatCurrency(itemTotal), {
+      x: colX.amount,
+      y: yPos,
+      size: fontSize.small,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    
+    yPos -= 15;
+    
+    // Draw additional description lines
+    if (descLines.length > 1) {
+      page.drawText(descLines[1].substring(0, 60), {
+        x: colX.desc,
         y: yPos,
-        width: 495,
-        height: rowHeight,
-        color: lightGray,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
       });
+      yPos -= 15;
     }
     
-    const configStr = getConfigurationString(item.configuration);
-    const itemName = configStr ? `${item.name} (${configStr})` : item.name;
-    
-    // Truncate item name if too long
-    const truncatedName = itemName.length > 55 ? itemName.substring(0, 55) + '...' : itemName;
-    
-    page.drawText(truncatedName, {
-      x: 55,
-      y: yPos + 10,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
+    // Table row divider
+    page.drawLine({
+      start: { x: leftMargin, y: yPos },
+      end: { x: rightMargin, y: yPos },
+      thickness: 0.3,
+      color: lightGray,
     });
+    yPos -= 5;
     
-    page.drawText(item.quantity.toString(), {
-      x: 370,
-      y: yPos + 10,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
-    });
-    
-    page.drawText(formatCurrency(item.unitPrice, order.currency), {
-      x: 420,
-      y: yPos + 10,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
-    });
-    
-    page.drawText(formatCurrency(item.totalPrice, order.currency), {
-      x: 500,
-      y: yPos + 10,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: primaryColor,
-    });
-    
-    yPos += rowHeight;
-  });
+    // Check for page break
+    if (yPos < 100) {
+      pdfDoc.addPage();
+      const newPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
+      yPos = height - 50;
+    }
+  }
   
-  // ==================== TOTALS SECTION ====================
-  yPos += 15;
+  // ==================== SUMMARY SECTION ====================
+  yPos -= 10;
+  
+  // Totals box on right side
+  const totalsBoxX = width - 180;
+  const totalsBoxWidth = 135;
   
   // Subtotal
-  page.drawText('Subtotal:', {
-    x: 350,
+  page.drawText("Sub Total:", {
+    x: totalsBoxX,
     y: yPos,
     size: fontSize.body,
-    font: helveticaFont,
-    color: secondaryColor,
+    font: helveticaBold,
+    color: primaryColor,
   });
-  page.drawText(formatCurrency(order.subtotal, order.currency), {
-    x: 500,
+  page.drawText(formatCurrency(subtotal), {
+    x: totalsBoxX + totalsBoxWidth - 80,
     y: yPos,
     size: fontSize.body,
     font: helveticaFont,
     color: primaryColor,
   });
-  
-  yPos += 14;
-  
-  // Discount
-  if (order.discountAmount > 0) {
-    page.drawText('Discount:', {
-      x: 350,
-      y: yPos,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    page.drawText(`-${formatCurrency(order.discountAmount, order.currency)}`, {
-      x: 500,
-      y: yPos,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: red,
-    });
-    yPos += 14;
-  }
-  
-  // SGST
-  const sgst = order.taxAmount / 2;
-  page.drawText('SGST:', {
-    x: 350,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  page.drawText(formatCurrency(sgst, order.currency), {
-    x: 500,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  
-  yPos += 14;
+  yPos -= 14;
   
   // CGST
-  page.drawText('CGST:', {
-    x: 350,
+  page.drawText(`CGST ${totalCgst > 0 ? '9%' : '0%'}:`, {
+    x: totalsBoxX,
     y: yPos,
     size: fontSize.body,
-    font: helveticaFont,
-    color: secondaryColor,
+    font: helveticaBold,
+    color: primaryColor,
   });
-  page.drawText(formatCurrency(sgst, order.currency), {
-    x: 500,
+  page.drawText(formatCurrency(totalCgst), {
+    x: totalsBoxX + totalsBoxWidth - 80,
     y: yPos,
     size: fontSize.body,
     font: helveticaFont,
     color: primaryColor,
   });
+  yPos -= 14;
   
-  yPos += 14;
-  
-  // Shipping
-  page.drawText('Shipping:', {
-    x: 350,
+  // SGST
+  page.drawText(`SGST ${totalSgst > 0 ? '9%' : '0%'}:`, {
+    x: totalsBoxX,
     y: yPos,
     size: fontSize.body,
-    font: helveticaFont,
-    color: secondaryColor,
+    font: helveticaBold,
+    color: primaryColor,
   });
-  page.drawText(formatCurrency(order.shippingAmount, order.currency), {
-    x: 500,
+  page.drawText(formatCurrency(totalSgst), {
+    x: totalsBoxX + totalsBoxWidth - 80,
     y: yPos,
     size: fontSize.body,
     font: helveticaFont,
     color: primaryColor,
   });
+  yPos -= 14;
   
-  // Grand Total with brand red
-  yPos += 20;
-  page.drawRectangle({
-    x: 350,
-    y: yPos - 3,
-    width: 195,
-    height: 28,
-    color: brandRed,
-  });
-  
-  page.drawText('TOTAL:', {
-    x: 360,
-    y: yPos + 4,
-    size: fontSize.subtitle,
-    font: helveticaBold,
-    color: white,
-  });
-  page.drawText(formatCurrency(order.total, order.currency), {
-    x: 500,
-    y: yPos + 4,
-    size: fontSize.subtitle,
-    font: helveticaBold,
-    color: white,
-  });
-  
-  // ==================== BANK DETAILS SECTION WITH PAGE BREAK DETECTION ====================
-  // Constants for page break calculation
-  const BANK_DETAILS_BLOCK_HEIGHT = 130;
-  const TERMS_HEIGHT = 40;
-  const FOOTER_BUFFER = 80;
-  const MIN_Y_POS = 150; // Minimum Y position before footer
-  
-  // Check if we need a new page for bank details
-  if (yPos - BANK_DETAILS_BLOCK_HEIGHT < MIN_Y_POS) {
-    const newPage = pdfDoc.addPage([595.28, 841.89]);
-    yPos = newPage.getHeight() - 50;
+  // Discount if applicable
+  if (order.discountAmount && Number(order.discountAmount) > 0) {
+    page.drawText("Discount:", {
+      x: totalsBoxX,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: primaryColor,
+    });
+    page.drawText(`-${formatCurrency(Number(order.discountAmount))}`, {
+      x: totalsBoxX + totalsBoxWidth - 80,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: primaryColor,
+    });
+    yPos -= 14;
   }
   
-  yPos -= 30;
-  
-  // Bank details box with light red background and border
-  const bankBoxX = 50;
-  const bankBoxY = yPos - BANK_DETAILS_BLOCK_HEIGHT + 30;
-  const bankBoxWidth = 240;
-  const bankBoxHeight = BANK_DETAILS_BLOCK_HEIGHT - 30;
-  
-  // Light red background
-  page.drawRectangle({
-    x: bankBoxX,
-    y: bankBoxY,
-    width: bankBoxWidth,
-    height: bankBoxHeight,
-    color: lightRed,
+  // Divider line
+  yPos -= 2;
+  page.drawLine({
+    start: { x: totalsBoxX, y: yPos },
+    end: { x: totalsBoxX + totalsBoxWidth, y: yPos },
+    thickness: 1,
+    color: primaryColor,
   });
+  yPos -= 10;
   
-  // Red border
-  page.drawRectangle({
-    x: bankBoxX,
-    y: bankBoxY,
-    width: bankBoxWidth,
-    height: bankBoxHeight,
-    color: brandRed,
-    borderColor: brandRed,
-    borderWidth: 1,
-  });
-  
-  // Bank details header with brand red
-  page.drawText('Bank Details:', {
-    x: bankBoxX + 10,
+  // Total
+  const total = Number(order.total) || (subtotal + totalCgst + totalSgst - Number(order.discountAmount || 0));
+  page.drawText("Total Amount:", {
+    x: totalsBoxX,
     y: yPos,
-    size: fontSize.header,
+    size: fontSize.title,
     font: helveticaBold,
-    color: brandRed,
-  });
-  
-  yPos -= 18;
-  page.drawText(`Bank Name: ${BANK_DETAILS.bankName}`, {
-    x: bankBoxX + 10,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
     color: primaryColor,
   });
-  
+  page.drawText(formatCurrency(total), {
+    x: totalsBoxX + totalsBoxWidth - 80,
+    y: yPos,
+    size: fontSize.title,
+    font: helveticaBold,
+    color: primaryColor,
+  });
   yPos -= 14;
-  page.drawText(`A/c No: ${BANK_DETAILS.accountNumber}`, {
-    x: bankBoxX + 10,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
   
-  yPos -= 14;
-  page.drawText(`IFSC Code: ${BANK_DETAILS.ifscCode}`, {
-    x: bankBoxX + 10,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  
-  yPos -= 14;
-  page.drawText(`Branch: ${BANK_DETAILS.branch}`, {
-    x: bankBoxX + 10,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  
-  // ==================== TERMS & CONDITIONS ====================
-  // Check if we need a new page for terms
-  if (yPos - TERMS_HEIGHT < MIN_Y_POS) {
-    const newPage = pdfDoc.addPage([595.28, 841.89]);
-    yPos = newPage.getHeight() - 50;
+  // Payment Made
+  if (order.paymentMade && Number(order.paymentMade) > 0) {
+    page.drawText("Payment Made:", {
+      x: totalsBoxX,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaBold,
+      color: greenColor,
+    });
+    page.drawText(`-${formatCurrency(Number(order.paymentMade))}`, {
+      x: totalsBoxX + totalsBoxWidth - 80,
+      y: yPos,
+      size: fontSize.body,
+      font: helveticaFont,
+      color: greenColor,
+    });
+    yPos -= 14;
+    
+    // Balance Due
+    const balanceDue = total - Number(order.paymentMade);
+    if (balanceDue > 0) {
+      page.drawText("Balance Due:", {
+        x: totalsBoxX,
+        y: yPos,
+        size: fontSize.title,
+        font: helveticaBold,
+        color: primaryColor,
+      });
+      page.drawText(formatCurrency(balanceDue), {
+        x: totalsBoxX + totalsBoxWidth - 80,
+        y: yPos,
+        size: fontSize.title,
+        font: helveticaBold,
+        color: primaryColor,
+      });
+    }
   }
   
+  // ==================== FOOTER SECTION ====================
   yPos -= 30;
-  page.drawText('Terms & Conditions:', {
-    x: 50,
+  page.drawLine({
+    start: { x: leftMargin, y: yPos },
+    end: { x: rightMargin, y: yPos },
+    thickness: 1,
+    color: lightGray,
+  });
+  yPos -= 15;
+  
+  const footerCol1X = leftMargin;
+  const footerCol2X = leftMargin + 180;
+  const footerCol3X = leftMargin + 350;
+  
+  // LEFT - Notes and Bank Details
+  page.drawText("Notes:", {
+    x: footerCol1X,
     y: yPos,
-    size: fontSize.header,
+    size: fontSize.tiny,
     font: helveticaBold,
-    color: brandRed,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("Thank you for your business!", {
+    x: footerCol1X,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: primaryColor,
+  });
+  yPos -= 15;
+  
+  page.drawText("Bank Details:", {
+    x: footerCol1X,
+    y: yPos,
+    size: fontSize.tiny,
+    font: helveticaBold,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("Bank Name: HDFC Bank", {
+    x: footerCol1X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: primaryColor,
+  });
+  yPos -= 10;
+  page.drawText("A/c No.: 50100123456789", {
+    x: footerCol1X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: primaryColor,
+  });
+  yPos -= 10;
+  page.drawText("IFSC Code: HDFC0001234", {
+    x: footerCol1X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: primaryColor,
   });
   
-  yPos -= 16;
-  page.drawText('1. Payment to be made within 15 days of invoice date.', {
-    x: 50,
+  // CENTER - Terms & Conditions
+  page.drawText("Terms & Conditions:", {
+    x: footerCol2X,
+    y: yPos + 40,
+    size: fontSize.tiny,
+    font: helveticaBold,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("1. Payment is due within 30 days of invoice date.", {
+    x: footerCol2X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("2. All prices are exclusive of GST unless specified.", {
+    x: footerCol2X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("3. Services once rendered cannot be refunded.", {
+    x: footerCol2X,
+    y: yPos,
+    size: fontSize.small,
+    font: helveticaFont,
+    color: secondaryColor,
+  });
+  yPos -= 10;
+  page.drawText("4. Dispute, if any, shall be subject to Mumbai jurisdiction.", {
+    x: footerCol2X,
     y: yPos,
     size: fontSize.small,
     font: helveticaFont,
     color: secondaryColor,
   });
   
-  yPos -= 14;
-  page.drawText('2. Goods once sold cannot be returned.', {
-    x: 50,
-    y: yPos,
-    size: fontSize.small,
+  // RIGHT - Authorized Signature
+  page.drawText("Authorized Signatory", {
+    x: footerCol3X,
+    y: yPos + 40,
+    size: fontSize.tiny,
+    font: helveticaBold,
+    color: secondaryColor,
+  });
+  yPos -= 25;
+  page.drawRectangle({
+    x: footerCol3X - 10,
+    y: yPos - 20,
+    width: 100,
+    height: 35,
+    color: veryLightGray,
+  });
+  page.drawText("(Digitally Signed)", {
+    x: footerCol3X,
+    y: yPos - 10,
+    size: fontSize.tiny,
     font: helveticaFont,
     color: secondaryColor,
   });
   
-  // ==================== FOOTER WITH SIGNATURE ====================
-  // Footer is always at the bottom of the page
-  const footerY = 60;
-  page.drawText(`For ${COMPANY_CONFIG.name},`, {
-    x: 400,
-    y: footerY,
+  // BOTTOM - Amount in words and certification
+  yPos -= 35;
+  page.drawLine({
+    start: { x: leftMargin, y: yPos },
+    end: { x: rightMargin, y: yPos },
+    thickness: 1,
+    color: lightGray,
+  });
+  yPos -= 15;
+  
+  // Total amount in words
+  const amountInWords = convertNumberToWords(total);
+  page.drawText(`Total Amount (in words): ${amountInWords}`, {
+    x: leftMargin,
+    y: yPos,
     size: fontSize.body,
     font: helveticaBold,
     color: primaryColor,
   });
+  yPos -= 15;
   
-  // Signature line
-  page.drawRectangle({
-    x: 400,
-    y: footerY - 25,
-    width: 120,
-    height: 1,
-    color: primaryColor,
-  });
-  
-  page.drawText('Authorized Signatory', {
-    x: 410,
-    y: footerY - 40,
+  // Certification
+  page.drawText("Certified that the particulars given above are true and correct", {
+    x: leftMargin,
+    y: yPos,
     size: fontSize.small,
     font: helveticaFont,
     color: secondaryColor,
   });
   
-  // Footer thank you message with brand red
-  page.drawText('Thank you for your business!', {
-    x: 50,
-    y: footerY - 40,
-    size: fontSize.small,
-    font: helveticaBold,
-    color: brandRed,
+  // Company stamp/signature area
+  page.drawText("For Shaurrya Teleservices Pvt. Ltd", {
+    x: width - 180,
+    y: yPos,
+    size: fontSize.body,
+    font: helveticaFont,
+    color: primaryColor,
   });
   
-  const pdfBytes = await pdfDoc.save();
-  return Buffer.from(pdfBytes);
+  // Save PDF
+  return pdfDoc.save();
+}
+
+/**
+ * Convert number to words (Indian Rupees format)
+ */
+function convertNumberToWords(amount: number): string {
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+  
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", 
+                "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  
+  function convertToWords(n: number): string {
+    if (n < 20) return ones[n];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+    if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convertToWords(n % 100) : "");
+    if (n < 100000) return convertToWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + convertToWords(n % 1000) : "");
+    if (n < 10000000) return convertToWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + convertToWords(n % 100000) : "");
+    return convertToWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + convertToWords(n % 10000000) : "");
+  }
+  
+  let result = convertToWords(rupees) + " Rupees";
+  if (paise > 0) {
+    result += " and " + convertToWords(paise) + " Paise";
+  }
+  return result;
 }

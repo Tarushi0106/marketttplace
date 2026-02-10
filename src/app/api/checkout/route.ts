@@ -236,6 +236,31 @@ export async function POST(request: NextRequest) {
     // Generate order number
     const orderNumber = generateOrderNumber();
 
+    // Create shipping address if provided
+    let shippingAddressId: string | undefined;
+    if (data.shippingAddress) {
+      // Only create address record if user is logged in
+      if (session?.user?.id) {
+        const address = await prisma.address.create({
+          data: {
+            userId: session.user.id,
+            type: "SHIPPING",
+            firstName: data.shippingAddress.firstName || "",
+            lastName: data.shippingAddress.lastName || "",
+            company: data.shippingAddress.company || null,
+            address1: data.shippingAddress.address1 || "",
+            address2: data.shippingAddress.address2 || null,
+            city: data.shippingAddress.city || "",
+            state: data.shippingAddress.state || "",
+            postalCode: data.shippingAddress.postalCode || "",
+            country: data.shippingAddress.country || "",
+            phone: data.shippingAddress.phone || null,
+          },
+        });
+        shippingAddressId = address.id;
+      }
+    }
+
     // Create order in database
     const order = await prisma.order.create({
       data: {
@@ -254,6 +279,22 @@ export async function POST(request: NextRequest) {
         currency: "INR", // Use Indian Rupees
         discountId,
         notes: data.notes,
+        shippingAddressId,
+        // Store shipping address in metadata for guest checkouts and fallback
+        metadata: data.shippingAddress ? {
+          shippingAddress: {
+            firstName: data.shippingAddress.firstName,
+            lastName: data.shippingAddress.lastName,
+            company: data.shippingAddress.company,
+            address1: data.shippingAddress.address1,
+            address2: data.shippingAddress.address2,
+            city: data.shippingAddress.city,
+            state: data.shippingAddress.state,
+            postalCode: data.shippingAddress.postalCode,
+            country: data.shippingAddress.country,
+            phone: data.shippingAddress.phone,
+          },
+        } : undefined,
         items: {
           create: orderItems,
         },

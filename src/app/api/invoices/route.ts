@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import type { Order, OrderItem, Address } from "@/types";
+import type { Order, OrderItem, Address, AddressType } from "@/types";
 
 const INVOICES_DIR = path.join(process.cwd(), "public/uploads/invoices");
 
@@ -12,6 +12,41 @@ const invoices = (prisma as any);
 
 // Transform Prisma order to Order type for PDF generation
 function transformOrderForPDF(order: any): Order {
+  // Handle shippingAddress from metadata if not available from relation
+  let shippingAddress = null;
+  if (order.shippingAddress) {
+    shippingAddress = {
+      id: order.shippingAddress.id,
+      userId: order.shippingAddress.userId,
+      type: order.shippingAddress.type,
+      firstName: order.shippingAddress.firstName,
+      lastName: order.shippingAddress.lastName,
+      company: order.shippingAddress.company || "",
+      address1: order.shippingAddress.address1,
+      address2: order.shippingAddress.address2 || "",
+      city: order.shippingAddress.city,
+      state: order.shippingAddress.state,
+      postalCode: order.shippingAddress.postalCode,
+      country: order.shippingAddress.country,
+      phone: order.shippingAddress.phone || "",
+      isDefault: order.shippingAddress.isDefault || false,
+    };
+  } else if (order.metadata && typeof order.metadata === 'object') {
+    const metadata = order.metadata as Record<string, any>;
+    if (metadata.shippingAddress) {
+      shippingAddress = {
+        id: '',
+        userId: '',
+        type: 'SHIPPING' as AddressType,
+        ...metadata.shippingAddress,
+        company: metadata.shippingAddress.company || "",
+        address2: metadata.shippingAddress.address2 || "",
+        phone: metadata.shippingAddress.phone || "",
+        isDefault: false,
+      };
+    }
+  }
+
   return {
     id: order.id,
     orderNumber: order.orderNumber,
@@ -59,24 +94,7 @@ function transformOrderForPDF(order: any): Order {
         isRecurring: addon.isRecurring || false,
       })),
     })),
-    shippingAddress: order.shippingAddress
-      ? {
-          id: order.shippingAddress.id,
-          userId: order.shippingAddress.userId,
-          type: order.shippingAddress.type,
-          firstName: order.shippingAddress.firstName,
-          lastName: order.shippingAddress.lastName,
-          company: order.shippingAddress.company || "",
-          address1: order.shippingAddress.address1,
-          address2: order.shippingAddress.address2 || "",
-          city: order.shippingAddress.city,
-          state: order.shippingAddress.state,
-          postalCode: order.shippingAddress.postalCode,
-          country: order.shippingAddress.country,
-          phone: order.shippingAddress.phone || "",
-          isDefault: order.shippingAddress.isDefault || false,
-        }
-      : null,
+    shippingAddress,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
