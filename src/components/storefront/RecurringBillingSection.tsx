@@ -28,6 +28,11 @@ export interface RecurringData {
   preferredTime: string;
   preferredDay: number;
   autoRenew: boolean;
+  // Calculated pricing
+  pricePerCycle: number;
+  totalForPeriod: number;
+  savingsPercentage: number;
+  monthlyEquivalent: number;
 }
 
 const BILLING_CYCLE_LABELS = {
@@ -57,6 +62,14 @@ const DAY_PREFERENCES = Array.from({ length: 28 }, (_, i) => ({
   label: `Day ${i + 1}`,
 }));
 
+interface PricingInfo {
+  pricePerCycle: number;
+  totalForPeriod: number;
+  savingsPercentage: number;
+  monthlyEquivalent: number;
+  periodLabel: string;
+}
+
 export function RecurringBillingSection({
   productId,
   variantId,
@@ -72,43 +85,92 @@ export function RecurringBillingSection({
   const [autoRenew, setAutoRenew] = useState(true);
 
   // Calculate prices based on billing cycle
-  const getPrice = () => {
-    if (!enabled) return basePrice;
+  // The basePrice prop includes all configurations and addons
+  const getPricing = useCallback((): PricingInfo => {
+    if (!enabled) {
+      return {
+        pricePerCycle: basePrice,
+        totalForPeriod: basePrice,
+        savingsPercentage: 0,
+        monthlyEquivalent: basePrice,
+        periodLabel: '/one-time',
+      };
+    }
+
+    const monthly = monthlyPrice || basePrice;
+    const yearlyFromMonthly = monthly * 12;
+    const quarterlyFromMonthly = monthly * 3;
+
+    // Calculate savings based on yearlyPrice if provided
+    let yearlyTotal: number;
+    let savingsPct: number;
+
+    if (yearlyPrice && yearlyPrice > 0) {
+      // Use the explicitly set yearly price
+      yearlyTotal = Number(yearlyPrice);
+      savingsPct = Math.round(((yearlyFromMonthly - yearlyTotal) / yearlyFromMonthly) * 100);
+    } else {
+      // Calculate from monthly with default 15% discount
+      yearlyTotal = yearlyFromMonthly * 0.85;
+      savingsPct = 15;
+    }
+
+    const quarterlyTotal = quarterlyFromMonthly * 0.95; // 5% discount for quarterly
+
     switch (billingCycle) {
       case "MONTHLY":
-        return monthlyPrice || basePrice;
+        return {
+          pricePerCycle: monthly,
+          totalForPeriod: monthly,
+          savingsPercentage: 0,
+          monthlyEquivalent: monthly,
+          periodLabel: '/mo',
+        };
       case "QUARTERLY":
-        return (monthlyPrice || basePrice) * 3 * 0.95; // 5% discount
+        return {
+          pricePerCycle: quarterlyTotal,
+          totalForPeriod: quarterlyTotal,
+          savingsPercentage: 5,
+          monthlyEquivalent: quarterlyTotal / 3,
+          periodLabel: '/quarter',
+        };
       case "YEARLY":
-        return (monthlyPrice || basePrice) * 12 * 0.85; // 15% discount
+        return {
+          pricePerCycle: yearlyTotal,
+          totalForPeriod: yearlyTotal,
+          savingsPercentage: savingsPct,
+          monthlyEquivalent: yearlyTotal / 12,
+          periodLabel: '/year',
+        };
       default:
-        return basePrice;
+        return {
+          pricePerCycle: basePrice,
+          totalForPeriod: basePrice,
+          savingsPercentage: 0,
+          monthlyEquivalent: basePrice,
+          periodLabel: '/one-time',
+        };
     }
-  };
-
-  const getSavings = () => {
-    if (!enabled) return 0;
-    const originalMonthly = monthlyPrice || basePrice;
-    const currentPrice = getPrice();
-    const cyclesPerYear = billingCycle === "MONTHLY" ? 12 : billingCycle === "QUARTERLY" ? 4 : 1;
-    const yearlyTotal = currentPrice * cyclesPerYear;
-    const originalYearly = originalMonthly * 12;
-    return Math.round(((originalYearly - yearlyTotal) / originalYearly) * 100);
-  };
+  }, [enabled, billingCycle, basePrice, monthlyPrice, yearlyPrice]);
 
   const isFirstRender = useRef(true);
 
   // Memoize the callback to prevent infinite loops
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleRecurringChange = useCallback(() => {
+    const pricing = getPricing();
     onRecurringChange({
       enabled,
       billingCycle,
       preferredTime,
       preferredDay,
       autoRenew,
+      pricePerCycle: pricing.pricePerCycle,
+      totalForPeriod: pricing.totalForPeriod,
+      savingsPercentage: pricing.savingsPercentage,
+      monthlyEquivalent: pricing.monthlyEquivalent,
     });
-  }, [enabled, billingCycle, preferredTime, preferredDay, autoRenew, onRecurringChange]);
+  }, [enabled, billingCycle, preferredTime, preferredDay, autoRenew, onRecurringChange, getPricing]);
 
   // Notify parent of changes (only after first render and when data changes)
   useEffect(() => {
@@ -158,8 +220,7 @@ export function RecurringBillingSection({
     });
   };
 
-  const price = getPrice();
-  const savings = getSavings();
+  const pricing = getPricing();
 
   return (
     <Card className="border-2 border-[#8B1D1D]/20">
@@ -189,9 +250,9 @@ export function RecurringBillingSection({
           </div>
           <div className="text-right">
             <span className="text-2xl font-bold text-[#8B1D1D]">
-              {formatCurrency(price)}
+              {formatCurrency(pricing.pricePerCycle)}
             </span>
-            <span className="text-gray-500">/{billingCycle === "MONTHLY" ? "mo" : billingCycle === "QUARTERLY" ? "qtr" : "yr"}</span>
+            <span className="text-gray-500">{pricing.periodLabel}</span>
           </div>
         </div>
 
@@ -245,7 +306,8 @@ export function RecurringBillingSection({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Preferred Day (for monthly) */}
                 <div className="space-y-2">
-                  <Label htmlFor="preferred-day" className="text-sm text-gray-600">
+                  <Label htmlFor="preferred-day" className="text-sm text-gray-600 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
                     Preferred Billing Day
                   </Label>
                   <Select value={String(preferredDay)} onValueChange={(value) => setPreferredDay(parseInt(value))}>
@@ -267,7 +329,8 @@ export function RecurringBillingSection({
 
                 {/* Preferred Time */}
                 <div className="space-y-2">
-                  <Label htmlFor="preferred-time" className="text-sm text-gray-600">
+                  <Label htmlFor="preferred-time" className="text-sm text-gray-600 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
                     Preferred Billing Time
                   </Label>
                   <Select value={preferredTime} onValueChange={setPreferredTime}>
@@ -298,7 +361,7 @@ export function RecurringBillingSection({
                       {getNextBillingDate()}
                     </div>
                     <div className="text-blue-600 text-sm mt-1">
-                      Amount: {formatCurrency(price)} will be automatically charged
+                      Amount: {formatCurrency(pricing.pricePerCycle)}{pricing.periodLabel} will be automatically charged
                     </div>
                   </div>
                 </div>
@@ -341,9 +404,9 @@ export function RecurringBillingSection({
                     <li>No manual repurchasing required</li>
                     <li>Lock in your current price (subject to terms)</li>
                     <li>Easy cancellation anytime from your account</li>
-                    {savings > 0 && (
+                    {pricing.savingsPercentage > 0 && (
                       <li className="font-medium text-green-700">
-                        Save {savings}% compared to one-time purchases
+                        Save {pricing.savingsPercentage}% compared to monthly billing
                       </li>
                     )}
                   </ul>

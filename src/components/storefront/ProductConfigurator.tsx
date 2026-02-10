@@ -273,23 +273,43 @@ export function ProductConfigurator({
       });
     });
 
-    // Apply billing cycle multiplier
-    const multiplier = BILLING_CYCLE_MULTIPLIERS[billingCycle as keyof typeof BILLING_CYCLE_MULTIPLIERS] || 1;
-    const totalWithBilling = subtotal * multiplier;
+    // Apply billing cycle discount
+    let discountMultiplier = 1;
+    if (billingCycle === "QUARTERLY") {
+      discountMultiplier = 0.95; // 5% discount
+    } else if (billingCycle === "YEARLY") {
+      discountMultiplier = 0.85; // 15% discount
+    }
+    const totalWithBilling = subtotal * discountMultiplier;
 
-    // Calculate monthly equivalent for display
-    const monthlyPrice = totalWithBilling / multiplier;
+    // Calculate the price per cycle
+    let pricePerCycle: number;
+    if (billingCycle === "ONE_TIME") {
+      pricePerCycle = subtotal;
+    } else if (billingCycle === "MONTHLY") {
+      pricePerCycle = subtotal;
+    } else if (billingCycle === "QUARTERLY") {
+      pricePerCycle = subtotal * 3 * 0.95; // Quarterly total with discount
+    } else if (billingCycle === "YEARLY") {
+      pricePerCycle = subtotal * 12 * 0.85; // Yearly total with discount
+    } else {
+      pricePerCycle = subtotal;
+    }
 
     // Calculate savings
     let savings = 0;
     if (billingCycle === "YEARLY" && recurringPrices?.yearlySavings) {
       savings = recurringPrices.yearlySavings;
+    } else if (billingCycle === "QUARTERLY") {
+      savings = 5;
+    } else if (billingCycle === "YEARLY") {
+      savings = recurringPrices?.yearlySavings || 15;
     }
 
     return {
       subtotal,
       totalWithBilling,
-      monthlyPrice,
+      pricePerCycle,
       savings,
       configBreakdown,
       addonBreakdown,
@@ -464,7 +484,7 @@ export function ProductConfigurator({
         <RecurringBillingSection
           productId={product.id}
           variantId={selectedVariant || undefined}
-          basePrice={Number(product.basePrice) || 0}
+          basePrice={pricing.subtotal || Number(product.basePrice) || 0}
           monthlyPrice={recurringPrices?.monthlyPrice}
           yearlyPrice={recurringPrices?.yearlyPrice}
           onRecurringChange={handleRecurringChange}
@@ -819,13 +839,13 @@ export function ProductConfigurator({
                                     </div>
 
                                     {/* Billing Cycle */}
-                                    {BILLING_CYCLE_LABELS[billingCycle as keyof typeof BILLING_CYCLE_LABELS] !== "Monthly" && (
+                                    {billingCycle !== "ONE_TIME" && billingCycle !== "MONTHLY" && (
                                       <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">
-                                          {BILLING_CYCLE_LABELS[billingCycle as keyof typeof BILLING_CYCLE_LABELS]} billing
+                                          {billingCycle === "QUARTERLY" ? "Quarterly billing (3 months)" : billingCycle === "YEARLY" ? "Yearly billing (12 months)" : ""}
                                         </span>
                                         <span>
-                                          ×{BILLING_CYCLE_MULTIPLIERS[billingCycle as keyof typeof BILLING_CYCLE_MULTIPLIERS]}
+                                          {billingCycle === "QUARTERLY" ? "5% discount" : billingCycle === "YEARLY" ? "15% discount" : ""}
                                         </span>
                                       </div>
                                     )}
@@ -837,18 +857,22 @@ export function ProductConfigurator({
                                       <span className="text-lg font-semibold">Total</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
                                         {formatCurrency(pricing.totalWithBilling ?? 0)}
-                                        <span className="text-sm font-normal text-gray-500">
-                                          /{BILLING_CYCLE_LABELS[billingCycle as keyof typeof BILLING_CYCLE_LABELS].toLowerCase()}
-                                        </span>
+                                        {billingCycle === "ONE_TIME" ? (
+                                          <span className="text-sm font-normal text-gray-500"> one-time</span>
+                                        ) : (
+                                          <span className="text-sm font-normal text-gray-500">
+                                            /{billingCycle === "QUARTERLY" ? "quarter" : billingCycle === "YEARLY" ? "year" : "month"}
+                                          </span>
+                                        )}
                                       </span>
                                     </div>
 
                                     {/* Monthly Equivalent */}
-                                    {billingCycle !== "MONTHLY" && (
+                                    {billingCycle !== "MONTHLY" && billingCycle !== "ONE_TIME" && (
                                       <div className="bg-gray-50 rounded-lg p-3 text-center">
                                         <p className="text-sm text-gray-500">Monthly equivalent</p>
                                         <p className="text-xl font-bold text-green-600">
-                                          {formatCurrency(pricing.monthlyPrice ?? 0)}
+                                          {formatCurrency(pricing.subtotal * (billingCycle === "QUARTERLY" ? 0.3167 : billingCycle === "YEARLY" ? 0.7083 : 1))}
                                         </p>
                                       </div>
                                     )}
@@ -856,7 +880,7 @@ export function ProductConfigurator({
                                     {/* Savings */}
                                     {pricing.savings > 0 && (
                                       <div className="bg-green-50 rounded-lg p-3 text-center">
-                                        <p className="text-sm text-green-600">You save {formatCurrency(pricing.savings)}/year</p>
+                                        <p className="text-sm text-green-600">You save {pricing.savings}% on total</p>
                                       </div>
                                     )}
 
