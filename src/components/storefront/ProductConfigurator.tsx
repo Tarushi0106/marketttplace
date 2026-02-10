@@ -29,7 +29,9 @@ import {
   HardDrive,
   Users,
   Zap,
-  Settings
+  Settings,
+  Trash2,
+  Copy
 } from "lucide-react";
 import {
   Select,
@@ -39,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
-import { RecurringBillingSection, type RecurringData } from "./RecurringBillingSection";
+import { RecurringBillingSection, type RecurringData, type BillingCycleType } from "./RecurringBillingSection";
 
 // Types for configuration
 interface ConfigOption {
@@ -84,9 +86,30 @@ interface ProductConfig {
 }
 
 interface RecurringPrices {
+  // Per-billing-frequency setup fees
+  monthlySetupFee?: number;
+  biMonthlySetupFee?: number;
+  triMonthlySetupFee?: number;
+  fourMonthlySetupFee?: number;
+  quarterlySetupFee?: number;
+  semiAnnualSetupFee?: number;
+  triAnnualSetupFee?: number;
+  yearlySetupFee?: number;
+  biennialSetupFee?: number;
+  triennialSetupFee?: number;
+  // Per-billing-frequency prices
   monthlyPrice?: number;
+  biMonthlyPrice?: number;
+  triMonthlyPrice?: number;
+  fourMonthlyPrice?: number;
+  quarterlyPrice?: number;
+  semiAnnualPrice?: number;
+  triAnnualPrice?: number;
   yearlyPrice?: number;
+  biennialPrice?: number;
+  triennialPrice?: number;
   monthlySavings?: number;
+  quarterlySavings?: number;
   yearlySavings?: number;
 }
 
@@ -114,6 +137,7 @@ interface ProductConfiguratorProps {
     productType: string;
     images: any[];
   };
+  selectedVariantId?: string | null;
   variants?: {
     id: string;
     name: string;
@@ -128,6 +152,24 @@ interface ProductConfiguratorProps {
   categoryAddons?: AddonWithSource[];
   recurringPrices?: RecurringPrices | null;
   onAddToCart?: (config: any) => void;
+}
+
+// Interface for a single configuration instance
+interface ConfigInstance {
+  id: string;
+  instanceNumber: number;
+  configs: Record<string, any>;
+  quantity: number;
+}
+
+// Interface for a single configuration instance with addons
+interface ConfigInstanceWithAddons {
+  id: string;
+  instanceNumber: number;
+  name: string;
+  configs: Record<string, any>;
+  quantity: number;
+  addons: Record<string, { quantity: number; selected: boolean; source: string }>;
 }
 
 const BILLING_CYCLE_LABELS = {
@@ -148,6 +190,7 @@ const BILLING_CYCLE_MULTIPLIERS = {
 
 export function ProductConfigurator({
   product,
+  selectedVariantId = null,
   variants = [],
   configs = [],
   inheritedConfigs = [],
@@ -162,22 +205,37 @@ export function ProductConfigurator({
     ...categoryAddons.map(a => ({ ...a, source: 'category' as const, uniqueId: `category-${a.id}` }))
   ];
 
-  // State for selections
-  const [selectedConfigs, setSelectedConfigs] = useState<Record<string, any>>({});
-  const [selectedAddons, setSelectedAddons] = useState<Record<string, { quantity: number; selected: boolean; source: string }>>({});
+  // State for multiple configuration instances
+  const [configInstances, setConfigInstances] = useState<ConfigInstanceWithAddons[]>([
+    {
+      id: `instance-1-${Date.now()}`,
+      instanceNumber: 1,
+      name: "Configuration 1",
+      configs: {},
+      quantity: 1,
+      addons: {},
+    }
+  ]);
+  
   const [billingCycle, setBillingCycle] = useState<string>("MONTHLY");
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Variant selection state - use default variant or first variant
+  // Variant selection state - use selectedVariantId prop, default variant, or first variant
   const [selectedVariant, setSelectedVariant] = useState<string | null>(
-    variants.find(v => v.isDefault)?.id || variants[0]?.id || null
+    selectedVariantId || variants.find(v => v.isDefault)?.id || variants[0]?.id || null
   );
 
   // Recurring billing state
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
 
-  // Memoized callback for recurring data changes
+  // Sync billingCycle from recurringData when it changes
+  useEffect(() => {
+    if (!recurringData?.billingCycle) return;
+    setBillingCycle(recurringData.billingCycle);
+  }, [recurringData, billingCycle]);
+
+  // Callback for receiving recurring data from child
   const handleRecurringChange = useCallback((data: RecurringData) => {
     setRecurringData(data);
   }, []);
@@ -201,209 +259,376 @@ export function ProductConfigurator({
       };
     });
 
-    setSelectedConfigs(initialConfigs);
-    setSelectedAddons(initialAddons);
+    // Update the first instance with initial values
+    setConfigInstances(prev => prev.map((instance, index) => 
+      index === 0 
+        ? { ...instance, configs: initialConfigs, addons: initialAddons }
+        : instance
+    ));
   }, []); // Empty deps array - run only once on mount
 
   // Get all configs (product + inherited)
   // All configs grouped together under "Configurations" section
   const allConfigs = configs;
+
+  // Debug log configs
+  useEffect(() => {
+    console.log("[Config Debug] All configs:", allConfigs.map(c => ({
+      id: c.id,
+      name: c.name,
+      inputType: c.inputType,
+      optionsCount: c.options?.length || 0,
+      options: c.options?.map(o => ({ value: o.value, label: o.label }))
+    })));
+  }, [configs]);
+  
+  // Get selected configs from the first instance
+  const selectedConfigs = configInstances[0]?.configs || {};
+  
+  // Helper to get selected value from config storage
+  const getSelectedValue = (configId: string) => {
+    const config = selectedConfigs[configId];
+    if (typeof config === 'object' && config !== null) {
+      return (config as { value?: string }).value || "";
+    }
+    return config as string || "";
+  };
+  
+  // Helper to get quantity from config storage
+  const getConfigQuantity = (configId: string) => {
+    const config = selectedConfigs[configId];
+    if (typeof config === 'object' && config !== null) {
+      return (config as { quantity?: number }).quantity || 1;
+    }
+    return 1;
+  };
+  
+  // Get selected addons from the first instance
+  const selectedAddons = configInstances[0]?.addons || {};
   
   // Get selected variant
   const currentVariant = variants.find(v => v.id === selectedVariant);
   
-  // Calculate total price
+  // Calculate total price for all instances
   const pricing = useMemo(() => {
-    // Use variant price if available, otherwise use product basePrice
-    let subtotal = currentVariant ? Number(currentVariant.price) : Number(product.basePrice) || 0;
-    const configBreakdown: any[] = [];
+    // Base price from variant or product
+    const basePrice = currentVariant ? Number(currentVariant.price) : Number(product.basePrice) || 0;
+
+    // Calculate addons total
+    let addonsTotal = 0;
     const addonBreakdown: any[] = [];
-
-    configs.forEach((config) => {
-      const value = selectedConfigs[config.id];
-      if (!value) return;
-
-      let configPrice = 0;
-      const basePrice = Number(config.basePrice) || 0;
-      const pricePerUnit = Number(config.pricePerUnit) || 0;
-
-      // Handle slider/number inputs with per-unit pricing
-      if (config.inputType === "SLIDER" || config.inputType === "NUMBER") {
-        const quantity = Number(value) || 0;
-        const min = config.minValue || 0;
-        const usedQuantity = Math.max(quantity, min);
-        configPrice = basePrice + (pricePerUnit * usedQuantity);
-      } else {
-        // Handle select/radio/checkbox with price modifiers
-        const option = config.options?.find((opt) => opt.value === value);
-        if (option) {
-          // Use monthly/yearly modifier based on billing cycle
-          const modifier = billingCycle === "YEARLY"
-            ? Number(option.yearlyPriceModifier || option.priceModifier || 0)
-            : Number(option.monthlyPriceModifier || option.priceModifier || 0);
-          configPrice = basePrice + modifier;
-        } else {
-          configPrice = basePrice;
-        }
-      }
-
-      subtotal += configPrice;
-
-      // Find option label for breakdown
-      const optionLabel = config.options?.find((opt) => opt.value === value)?.label || value;
-      configBreakdown.push({
-        name: config.displayName || config.name,
-        value: optionLabel,
-        price: configPrice,
-      });
-    });
 
     allAddons.forEach((addon) => {
       const state = selectedAddons[addon.uniqueId];
-      if (!state?.selected || state.quantity < 1) return;
-
-      const total = Number(addon.price) * state.quantity;
-      subtotal += total;
-
-      addonBreakdown.push({
-        name: addon.name,
-        quantity: state.quantity,
-        price: total,
-        source: addon.source,
-      });
+      if (state?.selected && state.quantity >= 1) {
+        const total = (Number(addon.price) || 0) * state.quantity;
+        addonsTotal += total;
+        addonBreakdown.push({
+          name: addon.name,
+          quantity: state.quantity,
+          price: total,
+          source: addon.source,
+        });
+      }
     });
 
-    // Apply billing cycle discount
-    let discountMultiplier = 1;
-    if (billingCycle === "QUARTERLY") {
-      discountMultiplier = 0.95; // 5% discount
-    } else if (billingCycle === "YEARLY") {
-      discountMultiplier = 0.85; // 15% discount
-    }
-    const totalWithBilling = subtotal * discountMultiplier;
+    // Calculate config options total
+    let configsTotal = 0;
+    const configBreakdown: any[] = [];
 
-    // Calculate the price per cycle
+    configs.forEach((config) => {
+      const configData = selectedConfigs[config.id];
+      const value = typeof configData === 'object' && configData !== null
+        ? (configData as { value?: string }).value
+        : configData as string;
+      const configQuantity = typeof configData === 'object' && configData !== null
+        ? (configData as { quantity?: number }).quantity || 1
+        : 1;
+
+      if (!value) return;
+
+      const option = config.options?.find((opt) => opt.value === value);
+      if (option) {
+        const configPrice = (Number(option.priceModifier) || 0) * configQuantity;
+        configsTotal += configPrice;
+        configBreakdown.push({
+          name: config.displayName || config.name,
+          value: option.label || value,
+          price: configPrice,
+          quantity: configQuantity,
+        });
+      }
+    });
+
+    // Subtotal is base + addons + configs
+    const subtotal = basePrice + addonsTotal + configsTotal;
+
+    // Use recurringData as single source of truth for billing prices
+    // If recurringData is available, use its values
+    // Otherwise, calculate from basePrice (for products without recurring prices configured)
     let pricePerCycle: number;
-    if (billingCycle === "ONE_TIME") {
-      pricePerCycle = subtotal;
-    } else if (billingCycle === "MONTHLY") {
-      pricePerCycle = subtotal;
-    } else if (billingCycle === "QUARTERLY") {
-      pricePerCycle = subtotal * 3 * 0.95; // Quarterly total with discount
-    } else if (billingCycle === "YEARLY") {
-      pricePerCycle = subtotal * 12 * 0.85; // Yearly total with discount
-    } else {
-      pricePerCycle = subtotal;
-    }
+    let setupFee: number;
+    let savingsPercentage: number;
+    let monthlyEquivalent: number;
+    let totalForPeriod: number;
 
-    // Calculate savings
-    let savings = 0;
-    if (billingCycle === "YEARLY" && recurringPrices?.yearlySavings) {
-      savings = recurringPrices.yearlySavings;
-    } else if (billingCycle === "QUARTERLY") {
-      savings = 5;
-    } else if (billingCycle === "YEARLY") {
-      savings = recurringPrices?.yearlySavings || 15;
+    if (recurringData) {
+      pricePerCycle = recurringData.pricePerCycle;
+      setupFee = recurringData.setupFee;
+      savingsPercentage = recurringData.savingsPercentage;
+      monthlyEquivalent = recurringData.monthlyEquivalent;
+      totalForPeriod = recurringData.pricePerCycle + recurringData.setupFee;
+    } else {
+      // Fallback for products without recurring prices configured
+      // Calculate billing prices based on billingCycle
+      const baseSubtotal = basePrice + addonsTotal + configsTotal;
+
+      // Calculate based on billing cycle (hardcoded discounts for fallback)
+      const cycleMonths: Record<string, number> = {
+        MONTHLY: 1,
+        BIMONTHLY: 2,
+        QUARTERLY: 3,
+        FOUR_MONTHLY: 4,
+        SEMI_ANNUAL: 6,
+        TRI_ANNUAL: 4,
+        YEARLY: 12,
+        BIENNIAL: 24,
+        TRIENNIAL: 36,
+      };
+
+      const months = cycleMonths[billingCycle] || 1;
+      pricePerCycle = baseSubtotal;
+      setupFee = 0;
+      savingsPercentage = 0;
+      monthlyEquivalent = baseSubtotal / months;
+      totalForPeriod = baseSubtotal;
     }
 
     return {
       subtotal,
-      totalWithBilling,
+      basePrice,
+      addonsTotal,
+      configsTotal,
       pricePerCycle,
-      savings,
+      setupFee,
+      totalForPeriod,
+      savingsPercentage,
+      monthlyEquivalent,
+      billingCycle,
       configBreakdown,
       addonBreakdown,
     };
-  }, [product.basePrice, configs, allAddons, selectedConfigs, selectedAddons, billingCycle, recurringPrices]);
+  }, [product.basePrice, configs, allAddons, configInstances, recurringData, currentVariant, selectedConfigs, selectedAddons]);
 
-  // Handle configuration changes
-  const handleConfigChange = (configId: string, value: string) => {
-    setSelectedConfigs((prev) => ({
-      ...prev,
-      [configId]: value,
-    }));
+  // Handle configuration changes for a specific config
+  const handleConfigChange = (configId: string, value: string, quantity: number = 1) => {
+    setConfigInstances(prev => prev.map(instance => 
+      instance.id === configInstances[0]?.id
+        ? { ...instance, configs: { ...instance.configs, [configId]: { value, quantity } } }
+        : instance
+    ));
+  };
+  
+  // Handle config quantity change
+  const handleConfigQuantityChange = (configId: string, delta: number) => {
+    const currentConfig = selectedConfigs[configId];
+    let currentQuantity = 1;
+    if (typeof currentConfig === 'object' && currentConfig !== null) {
+      currentQuantity = (currentConfig as { quantity?: number }).quantity || 1;
+    }
+    const newQuantity = Math.max(1, currentQuantity + delta);
+    
+    // Get current value if exists
+    let currentValue = "";
+    if (typeof currentConfig === 'object' && currentConfig !== null) {
+      currentValue = (currentConfig as { value?: string }).value || "";
+    } else {
+      currentValue = currentConfig as string || "";
+    }
+    
+    setConfigInstances(prev => prev.map(instance => 
+      instance.id === configInstances[0]?.id
+        ? { ...instance, configs: { ...instance.configs, [configId]: { value: currentValue, quantity: newQuantity } } }
+        : instance
+    ));
   };
 
-  // Handle custom value changes
-  const handleCustomValueChange = (configId: string, value: string) => {
+  // Handle custom value changes for a specific instance
+  const handleCustomValueChange = (instanceId: string, configId: string, value: string) => {
     setCustomValues((prev) => ({
       ...prev,
       [configId]: value,
     }));
 
-    // Also update selectedConfigs if needed
+    // Also update the instance configs
     if (value) {
-      setSelectedConfigs((prev) => ({
-        ...prev,
-        [configId]: value,
-      }));
+      setConfigInstances(prev => prev.map(instance => 
+        instance.id === instanceId
+          ? { ...instance, configs: { ...instance.configs, [configId]: value } }
+          : instance
+      ));
     }
   };
 
-  // Handle addon selection
+  // Handle addon selection for the first instance
   const handleAddonToggle = (uniqueId: string) => {
-    setSelectedAddons((prev) => ({
-      ...prev,
-      [uniqueId]: {
-        ...prev[uniqueId],
-        selected: !prev[uniqueId]?.selected,
-        quantity: prev[uniqueId]?.selected ? 0 : 1,
-      },
+    setConfigInstances(prev => prev.map(instance => {
+      if (instance.id !== configInstances[0]?.id) return instance;
+      
+      const currentAddon = instance.addons[uniqueId] || { quantity: 0, selected: false, source: '' };
+      const newAddon = {
+        ...currentAddon,
+        selected: !currentAddon.selected,
+        quantity: !currentAddon.selected ? 1 : 0,
+      };
+      
+      return {
+        ...instance,
+        addons: { ...instance.addons, [uniqueId]: newAddon },
+      };
     }));
   };
 
-  // Handle addon quantity change
+  // Handle addon quantity change for the first instance
   const handleAddonQuantityChange = (uniqueId: string, quantity: number) => {
-    setSelectedAddons((prev) => ({
-      ...prev,
-      [uniqueId]: {
-        ...prev[uniqueId],
-        quantity: Math.max(1, quantity),
-        selected: quantity > 0,
-      },
+    setConfigInstances(prev => prev.map(instance => {
+      if (instance.id !== configInstances[0]?.id) return instance;
+      
+      const currentAddon = instance.addons[uniqueId] || { quantity: 0, selected: false, source: '' };
+      return {
+        ...instance,
+        addons: {
+          ...instance.addons,
+          [uniqueId]: {
+            ...currentAddon,
+            quantity: Math.max(1, quantity),
+            selected: quantity > 0,
+          },
+        },
+      };
     }));
+  };
+
+  // Handle instance quantity change
+  const handleInstanceQuantityChange = (instanceId: string, quantity: number) => {
+    setConfigInstances(prev => prev.map(instance =>
+      instance.id === instanceId
+        ? { ...instance, quantity: Math.max(1, quantity) }
+        : instance
+    ));
+  };
+
+  // Add a new configuration instance
+  const addConfigInstance = () => {
+    const newInstanceNumber = configInstances.length + 1;
+    const newInstance: ConfigInstanceWithAddons = {
+      id: `instance-${newInstanceNumber}-${Date.now()}`,
+      instanceNumber: newInstanceNumber,
+      name: `Configuration ${newInstanceNumber}`,
+      configs: {},
+      quantity: 1,
+      addons: {},
+    };
+    setConfigInstances(prev => [...prev, newInstance]);
+  };
+
+  // Remove a configuration instance
+  const removeConfigInstance = (instanceId: string) => {
+    if (configInstances.length <= 1) return; // Keep at least one instance
+    setConfigInstances(prev => {
+      const filtered = prev.filter(instance => instance.id !== instanceId);
+      // Renumber remaining instances
+      return filtered.map((instance, index) => ({
+        ...instance,
+        instanceNumber: index + 1,
+        name: `Configuration ${index + 1}`,
+      }));
+    });
+  };
+
+  // Duplicate a configuration instance
+  const duplicateConfigInstance = (instanceId: string) => {
+    const sourceInstance = configInstances.find(i => i.id === instanceId);
+    if (!sourceInstance) return;
+    
+    const newInstanceNumber = configInstances.length + 1;
+    const newInstance: ConfigInstanceWithAddons = {
+      ...sourceInstance,
+      id: `instance-${newInstanceNumber}-${Date.now()}`,
+      instanceNumber: newInstanceNumber,
+      name: `Configuration ${newInstanceNumber}`,
+    };
+    setConfigInstances(prev => [...prev, newInstance]);
   };
 
   // Add to cart handler
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
 
-    // Prepare selected configs as array
-    const selectedConfigsArray = Object.entries(selectedConfigs).map(([configId, value]) => {
-      const config = configs.find((c) => c.id === configId);
-      const option = config?.options?.find((opt) => opt.value === value);
+    // Prepare all instances for cart
+    const instances = configInstances.map((instance) => {
+      // Prepare selected configs as array
+      const selectedConfigsArray = Object.entries(instance.configs).map(([configId, configData]) => {
+        // Handle new object format { value, quantity }
+        const configValue = typeof configData === 'object' && configData !== null 
+          ? (configData as { value?: string }).value 
+          : configData as string;
+        const configQuantity = typeof configData === 'object' && configData !== null 
+          ? (configData as { quantity?: number }).quantity || 1 
+          : 1;
+        
+        const config = configs.find((c) => c.id === configId);
+        const option = config?.options?.find((opt) => opt.value === configValue);
+        return {
+          configId,
+          configName: config?.displayName || config?.name,
+          value: configValue,
+          quantity: configQuantity,
+          optionLabel: option?.label || configValue,
+          price: Number(option?.priceModifier) || 0,
+          monthlyPriceModifier: Number(option?.monthlyPriceModifier) || 0,
+          yearlyPriceModifier: Number(option?.yearlyPriceModifier) || 0,
+        };
+      });
+
       return {
-        configId,
-        configName: config?.displayName || config?.name,
-        value,
-        optionLabel: option?.label || value,
-        price: Number(option?.priceModifier) || 0,
-        monthlyPriceModifier: Number(option?.monthlyPriceModifier) || 0,
-        yearlyPriceModifier: Number(option?.yearlyPriceModifier) || 0,
+        instanceId: instance.id,
+        instanceNumber: instance.instanceNumber,
+        instanceName: instance.name,
+        quantity: instance.quantity || 1,
+        selectedConfigs: selectedConfigsArray,
+        selectedAddons: Object.entries(instance.addons)
+          .filter(([_, value]) => value.selected)
+          .map(([uniqueId, value]) => ({
+            addon: allAddons.find((a) => a.uniqueId === uniqueId),
+            quantity: value.quantity,
+          }))
+          .filter((item): item is { addon: NonNullable<typeof item.addon>; quantity: number } => item.addon !== undefined),
       };
     });
+
+    // Calculate the total unit price using pricing from recurringData
+    const unitPrice = pricing.pricePerCycle;
+    const setupFee = pricing.setupFee;
 
     const cartItem = {
       product,
       variant: currentVariant || undefined,
       quantity: 1,
-      selectedConfigs: selectedConfigsArray,
-      selectedAddons: Object.entries(selectedAddons)
-        .filter(([_, value]) => value.selected)
-        .map(([uniqueId, value]) => ({
-          addon: allAddons.find((a) => a.uniqueId === uniqueId),
-          quantity: value.quantity,
-        }))
-        .filter((item): item is { addon: NonNullable<typeof item.addon>; quantity: number } => item.addon !== undefined),
-      unitPrice: pricing.subtotal ?? 0,
-      billingCycle: billingCycle as "ONE_TIME" | "MONTHLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
+      instances,
+      unitPrice,
+      // Use billing cycle from pricing (which comes from recurringData)
+      billingCycle: pricing.billingCycle as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
       // Recurring billing data
       isRecurring: recurringData?.enabled ?? false,
-      recurringData: recurringData || undefined,
+      recurringData: recurringData ? {
+        ...recurringData,
+        setupFee,
+      } : undefined,
     };
 
     const cartStore = useCartStore.getState();
-    cartStore.addItem(cartItem);
+    cartStore.addItem(cartItem as any);
 
     setIsAddingToCart(false);
 
@@ -414,18 +639,26 @@ export function ProductConfigurator({
 
   // Add to wishlist
   const handleAddToWishlist = () => {
-    const wishlistItem = {
-      product,
-      variant: undefined,
-      selectedConfigs,
-      selectedAddons: Object.entries(selectedAddons)
+    const instances = configInstances.map((instance) => ({
+      instanceId: instance.id,
+      instanceNumber: instance.instanceNumber,
+      instanceName: instance.name,
+      quantity: instance.quantity || 1,
+      selectedConfigs: instance.configs,
+      selectedAddons: Object.entries(instance.addons)
         .filter(([_, value]) => value.selected)
         .reduce((acc, [id, value]) => {
           acc[id] = value;
           return acc;
         }, {} as Record<string, { quantity: number; selected: boolean }>),
-      unitPrice: pricing.totalWithBilling ?? 0,
-      billingCycle,
+    }));
+
+    const wishlistItem = {
+      product,
+      variant: undefined,
+      instances,
+      unitPrice: pricing.pricePerCycle,
+      billingCycle: pricing.billingCycle,
     };
 
     const wishlistStore = useWishlistStore.getState();
@@ -436,57 +669,32 @@ export function ProductConfigurator({
     <div className="grid lg:grid-cols-3 gap-8">
       {/* Configuration Panel */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Billing Cycle Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5" />
-              Billing Frequency
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={billingCycle}
-              onValueChange={setBillingCycle}
-              className="grid grid-cols-2 md:grid-cols-3 gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="MONTHLY" id="monthly" />
-                <Label htmlFor="monthly" className="cursor-pointer">
-                  Monthly
-                  {recurringPrices?.monthlyPrice && (
-                    <span className="block text-sm text-gray-500">
-                      {formatCurrency(Number(recurringPrices.monthlyPrice))}/mo
-                    </span>
-                  )}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="YEARLY" id="yearly" />
-                <Label htmlFor="yearly" className="cursor-pointer">
-                  Yearly
-                  {recurringPrices?.yearlySavings ? (
-                    <Badge variant="secondary" className="ml-2">
-                      Save {recurringPrices.yearlySavings}%
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="ml-2">
-                      Save 10%
-                    </Badge>
-                  )}
-                </Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-
         {/* Recurring Billing Section */}
         <RecurringBillingSection
           productId={product.id}
           variantId={selectedVariant || undefined}
-          basePrice={pricing.subtotal || Number(product.basePrice) || 0}
+          basePrice={Number(product.basePrice) || 0}
+          monthlySetupFee={recurringPrices?.monthlySetupFee}
+          biMonthlySetupFee={recurringPrices?.biMonthlySetupFee}
+          quarterlySetupFee={recurringPrices?.quarterlySetupFee}
+          fourMonthlySetupFee={recurringPrices?.fourMonthlySetupFee}
+          semiAnnualSetupFee={recurringPrices?.semiAnnualSetupFee}
+          triAnnualSetupFee={recurringPrices?.triAnnualSetupFee}
+          yearlySetupFee={recurringPrices?.yearlySetupFee}
+          biennialSetupFee={recurringPrices?.biennialSetupFee}
+          triennialSetupFee={recurringPrices?.triennialSetupFee}
           monthlyPrice={recurringPrices?.monthlyPrice}
+          biMonthlyPrice={recurringPrices?.biMonthlyPrice}
+          quarterlyPrice={recurringPrices?.quarterlyPrice}
+          fourMonthlyPrice={recurringPrices?.fourMonthlyPrice}
+          semiAnnualPrice={recurringPrices?.semiAnnualPrice}
+          triAnnualPrice={recurringPrices?.triAnnualPrice}
           yearlyPrice={recurringPrices?.yearlyPrice}
+          biennialPrice={recurringPrices?.biennialPrice}
+          triennialPrice={recurringPrices?.triennialPrice}
+          monthlySavings={recurringPrices?.monthlySavings}
+          quarterlySavings={recurringPrices?.quarterlySavings}
+          yearlySavings={recurringPrices?.yearlySavings}
           onRecurringChange={handleRecurringChange}
         />
 
@@ -521,39 +729,67 @@ export function ProductConfigurator({
 
                     {/* SELECT / DROPDOWN */}
                     {config.inputType === "SELECT" && (
-                      <Select
-                        value={selectedValue || ""}
-                        onValueChange={(value) => handleConfigChange(config.id, value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an option" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {config.options?.map((option) => {
-                            const displayPrice = billingCycle === "YEARLY" 
-                              ? Number(option.yearlyPriceModifier || 0)
-                              : Number(option.monthlyPriceModifier || option.priceModifier || 0);
-                            
-                            return (
-                              <SelectItem key={option.id} value={option.value}>
-                                {option.label}
-                                {displayPrice !== 0 && (
-                                  <span className="ml-2 text-gray-500">
-                                    {displayPrice > 0 ? "+" : "-"}{formatCurrency(Math.abs(displayPrice))}
-                                    {billingCycle === "YEARLY" ? "/yr" : "/mo"}
-                                  </span>
-                                )}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <Select
+                          value={getSelectedValue(config.id)}
+                          onValueChange={(value) => handleConfigChange(config.id, value, 1)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an option" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
+                              const displayPrice = billingCycle === "YEARLY" 
+                                ? Number(option.yearlyPriceModifier || 0)
+                                : Number(option.monthlyPriceModifier || option.priceModifier || 0);
+                              
+                              return (
+                                <SelectItem key={option.id} value={option.value}>
+                                  {option.label}
+                                  {displayPrice !== 0 && (
+                                    <span className="ml-2 text-gray-500">
+                                      {displayPrice > 0 ? "+" : "-"}{formatCurrency(Math.abs(displayPrice))}
+                                      {billingCycle === "YEARLY" ? "/yr" : "/mo"}
+                                    </span>
+                                  )}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        {/* Quantity Controls */}
+                        {getSelectedValue(config.id) && (
+                          <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
+                            <button
+                              type="button"
+                              className="h-8 w-8 rounded-md flex items-center justify-center text-gray-600 hover:bg-white hover:text-red-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleConfigQuantityChange(config.id, -1)}
+                              disabled={getConfigQuantity(config.id) <= 1}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                              </svg>
+                            </button>
+                            <span className="w-8 text-center text-sm font-semibold">{getConfigQuantity(config.id)}</span>
+                            <button
+                              type="button"
+                              className="h-8 w-8 rounded-md flex items-center justify-center text-gray-600 hover:bg-white hover:text-green-600 hover:shadow-sm transition-all"
+                              onClick={() => handleConfigQuantityChange(config.id, 1)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* RADIO BUTTONS */}
                     {config.inputType === "RADIO" && (
                       <div className="grid grid-cols-2 gap-3">
-                        {config.options?.map((option) => {
+                        {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
                           const displayPrice = billingCycle === "YEARLY"
                             ? Number(option.yearlyPriceModifier || 0)
                             : Number(option.monthlyPriceModifier || option.priceModifier || 0);
@@ -604,7 +840,7 @@ export function ProductConfigurator({
                                             {/* CHECKBOX - For multi-select if needed */}
                                             {config.inputType === "CHECKBOX" && (
                                               <div className="space-y-2">
-                                                {config.options?.map((option) => {
+                                                {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
                                                   const isSelected = selectedConfigs[config.id]?.includes(option.value);
                                                   return (
                                                     <div
@@ -806,11 +1042,19 @@ export function ProductConfigurator({
                                     </CardTitle>
                                   </CardHeader>
                                   <CardContent className="space-y-4">
-                                    {/* Base Price */}
-                                    <div className="flex justify-between text-sm">
-                                      <span className="text-gray-600">Base Price</span>
-                                      <span>{formatCurrency(Number(product.basePrice))}</span>
-                                    </div>
+                                    {/* Variant Price - Show when variant is selected */}
+                                    {currentVariant ? (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">{currentVariant.name}</span>
+                                        <span>{formatCurrency(Number(currentVariant.price))}</span>
+                                      </div>
+                                    ) : (
+                                      /* Base Price - Show only when no variant is selected */
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Base Price</span>
+                                        <span>{formatCurrency(Number(product.basePrice))}</span>
+                                      </div>
+                                    )}
 
                                     {/* Config Breakdown */}
                                     {pricing.configBreakdown.map((item, index) => (
@@ -835,18 +1079,14 @@ export function ProductConfigurator({
                                     {/* Subtotal */}
                                     <div className="flex justify-between">
                                       <span className="text-gray-600">Subtotal</span>
-                                      <span className="font-medium">{formatCurrency(pricing.subtotal)}</span>
+                                      <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
                                     </div>
 
-                                    {/* Billing Cycle */}
-                                    {billingCycle !== "ONE_TIME" && billingCycle !== "MONTHLY" && (
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">
-                                          {billingCycle === "QUARTERLY" ? "Quarterly billing (3 months)" : billingCycle === "YEARLY" ? "Yearly billing (12 months)" : ""}
-                                        </span>
-                                        <span>
-                                          {billingCycle === "QUARTERLY" ? "5% discount" : billingCycle === "YEARLY" ? "15% discount" : ""}
-                                        </span>
+                                    {/* Setup Fee */}
+                                    {pricing.setupFee > 0 && (
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">Setup Fee</span>
+                                        <span className="font-medium">{formatCurrency(pricing.setupFee)}</span>
                                       </div>
                                     )}
 
@@ -856,7 +1096,7 @@ export function ProductConfigurator({
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatCurrency(pricing.totalWithBilling ?? 0)}
+                                        {formatCurrency(pricing.totalForPeriod)}
                                         {billingCycle === "ONE_TIME" ? (
                                           <span className="text-sm font-normal text-gray-500"> one-time</span>
                                         ) : (
@@ -867,20 +1107,10 @@ export function ProductConfigurator({
                                       </span>
                                     </div>
 
-                                    {/* Monthly Equivalent */}
-                                    {billingCycle !== "MONTHLY" && billingCycle !== "ONE_TIME" && (
-                                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                                        <p className="text-sm text-gray-500">Monthly equivalent</p>
-                                        <p className="text-xl font-bold text-green-600">
-                                          {formatCurrency(pricing.subtotal * (billingCycle === "QUARTERLY" ? 0.3167 : billingCycle === "YEARLY" ? 0.7083 : 1))}
-                                        </p>
-                                      </div>
-                                    )}
-
                                     {/* Savings */}
-                                    {pricing.savings > 0 && (
+                                    {pricing.savingsPercentage > 0 && (
                                       <div className="bg-green-50 rounded-lg p-3 text-center">
-                                        <p className="text-sm text-green-600">You save {pricing.savings}% on total</p>
+                                        <p className="text-sm text-green-600">You save {pricing.savingsPercentage}% on total</p>
                                       </div>
                                     )}
 
@@ -923,3 +1153,5 @@ export function ProductConfigurator({
                             </div>
                           );
                         }
+
+

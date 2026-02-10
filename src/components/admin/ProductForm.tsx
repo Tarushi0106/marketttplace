@@ -122,21 +122,38 @@ interface ProductAddon {
 
 interface ProductConfigOption {
   value: string;
-  label: string;
+  label?: string;
   priceModifier: string;
   monthlyPriceModifier?: string;
   yearlyPriceModifier?: string;
+  description?: string;
+  isPercentage?: boolean;
+  modifierType?: "ADD" | "MULTIPLY" | "REPLACE";
+  sortOrder?: number;
+  isAvailable?: boolean;
+  stockStatus?: string;
 }
 
 interface ProductConfig {
   id?: string;
   name: string;
   configType: string; // e.g., CPU, RAM, STORAGE, OS, DATA_CENTER, GPU, BANDWIDTH, USERS, etc.
-  inputType: "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
+  inputType: "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER" | "SLIDER";
   options: ProductConfigOption[];
   isRequired: boolean;
   defaultValue: string;
   sortOrder: number;
+  // Additional fields
+  displayName?: string;
+  description?: string;
+  unit?: string;
+  unitPlural?: string;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
+  allowCustom?: boolean;
+  basePrice?: string;
+  pricePerUnit?: string;
 }
 
 interface Specification {
@@ -165,10 +182,37 @@ interface ProductFormData {
   compareAtPrice: string;
   costPrice: string;
   taxRate: string;
-  monthlyPrice?: string;
-  yearlyPrice?: string;
-  monthlySavings?: string;
-  yearlySavings?: string;
+  
+  // Product Type - One-time or Recurring
+  isRecurring: boolean;
+  
+  // Per-Billing-Cycle Setup Fees
+  monthlySetupFee: string;
+  biMonthlySetupFee: string;
+  quarterlySetupFee: string;
+  fourMonthlySetupFee: string;
+  semiAnnualSetupFee: string;
+  triAnnualSetupFee: string;
+  yearlySetupFee: string;
+  biennialSetupFee: string;
+  triennialSetupFee: string;
+  
+  // Recurring Prices
+  monthlyPrice: string;
+  biMonthlyPrice: string;
+  quarterlyPrice: string;
+  fourMonthlyPrice: string;
+  semiAnnualPrice: string;
+  triAnnualPrice: string;
+  yearlyPrice: string;
+  biennialPrice: string;
+  triennialPrice: string;
+  
+  // Savings
+  monthlySavings: string;
+  quarterlySavings: string;
+  yearlySavings: string;
+  
   categoryId: string;
   subCategoryId: string;
   productType: "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE";
@@ -214,10 +258,37 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     compareAtPrice: "",
     costPrice: "",
     taxRate: "",
+    
+    // Product Type - One-time or Recurring
+    isRecurring: false,
+    
+    // Per-Billing-Cycle Setup Fees
+    monthlySetupFee: "",
+    biMonthlySetupFee: "",
+    quarterlySetupFee: "",
+    fourMonthlySetupFee: "",
+    semiAnnualSetupFee: "",
+    triAnnualSetupFee: "",
+    yearlySetupFee: "",
+    biennialSetupFee: "",
+    triennialSetupFee: "",
+    
+    // Recurring Prices
     monthlyPrice: "",
+    biMonthlyPrice: "",
+    quarterlyPrice: "",
+    fourMonthlyPrice: "",
+    semiAnnualPrice: "",
+    triAnnualPrice: "",
     yearlyPrice: "",
+    biennialPrice: "",
+    triennialPrice: "",
+    
+    // Savings
     monthlySavings: "",
+    quarterlySavings: "",
     yearlySavings: "",
+    
     categoryId: "",
     subCategoryId: "",
     productType: "STANDALONE",
@@ -300,10 +371,37 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           compareAtPrice: product.compareAtPrice?.toString() || "",
           costPrice: product.costPrice?.toString() || "",
           taxRate: product.taxRate?.toString() || "",
+          
+          // Product Type - One-time or Recurring
+          isRecurring: product.isRecurring || false,
+          
+          // Per-Billing-Cycle Setup Fees
+          monthlySetupFee: product.monthlySetupFee?.toString() || "",
+          biMonthlySetupFee: product.biMonthlySetupFee?.toString() || "",
+          quarterlySetupFee: product.quarterlySetupFee?.toString() || "",
+          fourMonthlySetupFee: product.fourMonthlySetupFee?.toString() || "",
+          semiAnnualSetupFee: product.semiAnnualSetupFee?.toString() || "",
+          triAnnualSetupFee: product.triAnnualSetupFee?.toString() || "",
+          yearlySetupFee: product.yearlySetupFee?.toString() || "",
+          biennialSetupFee: product.biennialSetupFee?.toString() || "",
+          triennialSetupFee: product.triennialSetupFee?.toString() || "",
+          
+          // Recurring Prices
           monthlyPrice: product.monthlyPrice?.toString() || "",
+          biMonthlyPrice: product.biMonthlyPrice?.toString() || "",
+          quarterlyPrice: product.quarterlyPrice?.toString() || "",
+          fourMonthlyPrice: product.fourMonthlyPrice?.toString() || "",
+          semiAnnualPrice: product.semiAnnualPrice?.toString() || "",
+          triAnnualPrice: product.triAnnualPrice?.toString() || "",
           yearlyPrice: product.yearlyPrice?.toString() || "",
+          biennialPrice: product.biennialPrice?.toString() || "",
+          triennialPrice: product.triennialPrice?.toString() || "",
+          
+          // Savings
           monthlySavings: product.monthlySavings?.toString() || "",
+          quarterlySavings: product.quarterlySavings?.toString() || "",
           yearlySavings: product.yearlySavings?.toString() || "",
+          
           categoryId: product.categoryId || "",
           subCategoryId: product.subCategoryId || "",
           productType: product.productType || "STANDALONE",
@@ -389,6 +487,17 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               isRequired: c.isRequired || false,
               defaultValue: c.defaultValue || "",
               sortOrder: c.sortOrder || 0,
+              // Additional fields
+              displayName: c.displayName || "",
+              description: c.description || "",
+              unit: c.unit || "",
+              unitPlural: c.unitPlural || "",
+              minValue: c.minValue,
+              maxValue: c.maxValue,
+              stepValue: c.stepValue,
+              allowCustom: c.allowCustom || false,
+              basePrice: c.basePrice?.toString() || "",
+              pricePerUnit: c.pricePerUnit?.toString() || "",
             }))
           );
         }
@@ -663,6 +772,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     setSaving(true);
 
     try {
+      // Build main product payload (without recurring prices - they go to separate endpoint)
       const payload = {
         ...formData,
         basePrice: parseFloat(formData.basePrice) || 0,
@@ -671,10 +781,13 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           : null,
         costPrice: formData.costPrice ? parseFloat(formData.costPrice) : null,
         taxRate: formData.taxRate ? parseFloat(formData.taxRate) : null,
-        monthlyPrice: formData.monthlyPrice ? parseFloat(formData.monthlyPrice) : null,
-        yearlyPrice: formData.yearlyPrice ? parseFloat(formData.yearlyPrice) : null,
-        monthlySavings: formData.monthlySavings ? parseFloat(formData.monthlySavings) : null,
-        yearlySavings: formData.yearlySavings ? parseFloat(formData.yearlySavings) : null,
+        
+        // Product Type - One-time or Recurring
+        isRecurring: formData.isRecurring,
+        
+        // Per-Billing-Cycle Setup Fees (only for recurring products)
+        setupFee: formData.setupFee ? parseFloat(formData.setupFee) : null,
+        
         stockQuantity: parseInt(formData.stockQuantity) || 0,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
         weight: formData.weight ? parseFloat(formData.weight) : null,
@@ -716,6 +829,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
       const method = isEdit ? "PUT" : "POST";
 
+      // First save the main product
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -725,6 +839,44 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || `Failed to ${isEdit ? "update" : "create"} product`);
+      }
+
+      // If recurring prices are provided, save them to the separate endpoint
+      if (formData.isRecurring && isEdit) {
+        const recurringPayload = {
+          monthlyPrice: formData.monthlyPrice ? parseFloat(formData.monthlyPrice) : null,
+          biMonthlyPrice: formData.biMonthlyPrice ? parseFloat(formData.biMonthlyPrice) : null,
+          quarterlyPrice: formData.quarterlyPrice ? parseFloat(formData.quarterlyPrice) : null,
+          fourMonthlyPrice: formData.fourMonthlyPrice ? parseFloat(formData.fourMonthlyPrice) : null,
+          semiAnnualPrice: formData.semiAnnualPrice ? parseFloat(formData.semiAnnualPrice) : null,
+          triAnnualPrice: formData.triAnnualPrice ? parseFloat(formData.triAnnualPrice) : null,
+          yearlyPrice: formData.yearlyPrice ? parseFloat(formData.yearlyPrice) : null,
+          biennialPrice: formData.biennialPrice ? parseFloat(formData.biennialPrice) : null,
+          triennialPrice: formData.triennialPrice ? parseFloat(formData.triennialPrice) : null,
+          monthlySavings: formData.monthlySavings ? parseFloat(formData.monthlySavings) : null,
+          quarterlySavings: formData.quarterlySavings ? parseFloat(formData.quarterlySavings) : null,
+          yearlySavings: formData.yearlySavings ? parseFloat(formData.yearlySavings) : null,
+          monthlySetupFee: formData.monthlySetupFee ? parseFloat(formData.monthlySetupFee) : null,
+          biMonthlySetupFee: formData.biMonthlySetupFee ? parseFloat(formData.biMonthlySetupFee) : null,
+          quarterlySetupFee: formData.quarterlySetupFee ? parseFloat(formData.quarterlySetupFee) : null,
+          fourMonthlySetupFee: formData.fourMonthlySetupFee ? parseFloat(formData.fourMonthlySetupFee) : null,
+          semiAnnualSetupFee: formData.semiAnnualSetupFee ? parseFloat(formData.semiAnnualSetupFee) : null,
+          triAnnualSetupFee: formData.triAnnualSetupFee ? parseFloat(formData.triAnnualSetupFee) : null,
+          yearlySetupFee: formData.yearlySetupFee ? parseFloat(formData.yearlySetupFee) : null,
+          biennialSetupFee: formData.biennialSetupFee ? parseFloat(formData.biennialSetupFee) : null,
+          triennialSetupFee: formData.triennialSetupFee ? parseFloat(formData.triennialSetupFee) : null,
+        };
+
+        const recurringResponse = await fetch(`/api/products/${productId}/recurring-prices`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(recurringPayload),
+        });
+
+        if (!recurringResponse.ok) {
+          const recurringData = await recurringResponse.json();
+          console.error("Failed to save recurring prices:", recurringData.error);
+        }
       }
 
       toast({
@@ -1572,66 +1724,375 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               {/* Recurring Prices */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Recurring Prices</CardTitle>
-                  <CardDescription>Set billing cycle pricing for subscription products</CardDescription>
+                  <CardTitle>Recurring Pricing</CardTitle>
+                  <CardDescription>Set up recurring billing for subscription products</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="monthlyPrice">Monthly Price (₹)</Label>
-                      <Input
-                        id="monthlyPrice"
-                        type="number"
-                        step="0.01"
-                        value={formData.monthlyPrice || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, monthlyPrice: e.target.value })
-                        }
-                        placeholder="0.00"
-                      />
+                <CardContent className="space-y-6">
+                  {/* Enable Recurring Toggle */}
+                  <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Enable Recurring Billing</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Turn on to offer subscription plans for this product
+                      </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="yearlyPrice">Yearly Price (₹)</Label>
-                      <Input
-                        id="yearlyPrice"
-                        type="number"
-                        step="0.01"
-                        value={formData.yearlyPrice || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, yearlyPrice: e.target.value })
-                        }
-                        placeholder="0.00"
-                      />
-                    </div>
+                    <Switch
+                      checked={formData.isRecurring}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, isRecurring: checked })
+                      }
+                    />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="monthlySavings">Monthly Savings (%)</Label>
-                      <Input
-                        id="monthlySavings"
-                        type="number"
-                        step="0.01"
-                        value={formData.monthlySavings || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, monthlySavings: e.target.value })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="yearlySavings">Yearly Savings (%)</Label>
-                      <Input
-                        id="yearlySavings"
-                        type="number"
-                        step="0.01"
-                        value={formData.yearlySavings || ""}
-                        onChange={(e) =>
-                          setFormData({ ...formData, yearlySavings: e.target.value })
-                        }
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
+
+                  {formData.isRecurring && (
+                    <>
+                      {/* Billing Cycle Prices with Setup Fees */}
+                      <div className="space-y-4">
+                        <Label className="text-base">Billing Cycle Prices & Setup Fees (₹)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Monthly */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Monthly</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="monthlyPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="monthlyPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.monthlyPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, monthlyPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="monthlySetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="monthlySetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.monthlySetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, monthlySetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Bi-Monthly */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Bi-Monthly (2 mo)</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="biMonthlyPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="biMonthlyPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.biMonthlyPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, biMonthlyPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="biMonthlySetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="biMonthlySetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.biMonthlySetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, biMonthlySetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Quarterly */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Quarterly</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="quarterlyPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="quarterlyPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.quarterlyPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, quarterlyPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="quarterlySetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="quarterlySetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.quarterlySetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, quarterlySetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Four-Monthly */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Four-Monthly</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="fourMonthlyPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="fourMonthlyPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.fourMonthlyPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, fourMonthlyPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="fourMonthlySetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="fourMonthlySetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.fourMonthlySetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, fourMonthlySetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Semi-Annual */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Semi-Annual (6 mo)</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="semiAnnualPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="semiAnnualPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.semiAnnualPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, semiAnnualPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="semiAnnualSetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="semiAnnualSetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.semiAnnualSetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, semiAnnualSetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Tri-Annual */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Tri-Annual (3x/yr)</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="triAnnualPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="triAnnualPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.triAnnualPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, triAnnualPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="triAnnualSetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="triAnnualSetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.triAnnualSetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, triAnnualSetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Yearly */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Yearly</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="yearlyPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="yearlyPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.yearlyPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, yearlyPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="yearlySetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="yearlySetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.yearlySetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, yearlySetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Biennial */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Biennial (2 yrs)</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="biennialPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="biennialPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.biennialPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, biennialPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="biennialSetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="biennialSetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.biennialSetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, biennialSetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Triennial */}
+                          <div className="border rounded-lg p-4 space-y-2">
+                            <Label className="text-sm font-medium">Triennial (3 yrs)</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label htmlFor="triennialPrice" className="text-xs">Price</Label>
+                                <Input
+                                  id="triennialPrice"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.triennialPrice || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, triennialPrice: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="triennialSetupFee" className="text-xs">Setup Fee</Label>
+                                <Input
+                                  id="triennialSetupFee"
+                                  type="number"
+                                  step="0.01"
+                                  value={formData.triennialSetupFee || ""}
+                                  onChange={(e) =>
+                                    setFormData({ ...formData, triennialSetupFee: e.target.value })
+                                  }
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Savings */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="monthlySavings">Monthly Savings (%)</Label>
+                          <Input
+                            id="monthlySavings"
+                            type="number"
+                            step="0.01"
+                            value={formData.monthlySavings || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, monthlySavings: e.target.value })
+                            }
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="quarterlySavings">Quarterly Savings (%)</Label>
+                          <Input
+                            id="quarterlySavings"
+                            type="number"
+                            step="0.01"
+                            value={formData.quarterlySavings || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, quarterlySavings: e.target.value })
+                            }
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="yearlySavings">Yearly Savings (%)</Label>
+                          <Input
+                            id="yearlySavings"
+                            type="number"
+                            step="0.01"
+                            value={formData.yearlySavings || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, yearlySavings: e.target.value })
+                            }
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 

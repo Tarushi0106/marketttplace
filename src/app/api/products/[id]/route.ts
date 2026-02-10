@@ -3,6 +3,35 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
+// Helper function to convert Prisma Decimal fields to plain objects
+function convertDecimalToString(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    if (obj.constructor?.name === 'Decimal') {
+      return obj.toString();
+    }
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertDecimalToString(item));
+    }
+    // Handle regular objects
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertDecimalToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+// Helper function to serialize a complete product for API response
+function serializeProduct(product: any) {
+  const converted = convertDecimalToString(product);
+  return converted;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -34,6 +63,11 @@ export async function GET(
           orderBy: { sortOrder: "asc" },
         },
         configs: {
+          include: {
+            options: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
           orderBy: { sortOrder: "asc" },
         },
         pricingTiers: {
@@ -69,7 +103,7 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({ data: product });
+    return NextResponse.json({ data: serializeProduct(product) });
   } catch (error) {
     console.error("Error fetching product:", error);
     return NextResponse.json(
@@ -84,7 +118,7 @@ const imageSchema = z.object({
   id: z.string().optional(),
   url: z.string(),
   alt: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
   isPrimary: z.boolean().default(false),
 });
 
@@ -92,38 +126,50 @@ const variantSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   sku: z.string().optional(),
-  price: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  stockQuantity: z.number().int().min(0).default(0),
+  price: z.coerce.number().min(0),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const addonSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  price: z.number().min(0),
+  price: z.coerce.number().min(0),
   pricingType: z.enum(["ONE_TIME", "RECURRING_MONTHLY", "RECURRING_YEARLY"]).default("ONE_TIME"),
   isRequired: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const configOptionSchema = z.object({
   id: z.string().optional(),
   value: z.string(),
-  label: z.string(),
-  description: z.string().optional(),
-  priceModifier: z.number().default(0),
-  monthlyPriceModifier: z.number().default(0),
-  yearlyPriceModifier: z.number().default(0),
+  label: z.string().optional(),
+  description: z.string().optional().nullable(),
+  priceModifier: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+    if (val === undefined || val === null || val === "") return 0;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? 0 : num;
+  }),
+  monthlyPriceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  yearlyPriceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
   isPercentage: z.boolean().default(false),
   modifierType: z.enum(["ADD", "MULTIPLY", "REPLACE"]).default("ADD"),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
   isAvailable: z.boolean().default(true),
   stockStatus: z.string().optional().nullable(),
 });
@@ -132,20 +178,28 @@ const configSchema = z.object({
   id: z.string().optional(),
   configType: z.string().optional(),
   name: z.string().min(1),
-  displayName: z.string().optional(),
-  description: z.string().optional(),
-  unit: z.string().optional(),
-  unitPlural: z.string().optional(),
+  displayName: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  unitPlural: z.string().optional().nullable(),
   inputType: z.enum(["SELECT", "RADIO", "CHECKBOX", "SLIDER", "NUMBER"]).default("SELECT"),
-  minValue: z.number().optional(),
-  maxValue: z.number().optional(),
-  stepValue: z.number().default(1),
-  defaultValue: z.string().optional(),
+  minValue: z.coerce.number().optional().nullable(),
+  maxValue: z.coerce.number().optional().nullable(),
+  stepValue: z.coerce.number().optional().nullable(),
+  defaultValue: z.string().optional().nullable(),
   isRequired: z.boolean().default(false),
   allowCustom: z.boolean().default(false),
-  sortOrder: z.number().default(0),
-  basePrice: z.number().default(0),
-  pricePerUnit: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
+  basePrice: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  pricePerUnit: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
   options: z.array(configOptionSchema),
 });
 
@@ -167,14 +221,18 @@ const updateProductSchema = z.object({
   specifications: z.record(z.string(), z.string()).optional(),
   sku: z.string().optional().nullable(),
   barcode: z.string().optional().nullable(),
-  basePrice: z.number().min(0).optional(),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  taxRate: z.number().min(0).optional().nullable(),
-  monthlyPrice: z.number().min(0).optional().nullable(),
-  yearlyPrice: z.number().min(0).optional().nullable(),
-  monthlySavings: z.number().min(0).optional().nullable(),
-  yearlySavings: z.number().min(0).optional().nullable(),
+  basePrice: z.coerce.number().min(0).optional(),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  taxRate: z.coerce.number().min(0).optional().nullable(),
+  
+  // Product Type - One-time or Recurring
+  isRecurring: z.boolean().optional(),
+  setupFee: z.coerce.number().min(0).optional().nullable(),
+  
+  // Note: Recurring prices are stored in product_recurring_prices table
+  // and should be updated via the /api/products/[id]/recurring-prices endpoint
+  
   productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   categoryId: z.string().optional().nullable(),
@@ -184,11 +242,11 @@ const updateProductSchema = z.object({
   requiresShipping: z.boolean().optional(),
   trackInventory: z.boolean().optional(),
   allowBackorder: z.boolean().optional(),
-  stockQuantity: z.number().int().min(0).optional(),
-  lowStockThreshold: z.number().int().min(0).optional(),
-  weight: z.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).optional(),
+  lowStockThreshold: z.coerce.number().int().min(0).optional(),
+  weight: z.coerce.number().min(0).optional().nullable(),
   weightUnit: z.string().optional(),
-  sortOrder: z.number().int().optional(),
+  sortOrder: z.coerce.number().int().optional(),
   // Related data
   images: z.array(imageSchema).optional(),
   variants: z.array(variantSchema).optional(),
@@ -219,7 +277,11 @@ export async function PUT(
         images: true,
         variants: true,
         addons: true,
-        configs: true,
+        configs: {
+          include: {
+            options: true,
+          },
+        },
         seoMetadata: true,
       },
     });
@@ -427,8 +489,9 @@ export async function PUT(
 
       // Update configs if provided
       if (configs !== undefined) {
-        // Get existing config IDs
-        const existingConfigIds = existingProduct.configs.map((c) => c.id);
+        // Get existing config IDs (handle case where configs might be null/undefined)
+        const existingConfigs = existingProduct.configs || [];
+        const existingConfigIds = existingConfigs.map((c) => c.id);
         const newConfigIds = configs.filter((c) => c.id).map((c) => c.id);
 
         // Delete removed configs
@@ -441,60 +504,114 @@ export async function PUT(
           });
         }
 
-        // Update or create configs (basic fields only - use Configurations API for full management)
+        // Update or create configs (basic fields only - use Configurations API for full options management)
         for (const config of configs) {
           if (config.id && existingConfigIds.includes(config.id)) {
-            // Update existing
+            // Update existing config basic fields only, skip options
             await tx.productConfig.update({
               where: { id: config.id },
               data: {
-                // @ts-ignore - configType may not exist in generated types yet
-                configType: config.configType,
+                configType: config.configType || "STANDARD",
                 name: config.name,
-                // @ts-ignore - displayName may not exist in generated types yet
-                displayName: config.displayName,
-                // @ts-ignore - basePrice may not exist in generated types yet
-                basePrice: config.basePrice,
-                // @ts-ignore - pricePerUnit may not exist in generated types yet
-                pricePerUnit: config.pricePerUnit,
-                // @ts-ignore - inputType may not exist in generated types yet
-                inputType: config.inputType,
-                isRequired: config.isRequired,
-                sortOrder: config.sortOrder,
+                displayName: config.displayName || null,
+                description: config.description || null,
+                unit: config.unit || null,
+                unitPlural: config.unitPlural || null,
+                inputType: config.inputType || "SELECT",
+                minValue: config.minValue ?? null,
+                maxValue: config.maxValue ?? null,
+                stepValue: config.stepValue ?? 1,
+                defaultValue: config.defaultValue || null,
+                isRequired: config.isRequired ?? false,
+                allowCustom: config.allowCustom ?? false,
+                sortOrder: config.sortOrder ?? 0,
+                basePrice: config.basePrice ? parseFloat(config.basePrice.toString()) : null,
+                pricePerUnit: config.pricePerUnit ? parseFloat(config.pricePerUnit.toString()) : null,
               },
             });
+            // Also update options
+            const existingConfig = existingConfigs.find(c => c.id === config.id);
+            const existingOptionIds = (existingConfig?.options || []).map((o: any) => o.id);
+            const newOptionIds = (config.options || []).filter((o: any) => o.id).map((o: any) => o.id);
+            const optionsToDelete = existingOptionIds.filter((id: string) => !newOptionIds.includes(id));
+            if (optionsToDelete.length > 0) {
+              await tx.productConfigOption.deleteMany({
+                where: { id: { in: optionsToDelete } },
+              });
+            }
+            for (const option of (config.options || [])) {
+              if (option.id && existingOptionIds.includes(option.id)) {
+                await tx.productConfigOption.update({
+                  where: { id: option.id },
+                  data: {
+                    value: option.value,
+                    label: option.label || option.value,
+                    description: option.description || null,
+                    priceModifier: option.priceModifier ? parseFloat(option.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: option.monthlyPriceModifier ? parseFloat(option.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: option.yearlyPriceModifier ? parseFloat(option.yearlyPriceModifier.toString()) : null,
+                    isPercentage: option.isPercentage ?? false,
+                    modifierType: option.modifierType || "ADD",
+                    sortOrder: option.sortOrder ?? 0,
+                    isAvailable: option.isAvailable ?? true,
+                    stockStatus: option.stockStatus || null,
+                  },
+                });
+              } else {
+                await tx.productConfigOption.create({
+                  data: {
+                    configId: config.id,
+                    value: option.value,
+                    label: option.label || option.value,
+                    description: option.description || null,
+                    priceModifier: option.priceModifier ? parseFloat(option.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: option.monthlyPriceModifier ? parseFloat(option.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: option.yearlyPriceModifier ? parseFloat(option.yearlyPriceModifier.toString()) : null,
+                    isPercentage: option.isPercentage ?? false,
+                    modifierType: option.modifierType || "ADD",
+                    sortOrder: option.sortOrder ?? 0,
+                    isAvailable: option.isAvailable ?? true,
+                    stockStatus: option.stockStatus || null,
+                  },
+                });
+              }
+            }
           } else {
             // Create new
             await tx.productConfig.create({
               data: {
                 productId: id,
-                // @ts-ignore - configType may not exist in generated types yet
                 configType: config.configType || "STANDARD",
                 name: config.name,
-                // @ts-ignore - displayName may not exist in generated types yet
-                displayName: config.displayName,
-                // @ts-ignore - basePrice may not exist in generated types yet
-                basePrice: config.basePrice ?? 0,
-                // @ts-ignore - pricePerUnit may not exist in generated types yet
-                pricePerUnit: config.pricePerUnit ?? 0,
-                // @ts-ignore - inputType may not exist in generated types yet
-                inputType: config.inputType ?? "SELECT",
+                displayName: config.displayName || null,
+                description: config.description || null,
+                unit: config.unit || null,
+                unitPlural: config.unitPlural || null,
+                inputType: config.inputType || "SELECT",
+                minValue: config.minValue ?? null,
+                maxValue: config.maxValue ?? null,
+                stepValue: config.stepValue ?? 1,
+                defaultValue: config.defaultValue || null,
                 isRequired: config.isRequired ?? false,
+                allowCustom: config.allowCustom ?? false,
                 sortOrder: config.sortOrder ?? 0,
-                options: {
+                basePrice: config.basePrice ? parseFloat(config.basePrice.toString()) : null,
+                pricePerUnit: config.pricePerUnit ? parseFloat(config.pricePerUnit.toString()) : null,
+                options: config.options && config.options.length > 0 ? {
                   create: config.options.map((opt: any) => ({
                     value: opt.value,
-                    label: opt.label,
-                    description: opt.description,
-                    priceModifier: opt.priceModifier ?? 0,
-                    monthlyPriceModifier: opt.monthlyPriceModifier ?? opt.priceModifier ?? 0,
-                    yearlyPriceModifier: opt.yearlyPriceModifier ?? opt.priceModifier ?? 0,
+                    label: opt.label || opt.value,
+                    description: opt.description || null,
+                    priceModifier: opt.priceModifier ? parseFloat(opt.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: opt.monthlyPriceModifier ? parseFloat(opt.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: opt.yearlyPriceModifier ? parseFloat(opt.yearlyPriceModifier.toString()) : null,
                     isPercentage: opt.isPercentage ?? false,
-                    modifierType: opt.modifierType ?? "ADD",
+                    modifierType: opt.modifierType || "ADD",
                     isAvailable: opt.isAvailable ?? true,
                     sortOrder: opt.sortOrder ?? 0,
+                    stockStatus: opt.stockStatus || null,
                   })),
-                },
+                } : undefined,
               },
             });
           }
@@ -532,12 +649,19 @@ export async function PUT(
         images: { orderBy: { sortOrder: "asc" } },
         variants: { orderBy: { sortOrder: "asc" } },
         addons: { orderBy: { sortOrder: "asc" } },
-        configs: { orderBy: { sortOrder: "asc" } },
+        configs: {
+          include: {
+            options: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
         seoMetadata: true,
       },
     });
 
-    return NextResponse.json({ data: completeProduct });
+    return NextResponse.json({ data: serializeProduct(completeProduct) });
   } catch (error) {
     console.error("Error updating product:", error);
     if (error instanceof z.ZodError) {

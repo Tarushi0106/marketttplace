@@ -1,4 +1,4 @@
-// NaaS Marketplace - Prisma Schema
+﻿// NaaS Marketplace - Prisma Schema
 // PostgreSQL database with comprehensive e-commerce models
 
 generator client {
@@ -338,7 +338,11 @@ model ProductConfig {
   
   // Configuration Type (OS, CPU, RAM, STORAGE, GPU, etc.)
   configType      String?            // e.g., "OS", "CPU", "RAM", "STORAGE", "GPU", "DATA_CENTER"
-  
+
+  // Configuration Group - Group multiple configs under a single section
+  // e.g., "Server Configuration", "Storage Configuration", "Network Configuration"
+  configGroup     String?
+
   // Configuration Details
   name            String              // e.g., "RAM", "Storage", "Users"
   displayName     String?             // e.g., "Memory", "Disk Space"

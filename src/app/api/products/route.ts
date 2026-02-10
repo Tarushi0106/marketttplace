@@ -149,7 +149,7 @@ const imageSchema = z.object({
   id: z.string().optional(),
   url: z.string(),
   alt: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
   isPrimary: z.boolean().default(false),
 });
 
@@ -157,33 +157,33 @@ const variantSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   sku: z.string().optional(),
-  price: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  stockQuantity: z.number().int().min(0).default(0),
+  price: z.coerce.number().min(0),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const addonSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  price: z.number().min(0),
+  price: z.coerce.number().min(0),
   pricingType: z.enum(["ONE_TIME", "RECURRING_MONTHLY", "RECURRING_YEARLY"]).default("ONE_TIME"),
   isRequired: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const configOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
-  priceModifier: z.number().default(0),
-  monthlyPriceModifier: z.number().nullable().optional(),
-  yearlyPriceModifier: z.number().nullable().optional(),
+  priceModifier: z.coerce.number().default(0),
+  monthlyPriceModifier: z.coerce.number().nullable().optional(),
+  yearlyPriceModifier: z.coerce.number().nullable().optional(),
 });
 
 const configSchema = z.object({
@@ -193,7 +193,7 @@ const configSchema = z.object({
   options: z.array(configOptionSchema),
   isRequired: z.boolean().default(false),
   defaultValue: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const seoSchema = z.object({
@@ -214,14 +214,14 @@ const createProductSchema = z.object({
   specifications: z.record(z.string(), z.string()).optional(),
   sku: z.string().optional(),
   barcode: z.string().optional(),
-  basePrice: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  taxRate: z.number().min(0).optional().nullable(),
-  monthlyPrice: z.number().min(0).optional().nullable(),
-  yearlyPrice: z.number().min(0).optional().nullable(),
-  monthlySavings: z.number().min(0).optional().nullable(),
-  yearlySavings: z.number().min(0).optional().nullable(),
+  basePrice: z.coerce.number().min(0),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  taxRate: z.coerce.number().min(0).optional().nullable(),
+  monthlyPrice: z.coerce.number().min(0).optional().nullable(),
+  yearlyPrice: z.coerce.number().min(0).optional().nullable(),
+  monthlySavings: z.coerce.number().min(0).optional().nullable(),
+  yearlySavings: z.coerce.number().min(0).optional().nullable(),
   productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).default("STANDALONE"),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).default("DRAFT"),
   categoryId: z.string().optional().nullable(),
@@ -231,9 +231,9 @@ const createProductSchema = z.object({
   requiresShipping: z.boolean().default(true),
   trackInventory: z.boolean().default(true),
   allowBackorder: z.boolean().default(false),
-  stockQuantity: z.number().int().min(0).default(0),
-  lowStockThreshold: z.number().int().min(0).default(5),
-  weight: z.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).default(0),
+  lowStockThreshold: z.coerce.number().int().min(0).default(5),
+  weight: z.coerce.number().min(0).optional().nullable(),
   weightUnit: z.string().default("kg"),
   // Related data
   images: z.array(imageSchema).optional(),

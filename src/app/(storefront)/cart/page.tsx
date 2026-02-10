@@ -20,6 +20,47 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrency } from "@/lib/utils";
 
+// Helper to safely format numbers
+const safeFormat = (value: number | null | undefined, suffix: string = ''): string => {
+  const num = value ?? 0;
+  if (isNaN(num) || !isFinite(num)) return '₹0' + suffix;
+  return formatCurrency(num) + suffix;
+};
+
+// Helper to get billing cycle label
+const getBillingCycleLabel = (cycle?: string): string => {
+  const labels: Record<string, string> = {
+    ONE_TIME: 'One-time',
+    MONTHLY: '/month',
+    BIMONTHLY: '/2 months',
+    QUARTERLY: '/quarter',
+    FOUR_MONTHLY: '/4 months',
+    SEMI_ANNUAL: '/6 months',
+    TRI_ANNUAL: '/4 months',
+    YEARLY: '/year',
+    BIENNIAL: '/2 years',
+    TRIENNIAL: '/3 years',
+  };
+  return labels[cycle || ''] || cycle || '';
+};
+
+// Helper to get billing cycle display name
+const getBillingCycleName = (cycle?: string): string => {
+  const labels: Record<string, string> = {
+    ONE_TIME: 'One-time',
+    MONTHLY: 'Monthly',
+    BIMONTHLY: 'Bi-Monthly',
+    QUARTERLY: 'Quarterly',
+    FOUR_MONTHLY: 'Four-Monthly',
+    SEMI_ANNUAL: 'Semi-Annual',
+    TRI_ANNUAL: 'Tri-Annual',
+    YEARLY: 'Yearly',
+    BIENNIAL: 'Biennial',
+    TRIENNIAL: 'Triennial',
+  };
+  return labels[cycle || ''] || cycle || '';
+};
+
 export default function CartPage() {
   const {
     items,
@@ -29,6 +70,7 @@ export default function CartPage() {
     getSubtotal,
     getTax,
     getTotal,
+    getSetupFeeTotal,
     discountCode,
     discountAmount,
     applyDiscount,
@@ -152,13 +194,13 @@ export default function CartPage() {
                     </div>
 
                     {/* Selected addons */}
-                    {item.selectedAddons.length > 0 && (
+                    {item.selectedAddons && item.selectedAddons.length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground">Add-ons:</p>
                         <ul className="text-sm">
                           {item.selectedAddons.map((addon) => (
-                            <li key={addon.addon.id} className="text-muted-foreground">
-                              + {addon.addon.name} ({formatCurrency(Number(addon.addon.price))})
+                            <li key={addon.addon?.id} className="text-muted-foreground">
+                              + {addon.addon?.name} ({safeFormat(addon.addon?.price)})
                             </li>
                           ))}
                         </ul>
@@ -166,17 +208,35 @@ export default function CartPage() {
                     )}
 
                     {/* Selected configs */}
-                    {item.selectedConfigs.length > 0 && (
+                    {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground">Configuration:</p>
                         <ul className="text-sm">
                           {item.selectedConfigs.map((config) => (
                             <li key={config.configId} className="text-muted-foreground">
                               {config.configName}: {config.value}
-                              {config.priceModifier > 0 && ` (+${formatCurrency(config.priceModifier)})`}
+                              {config.priceModifier != null && config.priceModifier > 0 && ` (+${formatCurrency(config.priceModifier)})`}
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+
+                    {/* Setup Fee display */}
+                    {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-amber-600 font-medium">
+                          + Setup Fee: {formatCurrency(item.recurringData.setupFee)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Billing cycle display */}
+                    {item.isRecurring && item.billingCycle && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground">
+                          Billing: {item.billingCycle.replace('_', ' ')}
+                        </p>
                       </div>
                     )}
 
@@ -187,26 +247,26 @@ export default function CartPage() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center">{item.quantity ?? 1}</span>
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">
-                          {formatCurrency(item.totalPrice)}/mo
+                          {safeFormat(item.totalPrice, '/mo')}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatCurrency(item.unitPrice)}/mo each
+                          {safeFormat(item.unitPrice, '/mo each')}
                         </p>
                       </div>
                     </div>
@@ -283,14 +343,21 @@ export default function CartPage() {
                     <span>-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
+                {/* Setup Fee display */}
+                {getSetupFeeTotal() > 0 && (
+                  <div className="flex justify-between text-sm text-amber-600">
+                    <span className="font-medium">Setup Fees</span>
+                    <span>{formatCurrency(getSetupFeeTotal())}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (10%)</span>
+                  <span className="text-muted-foreground">Tax (18%)</span>
                   <span>{formatCurrency(getTax())}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>{formatCurrency(getTotal())}/mo</span>
+                  <span>{formatCurrency(getTotal())}</span>
                 </div>
               </div>
             </CardContent>

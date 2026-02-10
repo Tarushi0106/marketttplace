@@ -6,6 +6,33 @@ import { ChevronRight, ArrowLeft, Building2 } from "lucide-react";
 import Image from "next/image";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
 
+// Type for recurring prices with per-billing-frequency setup fees
+interface RecurringPricesWithSetupFees {
+  monthlyPrice?: number;
+  monthlySetupFee?: number;
+  biMonthlyPrice?: number;
+  biMonthlySetupFee?: number;
+  fourMonthlyPrice?: number;
+  fourMonthlySetupFee?: number;
+  quarterlyPrice?: number;
+  quarterlySetupFee?: number;
+  triMonthlyPrice?: number;
+  triMonthlySetupFee?: number;
+  semiAnnualPrice?: number;
+  semiAnnualSetupFee?: number;
+  triAnnualPrice?: number;
+  triAnnualSetupFee?: number;
+  yearlyPrice?: number;
+  yearlySetupFee?: number;
+  biennialPrice?: number;
+  biennialSetupFee?: number;
+  triennialPrice?: number;
+  triennialSetupFee?: number;
+  monthlySavings?: number;
+  quarterlySavings?: number;
+  yearlySavings?: number;
+}
+
 export const dynamic = 'force-dynamic';
 
 interface Props {
@@ -29,6 +56,12 @@ async function getProduct(slug: string) {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
       },
+      configs: {
+        orderBy: { sortOrder: "asc" },
+      },
+      recurringPrices: {
+        where: { isActive: true },
+      },
       seoMetadata: true,
     },
   });
@@ -50,13 +83,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ConfigureProductPage({ params }: Props) {
+export default async function ConfigureProductPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   const product = await getProduct(slug);
 
   if (!product) {
     notFound();
   }
+
+  // Get the selected variant from query params
+  const selectedVariantId = resolvedSearchParams?.variant || null;
 
   // Redirect to product detail page if no configurations or variants
   if (
@@ -118,8 +155,8 @@ export default async function ConfigureProductPage({ params }: Props) {
         unitPlural: catConfig.template.unitPlural || catConfig.unit || "",
         icon: catConfig.template.icon,
         pricingModel: catConfig.pricingModel || catConfig.template.pricingModel,
-        basePrice: catConfig.basePrice,
-        pricePerUnit: catConfig.pricePerUnit,
+        basePrice: catConfig.basePrice ? Number(catConfig.basePrice) : undefined,
+        pricePerUnit: catConfig.pricePerUnit ? Number(catConfig.pricePerUnit) : undefined,
         currency: catConfig.currency || catConfig.template.currency,
         billingCycle: catConfig.billingCycle || catConfig.template.billingCycle,
         isRecurring: catConfig.isRecurring ?? catConfig.template.isRecurring,
@@ -132,12 +169,12 @@ export default async function ConfigureProductPage({ params }: Props) {
         allowCustom: catConfig.allowCustom ?? catConfig.template.allowCustom,
         source: "CATEGORY",
         inheritedFromId: catConfig.id,
-        options: catConfig.template.options.map((opt: any) => ({
+        options: (catConfig.template.options || []).map((opt: any) => ({
           id: opt.id,
           value: opt.value,
-          label: opt.label,
+          label: opt.label || opt.value,
           description: opt.description,
-          priceModifier: opt.priceModifier,
+          priceModifier: opt.priceModifier ? Number(opt.priceModifier) : 0,
           isPercentage: opt.isPercentage,
           modifierType: opt.modifierType,
           isAvailable: opt.isAvailable,
@@ -146,18 +183,37 @@ export default async function ConfigureProductPage({ params }: Props) {
       }));
   }
 
-  // Get recurring prices - use Product model fields as fallback
+  // Get recurring prices - use ProductRecurringPrice table
   const recurringPrices = await prisma.productRecurringPrice.findFirst({
     where: { productId: product.id },
-  });
+  }) as any;
 
-  // Build recurring prices object - use ProductRecurringPrice if available, otherwise use Product model
-  const productRecurringPrices = recurringPrices
+  // Build recurring prices object from ProductRecurringPrice table
+  const productRecurringPrices: RecurringPricesWithSetupFees | null = recurringPrices
     ? {
-        monthlyPrice: Number(recurringPrices.monthlyPrice) || null,
-        yearlyPrice: Number(recurringPrices.yearlyPrice) || null,
-        monthlySavings: recurringPrices.monthlySavings ? Number(recurringPrices.monthlySavings) : null,
-        yearlySavings: recurringPrices.yearlySavings ? Number(recurringPrices.yearlySavings) : null,
+        monthlyPrice: recurringPrices.monthlyPrice ? Number(recurringPrices.monthlyPrice) : undefined,
+        monthlySetupFee: recurringPrices.monthlySetupFee ? Number(recurringPrices.monthlySetupFee) : undefined,
+        biMonthlyPrice: recurringPrices.biMonthlyPrice ? Number(recurringPrices.biMonthlyPrice) : undefined,
+        biMonthlySetupFee: recurringPrices.biMonthlySetupFee ? Number(recurringPrices.biMonthlySetupFee) : undefined,
+        fourMonthlyPrice: recurringPrices.fourMonthlyPrice ? Number(recurringPrices.fourMonthlyPrice) : undefined,
+        fourMonthlySetupFee: recurringPrices.fourMonthlySetupFee ? Number(recurringPrices.fourMonthlySetupFee) : undefined,
+        quarterlyPrice: recurringPrices.quarterlyPrice ? Number(recurringPrices.quarterlyPrice) : undefined,
+        quarterlySetupFee: recurringPrices.quarterlySetupFee ? Number(recurringPrices.quarterlySetupFee) : undefined,
+        triMonthlyPrice: recurringPrices.triMonthlyPrice ? Number(recurringPrices.triMonthlyPrice) : undefined,
+        triMonthlySetupFee: recurringPrices.triMonthlySetupFee ? Number(recurringPrices.triMonthlySetupFee) : undefined,
+        semiAnnualPrice: recurringPrices.semiAnnualPrice ? Number(recurringPrices.semiAnnualPrice) : undefined,
+        semiAnnualSetupFee: recurringPrices.semiAnnualSetupFee ? Number(recurringPrices.semiAnnualSetupFee) : undefined,
+        triAnnualPrice: recurringPrices.triAnnualPrice ? Number(recurringPrices.triAnnualPrice) : undefined,
+        triAnnualSetupFee: recurringPrices.triAnnualSetupFee ? Number(recurringPrices.triAnnualSetupFee) : undefined,
+        yearlyPrice: recurringPrices.yearlyPrice ? Number(recurringPrices.yearlyPrice) : undefined,
+        yearlySetupFee: recurringPrices.yearlySetupFee ? Number(recurringPrices.yearlySetupFee) : undefined,
+        biennialPrice: recurringPrices.biennialPrice ? Number(recurringPrices.biennialPrice) : undefined,
+        biennialSetupFee: recurringPrices.biennialSetupFee ? Number(recurringPrices.biennialSetupFee) : undefined,
+        triennialPrice: recurringPrices.triennialPrice ? Number(recurringPrices.triennialPrice) : undefined,
+        triennialSetupFee: recurringPrices.triennialSetupFee ? Number(recurringPrices.triennialSetupFee) : undefined,
+        monthlySavings: recurringPrices.monthlySavings ? Number(recurringPrices.monthlySavings) : undefined,
+        quarterlySavings: recurringPrices.quarterlySavings ? Number(recurringPrices.quarterlySavings) : undefined,
+        yearlySavings: recurringPrices.yearlySavings ? Number(recurringPrices.yearlySavings) : undefined,
       }
     : null;
 
@@ -265,6 +321,7 @@ export default async function ConfigureProductPage({ params }: Props) {
             productType: product.productType,
             images: product.images,
           }}
+          selectedVariantId={selectedVariantId}
           variants={product.productType === "CONFIGURABLE" ? product.variants.map((variant: any) => ({
             id: variant.id,
             name: variant.name,
@@ -283,8 +340,8 @@ export default async function ConfigureProductPage({ params }: Props) {
             unitPlural: config.unitPlural,
             icon: config.icon,
             pricingModel: config.pricingModel,
-            basePrice: config.basePrice,
-            pricePerUnit: config.pricePerUnit,
+            basePrice: config.basePrice ? Number(config.basePrice) : undefined,
+            pricePerUnit: config.pricePerUnit ? Number(config.pricePerUnit) : undefined,
             currency: config.currency,
             billingCycle: config.billingCycle,
             isRecurring: config.isRecurring,
@@ -297,14 +354,14 @@ export default async function ConfigureProductPage({ params }: Props) {
             allowCustom: config.allowCustom,
             source: config.inheritFrom === "CATEGORY" ? "CATEGORY" : "PRODUCT",
             inheritedFromId: config.categoryConfigId || config.templateId,
-            options: config.options.map((opt: any) => ({
+            options: (config.options || []).map((opt: any) => ({
               id: opt.id,
               value: opt.value,
-              label: opt.label,
+              label: opt.label || opt.value,
               description: opt.description,
-              priceModifier: opt.priceModifier,
-              monthlyPriceModifier: opt.monthlyPriceModifier,
-              yearlyPriceModifier: opt.yearlyPriceModifier,
+              priceModifier: opt.priceModifier ? Number(opt.priceModifier) : 0,
+              monthlyPriceModifier: opt.monthlyPriceModifier ? Number(opt.monthlyPriceModifier) : undefined,
+              yearlyPriceModifier: opt.yearlyPriceModifier ? Number(opt.yearlyPriceModifier) : undefined,
               isPercentage: opt.isPercentage,
               modifierType: opt.modifierType,
               isAvailable: opt.isAvailable,
@@ -343,16 +400,31 @@ export default async function ConfigureProductPage({ params }: Props) {
             uniqueId: `category-${addon.id}`,
           }))}
           recurringPrices={
-            recurringPrices
+            productRecurringPrices
               ? {
-                  monthlyPrice: Number(recurringPrices.monthlyPrice),
-                  yearlyPrice: Number(recurringPrices.yearlyPrice),
-                  monthlySavings: recurringPrices.monthlySavings
-                    ? Number(recurringPrices.monthlySavings)
-                    : undefined,
-                  yearlySavings: recurringPrices.yearlySavings
-                    ? Number(recurringPrices.yearlySavings)
-                    : undefined,
+                  monthlyPrice: productRecurringPrices.monthlyPrice,
+                  monthlySetupFee: productRecurringPrices.monthlySetupFee,
+                  biMonthlyPrice: productRecurringPrices.biMonthlyPrice,
+                  biMonthlySetupFee: productRecurringPrices.biMonthlySetupFee,
+                  fourMonthlyPrice: productRecurringPrices.fourMonthlyPrice,
+                  fourMonthlySetupFee: productRecurringPrices.fourMonthlySetupFee,
+                  quarterlyPrice: productRecurringPrices.quarterlyPrice,
+                  quarterlySetupFee: productRecurringPrices.quarterlySetupFee,
+                  triMonthlyPrice: productRecurringPrices.triMonthlyPrice,
+                  triMonthlySetupFee: productRecurringPrices.triMonthlySetupFee,
+                  semiAnnualPrice: productRecurringPrices.semiAnnualPrice,
+                  semiAnnualSetupFee: productRecurringPrices.semiAnnualSetupFee,
+                  triAnnualPrice: productRecurringPrices.triAnnualPrice,
+                  triAnnualSetupFee: productRecurringPrices.triAnnualSetupFee,
+                  yearlyPrice: productRecurringPrices.yearlyPrice,
+                  yearlySetupFee: productRecurringPrices.yearlySetupFee,
+                  biennialPrice: productRecurringPrices.biennialPrice,
+                  biennialSetupFee: productRecurringPrices.biennialSetupFee,
+                  triennialPrice: productRecurringPrices.triennialPrice,
+                  triennialSetupFee: productRecurringPrices.triennialSetupFee,
+                  monthlySavings: productRecurringPrices.monthlySavings,
+                  quarterlySavings: productRecurringPrices.quarterlySavings,
+                  yearlySavings: productRecurringPrices.yearlySavings,
                 }
               : null
           }

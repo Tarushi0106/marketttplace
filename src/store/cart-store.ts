@@ -7,32 +7,48 @@ export interface CartItem {
   product?: Product;
   variant?: ProductVariant;
   bundle?: Bundle;
-  quantity: number;
-  selectedAddons: {
+  quantity?: number;
+  // Support for multiple configuration instances
+  instances?: {
+    instanceId: string;
+    instanceNumber: number;
+    instanceName: string;
+    quantity: number;
+    selectedConfigs: Record<string, { value: string; quantity?: number }>;
+    selectedAddons: Record<string, { quantity: number; selected: boolean; source: string }>;
+  }[];
+  // Legacy support for flat configs/addons
+  selectedAddons?: {
     addon: ProductAddon;
     quantity: number;
   }[];
-  selectedConfigs: {
+  selectedConfigs?: {
     configId: string;
     configName?: string;
     value: string;
+    quantity?: number;
     priceModifier?: number;
     monthlyPriceModifier?: number;
     yearlyPriceModifier?: number;
     optionLabel?: string;
   }[];
-  unitPrice: number;
-  totalPrice: number;
+  unitPrice?: number;
+  totalPrice?: number;
   // Billing information
-  billingCycle?: "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+  billingCycle?: "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
   isRecurring?: boolean;
   // Recurring billing data
   recurringData?: {
     enabled: boolean;
-    billingCycle: "MONTHLY" | "QUARTERLY" | "YEARLY";
-    preferredTime: string;
-    preferredDay: number;
-    autoRenew: boolean;
+    billingCycle: "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+    setupFee: number;
+    pricePerCycle: number;
+    totalForPeriod: number;
+    savingsPercentage: number;
+    monthlyEquivalent: number;
+    preferredTime?: string;
+    preferredDay?: number;
+    autoRenew?: boolean;
   };
 }
 
@@ -60,6 +76,7 @@ interface CartState {
   getTax: () => number;
   getTotal: () => number;
   getItemCount: () => number;
+  getSetupFeeTotal: () => number;
 }
 
 // Helper function to safely convert values to numbers
@@ -111,6 +128,14 @@ export const useCartStore = create<CartState>()(
           const id = calculateItemId(item);
           const existingItemIndex = get().items.findIndex((i) => i.id === id);
 
+          console.log("[Cart Debug] Adding item to cart:", {
+            productName: item.product?.name,
+            unitPrice,
+            recurringData: item.recurringData,
+            billingCycle: item.billingCycle,
+            isRecurring: item.isRecurring
+          });
+
           if (existingItemIndex > -1) {
             // Update existing item quantity
             const items = [...get().items];
@@ -128,6 +153,11 @@ export const useCartStore = create<CartState>()(
               id,
               totalPrice: calculateItemTotal({ ...item, unitPrice }),
             };
+            console.log("[Cart Debug] New cart item created:", {
+              id: newItem.id?.substring(0, 50),
+              recurringData: newItem.recurringData,
+              totalPrice: newItem.totalPrice
+            });
             set({ items: [...get().items, newItem] });
           }
 
@@ -196,13 +226,25 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         const subtotal = get().getSubtotal();
+        const setupFee = get().getSetupFeeTotal();
         const tax = get().getTax();
         const discount = safeNumber(get().discountAmount);
-        return Math.max(0, subtotal + tax - discount);
+        return Math.max(0, subtotal + setupFee + tax - discount);
       },
 
       getItemCount: () => {
         return get().items.reduce((sum, item) => sum + safeNumber(item.quantity), 0);
+      },
+
+      getSetupFeeTotal: () => {
+        return get().items.reduce((sum, item) => {
+          const setupFee = item.recurringData?.setupFee;
+          // Check if setupFee is a valid number greater than 0
+          if (typeof setupFee === 'number' && setupFee > 0) {
+            return sum + setupFee;
+          }
+          return sum;
+        }, 0);
       },
     }),
     {
@@ -221,6 +263,34 @@ export const useCartStore = create<CartState>()(
 if (typeof window !== "undefined") {
   useCartStore.subscribe((state: CartState) => {
     const items = state.items;
+    
+    // Debug logging for setup fee tracking
+    if (typeof window !== "undefined") {
+      const localStorageData = localStorage.getItem("naas-cart");
+      if (localStorageData) {
+        try {
+          const parsed = JSON.parse(localStorageData);
+          if (parsed?.state?.items) {
+            const hasSetupFee = parsed.state.items.some((item: any) => 
+              item.recurringData?.setupFee > 0
+            );
+            if (hasSetupFee) {
+              console.log("[Cart Debug] Items with setup fee found in localStorage:", 
+                parsed.state.items.map((item: any) => ({
+                  id: item.id?.substring(0, 50),
+                  recurringData: item.recurringData,
+                  unitPrice: item.unitPrice,
+                  totalPrice: item.totalPrice
+                }))
+              );
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+    
     // Check if any items have invalid totalPrice and recalculate
     const needsRecalculation = items.some(
       (item: CartItem) => 

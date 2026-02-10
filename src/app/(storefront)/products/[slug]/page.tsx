@@ -566,7 +566,7 @@ export default async function ProductDetailPage({ params }: Props) {
                             </div>
                           )}
                           <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
-                            <Link href={`/products/${product.slug}/configure`}>
+                            <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                               Get Started <ArrowRight className="h-4 w-4 ml-2" />
                             </Link>
                           </Button>

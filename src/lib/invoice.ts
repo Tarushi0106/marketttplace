@@ -1,6 +1,4 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import fs from "fs";
-import path from "path";
 
 interface OrderItemInterface {
   id?: string | null;
@@ -16,6 +14,10 @@ interface OrderItemInterface {
   hsnCode?: string | null;
   cgstRate?: number | null;
   sgstRate?: number | null;
+  setupFee?: number | null;  // One-time setup fee for recurring products
+  isRecurring?: boolean | null;
+  billingCycle?: string | null;
+  recurringPrice?: number | null;
   [key: string]: any;
 }
 
@@ -129,7 +131,7 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
   const veryLightGray = rgb(0.95, 0.95, 0.95);
   const greenColor = rgb(0.1, 0.5, 0.1);
   const whiteColor = rgb(1, 1, 1);
-  const companyBlue = rgb(0.1, 0.3, 0.6);
+  const darkGray = rgb(0.3, 0.3, 0.3);
 
   // Font sizes
   const fontSize = {
@@ -141,112 +143,37 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     tiny: 7,
   };
 
-  let yPos = height - 30;
+  let yPos = height - 50;
   const leftMargin = 40;
   const rightMargin = width - 40;
 
-  // ==================== TOP HEADER BAR ====================
-  // Company blue header bar
-  page.drawRectangle({
-    x: leftMargin,
-    y: height - 30,
-    width: width - 80,
-    height: 35,
-    color: companyBlue,
-  });
-
-  // Company name in header
-  page.drawText("SHAURRYA TELESERVICES PVT. LTD", {
-    x: leftMargin + 10,
-    y: height - 20,
-    size: 14,
-    font: helveticaBold,
-    color: whiteColor,
-  });
-
-  // GSTIN info in header
-  page.drawText("GSTIN: 27ABCCS1234A1Z5 | CIN: U72200MH2020PTC123456", {
-    x: leftMargin + 280,
-    y: height - 20,
-    size: 8,
-    font: helveticaFont,
-    color: whiteColor,
-  });
-
-  yPos = height - 80;
-
   // ==================== LOGO AND COMPANY INFO ====================
-  // Try to load company logo
-  let logoLoaded = false;
-  const brandingDir = path.join(process.cwd(), "public", "uploads", "branding");
-  
-  if (fs.existsSync(brandingDir)) {
-    const files = fs.readdirSync(brandingDir);
-    
-    // Try PNG files first
-    const pngFiles = files.filter(f => f.toLowerCase().endsWith('.png'));
-    for (const pngFile of pngFiles) {
-      try {
-        const logoPath = path.join(brandingDir, pngFile);
-        const logoBytes = fs.readFileSync(logoPath);
-        const logoImage = await pdfDoc.embedPng(logoBytes);
-        const logoDims = logoImage.scale(0.5);
-        
-        // Draw logo
-        page.drawImage(logoImage, {
-          x: leftMargin,
-          y: yPos - 60,
-          width: logoDims.width,
-          height: logoDims.height,
-        });
-        
-        yPos -= 70;
-        logoLoaded = true;
-        break;
-      } catch (e) {
-        console.warn("Could not embed PNG logo:", pngFile, e);
-      }
-    }
-  }
-
-  // If no logo loaded, show styled "S" logo
-  if (!logoLoaded) {
-    // Logo placeholder - blue box with "S"
-    page.drawRectangle({
-      x: leftMargin,
-      y: yPos - 60,
-      width: 70,
-      height: 60,
-      color: companyBlue,
-    });
-    page.drawText("S", {
-      x: leftMargin + 28,
-      y: yPos - 30,
-      size: 32,
-      font: helveticaBold,
-      color: whiteColor,
-    });
-    yPos -= 70;
-  }
-
-  // Company name
-  page.drawText("Shaurrya Teleservices", {
+  // Use simple text-based Shaurrya logo (no image to avoid blue color)
+  page.drawText("SHAURRYA", {
     x: leftMargin,
-    y: yPos - 5,
-    size: 18,
+    y: yPos - 20,
+    size: 28,
     font: helveticaBold,
-    color: companyBlue,
+    color: darkGray,
+  });
+  yPos -= 25;
+  page.drawText("TELESERVICES", {
+    x: leftMargin,
+    y: yPos - 15,
+    size: 14,
+    font: helveticaFont,
+    color: secondaryColor,
   });
   page.drawText("Pvt. Ltd", {
     x: leftMargin,
-    y: yPos - 20,
+    y: yPos - 28,
     size: 10,
     font: helveticaFont,
     color: secondaryColor,
   });
 
   // Company address block
-  yPos -= 35;
+  yPos -= 45;
   page.drawText("603, Laxmi Plaza, Laxmi Industrial Estate", {
     x: leftMargin,
     y: yPos,
@@ -288,7 +215,7 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     y: yPos - 20,
     size: 20,
     font: helveticaBold,
-    color: companyBlue,
+    color: darkGray,
   });
 
   // Invoice number
@@ -334,7 +261,7 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     start: { x: leftMargin, y: yPos },
     end: { x: rightMargin, y: yPos },
     thickness: 2,
-    color: companyBlue,
+    color: darkGray,
   });
 
   yPos -= 15;
@@ -648,6 +575,7 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     const quantity = Number(item.quantity) || 1;
     const unitPrice = Number(item.unitPrice) || 0;
     const itemTotal = quantity * unitPrice;
+    const setupFee = Number(item.setupFee) || 0;
     const cgstRate = Number(item.cgstRate) || 9;
     const sgstRate = Number(item.sgstRate) || 9;
     const cgstAmount = (itemTotal * cgstRate) / 100;
@@ -657,9 +585,14 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     totalCgst += cgstAmount;
     totalSgst += sgstAmount;
 
-    const itemName = item.name || item.product?.name || "Item";
+    let itemName = item.name || item.product?.name || "Item";
     const description = item.description || "";
     const hsnCode = item.hsnCode || "998313";
+
+    // If recurring, add billing cycle to name
+    if (item.isRecurring && item.billingCycle) {
+      itemName = `${itemName} (${item.billingCycle})`;
+    }
 
     // Item name
     page.drawText(itemName.substring(0, 18), {
@@ -743,6 +676,91 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     });
 
     yPos -= 15;
+
+    // If there's a setup fee, add it as a separate line item
+    if (setupFee > 0) {
+      const setupFeeTotal = setupFee * quantity;
+      const setupCgstAmount = (setupFeeTotal * cgstRate) / 100;
+      const setupSgstAmount = (setupFeeTotal * sgstRate) / 100;
+      
+      subtotal += setupFeeTotal;
+      totalCgst += setupCgstAmount;
+      totalSgst += setupSgstAmount;
+
+      // Setup fee name
+      page.drawText("Setup Fee", {
+        x: colX.item,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // Setup fee description
+      page.drawText("(One-time fee for recurring billing)", {
+        x: colX.desc,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // Quantity
+      page.drawText(quantity.toString(), {
+        x: colX.qty,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // Units
+      page.drawText("NOS", {
+        x: colX.unit,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // Rate
+      page.drawText(formatCurrency(setupFee), {
+        x: colX.rate,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // CGST
+      page.drawText(`${cgstRate}%`, {
+        x: colX.cgst,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // SGST
+      page.drawText(`${sgstRate}%`, {
+        x: colX.sgst,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      // Amount
+      page.drawText(formatCurrency(setupFeeTotal), {
+        x: colX.amount,
+        y: yPos,
+        size: fontSize.small,
+        font: helveticaFont,
+        color: secondaryColor,
+      });
+
+      yPos -= 15;
+    }
 
     // Table row divider
     page.drawLine({

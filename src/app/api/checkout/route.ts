@@ -6,6 +6,32 @@ import { createRazorpayOrder } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { z } from "zod";
 
+// Instance-based configuration (from ProductConfigurator)
+const cartItemInstanceSchema = z.object({
+  instanceId: z.string(),
+  instanceNumber: z.number(),
+  instanceName: z.string(),
+  quantity: z.number().int().min(1).default(1),
+  selectedConfigs: z.array(z.object({
+    configId: z.string(),
+    configName: z.string().optional(),
+    value: z.string(),
+    quantity: z.number().optional(),
+    price: z.number().optional(),
+    monthlyPriceModifier: z.number().optional(),
+    yearlyPriceModifier: z.number().optional(),
+    optionLabel: z.string().optional(),
+  })).optional(),
+  selectedAddons: z.array(z.object({
+    addon: z.object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+    }),
+    quantity: z.number().int().min(1),
+  })).optional(),
+});
+
 const checkoutItemSchema = z.object({
   productId: z.string().optional().nullable(),
   variantId: z.string().optional().nullable(),
@@ -27,11 +53,15 @@ const checkoutItemSchema = z.object({
       })
     )
     .optional(),
+  // Instance-based configuration (from ProductConfigurator)
+  instances: z.array(cartItemInstanceSchema).optional(),
+  unitPrice: z.number().optional(), // Pre-calculated unit price from cart
   // Recurring billing fields
   isRecurring: z.boolean().optional().default(false),
   recurringData: z.object({
     enabled: z.boolean(),
     billingCycle: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
+    setupFee: z.number().optional(),
     preferredTime: z.string(),
     preferredDay: z.number().int().min(1).max(28),
     autoRenew: z.boolean(),
@@ -65,6 +95,18 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     const body = await request.json();
+    
+    // Debug: Log first item details
+    if (body.items && body.items.length > 0) {
+      const firstItem = body.items[0];
+      console.log("=== DEBUG CHECKOUT ===");
+      console.log("unitPrice:", firstItem.unitPrice);
+      console.log("isRecurring:", firstItem.isRecurring);
+      console.log("recurringData:", JSON.stringify(firstItem.recurringData, null, 2));
+      console.log("instances:", firstItem.instances ? "present" : "absent");
+      console.log("=====================");
+    }
+    
     console.log("Checkout request body:", JSON.stringify(body, null, 2));
     const data = checkoutSchema.parse(body);
 
@@ -99,47 +141,77 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (item.variantId) {
-          const variant = product.variants.find((v) => v.id === item.variantId);
-          if (!variant) {
-            return NextResponse.json(
-              { error: `Variant not found: ${item.variantId}` },
-              { status: 400 }
-            );
-          }
-          unitPrice = Number(variant.price);
-          itemName = `${product.name} - ${variant.name}`;
-          sku = variant.sku || product.sku || "";
-        } else {
-          unitPrice = Number(product.basePrice);
+        // If instances are provided (from ProductConfigurator), use the pre-calculated unitPrice
+        if (item.unitPrice !== undefined && item.unitPrice > 0) {
+          unitPrice = item.unitPrice;
           itemName = product.name;
           sku = product.sku || "";
-        }
+          
+          console.log("Using pre-calculated unitPrice:", unitPrice);
+          
+          // Add setup fee to unitPrice if recurring with setup fee
+          if (item.isRecurring && item.recurringData?.setupFee) {
+            console.log("Adding setup fee:", item.recurringData.setupFee);
+            unitPrice = unitPrice + item.recurringData.setupFee;
+          }
+          console.log("Final unitPrice:", unitPrice);
+        } else {
+          console.log("Using fallback calculation - basePrice:", Number(product.basePrice));
+          // Fallback to traditional calculation
+          if (item.variantId) {
+            const variant = product.variants.find((v) => v.id === item.variantId);
+            if (!variant) {
+              return NextResponse.json(
+                { error: `Variant not found: ${item.variantId}` },
+                { status: 400 }
+              );
+            }
+            unitPrice = Number(variant.price);
+            itemName = `${product.name} - ${variant.name}`;
+            sku = variant.sku || product.sku || "";
+          } else {
+            unitPrice = Number(product.basePrice);
+            itemName = product.name;
+            sku = product.sku || "";
+          }
 
-        // Add addon prices
-        if (item.addons) {
-          for (const addonItem of item.addons) {
-            const addon = product.addons.find((a) => a.id === addonItem.addonId);
-            if (addon) {
-              unitPrice += Number(addon.price) * addonItem.quantity;
+          // Add addon prices
+          if (item.addons) {
+            for (const addonItem of item.addons) {
+              const addon = product.addons.find((a) => a.id === addonItem.addonId);
+              if (addon) {
+                unitPrice += Number(addon.price) * addonItem.quantity;
+              }
             }
           }
-        }
 
-        // Add config price modifiers
-        if (item.configs) {
-          for (const configItem of item.configs) {
-            const config = product.configs.find((c) => c.id === configItem.configId);
-            if (config) {
-              const options = config.options as any[];
-              const selectedOption = options.find((o) => o.value === configItem.value);
-              if (selectedOption?.priceModifier) {
-                unitPrice += selectedOption.priceModifier;
+          // Add config price modifiers
+          if (item.configs) {
+            for (const configItem of item.configs) {
+              const config = product.configs.find((c) => c.id === configItem.configId);
+              if (config) {
+                const options = config.options as any[];
+                const selectedOption = options.find((o) => o.value === configItem.value);
+                if (selectedOption?.priceModifier) {
+                  unitPrice += selectedOption.priceModifier;
+                }
               }
             }
           }
         }
 
+        // Calculate setup fee if recurring billing
+        const setupFee = item.isRecurring && item.recurringData?.setupFee 
+          ? item.recurringData.setupFee 
+          : 0;
+        
+        // Calculate recurring price per cycle (without setup fee)
+        const recurringPricePerCycle = item.isRecurring && item.recurringData 
+          ? unitPrice - setupFee 
+          : null;
+        
+        console.log("Creating orderItem:", { productId: product.id, unitPrice, setupFee, recurringPrice: recurringPricePerCycle });
+        
         orderItems.push({
           productId: product.id,
           variantId: item.variantId || null,
@@ -148,19 +220,34 @@ export async function POST(request: NextRequest) {
           quantity: item.quantity || 1,
           unitPrice,
           totalPrice: unitPrice * (item.quantity || 1),
-          configuration: item.configs && item.configs.length > 0
-            ? Object.fromEntries(
-                item.configs.map((c) => [c.configId || "", c.value || ""])
-              )
-            : null,
+          // Store configuration as JSON
+          configuration: item.instances && item.instances.length > 0
+            ? {
+                instances: item.instances.map((inst: any) => ({
+                  instanceId: inst.instanceId,
+                  instanceNumber: inst.instanceNumber,
+                  instanceName: inst.instanceName,
+                  quantity: inst.quantity,
+                  configs: inst.selectedConfigs,
+                  addons: inst.selectedAddons?.map((a: any) => ({
+                    id: a.addon?.id,
+                    name: a.addon?.name,
+                    quantity: a.quantity,
+                  })),
+                })),
+              }
+            : (item.configs && item.configs.length > 0
+                ? Object.fromEntries(
+                    item.configs.map((c) => [c.configId || "", c.value || ""])
+                  )
+                : null),
           // Recurring billing fields
           billingCycle: item.isRecurring && item.recurringData 
             ? item.recurringData.billingCycle 
             : "ONE_TIME",
           isRecurring: item.isRecurring || false,
-          recurringPrice: item.isRecurring && item.recurringData 
-            ? unitPrice 
-            : null,
+          recurringPrice: recurringPricePerCycle,
+          setupFee: setupFee > 0 ? setupFee : undefined,
         });
       } else if (item.bundleId) {
         const bundle = await prisma.bundle.findUnique({
