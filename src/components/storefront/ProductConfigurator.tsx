@@ -719,7 +719,7 @@ export function ProductConfigurator({
                                                   +{formatCurrency(Number(addon.price))}
                                                 </span>
                                               )}
-                                              {isSelected && addon.maxQuantity && addon.maxQuantity > 1 && (
+                                                                                             {isSelected && (
                                                 <div className="flex items-center gap-2">
                                                   <Button
                                                     variant="outline"
@@ -739,7 +739,7 @@ export function ProductConfigurator({
                                                     onClick={() =>
                                                       handleAddonQuantityChange(addon.uniqueId, (addonState?.quantity || 1) + 1)
                                                     }
-                                                    disabled={addon.maxQuantity && (addonState?.quantity || 1) >= addon.maxQuantity}
+                                                    disabled={!!addon.maxQuantity && (addonState?.quantity || 1) >= addon.maxQuantity}
                                                   >
                                                     +
                                                   </Button>
