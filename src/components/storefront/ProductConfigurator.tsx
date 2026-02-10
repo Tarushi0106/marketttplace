@@ -1076,11 +1076,21 @@ export function ProductConfigurator({
 
                                     <Separator />
 
-                                    {/* Subtotal */}
+                                    {/* Product Price */}
                                     <div className="flex justify-between">
-                                      <span className="text-gray-600">Subtotal</span>
-                                      <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
+                                      <span className="text-gray-600">Product Price</span>
+                                      <span className="font-medium">{formatCurrency(pricing.basePrice)}</span>
                                     </div>
+
+                                    {/* Billing Plan Price */}
+                                    {pricing.billingCycle !== "ONE_TIME" && (
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">
+                                          {BILLING_CYCLE_LABELS[billingCycle as BillingCycleType] || billingCycle}
+                                        </span>
+                                        <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
+                                      </div>
+                                    )}
 
                                     {/* Setup Fee */}
                                     {pricing.setupFee > 0 && (
@@ -1096,8 +1106,8 @@ export function ProductConfigurator({
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatCurrency(pricing.totalForPeriod)}
-                                        {billingCycle === "ONE_TIME" ? (
+                                        {formatCurrency(pricing.basePrice + pricing.pricePerCycle + pricing.setupFee)}
+                                        {pricing.billingCycle === "ONE_TIME" ? (
                                           <span className="text-sm font-normal text-gray-500"> one-time</span>
                                         ) : (
                                           <span className="text-sm font-normal text-gray-500">
