@@ -242,6 +242,7 @@ export function ProductConfigurator({
 
   // Callback for receiving recurring data from child
   const handleRecurringChange = useCallback((data: RecurringData) => {
+    console.log(`[ProductConfigurator] Received recurring data:`, data);
     setRecurringData(data);
   }, []);
 

@@ -261,20 +261,19 @@ export function RecurringBillingSection({
   }, [billingCycle, basePrice, getPriceForCycle, getSavingsForCycle, getSetupFeeForCycle]);
 
   const isFirstRender = useRef(true);
-  const prevBillingCycle = useRef<BillingCycleType | null>(null);
 
   // Notify parent of changes whenever billingCycle changes
   useEffect(() => {
-    // Only notify on first render or when billingCycle actually changes
-    // This avoids infinite loops from re-renders
-    if (!isFirstRender.current && prevBillingCycle.current === billingCycle) {
-      return; // billingCycle hasn't changed, skip
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
     }
 
-    // Use the current billingCycle value from props/state
-    const cyclePrice = getPriceForCycle(billingCycle) || basePrice;
-    const savings = getSavingsForCycle(billingCycle) || 0;
+    // Use the current billingCycle value from state
+    const cyclePrice = getPriceForCycle(billingCycle) ?? basePrice;
+    const savings = getSavingsForCycle(billingCycle) ?? 0;
     const setupFee = getSetupFeeForCycle(billingCycle);
+
+    console.log(`[RecurringBillingSection] Billing cycle changed to: ${billingCycle}, cyclePrice: ${cyclePrice}, setupFee: ${setupFee}`);
 
     // Calculate monthly equivalent
     let monthlyEquivalent: number;
@@ -291,9 +290,6 @@ export function RecurringBillingSection({
       default: monthlyEquivalent = cyclePrice;
     }
 
-    prevBillingCycle.current = billingCycle;
-    isFirstRender.current = false;
-
     onRecurringChange({
       enabled: true,
       billingCycle,
@@ -303,7 +299,7 @@ export function RecurringBillingSection({
       savingsPercentage: savings,
       monthlyEquivalent,
     });
-  }, [billingCycle, basePrice, getPriceForCycle, getSavingsForCycle, getSetupFeeForCycle]);
+  }, [billingCycle, basePrice, getPriceForCycle, getSavingsForCycle, getSetupFeeForCycle, onRecurringChange]);
 
   const pricing = getPricing();
   const currentSetupFee = getSetupFeeForCycle(billingCycle);
