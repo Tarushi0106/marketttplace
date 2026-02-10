@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
-import { RecurringBillingSection, type RecurringData, type BillingCycleType } from "./RecurringBillingSection";
+import { RecurringBillingSection, type RecurringData, type BillingCycleType, BILLING_CYCLE_LABELS, BILLING_CYCLE_PERIODS } from "./RecurringBillingSection";
 
 // Types for configuration
 interface ConfigOption {
@@ -1109,11 +1109,11 @@ export function ProductConfigurator({
                                         {formatCurrency(pricing.basePrice + pricing.pricePerCycle + pricing.setupFee)}
                                         {pricing.billingCycle === "ONE_TIME" ? (
                                           <span className="text-sm font-normal text-gray-500"> one-time</span>
-                                        ) : (
+                                        ) : pricing.billingCycle ? (
                                           <span className="text-sm font-normal text-gray-500">
-                                            /{billingCycle === "QUARTERLY" ? "quarter" : billingCycle === "YEARLY" ? "year" : "month"}
+                                            {BILLING_CYCLE_PERIODS[pricing.billingCycle] || "/cycle"}
                                           </span>
-                                        )}
+                                        ) : null}
                                       </span>
                                     </div>
 
