@@ -25,6 +25,7 @@ import {
   Building2,
   Sliders,
   Layout,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +48,11 @@ const navigation = [
     name: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+  },
+  {
+    name: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: RefreshCw,
   },
   {
     name: "Product Configs",

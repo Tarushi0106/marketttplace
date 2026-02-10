@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import type { Product, ProductAddon as ProductAddonType } from "@/types";
@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
+import { RecurringBillingSection, type RecurringData } from "./RecurringBillingSection";
 
 // Types for configuration
 interface ConfigOption {
@@ -172,6 +173,14 @@ export function ProductConfigurator({
   const [selectedVariant, setSelectedVariant] = useState<string | null>(
     variants.find(v => v.isDefault)?.id || variants[0]?.id || null
   );
+
+  // Recurring billing state
+  const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
+
+  // Memoized callback for recurring data changes
+  const handleRecurringChange = useCallback((data: RecurringData) => {
+    setRecurringData(data);
+  }, []);
 
   // Initialize selections from config defaults (only once on mount)
   useEffect(() => {
@@ -368,6 +377,9 @@ export function ProductConfigurator({
         .filter((item): item is { addon: NonNullable<typeof item.addon>; quantity: number } => item.addon !== undefined),
       unitPrice: pricing.subtotal ?? 0,
       billingCycle: billingCycle as "ONE_TIME" | "MONTHLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
+      // Recurring billing data
+      isRecurring: recurringData?.enabled ?? false,
+      recurringData: recurringData || undefined,
     };
 
     const cartStore = useCartStore.getState();
@@ -447,6 +459,16 @@ export function ProductConfigurator({
             </RadioGroup>
           </CardContent>
         </Card>
+
+        {/* Recurring Billing Section */}
+        <RecurringBillingSection
+          productId={product.id}
+          variantId={selectedVariant || undefined}
+          basePrice={Number(product.basePrice) || 0}
+          monthlyPrice={recurringPrices?.monthlyPrice}
+          yearlyPrice={recurringPrices?.yearlyPrice}
+          onRecurringChange={handleRecurringChange}
+        />
 
         {/* Configurations Section - All configs grouped together */}
         {allConfigs.length > 0 && (

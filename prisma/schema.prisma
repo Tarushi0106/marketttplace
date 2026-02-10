@@ -32,6 +32,7 @@ model User {
   reviews       Review[]
   accounts      Account[]
   sessions      Session[]
+  subscriptions RecurringSubscription[]
 
   @@map("users")
 }
@@ -257,6 +258,7 @@ model Product {
   wishlistItems   WishlistItem[]
   reviews         Review[]
   seoMetadata     SeoMetadata?
+  subscriptions   RecurringSubscription[]
 
   @@index([categoryId])
   @@index([subCategoryId])
@@ -300,6 +302,7 @@ model ProductVariant {
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
   recurringPrices ProductRecurringPrice[]
+  subscriptions RecurringSubscription[]
 
   @@map("product_variants")
 }
@@ -1174,4 +1177,106 @@ model MenuItem {
   @@index([menuId])
   @@index([parentId])
   @@map("menu_items")
+}
+
+// ============================================
+// RECURRING SUBSCRIPTIONS
+// ============================================
+
+model RecurringSubscription {
+  id              String              @id @default(cuid())
+  userId          String
+  productId       String
+  variantId       String?
+  
+  // Billing Configuration
+  billingCycle    BillingCycle        @default(MONTHLY)
+  pricePerCycle   Decimal            @db.Decimal(10, 2)
+  currency        String             @default("USD")
+  
+  // Schedule Settings
+  startDate       DateTime           // When the first billing cycle starts
+  nextBillingDate DateTime           // Next automatic billing date
+  lastBillingDate DateTime?          // Last successful billing date
+  
+  // User-selected time preference (for next billing)
+  preferredTime  String?             // e.g., "10:00" for 10:00 AM
+  preferredDay   Int?               // Day of month (1-28) for monthly billing
+  
+  // Status
+  status          SubscriptionStatus @default(ACTIVE)
+  autoRenew       Boolean            @default(true)
+  
+  // Payment
+  paymentMethodId String?
+  
+  // Metadata
+  configuration   Json?              // Product configuration details
+  selectedConfigs  Json?              // User's selected configurations
+  selectedAddons   Json?              // User's selected addons
+  
+  // Tracking
+  totalBilled     Int                @default(0)
+  totalSpent      Decimal            @default(0) @db.Decimal(10, 2)
+  
+  // Cancellation
+  cancelledAt     DateTime?
+  cancelReason    String?
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product         Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant         ProductVariant?    @relation(fields: [variantId], references: [id])
+  billingHistory  BillingHistory[]
+  
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@index([nextBillingDate])
+  @@map("recurring_subscriptions")
+}
+
+model BillingHistory {
+  id              String                @id @default(cuid())
+  subscriptionId  String
+  
+  // Billing Details
+  billingDate     DateTime
+  amount          Decimal               @db.Decimal(10, 2)
+  currency        String                @default("USD")
+  status          PaymentStatus        @default(PENDING)
+  
+  // Order Reference (for initial purchase)
+  orderId         String?
+  
+  // Payment Details
+  paymentId       String?
+  paymentMethod   String?
+  transactionId   String?
+  
+  // Invoice
+  invoiceNumber   String?
+  invoiceUrl      String?
+  
+  // Notes
+  notes           String?
+  
+  createdAt       DateTime              @default(now())
+  
+  subscription    RecurringSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  
+  @@index([subscriptionId])
+  @@index([billingDate])
+  @@map("billing_history")
+}
+
+enum SubscriptionStatus {
+  PENDING       // Awaiting first payment
+  ACTIVE        // Currently active and billing
+  PAUSED        // Temporarily paused by user
+  SUSPENDED     // Suspended due to payment failure
+  CANCELLED     // Cancelled by user or admin
+  EXPIRED       // Subscription period ended
 }

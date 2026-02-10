@@ -27,6 +27,15 @@ const checkoutItemSchema = z.object({
       })
     )
     .optional(),
+  // Recurring billing fields
+  isRecurring: z.boolean().optional().default(false),
+  recurringData: z.object({
+    enabled: z.boolean(),
+    billingCycle: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
+    preferredTime: z.string(),
+    preferredDay: z.number().int().min(1).max(28),
+    autoRenew: z.boolean(),
+  }).optional(),
 });
 
 const checkoutSchema = z.object({
@@ -143,6 +152,14 @@ export async function POST(request: NextRequest) {
             ? Object.fromEntries(
                 item.configs.map((c) => [c.configId || "", c.value || ""])
               )
+            : null,
+          // Recurring billing fields
+          billingCycle: item.isRecurring && item.recurringData 
+            ? item.recurringData.billingCycle 
+            : "ONE_TIME",
+          isRecurring: item.isRecurring || false,
+          recurringPrice: item.isRecurring && item.recurringData 
+            ? unitPrice 
             : null,
         });
       } else if (item.bundleId) {
@@ -261,6 +278,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Collect recurring billing info for metadata
+    const recurringItems = data.items.filter(item => item.isRecurring && item.recurringData);
+    const recurringBillingMetadata = recurringItems.length > 0 ? recurringItems.map(item => ({
+      productId: item.productId,
+      variantId: item.variantId,
+      billingCycle: item.recurringData?.billingCycle,
+      preferredTime: item.recurringData?.preferredTime,
+      preferredDay: item.recurringData?.preferredDay,
+      autoRenew: item.recurringData?.autoRenew,
+    })) : undefined;
+
     // Create order in database
     const order = await prisma.order.create({
       data: {
@@ -280,21 +308,24 @@ export async function POST(request: NextRequest) {
         discountId,
         notes: data.notes,
         shippingAddressId,
-        // Store shipping address in metadata for guest checkouts and fallback
-        metadata: data.shippingAddress ? {
-          shippingAddress: {
-            firstName: data.shippingAddress.firstName,
-            lastName: data.shippingAddress.lastName,
-            company: data.shippingAddress.company,
-            address1: data.shippingAddress.address1,
-            address2: data.shippingAddress.address2,
-            city: data.shippingAddress.city,
-            state: data.shippingAddress.state,
-            postalCode: data.shippingAddress.postalCode,
-            country: data.shippingAddress.country,
-            phone: data.shippingAddress.phone,
-          },
-        } : undefined,
+        // Store shipping address and recurring billing info in metadata
+        metadata: {
+          ...(data.shippingAddress ? {
+            shippingAddress: {
+              firstName: data.shippingAddress.firstName,
+              lastName: data.shippingAddress.lastName,
+              company: data.shippingAddress.company,
+              address1: data.shippingAddress.address1,
+              address2: data.shippingAddress.address2,
+              city: data.shippingAddress.city,
+              state: data.shippingAddress.state,
+              postalCode: data.shippingAddress.postalCode,
+              country: data.shippingAddress.country,
+              phone: data.shippingAddress.phone,
+            },
+          } : {}),
+          ...(recurringBillingMetadata ? { recurringBilling: recurringBillingMetadata } : {}),
+        },
         items: {
           create: orderItems,
         },

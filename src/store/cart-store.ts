@@ -23,6 +23,14 @@ export interface CartItem {
   // Billing information
   billingCycle?: "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
   isRecurring?: boolean;
+  // Recurring billing data
+  recurringData?: {
+    enabled: boolean;
+    billingCycle: "MONTHLY" | "QUARTERLY" | "YEARLY";
+    preferredTime: string;
+    preferredDay: number;
+    autoRenew: boolean;
+  };
 }
 
 interface CartState {
