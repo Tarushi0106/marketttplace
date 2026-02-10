@@ -14,9 +14,12 @@ export interface CartItem {
   }[];
   selectedConfigs: {
     configId: string;
-    configName: string;
+    configName?: string;
     value: string;
-    priceModifier: number;
+    priceModifier?: number;
+    monthlyPriceModifier?: number;
+    yearlyPriceModifier?: number;
+    optionLabel?: string;
   }[];
   unitPrice: number;
   totalPrice: number;

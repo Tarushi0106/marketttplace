@@ -159,14 +159,7 @@ export default async function ConfigureProductPage({ params }: Props) {
         monthlySavings: recurringPrices.monthlySavings ? Number(recurringPrices.monthlySavings) : null,
         yearlySavings: recurringPrices.yearlySavings ? Number(recurringPrices.yearlySavings) : null,
       }
-    : product.monthlyPrice || product.yearlyPrice
-      ? {
-          monthlyPrice: product.monthlyPrice ? Number(product.monthlyPrice) : null,
-          yearlyPrice: product.yearlyPrice ? Number(product.yearlyPrice) : null,
-          monthlySavings: product.monthlySavings ? Number(product.monthlySavings) : null,
-          yearlySavings: product.yearlySavings ? Number(product.yearlySavings) : null,
-        }
-      : null;
+    : null;
 
   // Category addons - placeholder for future implementation
   const categoryAddons: any[] = [];
