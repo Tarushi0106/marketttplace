@@ -564,7 +564,7 @@ export default function CheckoutPage() {
             </Card>
           </div>
 
-          {/* Order Summary */};
+          {/* Order Summary - Right Side */}
           <div>
             <Card className="sticky top-24">
               <CardHeader>

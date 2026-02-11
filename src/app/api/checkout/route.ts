@@ -231,8 +231,8 @@ export async function POST(request: NextRequest) {
         });
         
         orderItems.push({
-          productId: product.id,
-          variantId: item.variantId || null,
+          product: { connect: { id: product.id } },
+          variant: item.variantId ? { connect: { id: item.variantId } } : undefined,
           name: itemName,
           sku,
           quantity: item.quantity || 1,
@@ -284,7 +284,7 @@ export async function POST(request: NextRequest) {
         itemName = bundle.name;
 
         orderItems.push({
-          bundleId: bundle.id,
+          bundle: { connect: { id: bundle.id } },
           name: itemName,
           quantity: item.quantity || 1,
           unitPrice,

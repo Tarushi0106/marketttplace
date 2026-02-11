@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import type { Order, OrderItem, Address, AddressType } from "@/types";
@@ -189,10 +190,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate PDF
-    let pdfBuffer: Buffer;
+    let pdfBuffer: Uint8Array;
     try {
       console.log("Starting PDF generation...");
-      pdfBuffer = await generateInvoicePDF(orderForPdf);
+      pdfBuffer = await generateInvoicePDF(orderForPdf) as Uint8Array;
       console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
@@ -210,6 +211,13 @@ export async function POST(request: NextRequest) {
     const pdfPath = path.join(INVOICES_DIR, pdfFilename);
     await writeFile(pdfPath, pdfBuffer);
     console.log("PDF saved to:", pdfPath);
+
+    // Fetch company info for email
+    const companyInfo = await prisma.companyInfo.findFirst() || {
+      name: 'Marketplace',
+      email: 'support@example.com',
+      phone: '+91 99999 99999',
+    };
 
     // Create invoice record in database
     const pdfUrl = `/uploads/invoices/${pdfFilename}`;
@@ -244,11 +252,46 @@ export async function POST(request: NextRequest) {
     let emailSent = false;
     if (sendEmail && order.email) {
       try {
-        // Simple email sending using fetch to email API (if exists)
-        console.log("Email should be sent to:", order.email);
-        emailSent = true;
+        // Prepare order details for email
+        const orderDetails = {
+          orderNumber: order.orderNumber,
+          customerName: order.shippingAddress?.firstName 
+            ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName || ''}`.trim()
+            : (order.metadata?.customerName as string) || 'Customer',
+          customerEmail: order.email,
+          items: order.items.map((item: any) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: Number(item.totalPrice),
+            configs: item.configuration ? Object.entries(item.configuration).map(([name, value]) => ({
+              name,
+              value: value as string,
+              price: 0 // Config prices are included in the item total
+            })) : []
+          })),
+          subtotal: Number(order.subtotal),
+          setupFee: Number(order.metadata?.setupFee || 0),
+          tax: Number(order.taxAmount),
+          total: Number(order.total),
+          billingCycle: order.items[0]?.billingCycle || 'MONTHLY',
+          recurringAmount: order.items.reduce((sum: number, item: any) => 
+            sum + (item.recurringPrice ? Number(item.recurringPrice) : 0), 0),
+          recurringPeriod: order.items[0]?.billingCycle === 'YEARLY' ? '1 year' : '1 month',
+          companyInfo: {
+            name: companyInfo?.name || 'Marketplace',
+            email: companyInfo?.email || 'support@example.com',
+            phone: companyInfo?.phone || '+91 99999 99999',
+          },
+        };
+
+        emailSent = await sendOrderConfirmationEmail(orderDetails);
+        if (emailSent) {
+          console.log('Order confirmation email sent successfully to:', order.email);
+        }
       } catch (emailError) {
-        console.error("Failed to send email:", emailError);
+        console.error('Failed to send order confirmation email:', emailError);
+        // Don't fail the order if email fails
+        emailSent = false;
       }
     }
 
