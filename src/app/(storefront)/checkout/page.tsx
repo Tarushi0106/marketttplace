@@ -594,6 +594,14 @@ export default function CheckoutPage() {
                       <span>{formatCurrency(addon.addon?.price || 0)}</span>
                     </div>
                   ))}
+                  
+                  {/* Recurring Amount */}
+                  {items[0]?.recurringAmount && items[0]?.recurringAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Recurring Amount</span>
+                      <span>{formatCurrency(items[0]?.recurringAmount || 0)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <Separator />
