@@ -132,6 +132,20 @@ const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   const productId = item.product?.id || item.bundle?.id || "";
   const variantId = item.variant?.id || "default";
   // Don't include billingCycle in ID - same product should update existing item
+  
+  // Check for new instances format first
+  if (item.instances && item.instances.length > 0) {
+    // Generate a hash from all instances' configs and addons
+    const instancesHash = item.instances.map(inst => ({
+      id: inst.instanceId,
+      name: inst.instanceName,
+      configs: inst.selectedConfigs?.map(c => ({ id: c.configId, value: c.value, price: c.price })) || [],
+      addons: inst.selectedAddons?.map(a => ({ id: a.addon?.id || "", qty: a.quantity })) || [],
+    }));
+    return `${productId}-${variantId}-instances-${JSON.stringify(instancesHash)}`;
+  }
+  
+  // Legacy support for flat configs/addons
   const configsHash = JSON.stringify(item.selectedConfigs || []);
   const addonsHash = JSON.stringify(
     (item.selectedAddons || []).map(a => ({ id: a.addon?.id || "", qty: a.quantity })).sort((a, b) => a.id.localeCompare(b.id))
@@ -151,47 +165,71 @@ export const useCartStore = create<CartState>()(
         try {
           // Validate item data
           if (!item.product && !item.bundle) {
-            console.error("Invalid cart item: no product or bundle");
+            console.error("[Cart] Invalid cart item: no product or bundle");
             return;
+          }
+          
+          console.log("[Cart] Adding item to cart:", {
+            productName: item.product?.name,
+            hasInstances: !!item.instances,
+            instancesCount: item.instances?.length,
+          });
+          
+          // Log instances if present
+          if (item.instances) {
+            item.instances.forEach((inst, idx) => {
+              console.log(`[Cart] Instance ${idx}:`, {
+                name: inst.instanceName,
+                configsCount: inst.selectedConfigs?.length,
+                addonsCount: inst.selectedAddons?.length,
+              });
+            });
           }
           
           const unitPrice = safeNumber(item.unitPrice);
           const id = calculateItemId(item);
           const existingItemIndex = get().items.findIndex((i) => i.id === id);
 
-          console.log("[Cart Debug] Adding item to cart:", {
-            productName: item.product?.name,
-            id,
-            existingItemIndex,
-            billingCycle: item.billingCycle,
-          });
+          console.log("[Cart] Item ID:", id.substring(0, 80) + "...");
+          console.log("[Cart] Existing item index:", existingItemIndex);
 
-          if (existingItemIndex > -1) {
+
+          // Log instances data for debugging
+          if (item.instances) {
+            console.log("[Cart] Instances data:", JSON.stringify(item.instances).substring(0, 500));
+          }
+                    if (existingItemIndex > -1) {
             // Check if billing cycle changed - update billing info instead of adding quantity
             const existingItem = get().items[existingItemIndex];
             const billingCycleChanged = existingItem.billingCycle !== item.billingCycle;
             
             if (billingCycleChanged) {
-              // Update billing cycle and pricing
+              // Update billing cycle and pricing, preserve instances and configurations
               const items = [...get().items];
               items[existingItemIndex] = {
                 ...items[existingItemIndex],
+                ...item, // Preserve all new item data including instances
                 billingCycle: item.billingCycle,
                 isRecurring: item.isRecurring,
                 recurringData: item.recurringData,
                 unitPrice: unitPrice,
-                totalPrice: unitPrice * (safeNumber(item.quantity) || 1),
+                totalPrice: calculateItemTotal(item),
               };
               console.log("[Cart Debug] Updated existing item billing cycle:", item.billingCycle);
               set({ items });
             } else {
-              // Same billing cycle - update quantity
+              // Same billing cycle - update quantity and configurations
               const items = [...get().items];
-              items[existingItemIndex].quantity = safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity);
-              items[existingItemIndex].totalPrice = calculateItemTotal(
-                items[existingItemIndex]
-              );
-              console.log("[Cart Debug] Updated existing item quantity");
+              items[existingItemIndex] = {
+                ...items[existingItemIndex],
+                ...item, // Preserve all new item data including instances
+                quantity: safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity),
+                totalPrice: calculateItemTotal({
+                  ...items[existingItemIndex],
+                  ...item,
+                }),
+              };
+              console.log("[Cart Debug] Updated existing item quantity and configs");
               set({ items });
             }
           } else {

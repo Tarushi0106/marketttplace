@@ -10,8 +10,25 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrency } from "@/lib/utils";
 
-// Helper to get billing cycle label
+// Helper to get billing cycle label (slash format for prices)
 const getBillingCycleLabel = (cycle?: string): string => {
+  const labels: Record<string, string> = {
+    ONE_TIME: "",
+    MONTHLY: "/month",
+    BIMONTHLY: "/2 months",
+    QUARTERLY: "/quarter",
+    FOUR_MONTHLY: "/4 months",
+    SEMI_ANNUAL: "/6 months",
+    TRI_ANNUAL: "/9 months",
+    YEARLY: "/year",
+    BIENNIAL: "/2 years",
+    TRIENNIAL: "/3 years",
+  };
+  return labels[cycle || ""] || cycle || "";
+};
+
+// Helper to get billing cycle name (full format for badges)
+const getBillingCycleName = (cycle?: string): string => {
   const labels: Record<string, string> = {
     ONE_TIME: "One-time",
     MONTHLY: "Monthly",
@@ -140,10 +157,28 @@ export function CartDrawer() {
                           </div>
                         )}
 
-                        {/* Selected configs */}
+                        {/* Selected configs (flat format) */}
                         {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                           <div className="mt-1 text-xs text-muted-foreground">
                             {item.selectedConfigs.map((c) => `${c.configName}: ${c.value}`).join(", ")}
+                          </div>
+                        )}
+
+                        {/* Instance configurations */}
+                        {item.instances && item.instances.length > 0 && (
+                          <div className="mt-1 space-y-1">
+                            {item.instances.map((instance) => (
+                              <div key={instance.instanceId}>
+                                {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {instance.selectedConfigs.map((c) => 
+                                      `${c.configName || c.configId}: ${c.value}`
+                                    ).join(", ")}
+                                    {c => c.price != null && c.price > 0 && ` (+${formatCurrency(c.price)})`}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
 
@@ -152,7 +187,7 @@ export function CartDrawer() {
                           <div className="mt-1 flex items-center gap-2">
                             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                               <CreditCard className="h-3 w-3 mr-1" />
-                              {getBillingCycleLabel(item.billingCycle)}
+                              {getBillingCycleName(item.billingCycle)}
                             </Badge>
                             {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
                               <span className="text-xs text-amber-600">

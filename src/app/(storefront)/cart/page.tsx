@@ -44,7 +44,7 @@ const getBillingCycleLabel = (cycle?: string): string => {
   return labels[cycle || ''] || cycle || '';
 };
 
-// Helper to get billing cycle display name
+// Helper to get billing cycle name (without slash)
 const getBillingCycleName = (cycle?: string): string => {
   const labels: Record<string, string> = {
     ONE_TIME: 'One-time',
@@ -59,6 +59,22 @@ const getBillingCycleName = (cycle?: string): string => {
     TRIENNIAL: 'Triennial',
   };
   return labels[cycle || ''] || cycle || '';
+};
+
+// Helper to get recurring interval text
+const getRecurringInterval = (billingCycle?: string): string => {
+  const intervals: Record<string, string> = {
+    MONTHLY: "1 month",
+    BIMONTHLY: "2 months",
+    QUARTERLY: "3 months",
+    FOUR_MONTHLY: "4 months",
+    SEMI_ANNUAL: "6 months",
+    TRI_ANNUAL: "9 months",
+    YEARLY: "1 year",
+    BIENNIAL: "2 years",
+    TRIENNIAL: "3 years",
+  };
+  return intervals[billingCycle || ""] || "";
 };
 
 export default function CartPage() {
@@ -113,7 +129,7 @@ export default function CartPage() {
           <ShoppingBag className="h-24 w-24 text-muted-foreground mb-6" />
           <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
           <p className="text-muted-foreground mb-8 text-center max-w-md">
-            Looks like you haven&apos;t added anything to your cart yet. Start
+            Looks like you haven't added anything to your cart yet. Start
             shopping to fill it up!
           </p>
           <Button size="lg" asChild>
@@ -194,20 +210,6 @@ export default function CartPage() {
                       </Button>
                     </div>
 
-                    {/* Selected addons */}
-                    {item.selectedAddons && item.selectedAddons.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs text-muted-foreground">Add-ons:</p>
-                        <ul className="text-sm">
-                          {item.selectedAddons.map((addon) => (
-                            <li key={addon.addon?.id} className="text-muted-foreground">
-                              + {addon.addon?.name} ({safeFormat(addon.addon?.price)})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
                     {/* Selected configs (flat structure) */}
                     {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                       <div className="mt-2">
@@ -256,23 +258,22 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Price breakdown */}
+                    {/* Price breakdown - Order Summary style */}
                     <div className="mt-2 space-y-1">
-                      {/* Recurring Price - main display */}
-                      {item.recurringAmount != null && item.recurringAmount > 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          {formatCurrency(item.totalPrice || item.recurringAmount || 0)}/{getBillingCycleLabel(item.billingCycle)}
-                        </p>
-                      ) : (
-                        // One-time price display
-                        <p className="text-xs text-muted-foreground">
-                          {formatCurrency(item.baseProductPrice || item.totalPrice || 0)}
-                        </p>
-                      )}
+                      {/* Base Product Price */}
+                      <p className="text-xs text-muted-foreground">
+                        Product Price: {formatCurrency(item.baseProductPrice || 0)}
+                      </p>
                       {/* Setup Fee */}
                       {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
                         <p className="text-xs text-amber-600">
                           + {formatCurrency(item.recurringData.setupFee)} setup
+                        </p>
+                      )}
+                      {/* Recurring Price */}
+                      {item.recurringAmount != null && item.recurringAmount > 0 && (
+                        <p className="text-xs text-blue-600">
+                          You will be charged {formatCurrency(item.recurringAmount)} every {getRecurringInterval(item.billingCycle)} after purchase.
                         </p>
                       )}
                     </div>
@@ -371,43 +372,53 @@ export default function CartPage() {
 
               <Separator />
 
-              {/* Totals */}
+              {/* Totals - Order Summary style */}
               <div className="space-y-2">
-                {/* Due Today */}
+                {/* Product Price */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Due Today</span>
-                  <span>{formatCurrency(getTodayTotal() + getTax() - discountAmount)}</span>
+                  <span className="text-muted-foreground">Product Price</span>
+                  <span>{formatCurrency(getTodayTotal() - getSetupFeeTotal())}</span>
                 </div>
+                
                 {/* Setup Fee */}
                 {getSetupFeeTotal() > 0 && (
-                  <div className="flex justify-between text-sm text-amber-600">
-                    <span className="font-medium">Setup Fee</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Setup Fee</span>
                     <span>{formatCurrency(getSetupFeeTotal())}</span>
                   </div>
                 )}
+                
+                {/* Tax */}
+                {getTax() > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tax (GST)</span>
+                    <span>{formatCurrency(getTax())}</span>
+                  </div>
+                )}
+                
+                {/* Discount */}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-sm text-success">
                     <span>Discount</span>
                     <span>-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (18%)</span>
-                  <span>{formatCurrency(getTax())}</span>
-                </div>
+                
                 <Separator />
+                
                 {/* Total Due Today */}
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total Due Today</span>
                   <span>{formatCurrency(getTodayTotal() + getTax() - discountAmount)}</span>
                 </div>
+                
                 {/* Recurring Total */}
                 {items.some(item => item.recurringAmount && item.recurringAmount > 0) && (
                   <div className="bg-blue-50 p-3 rounded-md mt-2">
                     <p className="text-sm font-medium text-blue-800">After Purchase:</p>
                     {items.filter(item => item.recurringAmount && item.recurringAmount > 0).map(item => (
                       <p key={item.id} className="text-xs text-blue-700">
-                        {item.product?.name || item.bundle?.name}: {formatCurrency(item.recurringAmount || 0)}/{getBillingCycleLabel(item.billingCycle)}
+                        {item.product?.name || item.bundle?.name}: {formatCurrency(item.recurringAmount || 0)}/{getBillingCycleName(item.billingCycle)}
                       </p>
                     ))}
                   </div>

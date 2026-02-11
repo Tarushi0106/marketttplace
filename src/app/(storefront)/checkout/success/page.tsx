@@ -95,7 +95,7 @@ function formatConfigValue(key: string, value: string): string {
 }
 
 // Billing cycle label helper
-function getBillingCycleLabel(cycle?: string): string {
+function getBillingCycleLabel(cycle: string | null | undefined): string {
   const labels: Record<string, string> = {
     ONE_TIME: "One-time",
     MONTHLY: "Monthly",
@@ -112,7 +112,7 @@ function getBillingCycleLabel(cycle?: string): string {
 }
 
 // Get interval text for recurring
-function getRecurringInterval(billingCycle?: string): string {
+function getRecurringInterval(billingCycle: string | null | undefined): string {
   const intervals: Record<string, string> = {
     MONTHLY: "1 month",
     BIMONTHLY: "2 months",

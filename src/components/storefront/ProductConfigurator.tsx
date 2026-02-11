@@ -450,6 +450,7 @@ export function ProductConfigurator({
     return {
       subtotal,
       basePrice,
+      baseProductPrice: basePrice + configsTotal,
       addonsTotal,
       configsTotal,
       pricePerCycle,
@@ -488,6 +489,7 @@ export function ProductConfigurator({
         billingCycle: pricing.billingCycle as any,
         recurringData: {
           ...recurringData,
+          baseProductPrice: pricing.baseProductPrice,
           setupFee: pricing.setupFee,
           pricePerCycle: newUnitPrice,
         },
@@ -499,10 +501,14 @@ export function ProductConfigurator({
   }, [pricing.billingCycle, pricing.pricePerCycle, pricing.setupFee, recurringData, product?.id, currentVariant]);
 
   // Handle configuration changes for a specific config
-  const handleConfigChange = (configId: string, value: string, quantity: number = 1) => {
+  // Supports both single value (string) and multi-select (array of strings)
+  const handleConfigChange = (configId: string, value: string | string[], quantity: number = 1) => {
+    // Convert array to comma-separated string for storage
+    const storedValue = Array.isArray(value) ? value.join(',') : value;
+    
     setConfigInstances(prev => prev.map(instance => 
       instance.id === configInstances[0]?.id
-        ? { ...instance, configs: { ...instance.configs, [configId]: { value, quantity } } }
+        ? { ...instance, configs: { ...instance.configs, [configId]: { value: storedValue, quantity } } }
         : instance
     ));
   };
@@ -656,18 +662,28 @@ export function ProductConfigurator({
           : 1;
         
         const config = configs.find((c) => c.id === configId);
-        const option = config?.options?.find((opt) => opt.value === configValue);
-        return {
-          configId,
-          configName: config?.displayName || config?.name,
-          value: configValue,
-          quantity: configQuantity,
-          optionLabel: option?.label || configValue,
-          price: Number(option?.priceModifier) || 0,
-          monthlyPriceModifier: Number(option?.monthlyPriceModifier) || 0,
-          yearlyPriceModifier: Number(option?.yearlyPriceModifier) || 0,
-        };
-      });
+        
+        // Handle comma-separated values for multi-select checkboxes
+        const configValueStr = configValue || '';
+        const values = configValueStr.split(',').map(v => v.trim()).filter(v => v);
+        
+        // For each value, find the option and create a config entry
+        const configEntries = values.map(value => {
+          const option = config?.options?.find((opt) => opt.value === value);
+          return {
+            configId,
+            configName: config?.displayName || config?.name,
+            value: value,
+            quantity: configQuantity,
+            optionLabel: option?.label || value,
+            price: Number(option?.priceModifier) || 0,
+            monthlyPriceModifier: Number(option?.monthlyPriceModifier) || 0,
+            yearlyPriceModifier: Number(option?.yearlyPriceModifier) || 0,
+          };
+        });
+        
+        return configEntries;
+      }).flat();
 
       return {
         instanceId: instance.id,
@@ -686,11 +702,11 @@ export function ProductConfigurator({
     });
 
     // Calculate the total unit price using all components
-    // For recurring products: unitPrice = pricePerCycle (recurring amount)
-    // Setup fee is charged separately and should NOT be in unitPrice
-    // baseProductPrice is the one-time product price component (basePrice only, not including configs)
-    const unitPrice = pricing.pricePerCycle;
-    const setupFee = pricing.setupFee;
+    // For recurring products: use recurringData.pricePerCycle if available, otherwise fall back to pricing
+    // This ensures we use the configured recurring price (e.g., ₹200) instead of variant basePrice (e.g., ₹2,299)
+    const currentRecurringData = recurringData;
+    const unitPrice = currentRecurringData?.pricePerCycle ?? pricing.pricePerCycle;
+    const setupFee = currentRecurringData?.setupFee ?? pricing.setupFee;
     const baseProductPrice = pricing.basePrice; // Just the base price (variant or product)
 
     const cartItem = {
@@ -700,13 +716,13 @@ export function ProductConfigurator({
       instances,
       unitPrice,
       baseProductPrice, // Track base product price separately
-      // Use billing cycle from pricing (which comes from recurringData)
-      billingCycle: pricing.billingCycle as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
+      // Use billing cycle from recurringData if available
+      billingCycle: (currentRecurringData?.billingCycle ?? pricing.billingCycle) as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
       // Recurring billing data
-      isRecurring: recurringData?.enabled ?? false,
-      recurringAmount: pricing.pricePerCycle, // The recurring amount per cycle
-      recurringData: recurringData ? {
-        ...recurringData,
+      isRecurring: currentRecurringData?.enabled ?? false,
+      recurringAmount: unitPrice, // The recurring amount per cycle
+      recurringData: currentRecurringData ? {
+        ...currentRecurringData,
         setupFee,
         pricePerCycle: unitPrice,
         baseProductPrice, // Include baseProductPrice in recurringData
@@ -957,11 +973,13 @@ export function ProductConfigurator({
                                                           checked={isSelected} 
                                                           onCheckedChange={(checked) => {
                                                             // Toggle when checkbox is clicked directly
-                                                            const newSelectedValues = checked
+                                                            // checked can be boolean or 'indeterminate'
+                                                            const newValue = checked === true || checked === 'indeterminate'
                                                               ? [...selectedValues, option.value]
                                                               : selectedValues.filter((v: string) => v !== option.value);
-                                                            handleConfigChange(config.id, newSelectedValues.length === 1 ? newSelectedValues[0] : newSelectedValues);
+                                                            handleConfigChange(config.id, newValue.length === 1 ? newValue[0] : newValue);
                                                           }}
+                                                          onClick={(e) => e.stopPropagation()}
                                                         />
                                                         <div>
                                                           <span className="font-medium">{option.label}</span>
