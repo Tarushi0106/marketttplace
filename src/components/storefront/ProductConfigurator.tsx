@@ -670,15 +670,33 @@ export function ProductConfigurator({
         // For each value, find the option and create a config entry
         const configEntries = values.map(value => {
           const option = config?.options?.find((opt) => opt.value === value);
+          // Use the same price calculation logic as the main pricing
+          // Handle both string and number values (API returns strings for Decimal fields)
+          const monthlyPrice = Number(option?.monthlyPriceModifier ?? option?.priceModifier ?? 0);
+          const yearlyPrice = Number(option?.yearlyPriceModifier ?? 0);
+          const priceModifier = billingCycle === 'YEARLY'
+            ? yearlyPrice
+            : monthlyPrice;
+          
+          console.log("[AddToCart] Config price:", {
+            configName: config?.displayName || config?.name,
+            value,
+            option: option,
+            priceModifier,
+            billingCycle,
+            monthlyPriceModifier: option?.monthlyPriceModifier,
+            priceModifierField: option?.priceModifier
+          });
+          
           return {
             configId,
             configName: config?.displayName || config?.name,
             value: value,
             quantity: configQuantity,
             optionLabel: option?.label || value,
-            price: Number(option?.priceModifier) || 0,
-            monthlyPriceModifier: Number(option?.monthlyPriceModifier) || 0,
-            yearlyPriceModifier: Number(option?.yearlyPriceModifier) || 0,
+            price: priceModifier,
+            monthlyPriceModifier: monthlyPrice,
+            yearlyPriceModifier: yearlyPrice,
           };
         });
         
@@ -707,7 +725,10 @@ export function ProductConfigurator({
     const currentRecurringData = recurringData;
     const unitPrice = currentRecurringData?.pricePerCycle ?? pricing.pricePerCycle;
     const setupFee = currentRecurringData?.setupFee ?? pricing.setupFee;
-    const baseProductPrice = pricing.basePrice; // Just the base price (variant or product)
+    
+    // Product Price (Due Today) = basePrice + configsTotal + addonsTotal
+    // This is the total one-time price for configs and addons
+    const productPriceDueToday = pricing.basePrice + pricing.configsTotal + pricing.addonsTotal;
 
     const cartItem = {
       product,
@@ -715,7 +736,10 @@ export function ProductConfigurator({
       quantity: 1,
       instances,
       unitPrice,
-      baseProductPrice, // Track base product price separately
+      // Store the base product price separately for display purposes
+      baseProductPrice: pricing.basePrice, 
+      // Store the full product price (base + configs + addons) for calculations
+      productPrice: pricing.basePrice + pricing.configsTotal + pricing.addonsTotal,
       // Use billing cycle from recurringData if available
       billingCycle: (currentRecurringData?.billingCycle ?? pricing.billingCycle) as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
       // Recurring billing data
@@ -725,7 +749,8 @@ export function ProductConfigurator({
         ...currentRecurringData,
         setupFee,
         pricePerCycle: unitPrice,
-        baseProductPrice, // Include baseProductPrice in recurringData
+        // Store full product price in recurringData
+        baseProductPrice: pricing.basePrice + pricing.configsTotal + pricing.addonsTotal,
       } : undefined,
     };
 
@@ -775,7 +800,7 @@ export function ProductConfigurator({
         <RecurringBillingSection
           productId={product.id}
           variantId={selectedVariant || undefined}
-          basePrice={Number(product.basePrice) || 0}
+          basePrice={pricing.subtotal}
           monthlySetupFee={recurringPrices?.monthlySetupFee}
           biMonthlySetupFee={recurringPrices?.biMonthlySetupFee}
           quarterlySetupFee={recurringPrices?.quarterlySetupFee}

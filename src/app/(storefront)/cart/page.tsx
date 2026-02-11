@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Tag,
   X,
+  Calculator,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -19,47 +20,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrency } from "@/lib/utils";
-
-// Helper to safely format numbers
-const safeFormat = (value: number | null | undefined, suffix: string = ''): string => {
-  const num = value ?? 0;
-  if (isNaN(num) || !isFinite(num)) return '₹0' + suffix;
-  return formatCurrency(num) + suffix;
-};
-
-// Helper to get billing cycle label
-const getBillingCycleLabel = (cycle?: string): string => {
-  const labels: Record<string, string> = {
-    ONE_TIME: 'One-time',
-    MONTHLY: '/month',
-    BIMONTHLY: '/2 months',
-    QUARTERLY: '/quarter',
-    FOUR_MONTHLY: '/4 months',
-    SEMI_ANNUAL: '/6 months',
-    TRI_ANNUAL: '/4 months',
-    YEARLY: '/year',
-    BIENNIAL: '/2 years',
-    TRIENNIAL: '/3 years',
-  };
-  return labels[cycle || ''] || cycle || '';
-};
-
-// Helper to get billing cycle name (without slash)
-const getBillingCycleName = (cycle?: string): string => {
-  const labels: Record<string, string> = {
-    ONE_TIME: 'One-time',
-    MONTHLY: 'Monthly',
-    BIMONTHLY: 'Bi-Monthly',
-    QUARTERLY: 'Quarterly',
-    FOUR_MONTHLY: 'Four-Monthly',
-    SEMI_ANNUAL: 'Semi-Annual',
-    TRI_ANNUAL: 'Tri-Annual',
-    YEARLY: 'Yearly',
-    BIENNIAL: 'Biennial',
-    TRIENNIAL: 'Triennial',
-  };
-  return labels[cycle || ''] || cycle || '';
-};
 
 // Helper to get recurring interval text
 const getRecurringInterval = (billingCycle?: string): string => {
@@ -84,8 +44,7 @@ export default function CartPage() {
     updateQuantity,
     clearCart,
     getSubtotal,
-    getTax,
-    getTotal,
+  getTax,
     getTodayTotal,
     getSetupFeeTotal,
     discountCode,
@@ -104,7 +63,6 @@ export default function CartPage() {
     setIsApplyingCoupon(true);
     setCouponError("");
 
-    // Mock coupon validation - in production, validate via API
     setTimeout(() => {
       if (couponCode.toUpperCase() === "SAVE20") {
         const discount = getSubtotal() * 0.2;
@@ -139,6 +97,16 @@ export default function CartPage() {
       </div>
     );
   }
+
+  // Calculate totals for order summary
+  const subtotal = getSubtotal();
+  const tax = getTax();
+  const setupFeeTotal = getSetupFeeTotal();
+  const todayTotal = getTodayTotal();
+  const recurringTotal = items
+    .filter(item => item.recurringAmount && item.recurringAmount > 0)
+    .reduce((sum, item) => sum + (item.recurringAmount || 0), 0);
+  const billingCycle = items.find(item => item.billingCycle)?.billingCycle;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -213,12 +181,13 @@ export default function CartPage() {
                     {/* Selected configs (flat structure) */}
                     {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs text-muted-foreground">Configuration:</p>
                         <ul className="text-sm">
                           {item.selectedConfigs.map((config) => (
-                            <li key={config.configId} className="text-muted-foreground">
-                              {config.configName}: {config.value}
-                              {config.priceModifier != null && config.priceModifier > 0 && ` (+${formatCurrency(config.priceModifier)})`}
+                            <li key={config.configId} className="text-muted-foreground flex justify-between">
+                              <span>
+                                {config.configName}: {config.value}
+                              </span>
+                              <span>{formatCurrency(config.price || 0)}</span>
                             </li>
                           ))}
                         </ul>
@@ -230,15 +199,15 @@ export default function CartPage() {
                       <div className="mt-2">
                         {item.instances.map((instance) => (
                           <div key={instance.instanceId} className="mb-2">
-                            <p className="text-xs text-muted-foreground font-medium">{instance.instanceName}</p>
                             {/* Instance configs */}
                             {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
                               <ul className="text-sm ml-2">
                                 {instance.selectedConfigs.map((config) => (
-                                  <li key={config.configId} className="text-muted-foreground">
-                                    {config.configName || config.configId}: {config.value}
-                                    {config.price != null && config.price > 0 && ` (+${formatCurrency(config.price)})`}
-                                    {config.quantity != null && config.quantity > 1 && ` x${config.quantity}`}
+                                  <li key={config.configId} className="text-muted-foreground flex justify-between">
+                                    <span>
+                                      {config.configName || config.configId}
+                                    </span>
+                                    <span>{formatCurrency(config.price ?? 0)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -247,8 +216,9 @@ export default function CartPage() {
                             {instance.selectedAddons && instance.selectedAddons.length > 0 && (
                               <ul className="text-sm ml-2">
                                 {instance.selectedAddons.map((addon) => (
-                                  <li key={addon.addon?.id} className="text-muted-foreground">
-                                    + {addon.addon?.name} ({formatCurrency(addon.addon?.price || 0)})
+                                  <li key={addon.addon?.id} className="text-muted-foreground flex justify-between">
+                                    <span>+ {addon.addon?.name}</span>
+                                    <span>{formatCurrency(addon.addon?.price || 0)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -258,58 +228,26 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Price breakdown - Order Summary style */}
-                    <div className="mt-2 space-y-1">
-                      {/* Base Product Price */}
-                      <p className="text-xs text-muted-foreground">
-                        Product Price: {formatCurrency(item.baseProductPrice || 0)}
-                      </p>
-                      {/* Setup Fee */}
-                      {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
-                        <p className="text-xs text-amber-600">
-                          + {formatCurrency(item.recurringData.setupFee)} setup
-                        </p>
-                      )}
-                      {/* Recurring Price */}
-                      {item.recurringAmount != null && item.recurringAmount > 0 && (
-                        <p className="text-xs text-blue-600">
-                          You will be charged {formatCurrency(item.recurringAmount)} every {getRecurringInterval(item.billingCycle)} after purchase.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Quantity and price */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity ?? 1}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div className="text-right">
-                        {/* Show total due today (base price + setup fee) */}
-                        <p className="font-semibold">
-                          {formatCurrency(
-                            ((item.baseProductPrice || 0) + (item.recurringData?.setupFee || 0)) * (item.quantity || 1)
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Total Due Today
-                        </p>
-                      </div>
+                    {/* Quantity */}
+                    <div className="mt-4 flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Qty:</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center">{item.quantity ?? 1}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -322,7 +260,10 @@ export default function CartPage() {
         <div>
           <Card className="sticky top-24">
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Order Summary
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Coupon Code */}
@@ -372,57 +313,72 @@ export default function CartPage() {
 
               <Separator />
 
-              {/* Totals - Order Summary style */}
-              <div className="space-y-2">
-                {/* Product Price */}
+              {/* Itemized Order Summary - matching configure page format */}
+              <div className="space-y-3">
+                {/* Product name and base price */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Product Price</span>
-                  <span>{formatCurrency(getTodayTotal() - getSetupFeeTotal())}</span>
+                  <span className="text-gray-600">{items[0]?.product?.name || items[0]?.bundle?.name}</span>
+                  <span>{formatCurrency(items[0]?.baseProductPrice || 0)}</span>
                 </div>
-                
-                {/* Setup Fee */}
-                {getSetupFeeTotal() > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Setup Fee</span>
-                    <span>{formatCurrency(getSetupFeeTotal())}</span>
+
+                {/* Configs and addons breakdown */}
+                {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedConfigs?.map((config) => (
+                  <div key={config.configId} className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      {config.configName || config.configId}
+                    </span>
+                    <span>{formatCurrency(config.price || 0)}</span>
                   </div>
-                )}
-                
-                {/* Tax */}
-                {getTax() > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (GST)</span>
-                    <span>{formatCurrency(getTax())}</span>
+                ))}
+                {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedAddons?.map((addon) => (
+                  <div key={addon.addon?.id} className="flex justify-between text-sm">
+                    <span className="text-gray-600">+ {addon.addon?.name}</span>
+                    <span>{formatCurrency(addon.addon?.price || 0)}</span>
                   </div>
-                )}
-                
-                {/* Discount */}
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-success">
-                    <span>Discount</span>
-                    <span>-{formatCurrency(discountAmount)}</span>
-                  </div>
-                )}
-                
+                ))}
+
                 <Separator />
-                
-                {/* Total Due Today */}
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total Due Today</span>
-                  <span>{formatCurrency(getTodayTotal() + getTax() - discountAmount)}</span>
+
+                {/* Product Price (Due Today) */}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Product Price (Due Today)</span>
+                  <span className="font-medium">{formatCurrency(subtotal)}</span>
                 </div>
-                
-                {/* Recurring Total */}
-                {items.some(item => item.recurringAmount && item.recurringAmount > 0) && (
-                  <div className="bg-blue-50 p-3 rounded-md mt-2">
-                    <p className="text-sm font-medium text-blue-800">After Purchase:</p>
-                    {items.filter(item => item.recurringAmount && item.recurringAmount > 0).map(item => (
-                      <p key={item.id} className="text-xs text-blue-700">
-                        {item.product?.name || item.bundle?.name}: {formatCurrency(item.recurringAmount || 0)}/{getBillingCycleName(item.billingCycle)}
-                      </p>
-                    ))}
+
+                {/* Setup Fee */}
+                {setupFeeTotal > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Setup Fee</span>
+                    <span className="font-medium">{formatCurrency(setupFeeTotal)}</span>
                   </div>
                 )}
+
+                {/* Tax (18% GST) */}
+                {tax > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax (18% GST)</span>
+                    <span className="font-medium">{formatCurrency(tax)}</span>
+                  </div>
+                )}
+
+                {/* Recurring info */}
+                {recurringTotal > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                    <p className="text-sm text-gray-600">
+                      You will be charged <span className="font-medium">{formatCurrency(recurringTotal)}</span> every {getRecurringInterval(billingCycle)} after purchase.
+                    </p>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Total Due Today */}
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Due Today</span>
+                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                    {formatCurrency(todayTotal + tax)}
+                  </span>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">

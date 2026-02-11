@@ -172,9 +172,8 @@ export function CartDrawer() {
                                 {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
                                   <div className="text-xs text-muted-foreground">
                                     {instance.selectedConfigs.map((c) => 
-                                      `${c.configName || c.configId}: ${c.value}`
+                                      `${c.configName || c.configId}${c.price != null && c.price > 0 ? ` - ${formatCurrency(c.price)}` : ''}`
                                     ).join(", ")}
-                                    {c => c.price != null && c.price > 0 && ` (+${formatCurrency(c.price)})`}
                                   </div>
                                 )}
                               </div>
@@ -205,7 +204,7 @@ export function CartDrawer() {
                               size="icon"
                               className="h-7 w-7"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity - 1)
+                                updateQuantity(item.id, (item.quantity ?? 1) - 1)
                               }
                             >
                               <Minus className="h-3 w-3" />
@@ -218,18 +217,22 @@ export function CartDrawer() {
                               size="icon"
                               className="h-7 w-7"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
+                                updateQuantity(item.id, (item.quantity ?? 1) + 1)
                               }
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
                           <p className="font-medium">
-                            {formatCurrency(item.totalPrice)}
-                            {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" && (
-                              <span className="text-sm text-muted-foreground ml-1">
-                                {getBillingCycleLabel(item.billingCycle)}
-                              </span>
+                            {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
+                              <>
+                                {formatCurrency(item.recurringAmount || 0)}
+                                <span className="text-sm text-muted-foreground ml-1">
+                                  {getBillingCycleLabel(item.billingCycle)}
+                                </span>
+                              </>
+                            ) : (
+                              formatCurrency(item.totalPrice || 0)
                             )}
                           </p>
                         </div>

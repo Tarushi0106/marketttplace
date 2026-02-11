@@ -372,31 +372,65 @@ export default function CheckoutSuccessPage() {
 
               <Separator />
 
-              {/* Order Summary - Full Pricing Breakdown */}
+              {/* Order Summary - Full Pricing Breakdown - matching configure page format */}
               <div className="bg-muted/30 rounded-lg p-4 space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Order Summary</h3>
                 
-                {/* Product Price */}
+                {/* Product name and base price */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Product Price</span>
+                  <span className="text-gray-600">{order.items?.[0]?.name || 'Product'}</span>
                   <span>{formatCurrency(order.subtotal, order.currency)}</span>
                 </div>
                 
+                {/* Configs breakdown - showing instance configs */}
+                {order.items?.map((item: any) => (
+                  <div key={item.id}>
+                    {item.instances?.map((instance: any) => (
+                      <div key={instance.instanceId}>
+                        {instance.selectedConfigs?.map((config: any) => (
+                          <div key={config.configId} className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              {config.configName || config.configId}
+                            </span>
+                            <span>{formatCurrency(config.price || 0, order.currency)}</span>
+                          </div>
+                        ))}
+                        {instance.selectedAddons?.map((addon: any) => (
+                          <div key={addon.addon?.id} className="flex justify-between text-sm">
+                            <span className="text-gray-600">+ {addon.addon?.name}</span>
+                            <span>{formatCurrency(addon.addon?.price || 0, order.currency)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                
+                <Separator className="my-2" />
+                
+                {/* Product Price (Due Today) */}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Product Price (Due Today)</span>
+                  <span className="font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
+                </div>
+                
                 {/* Setup Fee */}
-                {order.items?.some(item => item.setupFee && item.setupFee > 0) && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Setup Fee</span>
-                    <span>{formatCurrency(
-                      order.items?.reduce((sum, item) => sum + (item.setupFee || 0), 0) || 0,
-                      order.currency
-                    )}</span>
+                {order.items?.some((item: any) => item.setupFee && item.setupFee > 0) && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Setup Fee</span>
+                    <span className="font-medium">
+                      {formatCurrency(
+                        order.items?.reduce((sum: number, item: any) => sum + (item.setupFee || 0), 0) || 0,
+                        order.currency
+                      )}
+                    </span>
                   </div>
                 )}
                 
                 {/* Tax */}
                 {order.taxAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (GST)</span>
+                    <span className="text-gray-600">Tax (GST)</span>
                     <span>{formatCurrency(order.taxAmount, order.currency)}</span>
                   </div>
                 )}
@@ -409,33 +443,29 @@ export default function CheckoutSuccessPage() {
                   </div>
                 )}
                 
-                <Separator className="my-2" />
-                
-                {/* Total Paid Today */}
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total Paid Today</span>
-                  <span className="text-primary">{formatCurrency(order.total, order.currency)}</span>
-                </div>
-                
                 {/* Recurring Plan Info */}
-                {order.items?.some(item => item.isRecurring && item.billingCycle !== 'ONE_TIME') && (
-                  <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                    <p className="text-sm font-medium text-primary mb-2">Recurring Plan</p>
-                    {order.items?.filter(item => item.isRecurring && item.billingCycle !== 'ONE_TIME').map((item, idx) => (
-                      <p key={idx} className="text-sm text-muted-foreground">
-                        You will be charged{' '}
-                        <span className="font-medium text-foreground">
-                          {formatCurrency(item.recurringPrice || 0, order.currency)}
-                        </span>{' '}
-                        every{' '}
-                        <span className="font-medium text-foreground">
-                          {getRecurringInterval(item.billingCycle)}
-                        </span>{' '}
-                        according to your selected <span className="font-medium">{getBillingCycleLabel(item.billingCycle)}</span> plan.
-                      </p>
-                    ))}
+                {order.items?.some((item: any) => item.isRecurring && item.billingCycle !== 'ONE_TIME') && (
+                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                    <p className="text-sm text-gray-600">
+                      You will be charged <span className="font-medium">
+                        {formatCurrency(
+                          order.items?.reduce((sum: number, item: any) => sum + (item.recurringPrice || 0), 0),
+                          order.currency
+                        )}
+                      </span> every {getRecurringInterval(order.items?.[0]?.billingCycle)} after purchase.
+                    </p>
                   </div>
                 )}
+                
+                <Separator className="my-2" />
+                
+                {/* Total Due Today */}
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Due Today</span>
+                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                    {formatCurrency(order.total, order.currency)}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>

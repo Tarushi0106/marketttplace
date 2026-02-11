@@ -41,10 +41,15 @@ const countries = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, getSubtotal, getTax, getTotal, discountCode, discountAmount, clearCart } = useCartStore();
+  const { items, getSubtotal, getTax, getTotal, getSetupFeeTotal, discountCode, discountAmount, clearCart } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
+
+  const subtotal = getSubtotal();
+  const tax = getTax();
+  const setupFee = getSetupFeeTotal();
+  const total = getTotal();
 
   const [shippingAddress, setShippingAddress] = useState({
     firstName: "",
@@ -559,51 +564,83 @@ export default function CheckoutPage() {
             </Card>
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary */};
           <div>
             <Card className="sticky top-24">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Items */}
+                {/* Items - matching configure page format */}
                 <div className="space-y-3">
-                  {items.map((item: any) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="flex-1 truncate">
-                        {item.product?.name || item.bundle?.name}
-                        {item.quantity > 1 && ` x${item.quantity}`}
+                  {/* Product name and base price */}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{items[0]?.product?.name || items[0]?.bundle?.name}</span>
+                    <span>{formatCurrency(items[0]?.baseProductPrice || 0)}</span>
+                  </div>
+                  
+                  {/* Configs and addons breakdown */}
+                  {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedConfigs?.map((config: any) => (
+                    <div key={config.configId} className="flex justify-between text-sm">
+                      <span className="text-gray-600">
+                        {config.configName || config.configId}
                       </span>
-                      <span className="font-medium ml-2">
-                        {formatCurrency(item.totalPrice)}
-                      </span>
+                      <span>{formatCurrency(config.price ?? 0)}</span>
+                    </div>
+                  ))}
+                  {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedAddons?.map((addon: any) => (
+                    <div key={addon.addon?.id} className="flex justify-between text-sm">
+                      <span className="text-gray-600">+ {addon.addon?.name}</span>
+                      <span>{formatCurrency(addon.addon?.price || 0)}</span>
                     </div>
                   ))}
                 </div>
 
                 <Separator />
 
-                {/* Totals */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(getSubtotal())}</span>
+                {/* Product Price (Due Today) */}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Product Price (Due Today)</span>
+                  <span className="font-medium">{formatCurrency(getSubtotal())}</span>
+                </div>
+
+                {/* Setup Fee */}
+                {setupFee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Setup Fee</span>
+                    <span className="font-medium">{formatCurrency(setupFee)}</span>
                   </div>
-                  {discountAmount > 0 && (
-                    <div className="flex justify-between text-sm text-success">
-                      <span>Discount ({discountCode})</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax (18%)</span>
-                    <span>{formatCurrency(getTax())}</span>
+                )}
+
+                {/* Tax (18% GST) */}
+                {tax > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax (18% GST)</span>
+                    <span className="font-medium">{formatCurrency(tax)}</span>
                   </div>
-                  <Separator />
-                  <div className="flex justify-between font-semibold text-lg">
-                    <span>Total</span>
-                    <span>{formatCurrency(getTotal())}/mo</span>
+                )}
+
+                {/* Recurring info */}
+                {items.some((item: any) => item.recurringAmount > 0) && (
+                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                    <p className="text-sm text-gray-600">
+                      You will be charged <span className="font-medium">
+                        {formatCurrency(
+                          items.reduce((sum: number, item: any) => sum + (item.recurringAmount || 0), 0)
+                        )}
+                      </span> every {items[0]?.billingCycle === 'MONTHLY' ? '1 month' : items[0]?.billingCycle === 'BIMONTHLY' ? '2 months' : items[0]?.billingCycle || ''} after purchase.
+                    </p>
                   </div>
+                )}
+
+                <Separator />
+
+                {/* Total Due Today */}
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Due Today</span>
+                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                    {formatCurrency(getTotal())}
+                  </span>
                 </div>
 
                 {/* Security badges */}

@@ -44,13 +44,15 @@ export interface CartItem {
     configName?: string;
     value: string;
     quantity?: number;
+    price?: number; // Add price field for config pricing
     priceModifier?: number;
     monthlyPriceModifier?: number;
     yearlyPriceModifier?: number;
     optionLabel?: string;
   }[];
   // Pricing breakdown
-  baseProductPrice?: number; // The one-time product price (if applicable)
+  baseProductPrice?: number; // The one-time base product price (if applicable)
+  productPrice?: number; // The full product price (base + configs + addons) for "Product Price (Due Today)"
   unitPrice?: number; // The price shown in cart (could be recurring or one-time)
   totalPrice?: number; // Total for the item
   // Billing information
@@ -114,13 +116,14 @@ const safeNumber = (value: unknown): number => {
 };
 
 const calculateItemTotal = (item: Omit<CartItem, "id" | "totalPrice">): number => {
-  // For items with baseProductPrice (new format): total = baseProductPrice + setupFee
-  const baseProductPrice = safeNumber(item.baseProductPrice);
+  // For items with productPrice (new format): total = productPrice + setupFee
+  // productPrice includes base + configs + addons
+  const productPrice = safeNumber(item.productPrice ?? item.baseProductPrice);
   const setupFee = safeNumber(item.recurringData?.setupFee);
   const quantity = safeNumber(item.quantity);
   
-  if (baseProductPrice > 0) {
-    return (baseProductPrice + setupFee) * quantity;
+  if (productPrice > 0) {
+    return (productPrice + setupFee) * quantity;
   }
   
   // Fallback for legacy items: use unitPrice
@@ -239,7 +242,8 @@ export const useCartStore = create<CartState>()(
               quantity: safeNumber(item.quantity),
               unitPrice,
               id,
-              totalPrice: calculateItemTotal({ ...item, unitPrice }),
+              // Calculate totalPrice including baseProductPrice + setupFee
+              totalPrice: (safeNumber(item.baseProductPrice) + safeNumber(item.recurringData?.setupFee)) * safeNumber(item.quantity),
             };
             console.log("[Cart Debug] New cart item created:", {
               id: newItem.id?.substring(0, 50),
@@ -319,11 +323,12 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        // Subtotal includes baseProductPrice (one-time product price) for all items
+        // Subtotal includes productPrice (base + configs + addons) for all items
+        // This represents "Product Price (Due Today)"
         return get().items.reduce((sum, item) => {
-          const basePrice = safeNumber(item.baseProductPrice);
+          const productPrice = item.productPrice ?? item.baseProductPrice ?? 0;
           const quantity = safeNumber(item.quantity) || 1;
-          return sum + (basePrice * quantity);
+          return sum + (productPrice * quantity);
         }, 0);
       },
 
@@ -354,9 +359,10 @@ export const useCartStore = create<CartState>()(
       getSetupFeeTotal: () => {
         return get().items.reduce((sum, item) => {
           const setupFee = item.recurringData?.setupFee;
+          const quantity = safeNumber(item.quantity) || 1;
           // Check if setupFee is a valid number greater than 0
           if (typeof setupFee === 'number' && setupFee > 0) {
-            return sum + setupFee;
+            return sum + (setupFee * quantity);
           }
           return sum;
         }, 0);
@@ -420,6 +426,89 @@ if (typeof window !== "undefined") {
         totalPrice: calculateItemTotal(item as Omit<CartItem, "id" | "totalPrice">),
       }));
       useCartStore.setState({ items: recalculatedItems });
+    }
+    
+    // Migration: Fix items that have incorrect baseProductPrice (includes configs)
+    // These items were added before the fix and have baseProductPrice = productPrice
+    // We need to recalculate baseProductPrice to be just the base product price
+    const needsMigration = items.some((item: CartItem) => {
+      // If item has instances with configs, and the first item's baseProductPrice equals the subtotal,
+      // it likely needs migration
+      if (item.instances && item.instances.length > 0 && item.baseProductPrice) {
+        // Check if there are configs that might have 0 prices
+        let hasConfigsWithZeroPrice = false;
+        item.instances.forEach((instance) => {
+          if (instance.selectedConfigs) {
+            instance.selectedConfigs.forEach((config) => {
+              if (!config.price || config.price === 0) {
+                hasConfigsWithZeroPrice = true;
+              }
+            });
+          }
+        });
+        return hasConfigsWithZeroPrice;
+      }
+      return false;
+    });
+    
+    if (needsMigration) {
+      console.log("[Cart] Migrating cart items to fix baseProductPrice and config prices");
+      const migratedItems = items.map((item: CartItem) => {
+        if (item.instances && item.instances.length > 0 && item.baseProductPrice) {
+          // Calculate configs total by subtracting known base from total
+          // We need to estimate the base product price
+          // For now, use a simple heuristic: baseProductPrice should be around the product's base price
+          
+          // If baseProductPrice equals productPrice (when set), the base is incorrect
+          // We need to estimate the correct base by checking what's typical
+          
+          let configsTotal = 0;
+          let addonsTotal = 0;
+          
+          // Sum up instance config and addon prices
+          if (item.instances) {
+            item.instances.forEach((instance) => {
+              if (instance.selectedConfigs) {
+                instance.selectedConfigs.forEach((config) => {
+                  configsTotal += config.price || 0;
+                });
+              }
+              if (instance.selectedAddons) {
+                instance.selectedAddons.forEach((addon) => {
+                  addonsTotal += addon.addon?.price || 0;
+                });
+              }
+            });
+          }
+          
+          // The baseProductPrice should be total minus configs and addons
+          // But if configsTotal is 0, we can't determine the breakdown
+          // In this case, we'll try to estimate by looking at the total
+          
+          // If configsTotal is 0 but we have instances with configs,
+          // the prices might not be stored correctly
+          // We'll leave baseProductPrice as is for now
+          
+          if (configsTotal > 0 || addonsTotal > 0) {
+            const newBaseProductPrice = Math.max(0, item.baseProductPrice - configsTotal - addonsTotal);
+            
+            console.log("[Cart] Migrated item:", {
+              productName: item.product?.name,
+              oldBaseProductPrice: item.baseProductPrice,
+              newBaseProductPrice,
+              configsTotal,
+              addonsTotal
+            });
+            
+            return {
+              ...item,
+              baseProductPrice: newBaseProductPrice,
+            };
+          }
+        }
+        return item;
+      });
+      useCartStore.setState({ items: migratedItems });
     }
   });
 }
