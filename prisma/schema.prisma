@@ -1,4 +1,4 @@
-﻿// NaaS Marketplace - Prisma Schema
+// NaaS Marketplace - Prisma Schema
 // PostgreSQL database with comprehensive e-commerce models
 
 generator client {
@@ -225,6 +225,8 @@ model Product {
   yearlyPrice     Decimal?      @db.Decimal(10, 2)
   monthlySavings  Decimal?      @db.Decimal(5, 2)
   yearlySavings   Decimal?      @db.Decimal(5, 2)
+  setupFee        Decimal?      @db.Decimal(10, 2)  // One-time setup fee
+  isRecurring     Boolean       @default(false)  // Whether this is a recurring product
   productType     ProductType   @default(STANDALONE)
   status          ProductStatus @default(DRAFT)
   isFeatured      Boolean       @default(false)
@@ -594,8 +596,28 @@ model ProductRecurringPrice {
   biennialPrice   Decimal?      @db.Decimal(10, 2)
   triennialPrice  Decimal?      @db.Decimal(10, 2)
   
+  // Additional billing cycles (from database)
+  biMonthlyPrice  Decimal?      @db.Decimal(10, 2)
+  fourMonthlyPrice Decimal?      @db.Decimal(10, 2)
+  semiAnnualPrice Decimal?      @db.Decimal(10, 2)
+  triAnnualPrice  Decimal?      @db.Decimal(10, 2)
+  
+  // Setup Fees (per billing cycle)
+  monthlySetupFee    Decimal?  @db.Decimal(10, 2)
+  quarterlySetupFee  Decimal?  @db.Decimal(10, 2)
+  yearlySetupFee     Decimal?  @db.Decimal(10, 2)
+  biennialSetupFee   Decimal?  @db.Decimal(10, 2)
+  triennialSetupFee  Decimal?  @db.Decimal(10, 2)
+  
+  // Additional setup fees (from database)
+  biMonthlySetupFee  Decimal?  @db.Decimal(10, 2)
+  fourMonthlySetupFee Decimal? @db.Decimal(10, 2)
+  semiAnnualSetupFee Decimal?  @db.Decimal(10, 2)
+  triAnnualSetupFee  Decimal?  @db.Decimal(10, 2)
+  
   // Savings
   monthlySavings  Decimal?      @db.Decimal(5, 2)  // Percentage
+  quarterlySavings Decimal?      @db.Decimal(5, 2)
   yearlySavings   Decimal?      @db.Decimal(5, 2)
   
   currency        String        @default("USD")

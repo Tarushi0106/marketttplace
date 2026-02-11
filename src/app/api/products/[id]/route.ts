@@ -74,6 +74,7 @@ export async function GET(
           where: { isActive: true },
           orderBy: { minQty: "asc" },
         },
+        recurringPrices: true,
         seoMetadata: true,
         reviews: {
           where: { isApproved: true },

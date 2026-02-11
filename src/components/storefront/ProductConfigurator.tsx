@@ -344,25 +344,61 @@ export function ProductConfigurator({
 
     configs.forEach((config) => {
       const configData = selectedConfigs[config.id];
-      const value = typeof configData === 'object' && configData !== null
-        ? (configData as { value?: string }).value
-        : configData as string;
-      const configQuantity = typeof configData === 'object' && configData !== null
-        ? (configData as { quantity?: number }).quantity || 1
-        : 1;
-
-      if (!value) return;
-
-      const option = config.options?.find((opt) => opt.value === value);
-      if (option) {
-        const configPrice = (Number(option.priceModifier) || 0) * configQuantity;
-        configsTotal += configPrice;
-        configBreakdown.push({
-          name: config.displayName || config.name,
-          value: option.label || value,
-          price: configPrice,
-          quantity: configQuantity,
+      
+      // Support both array (multi-select checkboxes) and single value
+      let values: string[] = [];
+      if (Array.isArray(configData)) {
+        values = configData;
+      } else if (typeof configData === 'string' && configData) {
+        values = [configData];
+      } else if (typeof configData === 'object' && configData !== null) {
+        // Handle object format { value: string }
+        const value = (configData as { value?: string }).value;
+        if (value) values = [value];
+      }
+      
+      // For checkbox type, each selected option has its own price
+      if (config.inputType === 'CHECKBOX') {
+        values.forEach((value) => {
+          const option = config.options?.find((opt) => opt.value === value);
+          if (option) {
+            // Use the appropriate price modifier based on billing cycle
+            const priceModifier = billingCycle === 'YEARLY'
+              ? Number(option.yearlyPriceModifier || 0)
+              : Number(option.monthlyPriceModifier || option.priceModifier || 0);
+            configsTotal += priceModifier;
+            configBreakdown.push({
+              name: config.displayName || config.name,
+              value: option.label || value,
+              price: priceModifier,
+              quantity: 1,
+            });
+          }
         });
+      } else {
+        // For single-select types (RADIO, SELECT, etc.)
+        const value = values[0] || '';
+        if (!value) return;
+
+        const option = config.options?.find((opt) => opt.value === value);
+        const configQuantity = typeof configData === 'object' && configData !== null
+          ? (configData as { quantity?: number }).quantity || 1
+          : 1;
+
+        if (option) {
+          // Use the appropriate price modifier based on billing cycle
+          const priceModifier = billingCycle === 'YEARLY'
+            ? Number(option.yearlyPriceModifier || 0)
+            : Number(option.monthlyPriceModifier || option.priceModifier || 0);
+          const configPrice = priceModifier * configQuantity;
+          configsTotal += configPrice;
+          configBreakdown.push({
+            name: config.displayName || config.name,
+            value: option.label || value,
+            price: configPrice,
+            quantity: configQuantity,
+          });
+        }
       }
     });
 
@@ -383,7 +419,8 @@ export function ProductConfigurator({
       setupFee = recurringData.setupFee;
       savingsPercentage = recurringData.savingsPercentage;
       monthlyEquivalent = recurringData.monthlyEquivalent;
-      totalForPeriod = basePrice + recurringData.pricePerCycle + recurringData.setupFee;
+      // Include basePrice + configsTotal (from configuration options) + recurring price + setup fee
+      totalForPeriod = basePrice + configsTotal + recurringData.pricePerCycle + recurringData.setupFee;
     } else {
       // Fallback for products without recurring prices configured
       // Calculate billing prices based on billingCycle
@@ -847,16 +884,22 @@ export function ProductConfigurator({
                                             {config.inputType === "CHECKBOX" && (
                                               <div className="space-y-2">
                                                 {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
-                                                  const isSelected = selectedConfigs[config.id]?.includes(option.value);
+                                                  const configData = selectedConfigs[config.id];
+                                                  // Support both array (multi-select) and string (single-select) for checkboxes
+                                                  const isArray = Array.isArray(configData);
+                                                  const selectedValues = isArray ? configData : (configData ? [configData] : []);
+                                                  const isSelected = selectedValues.includes(option.value);
+                                                  
                                                   return (
                                                     <div
                                                       key={option.id}
                                                       onClick={() => {
-                                                        const current = selectedConfigs[config.id] || [];
-                                                        const newValue = isSelected
-                                                          ? current.filter((v: string) => v !== option.value)
-                                                          : [...current, option.value];
-                                                        handleConfigChange(config.id, newValue);
+                                                        // Toggle selection: if selected, remove it; if not selected, add it
+                                                        const newSelectedValues = isSelected
+                                                          ? selectedValues.filter((v: string) => v !== option.value)
+                                                          : [...selectedValues, option.value];
+                                                        // Store as array for multi-select, or single value for single-select behavior
+                                                        handleConfigChange(config.id, newSelectedValues.length === 1 ? newSelectedValues[0] : newSelectedValues);
                                                       }}
                                                       className={`
                                                         cursor-pointer p-3 rounded-lg border transition-all flex items-center justify-between
@@ -867,7 +910,16 @@ export function ProductConfigurator({
                                                       `}
                                                     >
                                                       <div className="flex items-center gap-2">
-                                                        <Checkbox checked={isSelected} />
+                                                        <Checkbox 
+                                                          checked={isSelected} 
+                                                          onCheckedChange={(checked) => {
+                                                            // Toggle when checkbox is clicked directly
+                                                            const newSelectedValues = checked
+                                                              ? [...selectedValues, option.value]
+                                                              : selectedValues.filter((v: string) => v !== option.value);
+                                                            handleConfigChange(config.id, newSelectedValues.length === 1 ? newSelectedValues[0] : newSelectedValues);
+                                                          }}
+                                                        />
                                                         <div>
                                                           <span className="font-medium">{option.label}</span>
                                                           {option.description && (
@@ -876,7 +928,7 @@ export function ProductConfigurator({
                                                         </div>
                                                       </div>
                                                       {Number(option.priceModifier) !== 0 && (
-                                                        <span className="text-sm">
+                                                        <span className={`text-sm ${isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}`}>
                                                           {Number(option.priceModifier) > 0 ? "+" : ""}{formatCurrency(Number(option.priceModifier))}
                                                         </span>
                                                       )}
@@ -1063,9 +1115,12 @@ export function ProductConfigurator({
                                     )}
 
                                     {/* Config Breakdown */}
-                                    {pricing.configBreakdown.map((item, index) => (
+                                    {pricing.configBreakdown.length > 0 && pricing.configBreakdown.map((item, index) => (
                                       <div key={index} className="flex justify-between text-sm">
-                                        <span className="text-gray-600">{item.name}</span>
+                                        <span className="text-gray-600">
+                                          {item.name}
+                                          {item.value && ` - ${item.value}`}
+                                        </span>
                                         <span>{formatCurrency(item.price)}</span>
                                       </div>
                                     ))}
@@ -1085,14 +1140,14 @@ export function ProductConfigurator({
                                     {/* Product Price */}
                                     <div className="flex justify-between">
                                       <span className="text-gray-600">Product Price</span>
-                                      <span className="font-medium">{formatCurrency(pricing.basePrice)}</span>
+                                      <span className="font-medium">{formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}</span>
                                     </div>
 
                                     {/* Billing Plan Price */}
                                     {pricing.billingCycle !== "ONE_TIME" && (
                                       <div className="flex justify-between">
                                         <span className="text-gray-500 text-sm">
-                                          {pricing.billingCycle ? BILLING_CYCLE_LABELS[pricing.billingCycle] : 'Billing Plan'}
+                                          {pricing.billingCycle ? BILLING_CYCLE_LABELS[pricing.billingCycle as BillingCycleType] : 'Billing Plan'}
                                         </span>
                                         <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
                                       </div>
@@ -1112,7 +1167,7 @@ export function ProductConfigurator({
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatCurrency(pricing.basePrice + pricing.pricePerCycle + pricing.setupFee)}
+                                        {formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.pricePerCycle + pricing.setupFee)}
                                         {pricing.billingCycle === "ONE_TIME" ? (
                                           <span className="text-sm font-normal text-gray-500"> one-time</span>
                                         ) : pricing.billingCycle && BILLING_CYCLE_PERIODS[pricing.billingCycle] ? (

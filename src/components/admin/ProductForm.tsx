@@ -526,6 +526,53 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     }
   }
 
+  // Fetch recurring prices separately if editing
+  useEffect(() => {
+    if (!isEdit || !productId) return;
+    
+    async function fetchRecurringPrices() {
+      try {
+        const response = await fetch(`/api/products/${productId}/recurring-prices`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data) {
+            setFormData(prev => ({
+              ...prev,
+              // Setup Fees
+              monthlySetupFee: data.monthlySetupFee?.toString() || prev.monthlySetupFee,
+              biMonthlySetupFee: data.biMonthlySetupFee?.toString() || prev.biMonthlySetupFee,
+              quarterlySetupFee: data.quarterlySetupFee?.toString() || prev.quarterlySetupFee,
+              fourMonthlySetupFee: data.fourMonthlySetupFee?.toString() || prev.fourMonthlySetupFee,
+              semiAnnualSetupFee: data.semiAnnualSetupFee?.toString() || prev.semiAnnualSetupFee,
+              triAnnualSetupFee: data.triAnnualSetupFee?.toString() || prev.triAnnualSetupFee,
+              yearlySetupFee: data.yearlySetupFee?.toString() || prev.yearlySetupFee,
+              biennialSetupFee: data.biennialSetupFee?.toString() || prev.biennialSetupFee,
+              triennialSetupFee: data.triennialSetupFee?.toString() || prev.triennialSetupFee,
+              // Prices
+              monthlyPrice: data.monthlyPrice?.toString() || prev.monthlyPrice,
+              biMonthlyPrice: data.biMonthlyPrice?.toString() || prev.biMonthlyPrice,
+              quarterlyPrice: data.quarterlyPrice?.toString() || prev.quarterlyPrice,
+              fourMonthlyPrice: data.fourMonthlyPrice?.toString() || prev.fourMonthlyPrice,
+              semiAnnualPrice: data.semiAnnualPrice?.toString() || prev.semiAnnualPrice,
+              triAnnualPrice: data.triAnnualPrice?.toString() || prev.triAnnualPrice,
+              yearlyPrice: data.yearlyPrice?.toString() || prev.yearlyPrice,
+              biennialPrice: data.biennialPrice?.toString() || prev.biennialPrice,
+              triennialPrice: data.triennialPrice?.toString() || prev.triennialPrice,
+              // Savings
+              monthlySavings: data.monthlySavings?.toString() || prev.monthlySavings,
+              quarterlySavings: data.quarterlySavings?.toString() || prev.quarterlySavings,
+              yearlySavings: data.yearlySavings?.toString() || prev.yearlySavings,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching recurring prices:", error);
+      }
+    }
+    
+    fetchRecurringPrices();
+  }, [isEdit, productId]);
+
   function generateSlug(name: string) {
     return name
       .toLowerCase()

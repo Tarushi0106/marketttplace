@@ -22,6 +22,33 @@ function serialize(obj: any): any {
   return obj;
 }
 
+// GET - Fetch recurring prices for a product
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: productId } = await params;
+    
+    const recurringPrices = await prisma.productRecurringPrice.findFirst({
+      where: { productId },
+    });
+    
+    if (!recurringPrices) {
+      return NextResponse.json(null);
+    }
+    
+    return NextResponse.json(serialize(recurringPrices));
+  } catch (error) {
+    console.error("Error fetching recurring prices:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch recurring prices" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Save recurring prices for a product
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -142,28 +169,7 @@ export async function POST(
   } catch (error) {
     console.error("Error saving recurring prices:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to save recurring prices" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: productId } = await params;
-
-    const recurringPrices = await prisma.productRecurringPrice.findFirst({
-      where: { productId },
-    });
-
-    return NextResponse.json(serialize(recurringPrices));
-  } catch (error) {
-    console.error("Error fetching recurring prices:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch recurring prices" },
+      { error: error instanceof Error ? error.message : "Failed to save recurring prices" },     
       { status: 500 }
     );
   }
