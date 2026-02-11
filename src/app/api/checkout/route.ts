@@ -37,6 +37,10 @@ const checkoutItemSchema = z.object({
   variantId: z.string().optional().nullable(),
   bundleId: z.string().optional().nullable(),
   quantity: z.number().int().min(1).default(1),
+  // Pricing fields
+  baseProductPrice: z.number().optional().default(0), // One-time product price
+  recurringAmount: z.number().optional().default(0), // Recurring price per cycle
+  setupFee: z.number().optional().default(0), // One-time setup fee
   addons: z
     .array(
       z.object({
@@ -58,10 +62,12 @@ const checkoutItemSchema = z.object({
   unitPrice: z.number().optional(), // Pre-calculated unit price from cart
   // Recurring billing fields
   isRecurring: z.boolean().optional().default(false),
+  billingCycle: z.enum(["ONE_TIME", "MONTHLY", "BIMONTHLY", "QUARTERLY", "FOUR_MONTHLY", "SEMI_ANNUAL", "TRI_ANNUAL", "YEARLY", "BIENNIAL", "TRIENNIAL"]).optional(),
   recurringData: z.object({
     enabled: z.boolean(),
-    billingCycle: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
+    billingCycle: z.enum(["ONE_TIME", "MONTHLY", "BIMONTHLY", "QUARTERLY", "FOUR_MONTHLY", "SEMI_ANNUAL", "TRI_ANNUAL", "YEARLY", "BIENNIAL", "TRIENNIAL"]),
     setupFee: z.number().optional(),
+    baseProductPrice: z.number().optional(),
     preferredTime: z.string(),
     preferredDay: z.number().int().min(1).max(28),
     autoRenew: z.boolean(),
@@ -199,18 +205,30 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-
+        
         // Calculate setup fee if recurring billing
         const setupFee = item.isRecurring && item.recurringData?.setupFee 
           ? item.recurringData.setupFee 
-          : 0;
+          : (item.setupFee || 0);
+        
+        // Use billingCycle from item or recurringData
+        const billingCycle = item.billingCycle || (item.isRecurring && item.recurringData ? item.recurringData.billingCycle : "ONE_TIME");
         
         // Calculate recurring price per cycle (without setup fee)
-        const recurringPricePerCycle = item.isRecurring && item.recurringData 
-          ? unitPrice - setupFee 
-          : null;
+        // Use recurringAmount from item, or calculate from unitPrice if not provided
+        const recurringAmount = item.recurringAmount || (item.isRecurring ? (unitPrice - setupFee) : null);
         
-        console.log("Creating orderItem:", { productId: product.id, unitPrice, setupFee, recurringPrice: recurringPricePerCycle });
+        // Base product price (one-time price component)
+        const baseProductPrice = item.baseProductPrice || (item.recurringData?.baseProductPrice || (unitPrice - (item.isRecurring ? setupFee : 0)));
+        
+        console.log("Creating orderItem:", { 
+          productId: product.id, 
+          unitPrice, 
+          baseProductPrice,
+          setupFee, 
+          recurringAmount,
+          billingCycle 
+        });
         
         orderItems.push({
           productId: product.id,
@@ -241,12 +259,13 @@ export async function POST(request: NextRequest) {
                     item.configs.map((c) => [c.configId || "", c.value || ""])
                   )
                 : null),
+          // Pricing fields
+          baseProductPrice,
+          recurringAmount,
           // Recurring billing fields
-          billingCycle: item.isRecurring && item.recurringData 
-            ? item.recurringData.billingCycle 
-            : "ONE_TIME",
+          billingCycle,
           isRecurring: item.isRecurring || false,
-          recurringPrice: recurringPricePerCycle,
+          recurringPrice: recurringAmount,
           setupFee: setupFee > 0 ? setupFee : undefined,
         });
       } else if (item.bundleId) {
@@ -366,11 +385,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Collect recurring billing info for metadata
-    const recurringItems = data.items.filter(item => item.isRecurring && item.recurringData);
+    const recurringItems = data.items.filter(item => item.isRecurring && (item.recurringData || item.billingCycle));
     const recurringBillingMetadata = recurringItems.length > 0 ? recurringItems.map(item => ({
       productId: item.productId,
       variantId: item.variantId,
-      billingCycle: item.recurringData?.billingCycle,
+      billingCycle: item.billingCycle || item.recurringData?.billingCycle,
       preferredTime: item.recurringData?.preferredTime,
       preferredDay: item.recurringData?.preferredDay,
       autoRenew: item.recurringData?.autoRenew,

@@ -17,6 +17,11 @@ interface OrderItem {
   unitPrice: number;
   totalPrice: number;
   configuration?: Record<string, any> | null;
+  // Recurring billing fields
+  billingCycle?: "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | null | undefined;
+  isRecurring?: boolean;
+  recurringPrice?: number | null;
+  setupFee?: number | null;
 }
 
 interface Order {
@@ -24,12 +29,17 @@ interface Order {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  shippingAmount: number;
   total: number;
   currency: string;
   email: string;
   phone?: string | null;
   createdAt: string;
   items: OrderItem[];
+  metadata?: Record<string, any> | null;
   shippingAddress?: {
     firstName: string;
     lastName: string;
@@ -82,6 +92,39 @@ function formatConfigValue(key: string, value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
   return value;
+}
+
+// Billing cycle label helper
+function getBillingCycleLabel(cycle?: string): string {
+  const labels: Record<string, string> = {
+    ONE_TIME: "One-time",
+    MONTHLY: "Monthly",
+    BIMONTHLY: "Bi-Monthly",
+    QUARTERLY: "Quarterly",
+    FOUR_MONTHLY: "Four-Monthly",
+    SEMI_ANNUAL: "Semi-Annual",
+    TRI_ANNUAL: "Tri-Annual",
+    YEARLY: "Yearly",
+    BIENNIAL: "Biennial",
+    TRIENNIAL: "Triennial",
+  };
+  return labels[cycle || ""] || cycle || "";
+}
+
+// Get interval text for recurring
+function getRecurringInterval(billingCycle?: string): string {
+  const intervals: Record<string, string> = {
+    MONTHLY: "1 month",
+    BIMONTHLY: "2 months",
+    QUARTERLY: "3 months",
+    FOUR_MONTHLY: "4 months",
+    SEMI_ANNUAL: "6 months",
+    TRI_ANNUAL: "9 months",
+    YEARLY: "1 year",
+    BIENNIAL: "2 years",
+    TRIENNIAL: "3 years",
+  };
+  return intervals[billingCycle || ""] || "";
 }
 
 export default function CheckoutSuccessPage() {
@@ -310,17 +353,89 @@ export default function CheckoutSuccessPage() {
                         ))}
                       </div>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      {item.isRecurring && item.billingCycle && item.billingCycle !== 'ONE_TIME' && (
+                        <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200">
+                          {getBillingCycleLabel(item.billingCycle)}
+                        </span>
+                      )}
+                    </div>
+                    {item.setupFee && item.setupFee > 0 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        + {formatCurrency(item.setupFee, order.currency)} setup fee included
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
 
               <Separator />
 
-              {/* Total */}
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total Paid</span>
-                <span>{formatCurrency(order.total, order.currency)}</span>
+              {/* Order Summary - Full Pricing Breakdown */}
+              <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Order Summary</h3>
+                
+                {/* Product Price */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Product Price</span>
+                  <span>{formatCurrency(order.subtotal, order.currency)}</span>
+                </div>
+                
+                {/* Setup Fee */}
+                {order.items?.some(item => item.setupFee && item.setupFee > 0) && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Setup Fee</span>
+                    <span>{formatCurrency(
+                      order.items?.reduce((sum, item) => sum + (item.setupFee || 0), 0) || 0,
+                      order.currency
+                    )}</span>
+                  </div>
+                )}
+                
+                {/* Tax */}
+                {order.taxAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tax (GST)</span>
+                    <span>{formatCurrency(order.taxAmount, order.currency)}</span>
+                  </div>
+                )}
+                
+                {/* Discount */}
+                {order.discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount</span>
+                    <span>-{formatCurrency(order.discountAmount, order.currency)}</span>
+                  </div>
+                )}
+                
+                <Separator className="my-2" />
+                
+                {/* Total Paid Today */}
+                <div className="flex justify-between font-semibold text-lg">
+                  <span>Total Paid Today</span>
+                  <span className="text-primary">{formatCurrency(order.total, order.currency)}</span>
+                </div>
+                
+                {/* Recurring Plan Info */}
+                {order.items?.some(item => item.isRecurring && item.billingCycle !== 'ONE_TIME') && (
+                  <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                    <p className="text-sm font-medium text-primary mb-2">Recurring Plan</p>
+                    {order.items?.filter(item => item.isRecurring && item.billingCycle !== 'ONE_TIME').map((item, idx) => (
+                      <p key={idx} className="text-sm text-muted-foreground">
+                        You will be charged{' '}
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(item.recurringPrice || 0, order.currency)}
+                        </span>{' '}
+                        every{' '}
+                        <span className="font-medium text-foreground">
+                          {getRecurringInterval(item.billingCycle)}
+                        </span>{' '}
+                        according to your selected <span className="font-medium">{getBillingCycleLabel(item.billingCycle)}</span> plan.
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

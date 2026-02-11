@@ -70,6 +70,7 @@ export default function CartPage() {
     getSubtotal,
     getTax,
     getTotal,
+    getTodayTotal,
     getSetupFeeTotal,
     discountCode,
     discountAmount,
@@ -207,7 +208,7 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Selected configs */}
+                    {/* Selected configs (flat structure) */}
                     {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground">Configuration:</p>
@@ -222,23 +223,59 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Setup Fee display */}
-                    {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
+                    {/* Instance configurations */}
+                    {item.instances && item.instances.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs text-amber-600 font-medium">
-                          + Setup Fee: {formatCurrency(item.recurringData.setupFee)}
-                        </p>
+                        {item.instances.map((instance) => (
+                          <div key={instance.instanceId} className="mb-2">
+                            <p className="text-xs text-muted-foreground font-medium">{instance.instanceName}</p>
+                            {/* Instance configs */}
+                            {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
+                              <ul className="text-sm ml-2">
+                                {instance.selectedConfigs.map((config) => (
+                                  <li key={config.configId} className="text-muted-foreground">
+                                    {config.configName || config.configId}: {config.value}
+                                    {config.price != null && config.price > 0 && ` (+${formatCurrency(config.price)})`}
+                                    {config.quantity != null && config.quantity > 1 && ` x${config.quantity}`}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            {/* Instance addons */}
+                            {instance.selectedAddons && instance.selectedAddons.length > 0 && (
+                              <ul className="text-sm ml-2">
+                                {instance.selectedAddons.map((addon) => (
+                                  <li key={addon.addon?.id} className="text-muted-foreground">
+                                    + {addon.addon?.name} ({formatCurrency(addon.addon?.price || 0)})
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
 
-                    {/* Billing cycle display */}
-                    {item.isRecurring && item.billingCycle && (
-                      <div className="mt-2">
+                    {/* Price breakdown */}
+                    <div className="mt-2 space-y-1">
+                      {/* Recurring Price - main display */}
+                      {item.recurringAmount != null && item.recurringAmount > 0 ? (
                         <p className="text-xs text-muted-foreground">
-                          Billing: {item.billingCycle.replace('_', ' ')}
+                          {formatCurrency(item.totalPrice || item.recurringAmount || 0)}/{getBillingCycleLabel(item.billingCycle)}
                         </p>
-                      </div>
-                    )}
+                      ) : (
+                        // One-time price display
+                        <p className="text-xs text-muted-foreground">
+                          {formatCurrency(item.baseProductPrice || item.totalPrice || 0)}
+                        </p>
+                      )}
+                      {/* Setup Fee */}
+                      {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
+                        <p className="text-xs text-amber-600">
+                          + {formatCurrency(item.recurringData.setupFee)} setup
+                        </p>
+                      )}
+                    </div>
 
                     {/* Quantity and price */}
                     <div className="mt-4 flex items-center justify-between">
@@ -262,11 +299,14 @@ export default function CartPage() {
                         </Button>
                       </div>
                       <div className="text-right">
+                        {/* Show total due today (base price + setup fee) */}
                         <p className="font-semibold">
-                          {safeFormat(item.totalPrice, '/mo')}
+                          {formatCurrency(
+                            ((item.baseProductPrice || 0) + (item.recurringData?.setupFee || 0)) * (item.quantity || 1)
+                          )}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {safeFormat(item.unitPrice, '/mo each')}
+                          Total Due Today
                         </p>
                       </div>
                     </div>
@@ -333,21 +373,22 @@ export default function CartPage() {
 
               {/* Totals */}
               <div className="space-y-2">
+                {/* Due Today */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(getSubtotal())}</span>
+                  <span className="text-muted-foreground">Due Today</span>
+                  <span>{formatCurrency(getTodayTotal() + getTax() - discountAmount)}</span>
                 </div>
+                {/* Setup Fee */}
+                {getSetupFeeTotal() > 0 && (
+                  <div className="flex justify-between text-sm text-amber-600">
+                    <span className="font-medium">Setup Fee</span>
+                    <span>{formatCurrency(getSetupFeeTotal())}</span>
+                  </div>
+                )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-sm text-success">
                     <span>Discount</span>
                     <span>-{formatCurrency(discountAmount)}</span>
-                  </div>
-                )}
-                {/* Setup Fee display */}
-                {getSetupFeeTotal() > 0 && (
-                  <div className="flex justify-between text-sm text-amber-600">
-                    <span className="font-medium">Setup Fees</span>
-                    <span>{formatCurrency(getSetupFeeTotal())}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -355,10 +396,22 @@ export default function CartPage() {
                   <span>{formatCurrency(getTax())}</span>
                 </div>
                 <Separator />
+                {/* Total Due Today */}
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Total</span>
-                  <span>{formatCurrency(getTotal())}</span>
+                  <span>Total Due Today</span>
+                  <span>{formatCurrency(getTodayTotal() + getTax() - discountAmount)}</span>
                 </div>
+                {/* Recurring Total */}
+                {items.some(item => item.recurringAmount && item.recurringAmount > 0) && (
+                  <div className="bg-blue-50 p-3 rounded-md mt-2">
+                    <p className="text-sm font-medium text-blue-800">After Purchase:</p>
+                    {items.filter(item => item.recurringAmount && item.recurringAmount > 0).map(item => (
+                      <p key={item.id} className="text-xs text-blue-700">
+                        {item.product?.name || item.bundle?.name}: {formatCurrency(item.recurringAmount || 0)}/{getBillingCycleLabel(item.billingCycle)}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">

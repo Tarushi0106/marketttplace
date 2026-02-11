@@ -110,6 +110,11 @@ export default function CheckoutPage() {
               variantId: item.variant?.id || undefined,
               bundleId: item.bundle?.id || undefined,
               quantity: item.quantity,
+              baseProductPrice: item.baseProductPrice || 0,
+              recurringAmount: item.recurringAmount || 0,
+              billingCycle: item.billingCycle,
+              isRecurring: item.isRecurring || false,
+              setupFee: item.recurringData?.setupFee || 0,
               addons: (item.selectedAddons || [])
                 .filter((a) => a.addon?.id)
                 .map((a) => ({

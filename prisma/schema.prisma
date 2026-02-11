@@ -852,6 +852,11 @@ model OrderItem {
   // Configuration Details
   configuration   Json?    // Selected configs
   
+  // Pricing breakdown
+  baseProductPrice Decimal?  @db.Decimal(10, 2)  // One-time product price component
+  recurringAmount  Decimal?  @db.Decimal(10, 2)  // Recurring price per cycle
+  setupFee        Decimal?  @db.Decimal(10, 2)  // One-time setup fee
+  
   // Billing Information
   billingCycle    BillingCycle @default(ONE_TIME)
   isRecurring     Boolean      @default(false)

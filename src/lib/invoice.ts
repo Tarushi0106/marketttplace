@@ -14,7 +14,7 @@ interface OrderItemInterface {
   hsnCode?: string | null;
   cgstRate?: number | null;
   sgstRate?: number | null;
-  setupFee?: number | null;  // One-time setup fee for recurring products
+  setupFee?: number | null;
   isRecurring?: boolean | null;
   billingCycle?: string | null;
   recurringPrice?: number | null;
@@ -94,7 +94,7 @@ export function generateInvoiceNumber(): string {
 }
 
 /**
- * Format currency for display
+ * Format currency for display in INR
  */
 function formatCurrency(amount: number): string {
   return `Rs ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -110,13 +110,11 @@ function formatDate(date: Date | string | null | undefined): string {
 }
 
 /**
- * Generate invoice PDF buffer - Professional GST Compliant Invoice
+ * Generate professional invoice PDF buffer
  */
 export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Array> {
-  // Create new PDF document
+  // Create new PDF document (A4 size)
   const pdfDoc = await PDFDocument.create();
-
-  // Add page - A4 size
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
 
@@ -125,449 +123,388 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   // Colors
-  const primaryColor = rgb(0.1, 0.1, 0.1);
-  const secondaryColor = rgb(0.3, 0.3, 0.3);
-  const lightGray = rgb(0.7, 0.7, 0.7);
-  const veryLightGray = rgb(0.95, 0.95, 0.95);
-  const greenColor = rgb(0.1, 0.5, 0.1);
-  const whiteColor = rgb(1, 1, 1);
-  const darkGray = rgb(0.3, 0.3, 0.3);
+  const BLACK = rgb(0, 0, 0);
+  const DARK_GRAY = rgb(0.2, 0.2, 0.2);
+  const GRAY = rgb(0.4, 0.4, 0.4);
+  const LIGHT_GRAY = rgb(0.7, 0.7, 0.7);
+  const VERY_LIGHT_GRAY = rgb(0.95, 0.95, 0.95);
+  const GREEN = rgb(0, 0.4, 0);
+  const WHITE = rgb(1, 1, 1);
 
+  // Layout constants
+  const LEFT_MARGIN = 50;
+  const RIGHT_MARGIN = 50;
+  const PAGE_WIDTH = width;
+  const MAX_RIGHT = PAGE_WIDTH - RIGHT_MARGIN;
+  
   // Font sizes
-  const fontSize = {
-    header: 18,
-    title: 16,
-    subtitle: 12,
-    body: 9,
+  const sizes = {
+    h1: 20,
+    h2: 14,
+    h3: 12,
+    body: 10,
     small: 8,
     tiny: 7,
   };
 
-  let yPos = height - 50;
-  const leftMargin = 40;
-  const rightMargin = width - 40;
+  // Helper function for right-aligned text
+  const rightAlign = (text: string, font: any, fontSize: number) => {
+    const textWidth = font.widthOfTextAtSize(text, fontSize);
+    return MAX_RIGHT - textWidth;
+  };
 
-  // ==================== LOGO AND COMPANY INFO ====================
-  // Use simple text-based Shaurrya logo (no image to avoid blue color)
-  page.drawText("SHAURRYA", {
-    x: leftMargin,
-    y: yPos - 20,
-    size: 28,
+  // Helper function for left-aligned text at totals column
+  const totalsLeft = LEFT_MARGIN + 280;
+  const totalsRight = (text: string, font: any, fontSize: number) => {
+    const textWidth = font.widthOfTextAtSize(text, fontSize);
+    return MAX_RIGHT - textWidth;
+  };
+
+  // Track Y position for vertical layout
+  let y = height - 50;
+
+  // ==================== HEADER ====================
+  page.drawText("SHAURRYA TELESERVICES", {
+    x: LEFT_MARGIN,
+    y: y - 20,
+    size: sizes.h1,
     font: helveticaBold,
-    color: darkGray,
+    color: BLACK,
   });
-  yPos -= 25;
-  page.drawText("TELESERVICES", {
-    x: leftMargin,
-    y: yPos - 15,
-    size: 14,
+  
+  y -= 50;
+
+  // Company info
+  page.drawText("Laxmi Plaza, 213, Off New Link Rd, Laxmi Industrial Estate", {
+    x: LEFT_MARGIN,
+    y: y - 12,
+    size: sizes.body,
     font: helveticaFont,
-    color: secondaryColor,
+    color: DARK_GRAY,
   });
-  page.drawText("Pvt. Ltd", {
-    x: leftMargin,
-    y: yPos - 28,
-    size: 10,
+  page.drawText("Milat Nagar, Andheri West, Mumbai, Maharashtra 400053", {
+    x: LEFT_MARGIN,
+    y: y - 24,
+    size: sizes.body,
     font: helveticaFont,
-    color: secondaryColor,
+    color: DARK_GRAY,
+  });
+  page.drawText("PAN: ABCCS1234A | GST: 27ABCCS1234A1Z9", {
+    x: LEFT_MARGIN,
+    y: y - 36,
+    size: sizes.small,
+    font: helveticaFont,
+    color: GRAY,
   });
 
-  // Company address block
-  yPos -= 45;
-  page.drawText("603, Laxmi Plaza, Laxmi Industrial Estate", {
-    x: leftMargin,
-    y: yPos,
-    size: 9,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  yPos -= 12;
-  page.drawText("Sab TV Lane, Andheri West, Mumbai 400053", {
-    x: leftMargin,
-    y: yPos,
-    size: 9,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  yPos -= 12;
-  page.drawText("PAN: ABCCS1234A | MSME: MH27D0012345", {
-    x: leftMargin,
-    y: yPos,
-    size: 9,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-
-  // Right side - TAX INVOICE box
-  const invoiceBoxX = width - 170;
+  // TAX INVOICE box
+  const invoiceBoxWidth = 130;
+  const invoiceBoxX = MAX_RIGHT - invoiceBoxWidth;
   page.drawRectangle({
-    x: invoiceBoxX - 15,
-    y: yPos - 50,
-    width: 155,
-    height: 55,
-    color: veryLightGray,
-    borderColor: lightGray,
+    x: invoiceBoxX - 10,
+    y: y - 55,
+    width: invoiceBoxWidth + 10,
+    height: 50,
+    color: VERY_LIGHT_GRAY,
+    borderColor: LIGHT_GRAY,
     borderWidth: 1,
   });
-
   page.drawText("TAX INVOICE", {
     x: invoiceBoxX,
-    y: yPos - 20,
-    size: 20,
+    y: y - 20,
+    size: sizes.h2,
     font: helveticaBold,
-    color: darkGray,
+    color: BLACK,
   });
 
-  // Invoice number
   const invoiceNumber = generateInvoiceNumber();
-  page.drawText(`Inv #: ${invoiceNumber}`, {
+  page.drawText(`Invoice #: ${invoiceNumber}`, {
     x: invoiceBoxX,
-    y: yPos - 38,
-    size: 10,
+    y: y - 35,
+    size: sizes.body,
     font: helveticaFont,
-    color: primaryColor,
+    color: DARK_GRAY,
   });
-
-  // Date
   page.drawText(`Date: ${formatDate(order.createdAt)}`, {
     x: invoiceBoxX,
-    y: yPos - 52,
-    size: 10,
+    y: y - 48,
+    size: sizes.body,
     font: helveticaFont,
-    color: secondaryColor,
+    color: DARK_GRAY,
   });
 
-  // PAID status box
+  // PAID stamp
   if (order.paymentStatus === "PAID") {
     page.drawRectangle({
-      x: invoiceBoxX + 75,
-      y: yPos - 45,
-      width: 50,
-      height: 18,
-      color: greenColor,
+      x: invoiceBoxX + 60,
+      y: y - 35,
+      width: 55,
+      height: 20,
+      color: GREEN,
     });
     page.drawText("PAID", {
-      x: invoiceBoxX + 83,
-      y: yPos - 38,
-      size: 10,
+      x: invoiceBoxX + 68,
+      y: y - 28,
+      size: sizes.body,
       font: helveticaBold,
-      color: whiteColor,
+      color: WHITE,
     });
   }
 
-  // Divider line
-  yPos -= 55;
+  y -= 65;
+
+  // Header divider
   page.drawLine({
-    start: { x: leftMargin, y: yPos },
-    end: { x: rightMargin, y: yPos },
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
     thickness: 2,
-    color: darkGray,
+    color: BLACK,
   });
 
-  yPos -= 15;
+  y -= 25;
 
-  // ==================== INVOICE INFO SECTION (3 COLUMNS) ====================
-  const col1X = leftMargin;
-  const col2X = leftMargin + 140;
-  const col3X = leftMargin + 300;
+  // ==================== BILL TO & SHIP TO ====================
+  const col1X = LEFT_MARGIN;
+  const col2X = LEFT_MARGIN + 160;
+  const col3X = LEFT_MARGIN + 320;
 
-  // LEFT COLUMN - Invoice Details
-  page.drawText("Invoice Date", {
+  // Bill To
+  page.drawText("BILL TO", {
     x: col1X,
-    y: yPos,
-    size: fontSize.tiny,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  page.drawText(formatDate(order.createdAt), {
-    x: col1X,
-    y: yPos - 10,
-    size: fontSize.body,
+    y: y,
+    size: sizes.tiny,
     font: helveticaBold,
-    color: primaryColor,
+    color: GRAY,
   });
-
-  yPos -= 25;
-  page.drawText("Terms", {
-    x: col1X,
-    y: yPos,
-    size: fontSize.tiny,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  page.drawText("Due on Receipt", {
-    x: col1X,
-    y: yPos - 10,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-
-  yPos -= 25;
-  page.drawText("Due Date", {
-    x: col1X,
-    y: yPos,
-    size: fontSize.tiny,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  page.drawText(formatDate(order.dueDate), {
-    x: col1X,
-    y: yPos - 10,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-
-  yPos -= 25;
-  if (order.poNumber) {
-    page.drawText("P.O #", {
-      x: col1X,
-      y: yPos,
-      size: fontSize.tiny,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    page.drawText(order.poNumber, {
-      x: col1X,
-      y: yPos - 10,
-      size: fontSize.body,
-      font: helveticaBold,
-      color: primaryColor,
-    });
-    yPos -= 25;
-  }
-
-  if (order.billingCycle) {
-    page.drawText("Billing Cycle", {
-      x: col1X,
-      y: yPos,
-      size: fontSize.tiny,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    page.drawText(order.billingCycle, {
-      x: col1X,
-      y: yPos - 10,
-      size: fontSize.body,
-      font: helveticaBold,
-      color: primaryColor,
-    });
-    yPos -= 25;
-  }
-
-  if (order.hostname) {
-    page.drawText("Hostname", {
-      x: col1X,
-      y: yPos,
-      size: fontSize.tiny,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-    page.drawText(order.hostname, {
-      x: col1X,
-      y: yPos - 10,
-      size: fontSize.body,
-      font: helveticaBold,
-      color: primaryColor,
-    });
-  }
-
-  // Reset yPos for right columns
-  yPos = height - 230;
-
-  // MIDDLE COLUMN - Bill To
-  page.drawText("Bill To:", {
-    x: col2X,
-    y: yPos,
-    size: fontSize.tiny,
-    font: helveticaBold,
-    color: secondaryColor,
-  });
-  yPos -= 12;
+  y -= 12;
 
   const billingAddr = order.billingAddress || order.shippingAddress;
   if (billingAddr?.company) {
     page.drawText(billingAddr.company, {
-      x: col2X,
-      y: yPos,
-      size: fontSize.body,
+      x: col1X,
+      y: y,
+      size: sizes.body,
       font: helveticaBold,
-      color: primaryColor,
+      color: BLACK,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
   if (billingAddr?.firstName || billingAddr?.lastName) {
     page.drawText(`${billingAddr.firstName || ''} ${billingAddr.lastName || ''}`, {
-      x: col2X,
-      y: yPos,
-      size: fontSize.body,
+      x: col1X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: DARK_GRAY,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
   if (billingAddr?.address1) {
     page.drawText(billingAddr.address1, {
-      x: col2X,
-      y: yPos,
-      size: fontSize.body,
+      x: col1X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: DARK_GRAY,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
-  if (billingAddr?.city || billingAddr?.state || billingAddr?.postalCode) {
-    const cityLine = `${billingAddr.city || ''}${billingAddr.city && billingAddr.state ? ', ' : ''}${billingAddr.state || ''} ${billingAddr.postalCode || ''}`;
+  if (billingAddr?.address2) {
+    page.drawText(billingAddr.address2, {
+      x: col1X,
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: DARK_GRAY,
+    });
+    y -= 12;
+  }
+
+  const cityLine = `${billingAddr?.city || ''}${billingAddr?.city && billingAddr?.state ? ', ' : ''}${billingAddr?.state || ''} ${billingAddr?.postalCode || ''}`;
+  if (cityLine.trim()) {
     page.drawText(cityLine, {
-      x: col2X,
-      y: yPos,
-      size: fontSize.body,
+      x: col1X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: DARK_GRAY,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
-  if (billingAddr?.gstin) {
-    page.drawText(`GSTIN: ${billingAddr.gstin}`, {
-      x: col2X,
-      y: yPos,
-      size: fontSize.small,
+  if (billingAddr?.phone) {
+    page.drawText(`Ph: ${billingAddr.phone}`, {
+      x: col1X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
   }
 
-  // RIGHT COLUMN - Ship To
-  yPos = height - 230;
-  page.drawText("Ship To:", {
-    x: col3X,
-    y: yPos,
-    size: fontSize.tiny,
+  // Ship To
+  y = height - 140;
+
+  page.drawText("SHIP TO", {
+    x: col2X,
+    y: y,
+    size: sizes.tiny,
     font: helveticaBold,
-    color: secondaryColor,
+    color: GRAY,
   });
-  yPos -= 12;
+  y -= 12;
 
   const shippingAddr = order.shippingAddress;
   if (shippingAddr?.company) {
     page.drawText(shippingAddr.company, {
-      x: col3X,
-      y: yPos,
-      size: fontSize.body,
+      x: col2X,
+      y: y,
+      size: sizes.body,
       font: helveticaBold,
-      color: primaryColor,
+      color: BLACK,
     });
-    yPos -= 12;
+    y -= 12;
+  }
+
+  if (shippingAddr?.firstName || shippingAddr?.lastName) {
+    page.drawText(`${shippingAddr.firstName || ''} ${shippingAddr.lastName || ''}`, {
+      x: col2X,
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: DARK_GRAY,
+    });
+    y -= 12;
   }
 
   if (shippingAddr?.address1) {
     page.drawText(shippingAddr.address1, {
-      x: col3X,
-      y: yPos,
-      size: fontSize.body,
+      x: col2X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: DARK_GRAY,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
   if (shippingAddr?.city || shippingAddr?.state || shippingAddr?.postalCode) {
     const shipCityLine = `${shippingAddr.city || ''}${shippingAddr.city && shippingAddr.state ? ', ' : ''}${shippingAddr.state || ''} ${shippingAddr.postalCode || ''}`;
     page.drawText(shipCityLine, {
-      x: col3X,
-      y: yPos,
-      size: fontSize.body,
+      x: col2X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: DARK_GRAY,
     });
-    yPos -= 12;
+    y -= 12;
   }
 
-  if (shippingAddr?.gstin) {
-    page.drawText(`GSTIN: ${shippingAddr.gstin}`, {
-      x: col3X,
-      y: yPos,
-      size: fontSize.small,
+  if (shippingAddr?.phone) {
+    page.drawText(`Ph: ${shippingAddr.phone}`, {
+      x: col2X,
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
   }
 
-  // Place of Supply
-  yPos -= 20;
-  const placeOfSupply = order.placeOfSupply || billingAddr?.state || "Maharashtra";
-  const placeOfSupplyCode = order.placeOfSupply ? "" : " (27)";
-  page.drawText(`Place of Supply: ${placeOfSupply}${placeOfSupplyCode}`, {
+  // Order Details
+  y = height - 140;
+  page.drawText("ORDER DETAILS", {
     x: col3X,
-    y: yPos,
-    size: fontSize.body,
+    y: y,
+    size: sizes.tiny,
     font: helveticaBold,
-    color: primaryColor,
+    color: GRAY,
+  });
+  y -= 12;
+
+  if (order.orderNumber) {
+    page.drawText(`Order #: ${order.orderNumber}`, {
+      x: col3X,
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: DARK_GRAY,
+    });
+    y -= 12;
+  }
+
+  page.drawText(`Payment: ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'}`, {
+    x: col3X,
+    y: y,
+    size: sizes.body,
+    font: helveticaFont,
+    color: DARK_GRAY,
+  });
+  y -= 12;
+
+  page.drawText(`Status: ${order.paymentStatus || order.status || 'Pending'}`, {
+    x: col3X,
+    y: y,
+    size: sizes.body,
+    font: helveticaFont,
+    color: GREEN,
   });
 
-  // Divider line
-  yPos -= 15;
+  y -= 30;
+
+  // Divider
   page.drawLine({
-    start: { x: leftMargin, y: yPos },
-    end: { x: rightMargin, y: yPos },
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
     thickness: 1,
-    color: lightGray,
+    color: LIGHT_GRAY,
   });
+
+  y -= 20;
 
   // ==================== ITEMS TABLE ====================
-  yPos -= 10;
-
-  // Table header background
+  const tableWidth = MAX_RIGHT - LEFT_MARGIN;
   page.drawRectangle({
-    x: leftMargin,
-    y: yPos - 3,
-    width: width - 80,
+    x: LEFT_MARGIN,
+    y: y - 3,
+    width: tableWidth,
     height: 18,
-    color: veryLightGray,
+    color: VERY_LIGHT_GRAY,
   });
 
-  // Table header text
-  const colX = {
-    item: leftMargin + 5,
-    desc: leftMargin + 60,
-    hsn: leftMargin + 200,
-    qty: leftMargin + 255,
-    unit: leftMargin + 290,
-    rate: leftMargin + 325,
-    cgst: leftMargin + 365,
-    sgst: leftMargin + 405,
-    amount: leftMargin + 445,
+  const cols = {
+    item: LEFT_MARGIN + 5,
+    desc: LEFT_MARGIN + 50,
+    hsn: LEFT_MARGIN + 200,
+    qty: LEFT_MARGIN + 250,
+    rate: LEFT_MARGIN + 290,
+    amount: MAX_RIGHT - 80,
   };
 
-  page.drawText("Item", { x: colX.item, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("Description", { x: colX.desc, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("HSN/SAC", { x: colX.hsn, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("Qty", { x: colX.qty, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("Units", { x: colX.unit, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("Rate", { x: colX.rate, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("CGST", { x: colX.cgst, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("SGST", { x: colX.sgst, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
-  page.drawText("Amount", { x: colX.amount, y: yPos, size: fontSize.tiny, font: helveticaBold, color: secondaryColor });
+  page.drawText("Item", { x: cols.item, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
+  page.drawText("Description", { x: cols.desc, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
+  page.drawText("HSN", { x: cols.hsn, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
+  page.drawText("Qty", { x: cols.qty, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
+  page.drawText("Rate", { x: cols.rate, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
+  page.drawText("Amount", { x: cols.amount, y: y, size: sizes.tiny, font: helveticaBold, color: GRAY });
 
-  yPos -= 22;
+  y -= 22;
   page.drawLine({
-    start: { x: leftMargin, y: yPos },
-    end: { x: rightMargin, y: yPos },
-    thickness: 0.5,
-    color: lightGray,
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
+    thickness: 1,
+    color: LIGHT_GRAY,
   });
-  yPos -= 5;
+  y -= 8;
 
   // Draw items
   const items = order.items || [];
   let subtotal = 0;
   let totalCgst = 0;
   let totalSgst = 0;
+  let oneTimeTotal = 0;
 
   for (const item of items) {
     if (!item) continue;
@@ -575,519 +512,378 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
     const quantity = Number(item.quantity) || 1;
     const unitPrice = Number(item.unitPrice) || 0;
     const itemTotal = quantity * unitPrice;
+    const cgstRate = Number(item.cgstRate) || 0;
+    const sgstRate = Number(item.sgstRate) || 0;
     const setupFee = Number(item.setupFee) || 0;
-    const cgstRate = Number(item.cgstRate) || 9;
-    const sgstRate = Number(item.sgstRate) || 9;
-    const cgstAmount = (itemTotal * cgstRate) / 100;
-    const sgstAmount = (itemTotal * sgstRate) / 100;
-
+    
     subtotal += itemTotal;
-    totalCgst += cgstAmount;
-    totalSgst += sgstAmount;
-
-    let itemName = item.name || item.product?.name || "Item";
-    const description = item.description || "";
-    const hsnCode = item.hsnCode || "998313";
-
-    // If recurring, add billing cycle to name
-    if (item.isRecurring && item.billingCycle) {
-      itemName = `${itemName} (${item.billingCycle})`;
-    }
+    totalCgst += (itemTotal * cgstRate) / 100;
+    totalSgst += (itemTotal * sgstRate) / 100;
+    oneTimeTotal += setupFee * quantity;
 
     // Item name
-    page.drawText(itemName.substring(0, 18), {
-      x: colX.item,
-      y: yPos,
-      size: fontSize.body,
+    let itemName = item.product?.name || item.name || "Item";
+    if (item.variant && typeof item.variant === 'object') {
+      itemName += ` - ${(item.variant as any).name || ''}`;
+    }
+    page.drawText(itemName.substring(0, 25), {
+      x: cols.item,
+      y: y,
+      size: sizes.small,
       font: helveticaBold,
-      color: primaryColor,
+      color: BLACK,
     });
 
     // Description
-    page.drawText(description.substring(0, 45), {
-      x: colX.desc,
-      y: yPos,
-      size: fontSize.small,
+    const desc = item.description ? item.description.substring(0, 30) : "";
+    page.drawText(desc, {
+      x: cols.desc,
+      y: y,
+      size: sizes.small,
       font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
 
-    // HSN/SAC
-    page.drawText(hsnCode, {
-      x: colX.hsn,
-      y: yPos,
-      size: fontSize.small,
+    // HSN
+    page.drawText(item.hsnCode || "-", {
+      x: cols.hsn,
+      y: y,
+      size: sizes.small,
       font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
 
-    // Quantity
+    // Qty
     page.drawText(quantity.toString(), {
-      x: colX.qty,
-      y: yPos,
-      size: fontSize.small,
+      x: cols.qty + 5,
+      y: y,
+      size: sizes.small,
       font: helveticaFont,
-      color: secondaryColor,
-    });
-
-    // Units
-    page.drawText("NOS", {
-      x: colX.unit,
-      y: yPos,
-      size: fontSize.small,
-      font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
 
     // Rate
     page.drawText(formatCurrency(unitPrice), {
-      x: colX.rate,
-      y: yPos,
-      size: fontSize.small,
+      x: cols.rate,
+      y: y,
+      size: sizes.small,
       font: helveticaFont,
-      color: secondaryColor,
-    });
-
-    // CGST
-    page.drawText(`${cgstRate}%`, {
-      x: colX.cgst,
-      y: yPos,
-      size: fontSize.small,
-      font: helveticaFont,
-      color: secondaryColor,
-    });
-
-    // SGST
-    page.drawText(`${sgstRate}%`, {
-      x: colX.sgst,
-      y: yPos,
-      size: fontSize.small,
-      font: helveticaFont,
-      color: secondaryColor,
+      color: DARK_GRAY,
     });
 
     // Amount
     page.drawText(formatCurrency(itemTotal), {
-      x: colX.amount,
-      y: yPos,
-      size: fontSize.small,
+      x: cols.amount,
+      y: y,
+      size: sizes.small,
       font: helveticaBold,
-      color: primaryColor,
+      color: BLACK,
     });
 
-    yPos -= 15;
+    y -= 18;
 
-    // If there's a setup fee, add it as a separate line item
+    // Setup fee
     if (setupFee > 0) {
-      const setupFeeTotal = setupFee * quantity;
-      const setupCgstAmount = (setupFeeTotal * cgstRate) / 100;
-      const setupSgstAmount = (setupFeeTotal * sgstRate) / 100;
+      const setupTotal = setupFee * quantity;
+      const setupCgst = (setupTotal * cgstRate) / 100;
+      const setupSgst = (setupTotal * sgstRate) / 100;
       
-      subtotal += setupFeeTotal;
-      totalCgst += setupCgstAmount;
-      totalSgst += setupSgstAmount;
+      totalCgst += setupCgst;
+      totalSgst += setupSgst;
 
-      // Setup fee name
-      page.drawText("Setup Fee", {
-        x: colX.item,
-        y: yPos,
-        size: fontSize.small,
+      page.drawText("  + One-Time Setup Fee", {
+        x: cols.item,
+        y: y,
+        size: sizes.small,
         font: helveticaFont,
-        color: secondaryColor,
+        color: GRAY,
       });
-
-      // Setup fee description
-      page.drawText("(One-time fee for recurring billing)", {
-        x: colX.desc,
-        y: yPos,
-        size: fontSize.small,
+      page.drawText(formatCurrency(setupTotal), {
+        x: cols.amount,
+        y: y,
+        size: sizes.small,
         font: helveticaFont,
-        color: secondaryColor,
+        color: DARK_GRAY,
       });
-
-      // Quantity
-      page.drawText(quantity.toString(), {
-        x: colX.qty,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      // Units
-      page.drawText("NOS", {
-        x: colX.unit,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      // Rate
-      page.drawText(formatCurrency(setupFee), {
-        x: colX.rate,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      // CGST
-      page.drawText(`${cgstRate}%`, {
-        x: colX.cgst,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      // SGST
-      page.drawText(`${sgstRate}%`, {
-        x: colX.sgst,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      // Amount
-      page.drawText(formatCurrency(setupFeeTotal), {
-        x: colX.amount,
-        y: yPos,
-        size: fontSize.small,
-        font: helveticaFont,
-        color: secondaryColor,
-      });
-
-      yPos -= 15;
+      y -= 18;
     }
-
-    // Table row divider
-    page.drawLine({
-      start: { x: leftMargin, y: yPos },
-      end: { x: rightMargin, y: yPos },
-      thickness: 0.3,
-      color: lightGray,
-    });
-    yPos -= 5;
 
     // Check for page break
-    if (yPos < 100) {
+    if (y < 120) {
       pdfDoc.addPage();
-      const newPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
-      yPos = height - 50;
+      y = height - 50;
     }
   }
 
-  // ==================== SUMMARY SECTION ====================
-  yPos -= 10;
+  y -= 15;
 
-  // Totals box on right side
-  const totalsBoxX = width - 180;
-  const totalsBoxWidth = 135;
+  // ==================== TOTALS SECTION ====================
+  page.drawLine({
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
+    thickness: 1,
+    color: LIGHT_GRAY,
+  });
+
+  y -= 15;
+
+  // Totals block - right aligned with font width calculation
+  const totalsBlockX = MAX_RIGHT - 180;
+  const totalsBlockWidth = 170;
 
   // Subtotal
-  page.drawText("Sub Total:", {
-    x: totalsBoxX,
-    y: yPos,
-    size: fontSize.body,
+  const subtotalText = "Subtotal";
+  const subtotalAmount = formatCurrency(subtotal);
+  page.drawText(subtotalText, {
+    x: totalsBlockX,
+    y: y,
+    size: sizes.body,
     font: helveticaBold,
-    color: primaryColor,
+    color: DARK_GRAY,
   });
-  page.drawText(formatCurrency(subtotal), {
-    x: totalsBoxX + totalsBoxWidth - 80,
-    y: yPos,
-    size: fontSize.body,
+  page.drawText(subtotalAmount, {
+    x: totalsRight(subtotalAmount, helveticaFont, sizes.body),
+    y: y,
+    size: sizes.body,
     font: helveticaFont,
-    color: primaryColor,
+    color: BLACK,
   });
-  yPos -= 14;
+  y -= 14;
+
+  // One-Time Charges
+  if (oneTimeTotal > 0) {
+    const chargesText = "One-Time Charges";
+    const chargesAmount = formatCurrency(oneTimeTotal);
+    page.drawText(chargesText, {
+      x: totalsBlockX,
+      y: y,
+      size: sizes.body,
+      font: helveticaBold,
+      color: DARK_GRAY,
+    });
+    page.drawText(chargesAmount, {
+      x: totalsRight(chargesAmount, helveticaFont, sizes.body),
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: BLACK,
+    });
+    y -= 14;
+  }
 
   // CGST
-  page.drawText(`CGST ${totalCgst > 0 ? '9%' : '0%'}:`, {
-    x: totalsBoxX,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-  page.drawText(formatCurrency(totalCgst), {
-    x: totalsBoxX + totalsBoxWidth - 80,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  yPos -= 14;
+  if (totalCgst > 0) {
+    const cgstText = "CGST";
+    const cgstAmount = formatCurrency(totalCgst);
+    page.drawText(cgstText, {
+      x: totalsBlockX,
+      y: y,
+      size: sizes.body,
+      font: helveticaBold,
+      color: DARK_GRAY,
+    });
+    page.drawText(cgstAmount, {
+      x: totalsRight(cgstAmount, helveticaFont, sizes.body),
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: BLACK,
+    });
+    y -= 14;
+  }
 
   // SGST
-  page.drawText(`SGST ${totalSgst > 0 ? '9%' : '0%'}:`, {
-    x: totalsBoxX,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaBold,
-    color: primaryColor,
-  });
-  page.drawText(formatCurrency(totalSgst), {
-    x: totalsBoxX + totalsBoxWidth - 80,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  yPos -= 14;
+  if (totalSgst > 0) {
+    const sgstText = "SGST";
+    const sgstAmount = formatCurrency(totalSgst);
+    page.drawText(sgstText, {
+      x: totalsBlockX,
+      y: y,
+      size: sizes.body,
+      font: helveticaBold,
+      color: DARK_GRAY,
+    });
+    page.drawText(sgstAmount, {
+      x: totalsRight(sgstAmount, helveticaFont, sizes.body),
+      y: y,
+      size: sizes.body,
+      font: helveticaFont,
+      color: BLACK,
+    });
+    y -= 14;
+  }
 
-  // Discount if applicable
+  // Discount
   if (order.discountAmount && Number(order.discountAmount) > 0) {
-    page.drawText("Discount:", {
-      x: totalsBoxX,
-      y: yPos,
-      size: fontSize.body,
+    const discountText = "Discount";
+    const discountAmount = `-${formatCurrency(Number(order.discountAmount))}`;
+    page.drawText(discountText, {
+      x: totalsBlockX,
+      y: y,
+      size: sizes.body,
       font: helveticaBold,
-      color: primaryColor,
+      color: GREEN,
     });
-    page.drawText(`-${formatCurrency(Number(order.discountAmount))}`, {
-      x: totalsBoxX + totalsBoxWidth - 80,
-      y: yPos,
-      size: fontSize.body,
+    page.drawText(discountAmount, {
+      x: totalsRight(discountAmount, helveticaFont, sizes.body),
+      y: y,
+      size: sizes.body,
       font: helveticaFont,
-      color: primaryColor,
+      color: GREEN,
     });
-    yPos -= 14;
+    y -= 14;
   }
 
-  // Divider line
-  yPos -= 2;
+  y -= 6;
+
+  // Total divider line
   page.drawLine({
-    start: { x: totalsBoxX, y: yPos },
-    end: { x: totalsBoxX + totalsBoxWidth, y: yPos },
-    thickness: 1,
-    color: primaryColor,
+    start: { x: totalsBlockX, y: y },
+    end: { x: MAX_RIGHT, y: y },
+    thickness: 2,
+    color: BLACK,
   });
-  yPos -= 10;
 
-  // Total
-  const total = Number(order.total) || (subtotal + totalCgst + totalSgst - Number(order.discountAmount || 0));
-  page.drawText("Total Amount:", {
-    x: totalsBoxX,
-    y: yPos,
-    size: fontSize.title,
+  y -= 12;
+
+  // DUE TODAY
+  const dueToday = subtotal + oneTimeTotal + totalCgst + totalSgst - Number(order.discountAmount || 0);
+  const dueTodayLabel = "DUE TODAY";
+  const dueTodayAmount = formatCurrency(dueToday);
+  
+  page.drawText(dueTodayLabel, {
+    x: totalsBlockX,
+    y: y,
+    size: sizes.h3,
     font: helveticaBold,
-    color: primaryColor,
+    color: BLACK,
   });
-  page.drawText(formatCurrency(total), {
-    x: totalsBoxX + totalsBoxWidth - 80,
-    y: yPos,
-    size: fontSize.title,
+  page.drawText(dueTodayAmount, {
+    x: totalsRight(dueTodayAmount, helveticaBold, sizes.h3),
+    y: y,
+    size: sizes.h3,
     font: helveticaBold,
-    color: primaryColor,
+    color: BLACK,
   });
-  yPos -= 14;
 
-  // Payment Made
-  if (order.paymentMade && Number(order.paymentMade) > 0) {
-    page.drawText("Payment Made:", {
-      x: totalsBoxX,
-      y: yPos,
-      size: fontSize.body,
-      font: helveticaBold,
-      color: greenColor,
-    });
-    page.drawText(`-${formatCurrency(Number(order.paymentMade))}`, {
-      x: totalsBoxX + totalsBoxWidth - 80,
-      y: yPos,
-      size: fontSize.body,
-      font: helveticaFont,
-      color: greenColor,
-    });
-    yPos -= 14;
+  y -= 18;
 
-    // Balance Due
-    const balanceDue = total - Number(order.paymentMade);
-    if (balanceDue > 0) {
-      page.drawText("Balance Due:", {
-        x: totalsBoxX,
-        y: yPos,
-        size: fontSize.title,
-        font: helveticaBold,
-        color: primaryColor,
-      });
-      page.drawText(formatCurrency(balanceDue), {
-        x: totalsBoxX + totalsBoxWidth - 80,
-        y: yPos,
-        size: fontSize.title,
-        font: helveticaBold,
-        color: primaryColor,
-      });
+  // Billing frequency note
+  if (order.billingCycle && order.billingCycle !== 'ONE_TIME') {
+    let billingNote = "";
+    if (order.billingCycle === 'MONTHLY') {
+      billingNote = "Monthly billing";
+    } else if (order.billingCycle === 'BIMONTHLY') {
+      billingNote = "Every 2 months";
+    } else if (order.billingCycle === 'QUARTERLY') {
+      billingNote = "Quarterly billing";
+    } else if (order.billingCycle === 'YEARLY') {
+      billingNote = "Yearly billing";
+    } else {
+      billingNote = order.billingCycle.toLowerCase();
     }
+    
+    page.drawText(billingNote, {
+      x: totalsBlockX,
+      y: y,
+      size: sizes.small,
+      font: helveticaFont,
+      color: GRAY,
+    });
   }
 
-  // ==================== FOOTER SECTION ====================
-  yPos -= 30;
+  y -= 30;
+
+  // ==================== FOOTER ====================
   page.drawLine({
-    start: { x: leftMargin, y: yPos },
-    end: { x: rightMargin, y: yPos },
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
     thickness: 1,
-    color: lightGray,
+    color: LIGHT_GRAY,
   });
-  yPos -= 15;
 
-  const footerCol1X = leftMargin;
-  const footerCol2X = leftMargin + 180;
-  const footerCol3X = leftMargin + 350;
+  y -= 20;
 
-  // LEFT - Notes and Bank Details
-  page.drawText("Notes:", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.tiny,
+  const footCol1 = LEFT_MARGIN;
+  const footCol2 = LEFT_MARGIN + 180;
+  const footCol3 = MAX_RIGHT - 100;
+
+  // Bank Details
+  page.drawText("Bank Details", {
+    x: footCol1,
+    y: y,
+    size: sizes.tiny,
     font: helveticaBold,
-    color: secondaryColor,
+    color: GRAY,
   });
-  yPos -= 10;
-  page.drawText("Thank you for your business!", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.body,
+  y -= 12;
+  page.drawText("Bank: HDFC Bank | A/c: 50100123456789 | IFSC: HDFC0001234", {
+    x: footCol1,
+    y: y,
+    size: sizes.small,
     font: helveticaFont,
-    color: primaryColor,
+    color: DARK_GRAY,
   });
-  yPos -= 15;
 
-  page.drawText("Bank Details:", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.tiny,
+  // Payment Info
+  page.drawText("Payment Via", {
+    x: footCol2,
+    y: y,
+    size: sizes.tiny,
     font: helveticaBold,
-    color: secondaryColor,
+    color: GRAY,
   });
-  yPos -= 10;
-  page.drawText("Bank Name: HDFC Bank", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  yPos -= 10;
-  page.drawText("A/c No.: 50100123456789", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-  yPos -= 10;
-  page.drawText("IFSC Code: HDFC0001234", {
-    x: footerCol1X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: primaryColor,
-  });
-
-  // CENTER - Terms & Conditions
-  page.drawText("Terms & Conditions:", {
-    x: footerCol2X,
-    y: yPos + 40,
-    size: fontSize.tiny,
+  y -= 12;
+  const paymentMethod = order.paymentMethod === 'razorpay' ? 'Razorpay' : 
+                        order.paymentMethod === 'stripe' ? 'Stripe' :
+                        order.paymentMethod === 'cod' ? 'Cash on Delivery' : 
+                        order.paymentMethod?.toUpperCase() || 'N/A';
+  page.drawText(paymentMethod, {
+    x: footCol2,
+    y: y,
+    size: sizes.body,
     font: helveticaBold,
-    color: secondaryColor,
-  });
-  yPos -= 10;
-  page.drawText("1. Payment is due within 30 days of invoice date.", {
-    x: footerCol2X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  yPos -= 10;
-  page.drawText("2. All prices are exclusive of GST unless specified.", {
-    x: footerCol2X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  yPos -= 10;
-  page.drawText("3. Services once rendered cannot be refunded.", {
-    x: footerCol2X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-  yPos -= 10;
-  page.drawText("4. Dispute, if any, shall be subject to Mumbai jurisdiction.", {
-    x: footerCol2X,
-    y: yPos,
-    size: fontSize.small,
-    font: helveticaFont,
-    color: secondaryColor,
+    color: BLACK,
   });
 
-  // RIGHT - Authorized Signature
-  page.drawText("Authorized Signatory", {
-    x: footerCol3X,
-    y: yPos + 40,
-    size: fontSize.tiny,
-    font: helveticaBold,
-    color: secondaryColor,
-  });
-  yPos -= 25;
-  page.drawRectangle({
-    x: footerCol3X - 10,
-    y: yPos - 20,
-    width: 100,
-    height: 35,
-    color: veryLightGray,
-  });
-  page.drawText("(Digitally Signed)", {
-    x: footerCol3X,
-    y: yPos - 10,
-    size: fontSize.tiny,
-    font: helveticaFont,
-    color: secondaryColor,
-  });
-
-  // BOTTOM - Amount in words and certification
-  yPos -= 35;
+  // Amount in words
+  y -= 35;
   page.drawLine({
-    start: { x: leftMargin, y: yPos },
-    end: { x: rightMargin, y: yPos },
+    start: { x: LEFT_MARGIN, y: y },
+    end: { x: MAX_RIGHT, y: y },
     thickness: 1,
-    color: lightGray,
+    color: LIGHT_GRAY,
   });
-  yPos -= 15;
 
-  // Total amount in words
-  const amountInWords = convertNumberToWords(total);
-  page.drawText(`Total Amount (in words): ${amountInWords}`, {
-    x: leftMargin,
-    y: yPos,
-    size: fontSize.body,
+  y -= 15;
+  const amountInWords = convertNumberToWords(dueToday);
+  page.drawText(`Total (in words): ${amountInWords}`, {
+    x: LEFT_MARGIN,
+    y: y,
+    size: sizes.body,
     font: helveticaBold,
-    color: primaryColor,
+    color: BLACK,
   });
-  yPos -= 15;
+
+  y -= 20;
 
   // Certification
   page.drawText("Certified that the particulars given above are true and correct", {
-    x: leftMargin,
-    y: yPos,
-    size: fontSize.small,
+    x: LEFT_MARGIN,
+    y: y,
+    size: sizes.small,
     font: helveticaFont,
-    color: secondaryColor,
+    color: GRAY,
   });
 
-  // Company stamp/signature area
-  page.drawText("For Shaurrya Teleservices Pvt. Ltd", {
-    x: width - 180,
-    y: yPos,
-    size: fontSize.body,
-    font: helveticaFont,
-    color: primaryColor,
+  // Signature
+  y -= 40;
+  page.drawText("For SHAURRYA TELESERVICES", {
+    x: MAX_RIGHT - 150,
+    y: y,
+    size: sizes.body,
+    font: helveticaBold,
+    color: BLACK,
   });
 
   // Save PDF

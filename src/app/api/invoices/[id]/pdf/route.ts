@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import path from "path";
-import { readFile } from "fs/promises";
+import { generateInvoicePDF } from "@/lib/pdf-generator";
 
 /**
- * GET /api/invoices/[id]/pdf - Download invoice PDF
- * Returns the PDF file as a downloadable response
+ * GET /api/invoices/[id]/pdf - Generate and download invoice PDF using Puppeteer
  */
 export async function GET(
   request: NextRequest,
@@ -14,49 +12,80 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const invoice = await (prisma as any).invoice.findUnique({
+    // Fetch order with all related data
+    const order = await prisma.order.findUnique({
       where: { id },
+      include: {
+        items: true,
+        user: true,
+      },
     });
 
-    if (!invoice) {
+    if (!order) {
       return NextResponse.json(
-        { error: "Invoice not found" },
+        { error: "Order not found" },
         { status: 404 }
       );
     }
 
-    if (!invoice.pdfUrl) {
-      return NextResponse.json(
-        { error: "PDF not available for this invoice" },
-        { status: 404 }
-      );
-    }
+    // Transform order data for PDF generation
+    const orderData = {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      email: order.email,
+      phone: order.phone,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      subtotal: Number(order.subtotal) || 0,
+      discountAmount: Number(order.discountAmount) || 0,
+      taxAmount: Number(order.taxAmount) || 0,
+      cgstAmount: Number((order as any).cgstAmount) || 0,
+      sgstAmount: Number((order as any).sgstAmount) || 0,
+      shippingAmount: Number(order.shippingAmount) || 0,
+      total: Number(order.total) || 0,
+      currency: order.currency || "INR",
+      createdAt: order.createdAt,
+      items: order.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice) || 0,
+        totalPrice: Number(item.totalPrice) || 0,
+        product: null,
+        variant: null,
+        bundle: null,
+        configuration: item.configuration,
+        hsnCode: (item as any).hsnCode || null,
+        setupFee: Number((item as any).setupFee) || 0,
+        isRecurring: item.isRecurring,
+        billingCycle: item.billingCycle,
+        recurringPrice: Number(item.recurringPrice) || 0,
+      })),
+      billingAddress: null,
+      shippingAddress: null,
+    };
 
-    // Get the full file path
-    const pdfPath = path.join(process.cwd(), "public", invoice.pdfUrl);
+    // Parse billing/shipping addresses from metadata
+    const metadata = order.metadata as Record<string, any> || {};
+    orderData.billingAddress = metadata.shippingAddress || null;
+    orderData.shippingAddress = metadata.shippingAddress || null;
 
-    try {
-      const pdfBuffer = await readFile(pdfPath);
+    // Generate PDF using Puppeteer
+    const pdfBuffer = await generateInvoicePDF(orderData as any);
 
-      // Return the PDF as a downloadable file
-      return new NextResponse(pdfBuffer, {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
-          "Content-Length": pdfBuffer.length.toString(),
-        },
-      });
-    } catch (fileError) {
-      console.error("Error reading PDF file:", fileError);
-      return NextResponse.json(
-        { error: "PDF file not found on disk" },
-        { status: 404 }
-      );
-    }
+    // Return the PDF as a downloadable file
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="invoice-${order.orderNumber}.pdf"`,
+        "Content-Length": pdfBuffer.length.toString(),
+      },
+    });
   } catch (error) {
-    console.error("Error downloading invoice PDF:", error);
+    console.error("Error generating invoice PDF:", error);
     return NextResponse.json(
-      { error: "Failed to download invoice PDF" },
+      { error: "Failed to generate invoice PDF" },
       { status: 500 }
     );
   }

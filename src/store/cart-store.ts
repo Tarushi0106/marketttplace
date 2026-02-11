@@ -14,8 +14,25 @@ export interface CartItem {
     instanceNumber: number;
     instanceName: string;
     quantity: number;
-    selectedConfigs: Record<string, { value: string; quantity?: number }>;
-    selectedAddons: Record<string, { quantity: number; selected: boolean; source: string }>;
+    selectedConfigs: {
+      configId: string;
+      configName?: string;
+      value: string;
+      quantity?: number;
+      price?: number;
+      priceModifier?: number;
+      monthlyPriceModifier?: number;
+      yearlyPriceModifier?: number;
+      optionLabel?: string;
+    }[];
+    selectedAddons: {
+      addon?: {
+        id: string;
+        name?: string;
+        price?: number;
+      };
+      quantity: number;
+    }[];
   }[];
   // Legacy support for flat configs/addons
   selectedAddons?: {
@@ -32,17 +49,21 @@ export interface CartItem {
     yearlyPriceModifier?: number;
     optionLabel?: string;
   }[];
-  unitPrice?: number;
-  totalPrice?: number;
+  // Pricing breakdown
+  baseProductPrice?: number; // The one-time product price (if applicable)
+  unitPrice?: number; // The price shown in cart (could be recurring or one-time)
+  totalPrice?: number; // Total for the item
   // Billing information
   billingCycle?: "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
   isRecurring?: boolean;
   // Recurring billing data
+  recurringAmount?: number; // The recurring price per cycle
   recurringData?: {
     enabled: boolean;
     billingCycle: "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
-    setupFee: number;
-    pricePerCycle: number;
+    setupFee: number; // One-time setup fee
+    pricePerCycle: number; // Recurring amount per cycle
+    baseProductPrice: number; // One-time product price (if applicable)
     totalForPeriod: number;
     savingsPercentage: number;
     monthlyEquivalent: number;
@@ -62,6 +83,7 @@ interface CartState {
   addItem: (item: Omit<CartItem, "id" | "totalPrice">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  updateItem: (id: string, updates: Partial<Omit<CartItem, "id">>) => void;
   updateAddons: (
     id: string,
     addons: { addon: ProductAddon; quantity: number }[]
@@ -75,6 +97,7 @@ interface CartState {
   getSubtotal: () => number;
   getTax: () => number;
   getTotal: () => number;
+  getTodayTotal: () => number; // Total due today (base price + setup fees)
   getItemCount: () => number;
   getSetupFeeTotal: () => number;
 }
@@ -91,16 +114,24 @@ const safeNumber = (value: unknown): number => {
 };
 
 const calculateItemTotal = (item: Omit<CartItem, "id" | "totalPrice">): number => {
-  const unitPrice = safeNumber(item.unitPrice);
+  // For items with baseProductPrice (new format): total = baseProductPrice + setupFee
+  const baseProductPrice = safeNumber(item.baseProductPrice);
+  const setupFee = safeNumber(item.recurringData?.setupFee);
   const quantity = safeNumber(item.quantity);
-  let total = unitPrice * quantity;
-
-  return total || 0;
+  
+  if (baseProductPrice > 0) {
+    return (baseProductPrice + setupFee) * quantity;
+  }
+  
+  // Fallback for legacy items: use unitPrice
+  const unitPrice = safeNumber(item.unitPrice);
+  return unitPrice * quantity;
 };
 
 const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   const productId = item.product?.id || item.bundle?.id || "";
   const variantId = item.variant?.id || "default";
+  // Don't include billingCycle in ID - same product should update existing item
   const configsHash = JSON.stringify(item.selectedConfigs || []);
   const addonsHash = JSON.stringify(
     (item.selectedAddons || []).map(a => ({ id: a.addon?.id || "", qty: a.quantity })).sort((a, b) => a.id.localeCompare(b.id))
@@ -130,20 +161,39 @@ export const useCartStore = create<CartState>()(
 
           console.log("[Cart Debug] Adding item to cart:", {
             productName: item.product?.name,
-            unitPrice,
-            recurringData: item.recurringData,
+            id,
+            existingItemIndex,
             billingCycle: item.billingCycle,
-            isRecurring: item.isRecurring
           });
 
           if (existingItemIndex > -1) {
-            // Update existing item quantity
-            const items = [...get().items];
-            items[existingItemIndex].quantity = safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity);
-            items[existingItemIndex].totalPrice = calculateItemTotal(
-              items[existingItemIndex]
-            );
-            set({ items });
+            // Check if billing cycle changed - update billing info instead of adding quantity
+            const existingItem = get().items[existingItemIndex];
+            const billingCycleChanged = existingItem.billingCycle !== item.billingCycle;
+            
+            if (billingCycleChanged) {
+              // Update billing cycle and pricing
+              const items = [...get().items];
+              items[existingItemIndex] = {
+                ...items[existingItemIndex],
+                billingCycle: item.billingCycle,
+                isRecurring: item.isRecurring,
+                recurringData: item.recurringData,
+                unitPrice: unitPrice,
+                totalPrice: unitPrice * (safeNumber(item.quantity) || 1),
+              };
+              console.log("[Cart Debug] Updated existing item billing cycle:", item.billingCycle);
+              set({ items });
+            } else {
+              // Same billing cycle - update quantity
+              const items = [...get().items];
+              items[existingItemIndex].quantity = safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity);
+              items[existingItemIndex].totalPrice = calculateItemTotal(
+                items[existingItemIndex]
+              );
+              console.log("[Cart Debug] Updated existing item quantity");
+              set({ items });
+            }
           } else {
             // Add new item
             const newItem: CartItem = {
@@ -188,6 +238,21 @@ export const useCartStore = create<CartState>()(
         set({ items });
       },
 
+      updateItem: (id, updates) => {
+        const items = get().items.map((item) => {
+          if (item.id === id) {
+            const updatedItem = { ...item, ...updates };
+            // Recalculate totalPrice with new values
+            const unitPrice = safeNumber(updatedItem.unitPrice);
+            const quantity = safeNumber(updatedItem.quantity);
+            const newTotalPrice = unitPrice * quantity;
+            return { ...updatedItem, totalPrice: newTotalPrice };
+          }
+          return item;
+        });
+        set({ items });
+      },
+
       updateAddons: (id, addons) => {
         const items = get().items.map((item) => {
           if (item.id === id) {
@@ -216,7 +281,19 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        return get().items.reduce((sum, item) => sum + safeNumber(item.totalPrice), 0);
+        // Subtotal includes baseProductPrice (one-time product price) for all items
+        return get().items.reduce((sum, item) => {
+          const basePrice = safeNumber(item.baseProductPrice);
+          const quantity = safeNumber(item.quantity) || 1;
+          return sum + (basePrice * quantity);
+        }, 0);
+      },
+
+      getTodayTotal: () => {
+        // Total due today = subtotal (baseProductPrice) + setup fees
+        const subtotal = get().getSubtotal();
+        const setupFee = get().getSetupFeeTotal();
+        return subtotal + setupFee;
       },
 
       getTax: () => {
@@ -225,11 +302,11 @@ export const useCartStore = create<CartState>()(
       },
 
       getTotal: () => {
-        const subtotal = get().getSubtotal();
-        const setupFee = get().getSetupFeeTotal();
+        // Total = Today Total (baseProductPrice + setup fees) + tax - discount
+        const todayTotal = get().getTodayTotal();
         const tax = get().getTax();
         const discount = safeNumber(get().discountAmount);
-        return Math.max(0, subtotal + setupFee + tax - discount);
+        return Math.max(0, todayTotal + tax - discount);
       },
 
       getItemCount: () => {

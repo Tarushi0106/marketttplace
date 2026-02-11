@@ -110,6 +110,7 @@ export async function GET(
           billingCycle: item.billingCycle,
           isRecurring: item.isRecurring,
           recurringPrice: Number(item.recurringPrice) || 0,
+          setupFee: Number(item.setupFee) || 0,
         }));
         
         // Use shippingAddress from relation if available, otherwise try metadata

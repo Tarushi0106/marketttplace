@@ -9,7 +9,11 @@ function convertDecimalToString(obj: any): any {
   if (typeof obj === 'bigint') return obj.toString();
   if (typeof obj === 'object') {
     if (obj instanceof Date) return obj;
-    if (obj.constructor?.name === 'Decimal') {
+    // Handle Prisma Decimal - check multiple ways
+    const constructorName = obj.constructor?.name;
+    if (constructorName === 'Decimal' || 
+        (typeof obj.toNumber === 'function' && typeof obj.equals === 'function') ||
+        (typeof obj.toFixed === 'function' && typeof obj.toString === 'function' && obj.toString !== Object.prototype.toString)) {
       return obj.toString();
     }
     // Handle arrays

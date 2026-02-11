@@ -357,8 +357,20 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       const response = await fetch(`/api/products/${productId}`);
       const data = await response.json();
 
+      console.log("API Response:", data);
+
       if (data.data) {
         const product = data.data;
+        console.log("Product data:", product);
+        console.log("Base price:", product.basePrice);
+        console.log("Recurring prices:", product.recurringPrices);
+        
+        // Get recurring prices from the recurringPrices array (first entry for base product, no variant)
+        const recurringPrices = product.recurringPrices || [];
+        console.log("Extracted recurring prices:", recurringPrices);
+        const baseRecurringPrice = recurringPrices.find((rp: any) => !rp.variantId) || recurringPrices[0] || {};
+        console.log("Base recurring price:", baseRecurringPrice);
+        
         setFormData({
           name: product.name || "",
           slug: product.slug || "",
@@ -375,32 +387,32 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           // Product Type - One-time or Recurring
           isRecurring: product.isRecurring || false,
           
-          // Per-Billing-Cycle Setup Fees
-          monthlySetupFee: product.monthlySetupFee?.toString() || "",
-          biMonthlySetupFee: product.biMonthlySetupFee?.toString() || "",
-          quarterlySetupFee: product.quarterlySetupFee?.toString() || "",
-          fourMonthlySetupFee: product.fourMonthlySetupFee?.toString() || "",
-          semiAnnualSetupFee: product.semiAnnualSetupFee?.toString() || "",
-          triAnnualSetupFee: product.triAnnualSetupFee?.toString() || "",
-          yearlySetupFee: product.yearlySetupFee?.toString() || "",
-          biennialSetupFee: product.biennialSetupFee?.toString() || "",
-          triennialSetupFee: product.triennialSetupFee?.toString() || "",
+          // Per-Billing-Cycle Setup Fees (from recurringPrices array)
+          monthlySetupFee: baseRecurringPrice.monthlySetupFee?.toString() || product.monthlySetupFee?.toString() || "",
+          biMonthlySetupFee: baseRecurringPrice.biMonthlySetupFee?.toString() || product.biMonthlySetupFee?.toString() || "",
+          quarterlySetupFee: baseRecurringPrice.quarterlySetupFee?.toString() || product.quarterlySetupFee?.toString() || "",
+          fourMonthlySetupFee: baseRecurringPrice.fourMonthlySetupFee?.toString() || product.fourMonthlySetupFee?.toString() || "",
+          semiAnnualSetupFee: baseRecurringPrice.semiAnnualSetupFee?.toString() || product.semiAnnualSetupFee?.toString() || "",
+          triAnnualSetupFee: baseRecurringPrice.triAnnualSetupFee?.toString() || product.triAnnualSetupFee?.toString() || "",
+          yearlySetupFee: baseRecurringPrice.yearlySetupFee?.toString() || product.yearlySetupFee?.toString() || "",
+          biennialSetupFee: baseRecurringPrice.biennialSetupFee?.toString() || product.biennialSetupFee?.toString() || "",
+          triennialSetupFee: baseRecurringPrice.triennialSetupFee?.toString() || product.triennialSetupFee?.toString() || "",
           
-          // Recurring Prices
-          monthlyPrice: product.monthlyPrice?.toString() || "",
-          biMonthlyPrice: product.biMonthlyPrice?.toString() || "",
-          quarterlyPrice: product.quarterlyPrice?.toString() || "",
-          fourMonthlyPrice: product.fourMonthlyPrice?.toString() || "",
-          semiAnnualPrice: product.semiAnnualPrice?.toString() || "",
-          triAnnualPrice: product.triAnnualPrice?.toString() || "",
-          yearlyPrice: product.yearlyPrice?.toString() || "",
-          biennialPrice: product.biennialPrice?.toString() || "",
-          triennialPrice: product.triennialPrice?.toString() || "",
+          // Recurring Prices (from recurringPrices array or directly on product)
+          monthlyPrice: baseRecurringPrice.monthlyPrice?.toString() || product.monthlyPrice?.toString() || "",
+          biMonthlyPrice: baseRecurringPrice.biMonthlyPrice?.toString() || product.biMonthlyPrice?.toString() || "",
+          quarterlyPrice: baseRecurringPrice.quarterlyPrice?.toString() || product.quarterlyPrice?.toString() || "",
+          fourMonthlyPrice: baseRecurringPrice.fourMonthlyPrice?.toString() || product.fourMonthlyPrice?.toString() || "",
+          semiAnnualPrice: baseRecurringPrice.semiAnnualPrice?.toString() || product.semiAnnualPrice?.toString() || "",
+          triAnnualPrice: baseRecurringPrice.triAnnualPrice?.toString() || product.triAnnualPrice?.toString() || "",
+          yearlyPrice: baseRecurringPrice.yearlyPrice?.toString() || product.yearlyPrice?.toString() || "",
+          biennialPrice: baseRecurringPrice.biennialPrice?.toString() || product.biennialPrice?.toString() || "",
+          triennialPrice: baseRecurringPrice.triennialPrice?.toString() || product.triennialPrice?.toString() || "",
           
-          // Savings
-          monthlySavings: product.monthlySavings?.toString() || "",
-          quarterlySavings: product.quarterlySavings?.toString() || "",
-          yearlySavings: product.yearlySavings?.toString() || "",
+          // Savings (from recurringPrices array or directly on product)
+          monthlySavings: baseRecurringPrice.monthlySavings?.toString() || product.monthlySavings?.toString() || "",
+          quarterlySavings: baseRecurringPrice.quarterlySavings?.toString() || product.quarterlySavings?.toString() || "",
+          yearlySavings: baseRecurringPrice.yearlySavings?.toString() || product.yearlySavings?.toString() || "",
           
           categoryId: product.categoryId || "",
           subCategoryId: product.subCategoryId || "",
@@ -525,53 +537,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       setLoading(false);
     }
   }
-
-  // Fetch recurring prices separately if editing
-  useEffect(() => {
-    if (!isEdit || !productId) return;
-    
-    async function fetchRecurringPrices() {
-      try {
-        const response = await fetch(`/api/products/${productId}/recurring-prices`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data) {
-            setFormData(prev => ({
-              ...prev,
-              // Setup Fees
-              monthlySetupFee: data.monthlySetupFee?.toString() || prev.monthlySetupFee,
-              biMonthlySetupFee: data.biMonthlySetupFee?.toString() || prev.biMonthlySetupFee,
-              quarterlySetupFee: data.quarterlySetupFee?.toString() || prev.quarterlySetupFee,
-              fourMonthlySetupFee: data.fourMonthlySetupFee?.toString() || prev.fourMonthlySetupFee,
-              semiAnnualSetupFee: data.semiAnnualSetupFee?.toString() || prev.semiAnnualSetupFee,
-              triAnnualSetupFee: data.triAnnualSetupFee?.toString() || prev.triAnnualSetupFee,
-              yearlySetupFee: data.yearlySetupFee?.toString() || prev.yearlySetupFee,
-              biennialSetupFee: data.biennialSetupFee?.toString() || prev.biennialSetupFee,
-              triennialSetupFee: data.triennialSetupFee?.toString() || prev.triennialSetupFee,
-              // Prices
-              monthlyPrice: data.monthlyPrice?.toString() || prev.monthlyPrice,
-              biMonthlyPrice: data.biMonthlyPrice?.toString() || prev.biMonthlyPrice,
-              quarterlyPrice: data.quarterlyPrice?.toString() || prev.quarterlyPrice,
-              fourMonthlyPrice: data.fourMonthlyPrice?.toString() || prev.fourMonthlyPrice,
-              semiAnnualPrice: data.semiAnnualPrice?.toString() || prev.semiAnnualPrice,
-              triAnnualPrice: data.triAnnualPrice?.toString() || prev.triAnnualPrice,
-              yearlyPrice: data.yearlyPrice?.toString() || prev.yearlyPrice,
-              biennialPrice: data.biennialPrice?.toString() || prev.biennialPrice,
-              triennialPrice: data.triennialPrice?.toString() || prev.triennialPrice,
-              // Savings
-              monthlySavings: data.monthlySavings?.toString() || prev.monthlySavings,
-              quarterlySavings: data.quarterlySavings?.toString() || prev.quarterlySavings,
-              yearlySavings: data.yearlySavings?.toString() || prev.yearlySavings,
-            }));
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching recurring prices:", error);
-      }
-    }
-    
-    fetchRecurringPrices();
-  }, [isEdit, productId]);
 
   function generateSlug(name: string) {
     return name
@@ -832,8 +797,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         // Product Type - One-time or Recurring
         isRecurring: formData.isRecurring,
         
-        // Per-Billing-Cycle Setup Fees (only for recurring products)
-        setupFee: formData.setupFee ? parseFloat(formData.setupFee) : null,
+        // Per-Billing-Cycle Setup Fees (only for recurring products - using quarterly as default)
+        setupFee: formData.quarterlySetupFee ? parseFloat(formData.quarterlySetupFee) : null,
         
         stockQuantity: parseInt(formData.stockQuantity) || 0,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,

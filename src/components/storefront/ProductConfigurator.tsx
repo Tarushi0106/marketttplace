@@ -419,8 +419,8 @@ export function ProductConfigurator({
       setupFee = recurringData.setupFee;
       savingsPercentage = recurringData.savingsPercentage;
       monthlyEquivalent = recurringData.monthlyEquivalent;
-      // Include basePrice + configsTotal (from configuration options) + recurring price + setup fee
-      totalForPeriod = basePrice + configsTotal + recurringData.pricePerCycle + recurringData.setupFee;
+      // Total due today = basePrice + configs + setup fee (not including recurring price)
+      totalForPeriod = basePrice + configsTotal + recurringData.setupFee;
     } else {
       // Fallback for products without recurring prices configured
       // Calculate billing prices based on billingCycle
@@ -462,6 +462,41 @@ export function ProductConfigurator({
       addonBreakdown,
     };
   }, [product.basePrice, configs, allAddons, configInstances, recurringData, currentVariant, selectedConfigs, selectedAddons]);
+
+  // Watch for billingCycle changes and update cart immediately
+  useEffect(() => {
+    if (!product?.id || !recurringData?.enabled) return;
+
+    const cartStore = useCartStore.getState();
+    const items = cartStore.items;
+
+    // Find existing cart item for this product (same ID calculation)
+    const productId = product.id;
+    const variantId = currentVariant || null;
+    const existingItem = items.find((item: any) => {
+      const itemProductId = item.product?.id;
+      const itemVariantId = item.variant?.id || null;
+      return itemProductId === productId && itemVariantId === variantId;
+    });
+
+    if (existingItem) {
+      // Calculate correct unitPrice (only pricePerCycle for recurring)
+      const newUnitPrice = pricing.pricePerCycle;
+      
+      // Update existing cart item with new billing cycle and pricing
+      cartStore.updateItem(existingItem.id, {
+        billingCycle: pricing.billingCycle as any,
+        recurringData: {
+          ...recurringData,
+          setupFee: pricing.setupFee,
+          pricePerCycle: newUnitPrice,
+        },
+        unitPrice: newUnitPrice,
+        totalPrice: newUnitPrice * (existingItem.quantity || 1),
+      });
+      console.log(`[ProductConfigurator] Updated cart item billing cycle to: ${pricing.billingCycle}, unitPrice: ${newUnitPrice}`);
+    }
+  }, [pricing.billingCycle, pricing.pricePerCycle, pricing.setupFee, recurringData, product?.id, currentVariant]);
 
   // Handle configuration changes for a specific config
   const handleConfigChange = (configId: string, value: string, quantity: number = 1) => {
@@ -651,8 +686,12 @@ export function ProductConfigurator({
     });
 
     // Calculate the total unit price using all components
-    const unitPrice = pricing.basePrice + pricing.pricePerCycle + pricing.setupFee;
+    // For recurring products: unitPrice = pricePerCycle (recurring amount)
+    // Setup fee is charged separately and should NOT be in unitPrice
+    // baseProductPrice is the one-time product price component (basePrice only, not including configs)
+    const unitPrice = pricing.pricePerCycle;
     const setupFee = pricing.setupFee;
+    const baseProductPrice = pricing.basePrice; // Just the base price (variant or product)
 
     const cartItem = {
       product,
@@ -660,13 +699,17 @@ export function ProductConfigurator({
       quantity: 1,
       instances,
       unitPrice,
+      baseProductPrice, // Track base product price separately
       // Use billing cycle from pricing (which comes from recurringData)
       billingCycle: pricing.billingCycle as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
       // Recurring billing data
       isRecurring: recurringData?.enabled ?? false,
+      recurringAmount: pricing.pricePerCycle, // The recurring amount per cycle
       recurringData: recurringData ? {
         ...recurringData,
         setupFee,
+        pricePerCycle: unitPrice,
+        baseProductPrice, // Include baseProductPrice in recurringData
       } : undefined,
     };
 
@@ -1137,21 +1180,11 @@ export function ProductConfigurator({
 
                                     <Separator />
 
-                                    {/* Product Price */}
+                                    {/* Product Price - Due Today */}
                                     <div className="flex justify-between">
-                                      <span className="text-gray-600">Product Price</span>
+                                      <span className="text-gray-600">Product Price (Due Today)</span>
                                       <span className="font-medium">{formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}</span>
                                     </div>
-
-                                    {/* Billing Plan Price */}
-                                    {pricing.billingCycle !== "ONE_TIME" && (
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-500 text-sm">
-                                          {pricing.billingCycle ? BILLING_CYCLE_LABELS[pricing.billingCycle as BillingCycleType] : 'Billing Plan'}
-                                        </span>
-                                        <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span>
-                                      </div>
-                                    )}
 
                                     {/* Setup Fee */}
                                     {pricing.setupFee > 0 && (
@@ -1161,20 +1194,28 @@ export function ProductConfigurator({
                                       </div>
                                     )}
 
+                                    {/* Dynamic Recurring Info */}
+                                    {pricing.billingCycle !== "ONE_TIME" && (
+                                      <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                                        <p className="text-sm text-gray-600">
+                                          You will be charged <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span> every {
+                                            pricing.billingCycle === "MONTHLY" ? "1 month" :
+                                            pricing.billingCycle === "BIMONTHLY" ? "2 months" :
+                                            pricing.billingCycle === "QUARTERLY" ? "3 months" :
+                                            pricing.billingCycle === "YEARLY" ? "1 year" :
+                                            pricing.billingCycle.toLowerCase()
+                                          } after purchase.
+                                        </p>
+                                      </div>
+                                    )}
+
                                     <Separator />
 
-                                    {/* Total */}
+                                    {/* Total Due Today */}
                                     <div className="flex justify-between items-center">
-                                      <span className="text-lg font-semibold">Total</span>
+                                      <span className="text-lg font-semibold">Total Due Today</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.pricePerCycle + pricing.setupFee)}
-                                        {pricing.billingCycle === "ONE_TIME" ? (
-                                          <span className="text-sm font-normal text-gray-500"> one-time</span>
-                                        ) : pricing.billingCycle && BILLING_CYCLE_PERIODS[pricing.billingCycle] ? (
-                                          <span className="text-sm font-normal text-gray-500">
-                                            {BILLING_CYCLE_PERIODS[pricing.billingCycle]}
-                                          </span>
-                                        ) : null}
+                                        {formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)}
                                       </span>
                                     </div>
 
