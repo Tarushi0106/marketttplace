@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, Download, Loader2, FileText, ArrowRight, User, MapPin } from "lucide-react";
+import { CheckCircle, Download, Loader2, FileText, ArrowRight, User, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -173,13 +173,19 @@ export default function CheckoutSuccessPage() {
       const orderData = await orderResponse.json();
       const orderResult = orderData.data || orderData;
       setOrder(orderResult as Order);
+      console.log('[Checkout] Order loaded:', orderResult.orderNumber, 'Email:', orderResult.email, 'Status:', orderResult.paymentStatus);
 
       try {
         const invoiceResponse = await fetch(`/api/invoices?orderId=${orderResult.id}`);
+        console.log('[Checkout] Invoice check response status:', invoiceResponse.status);
         if (invoiceResponse.ok) {
           const invoiceData = await invoiceResponse.json();
+          console.log('[Checkout] Invoice data:', invoiceData);
           if (invoiceData.invoice) {
             setInvoice(invoiceData.invoice);
+            console.log('[Checkout] Invoice already exists, triggering email send');
+            // Send email for existing invoice
+            await sendInvoiceEmail(invoiceData.invoice.id);
             setLoading(false);
             return;
           }
@@ -188,6 +194,7 @@ export default function CheckoutSuccessPage() {
         console.error("Error checking invoice:", invError);
       }
 
+      console.log('[Checkout] Calling generateInvoice()');
       await generateInvoice();
       setLoading(false);
     } catch (error) {
@@ -197,6 +204,7 @@ export default function CheckoutSuccessPage() {
   };
 
   const generateInvoice = async () => {
+    console.log('[Checkout] Generating invoice for order:', order?.id, 'Email:', order?.email);
     if (!order?.id) {
       setError("Order not loaded");
       return;
@@ -220,6 +228,10 @@ export default function CheckoutSuccessPage() {
       } else if (response.status === 409) {
         const data = await response.json();
         setInvoice(data.invoice);
+        // Send email for existing invoice (409 = already exists)
+        if (data.invoice?.id) {
+          await sendInvoiceEmail(data.invoice.id);
+        }
       } else {
         const errorData = await response.json();
         setError(errorData.error || errorData.details || "Failed to generate invoice.");
@@ -229,6 +241,21 @@ export default function CheckoutSuccessPage() {
       setError("An error occurred while generating invoice");
     } finally {
       setGeneratingInvoice(false);
+    }
+  };
+
+  // Send invoice email (for new or existing invoices)
+  const sendInvoiceEmail = async (invoiceId: string) => {
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/resend`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        setEmailSent(true);
+        console.log("[Checkout] Email sent successfully for existing invoice");
+      }
+    } catch (error) {
+      console.error("Error sending invoice email:", error);
     }
   };
 

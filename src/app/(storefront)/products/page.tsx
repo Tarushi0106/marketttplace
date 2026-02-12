@@ -166,8 +166,30 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     prisma.product.count({ where }),
   ]);
 
+  // Transform products to include correct display price
+  const productsWithPricing = products.map((product: any) => {
+    // For CONFIGURABLE products, use only variant prices
+    if (product.productType === "CONFIGURABLE" && product.variants && product.variants.length > 0) {
+      const variantPrices = product.variants
+        .filter((v: any) => v.price !== null)
+        .map((v: any) => Number(v.price));
+      const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+      return {
+        ...product,
+        displayPrice: minVariantPrice,
+        variants: product.variants, // Pass variants to the grid component
+      };
+    }
+    // For other product types (STANDALONE, WITH_ADDONS), use basePrice
+    return {
+      ...product,
+      displayPrice: Number(product.basePrice),
+      variants: product.variants,
+    };
+  });
+
   return {
-    products,
+    products: productsWithPricing,
     pagination: {
       page,
       limit,

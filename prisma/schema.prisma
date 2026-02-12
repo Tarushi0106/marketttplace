@@ -703,6 +703,8 @@ enum BillingCycle {
   ONE_TIME        // One-time payment
   MONTHLY         // Monthly recurring
   QUARTERLY       // Quarterly recurring
+  FOUR_MONTHLY    // Every 4 months
+  BIMONTHLY       // Every 2 months
   YEARLY          // Yearly recurring
   BIENNIAL        // Every 2 years
   TRIENNIAL       // Every 3 years

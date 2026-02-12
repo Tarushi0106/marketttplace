@@ -315,35 +315,85 @@ export default function CartPage() {
 
               {/* Itemized Order Summary - matching configure page format */}
               <div className="space-y-3">
-                {/* Product name and base price */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{items[0]?.product?.name || items[0]?.bundle?.name}</span>
-                  <span>{formatCurrency(items[0]?.baseProductPrice || 0)}</span>
-                </div>
+                {items.map((item) => (
+                  <div key={item.id}>
+                    {/* Product/Bundle name */}
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
+                      <span>{formatCurrency(item.baseProductPrice || 0)}</span>
+                    </div>
 
-                {/* Configs and addons breakdown */}
-                {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedConfigs?.map((config) => (
-                  <div key={config.configId} className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      {config.configName || config.configId}
-                    </span>
-                    <span>{formatCurrency(config.price || 0)}</span>
+                    {/* For configurable products with instances, show combined config price */}
+                    {item.instances && item.instances.length > 0 && (
+                      <div className="ml-2">
+                        {item.instances.map((instance) => (
+                          <div key={instance.instanceId} className="mb-2">
+                            {/* Instance name and total */}
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">{instance.instanceName || `Instance ${instance.instanceNumber}`}</span>
+                              <span>{formatCurrency(
+                                (instance.selectedConfigs?.reduce((sum, c) => sum + (c.price || 0), 0) || 0) +
+                                (instance.selectedAddons?.reduce((sum, a) => sum + ((a.addon?.price || 0) * a.quantity), 0) || 0)
+                              )}</span>
+                            </div>
+                            
+                            {/* Config options */}
+                            {instance.selectedConfigs?.map((config) => (
+                              <div key={config.configId} className="flex justify-between text-sm ml-4">
+                                <span className="text-gray-500">
+                                  {config.configName || config.configId}: {config.optionLabel || config.value}
+                                </span>
+                                <span>{formatCurrency(config.price || 0)}</span>
+                              </div>
+                            ))}
+                            
+                            {/* Addons */}
+                            {instance.selectedAddons?.map((addon) => (
+                              <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
+                                <span className="text-gray-500">+ {addon.addon?.name}</span>
+                                <span>{formatCurrency((addon.addon?.price || 0) * addon.quantity)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Legacy flat configs */}
+                    {item.selectedConfigs && item.selectedConfigs.length > 0 && !item.instances && (
+                      <div className="ml-2">
+                        {item.selectedConfigs.map((config) => (
+                          <div key={config.configId} className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              {config.configName || config.configId}: {config.optionLabel || config.value}
+                            </span>
+                            <span>{formatCurrency(config.price || 0)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Legacy flat addons */}
+                    {item.selectedAddons && item.selectedAddons.length > 0 && !item.instances && (
+                      <div className="ml-2">
+                        {item.selectedAddons.map((addon) => (
+                          <div key={addon.addon?.id} className="flex justify-between text-sm">
+                            <span className="text-gray-600">+ {addon.addon?.name}</span>
+                            <span>{formatCurrency((addon.addon?.price || 0) * addon.quantity)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Recurring Amount */}
+                    {item.recurringAmount && item.recurringAmount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Recurring Amount</span>
+                        <span className="text-gray-500">{formatCurrency(item.recurringAmount)}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
-                {items[0]?.instances && items[0]?.instances.length > 0 && items[0]?.instances[0]?.selectedAddons?.map((addon) => (
-                  <div key={addon.addon?.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">+ {addon.addon?.name}</span>
-                    <span>{formatCurrency(addon.addon?.price || 0)}</span>
-                  </div>
-                ))}
-                
-                {/* Recurring Amount - Show if different from configs total */}
-                {items[0]?.recurringAmount && items[0]?.recurringAmount > 0 && items[0]?.recurringAmount !== recurringTotal && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Recurring Amount</span>
-                    <span>{formatCurrency(items[0]?.recurringAmount || 0)}</span>
-                  </div>
-                )}
 
                 <Separator />
 
@@ -384,7 +434,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatCurrency(todayTotal + tax)}
+                    {formatCurrency(todayTotal)}
                   </span>
                 </div>
               </div>

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
+import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice-pdfkit";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 import fs from "fs";
 import path from "path";
 
@@ -125,6 +126,54 @@ export async function POST(request: NextRequest) {
               issuedAt: new Date(),
             },
           });
+
+          // Send order confirmation email
+          console.log("[Stripe Verify] Sending order confirmation email to:", fullOrder.email);
+          try {
+            const companyInfo = await prisma.companyInfo.findFirst() || {
+              name: 'Shaurrya Teleservices',
+              email: 'info@shaurrayatele.com',
+              phone: '+91 99102 05084',
+            };
+            
+            const metadata = fullOrder.metadata as Record<string, any> || {};
+            
+            const orderDetails = {
+              orderNumber: fullOrder.orderNumber,
+              customerName: fullOrder.shippingAddress?.firstName 
+                ? `${fullOrder.shippingAddress.firstName} ${fullOrder.shippingAddress.lastName || ''}`.trim()
+                : (metadata.customerName as string) || 'Customer',
+              customerEmail: fullOrder.email || '',
+              items: fullOrder.items.map((item: any) => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: Number(item.totalPrice),
+                configs: item.configuration ? Object.entries(item.configuration).map(([name, value]) => ({
+                  name,
+                  value: value as string,
+                  price: 0,
+                })) : []
+              })),
+              subtotal: Number(fullOrder.subtotal),
+              setupFee: Number(metadata.setupFee || 0),
+              tax: Number(fullOrder.taxAmount),
+              total: Number(fullOrder.total),
+              billingCycle: fullOrder.items[0]?.billingCycle || 'MONTHLY',
+              recurringAmount: fullOrder.items.reduce((sum: number, item: any) => 
+                sum + (item.recurringPrice ? Number(item.recurringPrice) : 0), 0),
+              recurringPeriod: fullOrder.items[0]?.billingCycle === 'YEARLY' ? '1 year' : '1 month',
+              companyInfo: {
+                name: companyInfo.name || 'Marketplace',
+                email: companyInfo.email || 'support@example.com',
+                phone: companyInfo.phone || '+91 99999 99999',
+              },
+            };
+            
+            await sendOrderConfirmationEmail(orderDetails);
+            console.log("[Stripe Verify] Email sent successfully to:", fullOrder.email);
+          } catch (emailError) {
+            console.error("[Stripe Verify] Failed to send email:", emailError);
+          }
         }
       } catch (invoiceError) {
         console.error("Error generating invoice:", invoiceError);

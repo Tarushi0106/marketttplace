@@ -15,6 +15,7 @@ interface Product {
   compareAtPrice: number | null;
   averageRating: number;
   salesCount: number;
+  productType: string;
   category: {
     id: string;
     name: string;
@@ -24,6 +25,10 @@ interface Product {
     id: string;
     url: string;
     alt: string | null;
+  }[];
+  variants?: {
+    id: string;
+    price: number | null;
   }[];
   _count: {
     reviews: number;
@@ -99,11 +104,22 @@ export function FeaturedProducts() {
     e.preventDefault();
     e.stopPropagation();
     
-    const price = Number(product.basePrice);
-    console.log("Adding to cart - basePrice:", product.basePrice, "converted:", price);
+    // For STANDALONE products: use basePrice
+    // For CONFIGURABLE/BUNDLE products: use minimum variant price
+    const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
     
-    if (isNaN(price) || price === 0) {
-      console.error("Invalid price for product:", product.name, product.basePrice);
+    let displayPrice: number;
+    if (isConfigurable && product.variants && product.variants.length > 0) {
+      const variantPrices = product.variants
+        .filter((v) => v.price !== null)
+        .map((v) => Number(v.price));
+      displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+    } else {
+      displayPrice = Number(product.basePrice);
+    }
+    
+    if (isNaN(displayPrice) || displayPrice === 0) {
+      console.error("Invalid price for product:", product.name);
       return;
     }
     
@@ -112,7 +128,7 @@ export function FeaturedProducts() {
       quantity: 1,
       selectedAddons: [],
       selectedConfigs: [],
-      unitPrice: price,
+      unitPrice: displayPrice,
     });
   };
 
@@ -193,6 +209,20 @@ export function FeaturedProducts() {
           >
             {products.map((product) => {
               const hasSales = product.salesCount > 0;
+              
+              // For STANDALONE products: use basePrice
+              // For CONFIGURABLE/BUNDLE products: use minimum variant price
+              const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
+              
+              let displayPrice: number;
+              if (isConfigurable && product.variants && product.variants.length > 0) {
+                const variantPrices = product.variants
+                  .filter((v) => v.price !== null)
+                  .map((v) => Number(v.price));
+                displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+              } else {
+                displayPrice = Number(product.basePrice);
+              }
 
               return (
                 <Link
@@ -247,11 +277,16 @@ export function FeaturedProducts() {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-baseline gap-2">
                           <span className="text-lg font-bold text-gray-900">
-                            ₹{product.basePrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                            ₹{displayPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
                           {product.compareAtPrice && (
                             <span className="text-sm text-gray-400 line-through">
                               ₹{product.compareAtPrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                          {isConfigurable && product.variants && product.variants.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                              (Starts from)
                             </span>
                           )}
                         </div>

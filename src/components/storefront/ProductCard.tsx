@@ -26,8 +26,23 @@ export function ProductCard({
   const { setQuickViewProduct, addToComparison, comparisonItems } = useUIStore();
 
   const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
+
+  // For STANDALONE products: use basePrice
+  // For CONFIGURABLE/BUNDLE products: use minimum variant price
+  const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
+  
+  let displayPrice: number;
+  if (isConfigurable && product.variants && product.variants.length > 0) {
+    const variantPrices = product.variants
+      .filter((v: any) => v.price !== null)
+      .map((v: any) => Number(v.price));
+    displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+  } else {
+    displayPrice = Number(product.basePrice);
+  }
+
   const discount = product.compareAtPrice
-    ? calculateDiscount(Number(product.compareAtPrice), Number(product.basePrice))
+    ? calculateDiscount(Number(product.compareAtPrice), displayPrice)
     : 0;
   const isInComparison = comparisonItems.includes(product.id);
 
@@ -38,7 +53,7 @@ export function ProductCard({
       quantity: 1,
       selectedAddons: [],
       selectedConfigs: [],
-      unitPrice: Number(product.basePrice),
+      unitPrice: displayPrice,
     });
   };
 
@@ -132,6 +147,15 @@ export function ProductCard({
           </h3>
         </Link>
 
+        {/* Variant info for configurable products */}
+        {isConfigurable && product.variants && product.variants.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {product.variants.length > 1 
+              ? `${product.variants.length} variants available`
+              : product.variants[0]?.name}
+          </p>
+        )}
+
         {/* Rating */}
         {product.reviewCount > 0 && (
           <div className="mt-2 flex items-center gap-1">
@@ -157,11 +181,16 @@ export function ProductCard({
         {/* Price */}
         <div className="mt-2 flex items-center gap-2">
           <span className="text-lg font-semibold text-foreground">
-            {formatCurrency(Number(product.basePrice))}
+            {formatCurrency(displayPrice)}
           </span>
           {product.compareAtPrice && (
             <span className="text-sm text-muted-foreground line-through">
               {formatCurrency(Number(product.compareAtPrice))}
+            </span>
+          )}
+          {isConfigurable && product.variants && product.variants.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              (Starts from)
             </span>
           )}
         </div>

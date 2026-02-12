@@ -40,6 +40,25 @@ interface Product {
   _count: {
     reviews: number;
   };
+  variants?: {
+    id: string;
+    price: number;
+  }[];
+  displayPrice?: number;
+}
+
+// Helper to get the correct price based on product type
+function getDisplayPrice(product: Product): number {
+  // If displayPrice is provided (from server), use it
+  if (product.displayPrice !== undefined) {
+    return product.displayPrice;
+  }
+  // For CONFIGURABLE products, use the lowest variant price
+  if (product.productType === "CONFIGURABLE" && product.variants && product.variants.length > 0) {
+    return Math.min(...product.variants.map(v => Number(v.price)));
+  }
+  // For other product types (STANDALONE, WITH_ADDONS), use basePrice
+  return Number(product.basePrice);
 }
 
 interface ProductsGridProps {
@@ -111,12 +130,13 @@ function ListView({ products }: { products: Product[] }) {
 function ProductCard({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
+  const displayPrice = getDisplayPrice(product);
+  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
@@ -223,7 +243,7 @@ function ProductCard({ product }: { product: Product }) {
           {hasPrice && (
             <div className="mb-3">
               <span className="text-lg font-bold text-gray-900">
-                ₹{Number(product.basePrice).toLocaleString("en-IN")}
+                ₹{displayPrice.toLocaleString("en-IN")}
               </span>
               {product.compareAtPrice && (
                 <span className="text-sm text-gray-400 line-through ml-2">
@@ -264,12 +284,13 @@ function ProductCard({ product }: { product: Product }) {
 function CompactProductCard({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
+  const displayPrice = getDisplayPrice(product);
+  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
@@ -351,7 +372,7 @@ function CompactProductCard({ product }: { product: Product }) {
         {hasPrice && (
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-sm font-bold text-gray-900">
-              ₹{Number(product.basePrice).toLocaleString("en-IN")}
+              ₹{displayPrice.toLocaleString("en-IN")}
             </span>
             {product.compareAtPrice && (
               <span className="text-xs text-gray-400 line-through">
@@ -383,12 +404,13 @@ function CompactProductCard({ product }: { product: Product }) {
 function ProductListItem({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
+  const displayPrice = getDisplayPrice(product);
+  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 group">
@@ -482,7 +504,7 @@ function ProductListItem({ product }: { product: Product }) {
               <div className="text-right">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold text-gray-900">
-                    ₹{Number(product.basePrice).toLocaleString("en-IN")}
+                    ₹{displayPrice.toLocaleString("en-IN")}
                   </span>
                   {discount > 0 && (
                     <Badge className="bg-green-100 text-green-700 border-0 text-xs">

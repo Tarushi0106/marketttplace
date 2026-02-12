@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
+import { generateInvoiceNumber } from "@/lib/invoice-pdfkit";
+import { generateInvoicePDF } from "@/lib/invoice-pdfkit";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
@@ -72,8 +74,47 @@ export async function POST(request: NextRequest) {
         // Generate invoice number
         const invoiceNumber = generateInvoiceNumber();
 
-        // Generate PDF
-        const pdfBuffer = await generateInvoicePDF(fullOrder as any);
+        // Generate PDF using PDFKit
+        const pdfBuffer = await generateInvoicePDF({
+          id: fullOrder.id,
+          orderNumber: fullOrder.orderNumber,
+          email: fullOrder.email,
+          phone: fullOrder.phone,
+          status: fullOrder.status,
+          paymentStatus: fullOrder.paymentStatus,
+          paymentMethod: fullOrder.paymentMethod,
+          subtotal: Number(fullOrder.subtotal),
+          discountAmount: Number(fullOrder.discountAmount || 0),
+          taxAmount: Number(fullOrder.taxAmount),
+          shippingAmount: Number(fullOrder.shippingAmount || 0),
+          total: Number(fullOrder.total),
+          currency: fullOrder.currency || 'INR',
+          createdAt: fullOrder.createdAt,
+          items: fullOrder.items.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: Number(item.unitPrice),
+            totalPrice: Number(item.totalPrice),
+            configuration: item.configuration,
+            billingCycle: item.billingCycle,
+            isRecurring: item.isRecurring,
+            recurringPrice: item.recurringPrice ? Number(item.recurringPrice) : null,
+          })),
+          shippingAddress: fullOrder.shippingAddress || {
+            firstName: fullOrder.metadata?.shippingAddress?.firstName,
+            lastName: fullOrder.metadata?.shippingAddress?.lastName,
+            company: fullOrder.metadata?.shippingAddress?.company,
+            address1: fullOrder.metadata?.shippingAddress?.address1,
+            address2: fullOrder.metadata?.shippingAddress?.address2,
+            city: fullOrder.metadata?.shippingAddress?.city,
+            state: fullOrder.metadata?.shippingAddress?.state,
+            postalCode: fullOrder.metadata?.shippingAddress?.postalCode,
+            country: fullOrder.metadata?.shippingAddress?.country,
+            phone: fullOrder.metadata?.shippingAddress?.phone,
+          },
+          metadata: fullOrder.metadata,
+        });
 
         // Ensure invoices directory exists
         const invoicesDir = path.join(process.cwd(), "public", "uploads", "invoices");
@@ -96,6 +137,52 @@ export async function POST(request: NextRequest) {
             issuedAt: new Date(),
           },
         });
+
+        // Send order confirmation email
+        console.log("[Verify] Sending order confirmation email to:", fullOrder.email);
+        try {
+          const companyInfo = await prisma.companyInfo.findFirst() || {
+            name: 'Shaurrya Teleservices',
+            email: 'info@shaurryatele.com',
+            phone: '+91 99102 05084',
+          };
+          
+          const orderDetails = {
+            orderNumber: fullOrder.orderNumber,
+            customerName: fullOrder.shippingAddress?.firstName 
+              ? `${fullOrder.shippingAddress.firstName} ${fullOrder.shippingAddress.lastName || ''}`.trim()
+              : (fullOrder.metadata?.customerName as string) || 'Customer',
+            customerEmail: fullOrder.email,
+            items: fullOrder.items.map((item: any) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: Number(item.totalPrice),
+              configs: item.configuration ? Object.entries(item.configuration).map(([name, value]) => ({
+                name,
+                value: value as string,
+                price: 0,
+              })) : []
+            })),
+            subtotal: Number(fullOrder.subtotal),
+            setupFee: Number(fullOrder.metadata?.setupFee || 0),
+            tax: Number(fullOrder.taxAmount),
+            total: Number(fullOrder.total),
+            billingCycle: fullOrder.items[0]?.billingCycle || 'MONTHLY',
+            recurringAmount: fullOrder.items.reduce((sum: number, item: any) => 
+              sum + (item.recurringPrice ? Number(item.recurringPrice) : 0), 0),
+            recurringPeriod: fullOrder.items[0]?.billingCycle === 'YEARLY' ? '1 year' : '1 month',
+            companyInfo: {
+              name: companyInfo.name,
+              email: companyInfo.email,
+              phone: companyInfo.phone,
+            },
+          };
+          
+          await sendOrderConfirmationEmail(orderDetails);
+          console.log("[Verify] Email sent successfully to:", fullOrder.email);
+        } catch (emailError) {
+          console.error("[Verify] Failed to send email:", emailError);
+        }
       }
     }
 

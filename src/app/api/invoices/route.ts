@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
+import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice-pdfkit";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -189,11 +189,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate PDF
-    let pdfBuffer: Uint8Array;
+    // Generate PDF using PDFKit
+    let pdfBuffer: Buffer;
     try {
-      console.log("Starting PDF generation...");
-      pdfBuffer = await generateInvoicePDF(orderForPdf) as Uint8Array;
+      console.log("Starting PDF generation with PDFKit...");
+      pdfBuffer = await generateInvoicePDF(orderForPdf);
       console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
@@ -250,8 +250,10 @@ export async function POST(request: NextRequest) {
 
     // Send email if requested
     let emailSent = false;
-    if (sendEmail && order.email) {
+    console.log('[Invoice API] sendEmail:', sendEmail, 'order.email:', order?.email);
+    if (sendEmail && order?.email) {
       try {
+        console.log('[Invoice API] Preparing to send email to:', order.email);
         // Prepare order details for email
         const orderDetails = {
           orderNumber: order.orderNumber,
@@ -259,16 +261,39 @@ export async function POST(request: NextRequest) {
             ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName || ''}`.trim()
             : (order.metadata?.customerName as string) || 'Customer',
           customerEmail: order.email,
-          items: order.items.map((item: any) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: Number(item.totalPrice),
-            configs: item.configuration ? Object.entries(item.configuration).map(([name, value]) => ({
-              name,
-              value: value as string,
-              price: 0 // Config prices are included in the item total
-            })) : []
-          })),
+          items: order.items.map((item: any) => {
+            // Format configuration properly - handle nested instances
+            let formattedConfigs: Array<{name: string; value: string; price: number}> = [];
+            
+            if (item.configuration) {
+              if (typeof item.configuration === 'object') {
+                // Check if it has an 'instances' array
+                if (item.configuration.instances && Array.isArray(item.configuration.instances)) {
+                  item.configuration.instances.forEach((inst: any, idx: number) => {
+                    formattedConfigs.push({
+                      name: `Instance ${idx + 1}`,
+                      value: inst.instanceName || `Instance ${idx + 1}`,
+                      price: 0
+                    });
+                  });
+                } else {
+                  // Regular configuration entries
+                  formattedConfigs = Object.entries(item.configuration).map(([name, value]) => ({
+                    name,
+                    value: String(value),
+                    price: 0
+                  }));
+                }
+              }
+            }
+            
+            return {
+              name: item.name,
+              quantity: item.quantity,
+              price: Number(item.totalPrice),
+              configs: formattedConfigs
+            };
+          }),
           subtotal: Number(order.subtotal),
           setupFee: Number(order.metadata?.setupFee || 0),
           tax: Number(order.taxAmount),

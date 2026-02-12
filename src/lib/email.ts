@@ -114,13 +114,18 @@ async function createTransporter() {
 function generateOrderEmailHTML(order: OrderDetails): string {
   const itemsList = order.items
     .map(
-      (item) => `
+      (item) => {
+        // Format configurations properly
+        let configsHtml = '';
+        if (item.configs && item.configs.length > 0) {
+          configsHtml = item.configs.map(c => `${c.name}: ${c.value}`).join(', ');
+        }
+        
+        return `
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
           <strong>${item.name}</strong>
-          ${item.configs && item.configs.length > 0
-            ? `<br/><small style="color: #64748b;">${item.configs.map(c => `${c.name}: ${c.value}`).join(', ')}</small>`
-            : ''}
+          ${configsHtml ? `<br/><small style="color: #64748b;">${configsHtml}</small>` : ''}
           ${item.quantity > 1
             ? `<br/><small style="color: #64748b;">Qty: ${item.quantity}</small>`
             : ''}
@@ -130,6 +135,7 @@ function generateOrderEmailHTML(order: OrderDetails): string {
         </td>
       </tr>
     `
+      }
     )
     .join('');
 
@@ -182,7 +188,7 @@ function generateOrderEmailHTML(order: OrderDetails): string {
             </div>
             ` : ''}
             <div style="display: flex; justify-content: space-between; padding: 12px 0; font-weight: bold; font-size: 18px;">
-              <span>Total Due Today</span>
+              <span>Total Amount Paid</span>
               <span style="color: #0f172a;">₹${order.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
@@ -245,11 +251,14 @@ ITEMS:
 ${itemsList}
 
 SUBTOTAL:     ₹${order.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-${order.setupFee > 0 ? `SETUP FEE:     ₹${order.setupFee.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` : ''}
-${order.tax > 0 ? `TAX (18% GST): ₹${order.tax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}\n` : ''}
+${order.setupFee > 0 ? `SETUP FEE:     ₹${order.setupFee.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+` : ''}
+${order.tax > 0 ? `TAX (18% GST): ₹${order.tax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+` : ''}
 ------------------
-TOTAL DUE TODAY: ₹${order.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-${order.recurringAmount > 0 ? `\nYou will be charged ₹${order.recurringAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} every ${order.recurringPeriod} after purchase.\n` : ''}
+TOTAL AMOUNT PAID: ₹${order.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+${order.recurringAmount > 0 ? `\nYou will be charged ₹${order.recurringAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} every ${order.recurringPeriod} after purchase.
+` : ''}
 
 ---
 ${order.companyInfo.name}

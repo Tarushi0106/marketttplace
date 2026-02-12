@@ -269,17 +269,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if SKU is unique (if provided)
-    if (productData.sku) {
+    // Auto-generate SKU if not provided or if it already exists
+    let finalSku = productData.sku;
+    if (!finalSku) {
+      // Generate a unique SKU based on product name
+      const baseSku = productData.name.toUpperCase().replace(/[^A-Z0-9]/g, "-").slice(0, 10);
+      finalSku = `${baseSku}-${Date.now().toString(36).toUpperCase()}`;
+    } else {
+      // Check if the provided SKU already exists
       const existingSku = await prisma.product.findUnique({
-        where: { sku: productData.sku },
+        where: { sku: finalSku },
       });
 
       if (existingSku) {
-        return NextResponse.json(
-          { error: "A product with this SKU already exists" },
-          { status: 400 }
-        );
+        // Append timestamp to make it unique
+        finalSku = `${finalSku}-${Date.now().toString(36).toUpperCase()}`;
       }
     }
 
@@ -289,6 +293,7 @@ export async function POST(request: NextRequest) {
       const newProduct = await tx.product.create({
         data: {
           ...productData,
+          sku: finalSku,
           features: productData.features || [],
           specifications: productData.specifications || {},
           categoryId: productData.categoryId || null,
