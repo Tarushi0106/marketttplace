@@ -136,6 +136,7 @@ const variantSchema = z.object({
   costPrice: z.coerce.number().min(0).optional().nullable(),
   stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.string()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().default(0),
@@ -404,6 +405,11 @@ export async function PUT(
 
         // Update or create variants
         for (const variant of variants) {
+          // Merge specifications into attributes
+          const mergedAttributes = {
+            ...(variant.attributes || {}),
+            ...(variant.specifications || {}),
+          };
           if (variant.id && existingVariantIds.includes(variant.id)) {
             // Update existing
             await tx.productVariant.update({
@@ -415,7 +421,7 @@ export async function PUT(
                 compareAtPrice: variant.compareAtPrice,
                 costPrice: variant.costPrice,
                 stockQuantity: variant.stockQuantity,
-                attributes: variant.attributes || {},
+                attributes: mergedAttributes,
                 isDefault: variant.isDefault,
                 isActive: variant.isActive,
                 sortOrder: variant.sortOrder,
@@ -432,7 +438,7 @@ export async function PUT(
                 compareAtPrice: variant.compareAtPrice,
                 costPrice: variant.costPrice,
                 stockQuantity: variant.stockQuantity,
-                attributes: variant.attributes || {},
+                attributes: mergedAttributes,
                 isDefault: variant.isDefault,
                 isActive: variant.isActive ?? true,
                 sortOrder: variant.sortOrder,

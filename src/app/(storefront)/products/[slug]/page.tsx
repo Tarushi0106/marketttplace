@@ -241,7 +241,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
                 <div className="flex items-center gap-3">
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Configure & Buy</Link>
+                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                   </Button>
                   <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
                     <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
@@ -532,19 +532,84 @@ export default async function ProductDetailPage({ params }: Props) {
                           )}
                           <div className="text-center mb-6">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
-                            <p className="text-4xl font-bold text-gray-900">
-                              {formatCurrency(Number(variant.price))}
-                              <span className="text-base font-normal text-gray-500">/mo</span>
-                            </p>
-                            {(product as any).monthlyPrice && (product as any).yearlyPrice && (
-                              <div className="flex items-center justify-center gap-3 mt-2 text-xs text-gray-500">
-                                <span>Monthly: {formatCurrency(Number((product as any).monthlyPrice))}</span>
-                                <span>|</span>
-                                <span>Yearly: {formatCurrency(Number((product as any).yearlyPrice))}</span>
-                              </div>
+                            {variant.billingType === "ONE_TIME" ? (
+                              <>
+                                {variant.setupFee && Number(variant.setupFee) > 0 ? (
+                                  <p className="text-4xl font-bold text-gray-900">
+                                    {formatCurrency(Number(variant.setupFee))}
+                                    <span className="text-base font-normal text-gray-500"> one-time</span>
+                                  </p>
+                                ) : (
+                                  <p className="text-4xl font-bold text-gray-900">
+                                    {formatCurrency(Number(variant.price))}
+                                    <span className="text-base font-normal text-gray-500">/mo</span>
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-4xl font-bold text-gray-900">
+                                  {formatCurrency(Number(variant.price))}
+                                  <span className="text-base font-normal text-gray-500">/mo</span>
+                                </p>
+                                {/* Show all recurring prices */}
+                                <div className="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-gray-500">
+                                  {variant.monthlyPrice && Number(variant.monthlyPrice) > 0 && (
+                                    <span>Monthly: {formatCurrency(Number(variant.monthlyPrice))}</span>
+                                  )}
+                                  {variant.biMonthlyPrice && Number(variant.biMonthlyPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Bi-Monthly: {formatCurrency(Number(variant.biMonthlyPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.quarterlyPrice && Number(variant.quarterlyPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Quarterly: {formatCurrency(Number(variant.quarterlyPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.fourMonthlyPrice && Number(variant.fourMonthlyPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>4-Monthly: {formatCurrency(Number(variant.fourMonthlyPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.semiAnnualPrice && Number(variant.semiAnnualPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Semi-Annual: {formatCurrency(Number(variant.semiAnnualPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.triAnnualPrice && Number(variant.triAnnualPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Tri-Annual: {formatCurrency(Number(variant.triAnnualPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.yearlyPrice && Number(variant.yearlyPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Yearly: {formatCurrency(Number(variant.yearlyPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.biennialPrice && Number(variant.biennialPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Biennial: {formatCurrency(Number(variant.biennialPrice))}</span>
+                                    </>
+                                  )}
+                                  {variant.triennialPrice && Number(variant.triennialPrice) > 0 && (
+                                    <>
+                                      <span>|</span>
+                                      <span>Triennial: {formatCurrency(Number(variant.triennialPrice))}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </>
                             )}
                           </div>
-                          {variant.attributes && (
+                          {(variant.attributes as Record<string, string>) && Object.keys(variant.attributes as Record<string, string>).length > 0 && (
                             <ul className="space-y-3 mb-4">
                               {Object.entries(variant.attributes as Record<string, string>).map(([key, value]) => (
                                 <li key={key} className="flex items-center gap-3 text-sm">
@@ -555,16 +620,6 @@ export default async function ProductDetailPage({ params }: Props) {
                               ))}
                             </ul>
                           )}
-                          {product.configs.length > 0 && (
-                            <div className="mb-4">
-                              {product.configs.map((config: any) => (
-                                <div key={config.id} className="flex items-center gap-2 text-sm text-gray-600">
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                  <span>{config.name || config.displayName}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
                           <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
                             <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                               Get Started <ArrowRight className="h-4 w-4 ml-2" />
@@ -574,18 +629,7 @@ export default async function ProductDetailPage({ params }: Props) {
                       ))}
                     </div>
                   ) : !isConfigurable && hasPricing ? (
-                    <>
-                      {product.configs.length > 0 && (
-                        <div className="mb-6">
-                          {product.configs.map((config: any) => (
-                            <div key={config.id} className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              <span>{config.name || config.displayName}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
+                    <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
                       <p className="text-sm text-gray-500 mb-2">
                         {!isConfigurable ? "One-time price" : "Starting from"}
                       </p>
@@ -593,11 +637,60 @@ export default async function ProductDetailPage({ params }: Props) {
                         {formatCurrency(isConfigurable ? startingPrice : Number(product.basePrice))}
                         <span className="text-xl font-normal text-gray-500">/mo</span>
                       </p>
-                      {(product as any).monthlyPrice && (product as any).yearlyPrice && (
-                        <div className="flex items-center justify-center gap-4 mb-4 text-sm">
-                          <span className="text-gray-500">Monthly: {formatCurrency(Number((product as any).monthlyPrice))}</span>
-                          <span className="text-gray-300">|</span>
-                          <span className="text-gray-500">Yearly: {formatCurrency(Number((product as any).yearlyPrice))}</span>
+                      {/* Show all recurring prices from product level for standalone products */}
+                      {!isConfigurable && product.recurringPrices && (
+                        <div className="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-gray-500">
+                          {product.recurringPrices.monthlyPrice && Number(product.recurringPrices.monthlyPrice) > 0 && (
+                            <span>Monthly: {formatCurrency(Number(product.recurringPrices.monthlyPrice))}</span>
+                          )}
+                          {product.recurringPrices.biMonthlyPrice && Number(product.recurringPrices.biMonthlyPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Bi-Monthly: {formatCurrency(Number(product.recurringPrices.biMonthlyPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.quarterlyPrice && Number(product.recurringPrices.quarterlyPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Quarterly: {formatCurrency(Number(product.recurringPrices.quarterlyPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.fourMonthlyPrice && Number(product.recurringPrices.fourMonthlyPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>4-Monthly: {formatCurrency(Number(product.recurringPrices.fourMonthlyPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.semiAnnualPrice && Number(product.recurringPrices.semiAnnualPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Semi-Annual: {formatCurrency(Number(product.recurringPrices.semiAnnualPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.triAnnualPrice && Number(product.recurringPrices.triAnnualPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Tri-Annual: {formatCurrency(Number(product.recurringPrices.triAnnualPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.yearlyPrice && Number(product.recurringPrices.yearlyPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Yearly: {formatCurrency(Number(product.recurringPrices.yearlyPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.biennialPrice && Number(product.recurringPrices.biennialPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Biennial: {formatCurrency(Number(product.recurringPrices.biennialPrice))}</span>
+                            </>
+                          )}
+                          {product.recurringPrices.triennialPrice && Number(product.recurringPrices.triennialPrice) > 0 && (
+                            <>
+                              <span>|</span>
+                              <span>Triennial: {formatCurrency(Number(product.recurringPrices.triennialPrice))}</span>
+                            </>
+                          )}
                         </div>
                       )}
                       {!isConfigurable && hasDiscount && (
@@ -610,10 +703,30 @@ export default async function ProductDetailPage({ params }: Props) {
                           {formatCurrency(Number(product.compareAtPrice))}
                         </p>
                       )}
+                      {/* Specifications for standalone products - show between price and buttons */}
+                      {product.variants && product.variants.length > 0 && product.variants[0].attributes && Object.keys(product.variants[0].attributes as Record<string, string>).length > 0 ? (
+                        <div className="my-6">
+                          {Object.entries(product.variants[0].attributes as Record<string, string>).map(([key, value]) => (
+                            <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="capitalize">{key}: {value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : product.specifications && Object.keys(product.specifications).length > 0 ? (
+                        <div className="my-6">
+                          {Object.entries(product.specifications as Record<string, string>).map(([key, value]) => (
+                            <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="capitalize">{key}: {value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                       <div className="space-y-3">
                         <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14" asChild>
                           <Link href={`/products/${product.slug}/configure/`}>
-                            <ShoppingBag className="h-5 w-5 mr-2" /> Configure & Buy
+                            <ShoppingBag className="h-5 w-5 mr-2" /> Pricing
                           </Link>
                         </Button>
                         <Button size="lg" variant="outline" className="w-full h-14" asChild>
@@ -621,8 +734,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         </Button>
                       </div>
                     </div>
-                  </>
-                ) : (
+                  ) : (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
                       <p className="text-2xl font-semibold text-white mb-2">Custom Pricing</p>
                       <p className="text-gray-400 mb-8">Get a personalized quote for your business</p>

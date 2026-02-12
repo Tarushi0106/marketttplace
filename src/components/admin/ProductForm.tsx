@@ -104,6 +104,21 @@ interface ProductVariant {
   costPrice: string;
   stockQuantity: string;
   attributes: Record<string, string>;
+  specifications: Record<string, string>;
+  // Billing type: ONE_TIME or RECURRING
+  billingType: "ONE_TIME" | "RECURRING";
+  // One-time setup fee
+  setupFee: string;
+  // Recurring prices
+  monthlyPrice: string;
+  biMonthlyPrice: string;
+  quarterlyPrice: string;
+  fourMonthlyPrice: string;
+  semiAnnualPrice: string;
+  triAnnualPrice: string;
+  yearlyPrice: string;
+  biennialPrice: string;
+  triennialPrice: string;
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
@@ -324,6 +339,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   const [newFeature, setNewFeature] = useState("");
   const [newSpecKey, setNewSpecKey] = useState("");
   const [newSpecValue, setNewSpecValue] = useState("");
+  const [newVariantSpecKey, setNewVariantSpecKey] = useState("");
+  const [newVariantSpecValue, setNewVariantSpecValue] = useState("");
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [showAddonModal, setShowAddonModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -458,6 +475,19 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               costPrice: v.costPrice?.toString() || "",
               stockQuantity: v.stockQuantity?.toString() || "0",
               attributes: v.attributes || {},
+              // Extract specifications from attributes (for existing data) or use separate field
+              specifications: v.specifications || (v.attributes as Record<string, string>) || {},
+              billingType: v.billingType || "ONE_TIME",
+              setupFee: v.setupFee?.toString() || "",
+              monthlyPrice: v.monthlyPrice?.toString() || "",
+              biMonthlyPrice: v.biMonthlyPrice?.toString() || "",
+              quarterlyPrice: v.quarterlyPrice?.toString() || "",
+              fourMonthlyPrice: v.fourMonthlyPrice?.toString() || "",
+              semiAnnualPrice: v.semiAnnualPrice?.toString() || "",
+              triAnnualPrice: v.triAnnualPrice?.toString() || "",
+              yearlyPrice: v.yearlyPrice?.toString() || "",
+              biennialPrice: v.biennialPrice?.toString() || "",
+              triennialPrice: v.triennialPrice?.toString() || "",
               isDefault: v.isDefault || false,
               isActive: v.isActive ?? true,
               sortOrder: v.sortOrder || 0,
@@ -593,6 +623,32 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     });
   }
 
+  // Variant specification management for modal
+  function addVariantSpecification() {
+    if (!editingVariant) return;
+    if (newVariantSpecKey.trim() && newVariantSpecValue.trim()) {
+      setEditingVariant({
+        ...editingVariant,
+        specifications: {
+          ...editingVariant.specifications,
+          [newVariantSpecKey.trim()]: newVariantSpecValue.trim(),
+        },
+      });
+      setNewVariantSpecKey("");
+      setNewVariantSpecValue("");
+    }
+  }
+
+  function removeVariantSpecification(key: string) {
+    if (!editingVariant) return;
+    const newSpecs = { ...editingVariant.specifications };
+    delete newSpecs[key];
+    setEditingVariant({
+      ...editingVariant,
+      specifications: newSpecs,
+    });
+  }
+
   // Image upload handler
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -673,6 +729,18 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         costPrice: "",
         stockQuantity: "0",
         attributes: {},
+        specifications: {},
+        billingType: "ONE_TIME",
+        setupFee: "",
+        monthlyPrice: "",
+        biMonthlyPrice: "",
+        quarterlyPrice: "",
+        fourMonthlyPrice: "",
+        semiAnnualPrice: "",
+        triAnnualPrice: "",
+        yearlyPrice: "",
+        biennialPrice: "",
+        triennialPrice: "",
         isDefault: variants.length === 0,
         isActive: true,
         sortOrder: variants.length,
@@ -818,6 +886,16 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
           costPrice: v.costPrice ? parseFloat(v.costPrice) : null,
           stockQuantity: parseInt(v.stockQuantity) || 0,
+          setupFee: v.setupFee ? parseFloat(v.setupFee) : null,
+          monthlyPrice: v.monthlyPrice ? parseFloat(v.monthlyPrice) : null,
+          biMonthlyPrice: v.biMonthlyPrice ? parseFloat(v.biMonthlyPrice) : null,
+          quarterlyPrice: v.quarterlyPrice ? parseFloat(v.quarterlyPrice) : null,
+          fourMonthlyPrice: v.fourMonthlyPrice ? parseFloat(v.fourMonthlyPrice) : null,
+          semiAnnualPrice: v.semiAnnualPrice ? parseFloat(v.semiAnnualPrice) : null,
+          triAnnualPrice: v.triAnnualPrice ? parseFloat(v.triAnnualPrice) : null,
+          yearlyPrice: v.yearlyPrice ? parseFloat(v.yearlyPrice) : null,
+          biennialPrice: v.biennialPrice ? parseFloat(v.biennialPrice) : null,
+          triennialPrice: v.triennialPrice ? parseFloat(v.triennialPrice) : null,
           sortOrder: idx,
         })),
         addons: addons.map((a, idx) => ({
@@ -1066,11 +1144,19 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <ImageIcon className="h-4 w-4" />
               <span className="hidden lg:inline">Media</span>
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="gap-2">
+            <TabsTrigger 
+              value="pricing" 
+              className="gap-2"
+              disabled={formData.productType === "CONFIGURABLE"}
+            >
               <DollarSign className="h-4 w-4" />
               <span className="hidden lg:inline">Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="variants" className="gap-2">
+            <TabsTrigger 
+              value="variants" 
+              className="gap-2"
+              disabled={formData.productType === "STANDALONE"}
+            >
               <Layers className="h-4 w-4" />
               <span className="hidden lg:inline">Variants</span>
             </TabsTrigger>
@@ -1078,9 +1164,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <Puzzle className="h-4 w-4" />
               <span className="hidden lg:inline">Add-ons</span>
             </TabsTrigger>
-            <TabsTrigger value="configs" className="gap-2">
+            <TabsTrigger value="variable" className="gap-2">
               <Sliders className="h-4 w-4" />
-              <span className="hidden lg:inline">Configs</span>
+              <span className="hidden lg:inline">Variable</span>
             </TabsTrigger>
             <TabsTrigger value="seo" className="gap-2">
               <SearchIcon className="h-4 w-4" />
@@ -1103,6 +1189,29 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
+                        <Label>Product Type</Label>
+                        <Select
+                          value={formData.productType}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, productType: value as any })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="STANDALONE">Standalone</SelectItem>
+                            <SelectItem value="CONFIGURABLE">Variable</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          {formData.productType === "STANDALONE" &&
+                            "Basic product with optional variants"}
+                          {formData.productType === "CONFIGURABLE" &&
+                            "Product with variable options"}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="name">
                           Product Name <span className="text-red-500">*</span>
                         </Label>
@@ -1114,6 +1223,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           required
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="slug">URL Slug</Label>
                         <Input
@@ -1125,9 +1237,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           placeholder="product-url-slug"
                         />
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="sku">SKU</Label>
                         <Input
@@ -1137,17 +1246,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                             setFormData({ ...formData, sku: e.target.value })
                           }
                           placeholder="PRD-001"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="barcode">Barcode</Label>
-                        <Input
-                          id="barcode"
-                          value={formData.barcode}
-                          onChange={(e) =>
-                            setFormData({ ...formData, barcode: e.target.value })
-                          }
-                          placeholder="123456789"
                         />
                       </div>
                     </div>
@@ -1354,32 +1452,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Product Type</Label>
-                      <Select
-                        value={formData.productType}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, productType: value as any })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="STANDALONE">Standalone</SelectItem>
-                          <SelectItem value="WITH_ADDONS">With Add-ons</SelectItem>
-                          <SelectItem value="CONFIGURABLE">Configurable</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        {formData.productType === "STANDALONE" &&
-                          "Basic product with optional variants"}
-                        {formData.productType === "WITH_ADDONS" &&
-                          "Product with optional add-on services"}
-                        {formData.productType === "CONFIGURABLE" &&
-                          "Product with configurable options"}
-                      </p>
-                    </div>
+
                   </CardContent>
                 </Card>
 
@@ -1584,7 +1657,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
           {/* PRICING TAB */}
           <TabsContent value="pricing" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle>Pricing</CardTitle>
@@ -1733,8 +1806,96 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 </CardContent>
               </Card>
 
-              {/* Recurring Prices */}
               <Card>
+                <CardHeader>
+                  <CardTitle>Specifications</CardTitle>
+                  <CardDescription>Product specifications displayed on pricing page</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Add New Specification */}
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <Label className="text-sm font-medium mb-2 block">Add Specification</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Input
+                        placeholder="Name (e.g., RAM)"
+                        value={newSpecKey}
+                        onChange={(e) => setNewSpecKey(e.target.value)}
+                      />
+                      <Input
+                        placeholder="Value (e.g., 8GB)"
+                        value={newSpecValue}
+                        onChange={(e) => setNewSpecValue(e.target.value)}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={addSpecification}
+                        disabled={!newSpecKey.trim() || !newSpecValue.trim()}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Existing Specifications */}
+                  {formData.specifications.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
+                        <span>Specification Name</span>
+                        <span>Value</span>
+                      </div>
+                      {formData.specifications.map((spec, index) => (
+                        <div key={index} className="grid grid-cols-2 gap-2 text-sm items-center">
+                          <span className="font-medium">{spec.key}</span>
+                          <div className="flex items-center gap-2">
+                            <span>{spec.value}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => removeSpecification(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No specifications added yet.
+                    </p>
+                  )}
+                  {formData.variants && formData.variants.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium mb-2">Variant Specifications:</p>
+                      {formData.variants && formData.variants.map((variant, vIndex) => (
+                        <div key={variant.id || vIndex} className="mb-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            {variant.name || `Variant ${vIndex + 1}`}
+                          </p>
+                          {Object.entries(variant.specifications || {}).length > 0 ? (
+                            <div className="space-y-1">
+                              {Object.entries(variant.specifications || {}).map(([key, value]) => (
+                                <div key={key} className="grid grid-cols-2 gap-2 text-xs">
+                                  <span className="font-medium">{key}</span>
+                                  <span>{value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              No specifications
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recurring Prices */}
+              <Card className="lg:col-span-3">
                 <CardHeader>
                   <CardTitle>Recurring Pricing</CardTitle>
                   <CardDescription>Set up recurring billing for subscription products</CardDescription>
@@ -2344,20 +2505,20 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             </Card>
           </TabsContent>
 
-          {/* CONFIGS TAB */}
-          <TabsContent value="configs" className="space-y-6">
+          {/* VARIABLE TAB */}
+          <TabsContent value="variable" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Product Configurations</CardTitle>
+                    <CardTitle>Product Variables</CardTitle>
                     <CardDescription>
-                      Configurable options like RAM, storage, users, etc.
+                      Variable options like RAM, storage, users, etc.
                     </CardDescription>
                   </div>
                   <Button type="button" onClick={() => openConfigModal()}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Configuration
+                    Add Variable
                   </Button>
                 </div>
               </CardHeader>
@@ -2365,9 +2526,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 {configs.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Sliders className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No configurations added yet</p>
+                    <p>No variables added yet</p>
                     <p className="text-sm">
-                      Configurations let customers customize their purchase
+                      Variables let customers customize their purchase
                     </p>
                   </div>
                 ) : (
@@ -2637,6 +2798,384 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   />
                 </div>
               </div>
+              
+              {/* Billing Type */}
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label>Billing Type</Label>
+                  <Select
+                    value={editingVariant.billingType}
+                    onValueChange={(value: "ONE_TIME" | "RECURRING") =>
+                      setEditingVariant({ ...editingVariant, billingType: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ONE_TIME">One-time Setup</SelectItem>
+                      <SelectItem value="RECURRING">Recurring Price</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {editingVariant.billingType === "ONE_TIME" ? (
+                  <div className="space-y-2">
+                    <Label>One-time Price (₹)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editingVariant.price}
+                      onChange={(e) =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          price: e.target.value,
+                        })
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Label className="text-base">Recurring Prices & Setup Fees (₹)</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Monthly */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Monthly</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.monthlyPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  monthlyPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.monthlySetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  monthlySetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quarterly */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Quarterly</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.quarterlyPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  quarterlyPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.quarterlySetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  quarterlySetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bi-Monthly */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Bi-Monthly</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biMonthlyPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biMonthlyPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biMonthlySetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biMonthlySetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4-Monthly */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">4-Monthly</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.fourMonthlyPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  fourMonthlyPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.fourMonthlySetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  fourMonthlySetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Semi-Annual */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Semi-Annual</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.semiAnnualPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  semiAnnualPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.semiAnnualSetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  semiAnnualSetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tri-Annual */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Tri-Annual</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triAnnualPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triAnnualPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triAnnualSetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triAnnualSetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Yearly */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Yearly</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.yearlyPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  yearlyPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.yearlySetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  yearlySetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Biennial */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Biennial</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biennialPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biennialPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biennialSetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biennialSetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Triennial */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium mb-2 block">Triennial</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triennialPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triennialPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Setup Fee</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triennialSetupFee}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triennialSetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Switch
@@ -2656,6 +3195,43 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   />
                   <Label>Active</Label>
                 </div>
+              </div>
+              {/* Variant Specifications */}
+              <div className="space-y-2">
+                <Label>Specifications</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Input
+                    placeholder="Key (e.g., RAM)"
+                    value={newVariantSpecKey}
+                    onChange={(e) => setNewVariantSpecKey(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVariantSpecification())}
+                  />
+                  <Input
+                    placeholder="Value (e.g., 16GB)"
+                    value={newVariantSpecValue}
+                    onChange={(e) => setNewVariantSpecValue(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVariantSpecification())}
+                  />
+                  <Button type="button" onClick={addVariantSpecification} size="icon">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {editingVariant && Object.entries(editingVariant.specifications).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Object.entries(editingVariant.specifications).map(([key, value]) => (
+                      <Badge key={key} variant="secondary" className="gap-1">
+                        {key}: {value}
+                        <button
+                          type="button"
+                          onClick={() => removeVariantSpecification(key)}
+                          className="hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2792,10 +3368,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {editingConfig?.id ? "Edit Configuration" : "Add Configuration"}
+              {editingConfig?.id ? "Edit Variable" : "Add Variable"}
             </DialogTitle>
             <DialogDescription>
-              Add configurable options for this product
+              Add variable options for this product
             </DialogDescription>
           </DialogHeader>
           {editingConfig && (
@@ -2852,7 +3428,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Configuration Name *</Label>
+                <Label>Variable Name *</Label>
                 <Input
                   value={editingConfig.name}
                   onChange={(e) =>
@@ -3018,7 +3594,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             >
               Cancel
             </Button>
-            <Button onClick={saveConfig}>Save Configuration</Button>
+            <Button onClick={saveConfig}>Save Variable</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
