@@ -366,6 +366,32 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             // Extract setupFee from variant attributes for ONE_TIME billing
             const variantSetupFee = variantAttributes.setupFee ? Number(variantAttributes.setupFee) : Number(variant.price);
             
+            // Convert Decimal values in recurring prices to numbers
+            const convertedRecurringPrices = (variant.recurringPrices || [])
+              .filter((rp: any) => rp.variantId === variant.id)
+              .map((rp: any) => ({
+                id: rp.id,
+                variantId: rp.variantId,
+                monthlyPrice: rp.monthlyPrice ? Number(rp.monthlyPrice) : null,
+                biMonthlyPrice: rp.biMonthlyPrice ? Number(rp.biMonthlyPrice) : null,
+                quarterlyPrice: rp.quarterlyPrice ? Number(rp.quarterlyPrice) : null,
+                fourMonthlyPrice: rp.fourMonthlyPrice ? Number(rp.fourMonthlyPrice) : null,
+                semiAnnualPrice: rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : null,
+                triAnnualPrice: rp.triAnnualPrice ? Number(rp.triAnnualPrice) : null,
+                yearlyPrice: rp.yearlyPrice ? Number(rp.yearlyPrice) : null,
+                biennialPrice: rp.biennialPrice ? Number(rp.biennialPrice) : null,
+                triennialPrice: rp.triennialPrice ? Number(rp.triennialPrice) : null,
+                monthlySetupFee: rp.monthlySetupFee ? Number(rp.monthlySetupFee) : null,
+                biMonthlySetupFee: rp.biMonthlySetupFee ? Number(rp.biMonthlySetupFee) : null,
+                quarterlySetupFee: rp.quarterlySetupFee ? Number(rp.quarterlySetupFee) : null,
+                fourMonthlySetupFee: rp.fourMonthlySetupFee ? Number(rp.fourMonthlySetupFee) : null,
+                semiAnnualSetupFee: rp.semiAnnualSetupFee ? Number(rp.semiAnnualSetupFee) : null,
+                triAnnualSetupFee: rp.triAnnualSetupFee ? Number(rp.triAnnualSetupFee) : null,
+                yearlySetupFee: rp.yearlySetupFee ? Number(rp.yearlySetupFee) : null,
+                biennialSetupFee: rp.biennialSetupFee ? Number(rp.biennialSetupFee) : null,
+                triennialSetupFee: rp.triennialSetupFee ? Number(rp.triennialSetupFee) : null,
+              }));
+            
             return {
               id: variant.id,
               name: variant.name,
@@ -373,8 +399,8 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
               compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
               attributes: variant.attributes as Record<string, string> || {},
               isDefault: variant.isDefault || false,
-              // Include variant-specific recurring prices (filter to only those with matching variantId)
-              recurringPrices: (variant.recurringPrices || []).filter((rp: any) => rp.variantId === variant.id),
+              // Include variant-specific recurring prices with converted Decimal values
+              recurringPrices: convertedRecurringPrices,
               // Include billingType from variant attributes
               billingType: variantBillingType as "ONE_TIME" | "RECURRING",
               // Include setupFee for ONE_TIME billing

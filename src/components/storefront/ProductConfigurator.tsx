@@ -310,22 +310,40 @@ export function ProductConfigurator({
   const currentVariant = variants.find(v => v.id === selectedVariant);
 
   // Get billing type from selected variant (check both direct property and attributes)
-  // Also check product-level isRecurring setting
+  // Priority: variant billingType > product isRecurring > default RECURRING
+  // If variant has a billingType set, use that
+  // Otherwise, check product-level isRecurring setting
   // Default to RECURRING if not specified
-  // If product.isRecurring is false, treat as ONE_TIME regardless of variant setting
-  const billingType = product.isRecurring === false 
-    ? "ONE_TIME" 
-    : (currentVariant?.billingType || 
-      (currentVariant?.attributes as any)?.billingType || 
-      "RECURRING");
+  console.log("[ProductConfigurator] Billing type calculation:", {
+    productIsRecurring: product.isRecurring,
+    productIsRecurringType: typeof product.isRecurring,
+    variantBillingType: currentVariant?.billingType,
+    attributesBillingType: (currentVariant?.attributes as any)?.billingType,
+  });
+  
+  // First check if variant has billingType set (from attributes or direct property)
+  const variantBillingType = currentVariant?.billingType || 
+    (currentVariant?.attributes as any)?.billingType;
+  
+  // If variant has billingType, use it; otherwise fall back to product-level setting
+  const billingType = variantBillingType 
+    ? variantBillingType 
+    : (product.isRecurring === false ? "ONE_TIME" : "RECURRING");
+    
+  console.log("[ProductConfigurator] Final billingType:", billingType);
 
   // Extract recurring prices from selected variant
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const variantRecurringPrices = useMemo(() => {
+    console.log("[ProductConfigurator] Current variant:", currentVariant);
+    console.log("[ProductConfigurator] Variant recurring prices:", currentVariant?.recurringPrices);
     if (!currentVariant) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = currentVariant.recurringPrices?.find((rp: any) => rp.variantId === currentVariant.id);
-    return extractRecurringPrices(rp);
+    console.log("[ProductConfigurator] Found recurring price:", rp);
+    const extracted = extractRecurringPrices(rp);
+    console.log("[ProductConfigurator] Extracted recurring prices:", extracted);
+    return extracted;
   }, [currentVariant]);
 
   // Use the dynamic pricing hook

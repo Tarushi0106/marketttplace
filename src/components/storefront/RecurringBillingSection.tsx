@@ -139,19 +139,33 @@ export function RecurringBillingSection({
   // Recurring is compulsory when admin has set recurring prices
   const [billingCycle, setBillingCycle] = useState<BillingCycleType>("MONTHLY");
 
+  // Debug logging
+  console.log("[RecurringBillingSection] Props received:", {
+    billingType,
+    monthlyPrice,
+    quarterlyPrice,
+    monthlySetupFee,
+    quarterlySetupFee,
+  });
+
   // Check if any recurring prices are configured
   const hasRecurringPrices = useCallback((): boolean => {
-    return (
-      monthlyPrice !== undefined ||
-      biMonthlyPrice !== undefined ||
-      quarterlyPrice !== undefined ||
-      fourMonthlyPrice !== undefined ||
-      semiAnnualPrice !== undefined ||
-      triAnnualPrice !== undefined ||
-      yearlyPrice !== undefined ||
-      biennialPrice !== undefined ||
-      triennialPrice !== undefined
+    const result = (
+      (monthlyPrice !== undefined && monthlyPrice !== null && Number(monthlyPrice) > 0) ||
+      (biMonthlyPrice !== undefined && biMonthlyPrice !== null && Number(biMonthlyPrice) > 0) ||
+      (quarterlyPrice !== undefined && quarterlyPrice !== null && Number(quarterlyPrice) > 0) ||
+      (fourMonthlyPrice !== undefined && fourMonthlyPrice !== null && Number(fourMonthlyPrice) > 0) ||
+      (semiAnnualPrice !== undefined && semiAnnualPrice !== null && Number(semiAnnualPrice) > 0) ||
+      (triAnnualPrice !== undefined && triAnnualPrice !== null && Number(triAnnualPrice) > 0) ||
+      (yearlyPrice !== undefined && yearlyPrice !== null && Number(yearlyPrice) > 0) ||
+      (biennialPrice !== undefined && biennialPrice !== null && Number(biennialPrice) > 0) ||
+      (triennialPrice !== undefined && triennialPrice !== null && Number(triennialPrice) > 0)
     );
+    console.log("[RecurringBillingSection] hasRecurringPrices result:", result, {
+      monthlyPriceCheck: monthlyPrice !== undefined && monthlyPrice !== null && Number(monthlyPrice) > 0,
+      quarterlyPriceCheck: quarterlyPrice !== undefined && quarterlyPrice !== null && Number(quarterlyPrice) > 0,
+    });
+    return result;
   }, [monthlyPrice, biMonthlyPrice, quarterlyPrice, fourMonthlyPrice, semiAnnualPrice, triAnnualPrice, yearlyPrice, biennialPrice, triennialPrice]);
 
   // Get price for selected billing cycle
@@ -319,16 +333,28 @@ export function RecurringBillingSection({
   if (biennialPrice !== undefined && biennialPrice !== null && Number(biennialPrice) > 0) availableCycles.push("BIENNIAL");
   if (triennialPrice !== undefined && triennialPrice !== null && Number(triennialPrice) > 0) availableCycles.push("TRIENNIAL");
 
+  // Debug logging for render decision
+  console.log("[RecurringBillingSection] Render decision:", {
+    billingType,
+    hasRecurringPrices: hasRecurringPrices(),
+    availableCyclesCount: availableCycles.length,
+    availableCycles,
+  });
+
   // If billing type is ONE_TIME, don't show recurring billing UI
   // This check must come BEFORE the hasRecurringPrices check
   if (billingType === "ONE_TIME") {
+    console.log("[RecurringBillingSection] Returning null because billingType is ONE_TIME");
     return null;
   }
 
   // If no cycles configured, show nothing
   if (!hasRecurringPrices()) {
+    console.log("[RecurringBillingSection] Returning null because hasRecurringPrices is false");
     return null;
   }
+
+  console.log("[RecurringBillingSection] Rendering the component");
 
   return (
     <Card className="border-2 border-[#8B1D1D]/20">
