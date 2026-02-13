@@ -1323,6 +1323,27 @@ export function ProductConfigurator({
                                     </CardTitle>
                                   </CardHeader>
                                   <CardContent className="space-y-4">
+                                    {/* Product/Variant Price - Show recurring price for RECURRING type */}
+                                    {billingType === "ONE_TIME" ? (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">{currentVariant?.name || product.name}</span>
+                                        <span>{formatPrice(pricing.basePrice)}</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">{currentVariant?.name || product.name}</span>
+                                        <span>{formatPrice(pricing.pricePerCycle)}</span>
+                                      </div>
+                                    )}
+
+                                    {/* Setup Fee */}
+                                    {pricing.setupFee > 0 && (
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Setup Fee</span>
+                                        <span>{formatPrice(pricing.setupFee)}</span>
+                                      </div>
+                                    )}
+
                                     {/* Config Breakdown */}
                                     {pricing.configBreakdown.length > 0 && pricing.configBreakdown.map((item, index) => (
                                       <div key={index} className="flex justify-between text-sm">
@@ -1345,31 +1366,6 @@ export function ProductConfigurator({
                                     ))}
 
                                     <Separator />
-
-                                    {/* Product Price - Due Today */}
-                                    {billingType === "ONE_TIME" ? (
-                                      <>
-                                        {/* For ONE_TIME: Show product price and setup fee separately */}
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">{currentVariant?.name || product.name}</span>
-                                          <span className="font-medium">{formatPrice(pricing.basePrice)}</span>
-                                        </div>
-                                        {pricing.setupFee > 0 && (
-                                          <div className="flex justify-between">
-                                            <span className="text-gray-600">One-time Setup Fee</span>
-                                            <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
-                                          </div>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <>
-                                        {/* For RECURRING: Show recurring price as product price */}
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">{currentVariant?.name || product.name}</span>
-                                          <span className="font-medium">{formatPrice(pricing.pricePerCycle + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)}</span>
-                                        </div>
-                                      </>
-                                    )}
 
                                     {/* Dynamic Recurring Info - Only show for RECURRING billing type */}
                                     {pricing.billingCycle !== "ONE_TIME" && billingType !== "ONE_TIME" && (
