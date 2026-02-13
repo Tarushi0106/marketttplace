@@ -15,6 +15,7 @@ import { useMemo, useEffect, useState, useCallback } from "react";
 
 // Billing cycle type
 export type BillingCycle = 
+  | "ONE_TIME" 
   | "MONTHLY" 
   | "BIMONTHLY" 
   | "QUARTERLY" 
@@ -39,6 +40,7 @@ export interface RecurringPrice {
   yearlyPrice?: number;
   biennialPrice?: number;
   triennialPrice?: number;
+  oneTimeSetupFee?: number;
   monthlySetupFee?: number;
   biMonthlySetupFee?: number;
   quarterlySetupFee?: number;
@@ -66,6 +68,7 @@ export interface AvailableBillingCycle {
 // Get billing cycle label
 export const getBillingCycleLabel = (cycle: BillingCycle): string => {
   const labels: Record<BillingCycle, string> = {
+    ONE_TIME: "One-time",
     MONTHLY: "Monthly",
     BIMONTHLY: "Bi-Monthly",
     QUARTERLY: "Quarterly",
@@ -82,6 +85,7 @@ export const getBillingCycleLabel = (cycle: BillingCycle): string => {
 // Get billing cycle period label
 export const getBillingCyclePeriodLabel = (cycle: BillingCycle): string => {
   const periods: Record<BillingCycle, string> = {
+    ONE_TIME: "",
     MONTHLY: "/month",
     BIMONTHLY: "/2 months",
     QUARTERLY: "/quarter",
@@ -95,11 +99,26 @@ export const getBillingCyclePeriodLabel = (cycle: BillingCycle): string => {
   return periods[cycle] || "";
 };
 
+// Helper function to get price key for a billing cycle
+function getPriceKey(cycle: BillingCycle): keyof RecurringPrice | null {
+  if (cycle === "ONE_TIME") return null;
+  const key = (cycle.charAt(0).toLowerCase() + cycle.slice(1).replace("_", "") + "Price") as keyof RecurringPrice;
+  return key;
+}
+
+// Helper function to get setup fee key for a billing cycle
+function getSetupFeeKey(cycle: BillingCycle): keyof RecurringPrice | null {
+  if (cycle === "ONE_TIME") return "oneTimeSetupFee";
+  const key = (cycle.charAt(0).toLowerCase() + cycle.slice(1).replace("_", "") + "SetupFee") as keyof RecurringPrice;
+  return key;
+}
+
 // Get all available billing cycles from recurring price data
 export const getAvailableBillingCycles = (recurringPrices: RecurringPrice | null): AvailableBillingCycle[] => {
   if (!recurringPrices) return [];
   
   const cycles: BillingCycle[] = [
+    "ONE_TIME",
     "MONTHLY",
     "BIMONTHLY",
     "QUARTERLY",
@@ -113,17 +132,25 @@ export const getAvailableBillingCycles = (recurringPrices: RecurringPrice | null
   
   return cycles
     .filter((cycle) => {
+      if (cycle === "ONE_TIME") {
+        // For ONE_TIME, check if oneTimeSetupFee is defined
+        return recurringPrices.oneTimeSetupFee !== undefined && recurringPrices.oneTimeSetupFee !== null;
+      }
       // Check if this billing cycle has a price configured
-      const priceKey = `${cycle.charAt(0).toLowerCase() + cycle.slice(1).replace("_", "")}Price` as keyof RecurringPrice;
-      return recurringPrices[priceKey] !== undefined && recurringPrices[priceKey] !== null;
+      const priceKey = getPriceKey(cycle);
+      return priceKey && recurringPrices[priceKey] !== undefined && recurringPrices[priceKey] !== null;
     })
-    .map((cycle) => ({
-      cycle,
-      label: getBillingCycleLabel(cycle),
-      periodLabel: getBillingCyclePeriodLabel(cycle),
-      price: recurringPrices[`${cycle.charAt(0).toLowerCase() + cycle.slice(1).replace("_", "")}Price` as keyof RecurringPrice] as number | undefined,
-      setupFee: recurringPrices[`${cycle.charAt(0).toLowerCase() + cycle.slice(1).replace("_", "")}SetupFee` as keyof RecurringPrice] as number | undefined,
-    }));
+    .map((cycle) => {
+      const priceKey = getPriceKey(cycle);
+      const setupFeeKey = getSetupFeeKey(cycle);
+      return {
+        cycle,
+        label: getBillingCycleLabel(cycle),
+        periodLabel: getBillingCyclePeriodLabel(cycle),
+        price: priceKey ? (recurringPrices[priceKey] as number | undefined) : 0,
+        setupFee: setupFeeKey ? (recurringPrices[setupFeeKey] as number | undefined) : undefined,
+      };
+    });
 };
 
 // Check if recurring prices are available
@@ -282,6 +309,7 @@ export async function fetchProductRecurringPrices(
 
 // Billing cycle display configuration
 export const BILLING_CYCLE_CONFIG: Record<BillingCycle, { label: string; period: string; months: number }> = {
+  ONE_TIME: { label: "One-time", period: "", months: 0 },
   MONTHLY: { label: "Monthly", period: "/month", months: 1 },
   BIMONTHLY: { label: "Bi-Monthly", period: "/2 months", months: 2 },
   QUARTERLY: { label: "Quarterly", period: "/quarter", months: 3 },

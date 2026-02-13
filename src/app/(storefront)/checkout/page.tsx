@@ -644,11 +644,18 @@ export default function CheckoutPage() {
                         </div>
                       )}
 
-                      {/* Recurring Amount */}
-                      {item.recurringAmount && item.recurringAmount > 0 && (
+                      {/* Recurring Amount - only show for recurring billing cycles */}
+                      {item.recurringAmount && item.recurringAmount > 0 && item.billingCycle !== 'ONE_TIME' && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">Recurring Amount</span>
                           <span className="text-gray-500">{formatPrice(item.recurringAmount)}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
+                        </div>
+                      )}
+                      {/* One-time Setup Fee - show for ONE_TIME billing */}
+                      {item.billingCycle === 'ONE_TIME' && item.recurringData?.setupFee && item.recurringData.setupFee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">One-time Setup Fee</span>
+                          <span className="text-gray-500">{formatPrice(item.recurringData.setupFee)}</span>
                         </div>
                       )}
                     </div>
@@ -679,8 +686,8 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Recurring info */}
-                {items.some((item: any) => item.recurringAmount > 0) && (
+                {/* Recurring info - only show for recurring billing cycles */}
+                {items.some((item: any) => item.recurringAmount > 0 && item.billingCycle !== 'ONE_TIME') && (
                   <div className="bg-gray-50 rounded-lg p-3 mt-2">
                     <p className="text-sm text-gray-600">
                       You will be charged <span className="font-medium">

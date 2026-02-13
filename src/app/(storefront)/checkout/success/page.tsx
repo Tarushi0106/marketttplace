@@ -435,53 +435,85 @@ export default function CheckoutSuccessPage() {
                 
                 <Separator className="my-2" />
                 
-                {/* Product Price (Due Today) */}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Product Price (Due Today)</span>
-                  <span className="font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
-                </div>
-                
-                {/* Setup Fee */}
-                {order.items?.some((item: any) => item.setupFee && item.setupFee > 0) && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Setup Fee</span>
-                    <span className="font-medium">
-                      {formatCurrency(
-                        order.items?.reduce((sum: number, item: any) => sum + Number(item.setupFee || 0), 0) || 0,
-                        order.currency
-                      )}
-                    </span>
-                  </div>
-                )}
-                
-                {/* Tax */}
-                {order.taxAmount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax (GST)</span>
-                    <span>{formatCurrency(order.taxAmount, order.currency)}</span>
-                  </div>
-                )}
-                
-                {/* Discount */}
-                {order.discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Discount</span>
-                    <span>-{formatCurrency(order.discountAmount, order.currency)}</span>
-                  </div>
-                )}
-                
-                {/* Recurring Plan Info */}
-                {order.items?.some((item: any) => item.isRecurring && item.billingCycle !== 'ONE_TIME') && (
-                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
-                    <p className="text-sm text-gray-600">
-                      You will be charged <span className="font-medium">
+                {/* Check if billing is ONE_TIME */}
+                {order.items?.[0]?.billingCycle === 'ONE_TIME' ? (
+                  /* ONE TIME BILLING: Show setup fee as part of product price, no recurring info */
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">One-time Setup</span>
+                      <span className="font-medium">
                         {formatCurrency(
-                          order.items?.reduce((sum: number, item: any) => sum + (item.recurringPrice || 0), 0),
+                          order.items?.reduce((sum: number, item: any) => sum + Number(item.setupFee || 0), 0) || 0,
                           order.currency
                         )}
-                      </span> every {getRecurringInterval(order.items?.[0]?.billingCycle)} after purchase.
-                    </p>
-                  </div>
+                      </span>
+                    </div>
+                    {/* Tax */}
+                    {order.taxAmount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Tax (GST)</span>
+                        <span>{formatCurrency(order.taxAmount, order.currency)}</span>
+                      </div>
+                    )}
+                    {/* Discount */}
+                    {order.discountAmount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount</span>
+                        <span>-{formatCurrency(order.discountAmount, order.currency)}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* RECURRING BILLING: Show setup fee separately and show recurring info */
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Product Price (Due Today)</span>
+                      <span className="font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
+                    </div>
+                    
+                    {/* Setup Fee */}
+                    {order.items?.some((item: any) => item.setupFee && item.setupFee > 0) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Setup Fee</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            order.items?.reduce((sum: number, item: any) => sum + Number(item.setupFee || 0), 0) || 0,
+                            order.currency
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Tax */}
+                    {order.taxAmount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Tax (GST)</span>
+                        <span>{formatCurrency(order.taxAmount, order.currency)}</span>
+                      </div>
+                    )}
+                    
+                    {/* Discount */}
+                    {order.discountAmount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount</span>
+                        <span>-{formatCurrency(order.discountAmount, order.currency)}</span>
+                      </div>
+                    )}
+                    
+                    {/* Recurring Plan Info */}
+                    {order.items?.some((item: any) => item.isRecurring && item.billingCycle !== 'ONE_TIME') && (
+                      <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                        <p className="text-sm text-gray-600">
+                          You will be charged <span className="font-medium">
+                            {formatCurrency(
+                              order.items?.reduce((sum: number, item: any) => sum + (item.recurringPrice || 0), 0),
+                              order.currency
+                            )}
+                          </span> every {getRecurringInterval(order.items?.[0]?.billingCycle)} after purchase.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 <Separator className="my-2" />

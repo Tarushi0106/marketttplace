@@ -94,6 +94,23 @@ export function cleanCurrencyEncoding(text: string): string {
   return cleaned;
 }
 
+/**
+ * Extract numeric value from a currency string
+ * Handles strings like "₹1,999", "₹1999", "1999", "1999.00"
+ */
+export function extractNumericValue(value: string | number | undefined | null): number {
+  if (typeof value === "number") return value;
+  if (!value) return 0;
+  
+  // If it's a string with currency symbol, extract the number
+  const numericString = value.toString()
+    .replace(/[^0-9.-]/g, "")  // Remove all non-numeric characters except decimal point and minus
+    .replace(/,/g, "");         // Remove thousand separators
+  
+  const numericValue = parseFloat(numericString);
+  return isNaN(numericValue) ? 0 : numericValue;
+}
+
 export function formatDate(
   date: Date | string,
   options?: Intl.DateTimeFormatOptions

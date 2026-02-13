@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Product, ProductVariant, ProductAddon, Bundle } from "@/types";
+import { extractNumericValue } from "@/lib/utils";
 
 export interface CartItem {
   id: string;
@@ -62,7 +63,7 @@ export interface CartItem {
   recurringAmount?: number; // The recurring price per cycle
   recurringData?: {
     enabled: boolean;
-    billingCycle: "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+    billingCycle: "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
     setupFee: number; // One-time setup fee
     pricePerCycle: number; // Recurring amount per cycle
     baseProductPrice: number; // One-time product price (if applicable)
@@ -372,9 +373,10 @@ export const useCartStore = create<CartState>()(
           const rp = item.recurringData;
           if (!rp) return false;
           // Check if any numeric fields are strings with currency formatting
-          const hasStaleSetupFee = typeof rp.setupFee === 'string' && rp.setupFee.includes('₹');
-          const hasStalePricePerCycle = typeof rp.pricePerCycle === 'string' && rp.pricePerCycle.includes('₹');
-          const hasStaleBaseProductPrice = typeof rp.baseProductPrice === 'string' && rp.baseProductPrice.includes('₹');
+          const rpAny = rp as any;
+          const hasStaleSetupFee = typeof rpAny.setupFee === 'string' && rpAny.setupFee.includes('₹');
+          const hasStalePricePerCycle = typeof rpAny.pricePerCycle === 'string' && rpAny.pricePerCycle.includes('₹');
+          const hasStaleBaseProductPrice = typeof rpAny.baseProductPrice === 'string' && rpAny.baseProductPrice.includes('₹');
           return hasStaleSetupFee || hasStalePricePerCycle || hasStaleBaseProductPrice;
         });
         
@@ -471,9 +473,10 @@ if (typeof window !== "undefined") {
       const rp = item.recurringData;
       if (!rp) return false;
       // Check if any numeric fields are strings with currency formatting
-      const hasStaleSetupFee = typeof rp.setupFee === 'string' && rp.setupFee.includes('₹');
-      const hasStalePricePerCycle = typeof rp.pricePerCycle === 'string' && rp.pricePerCycle.includes('₹');
-      const hasStaleBaseProductPrice = typeof rp.baseProductPrice === 'string' && rp.baseProductPrice.includes('₹');
+      const rpAny = rp as any;
+      const hasStaleSetupFee = typeof rpAny.setupFee === 'string' && rpAny.setupFee.includes('₹');
+      const hasStalePricePerCycle = typeof rpAny.pricePerCycle === 'string' && rpAny.pricePerCycle.includes('₹');
+      const hasStaleBaseProductPrice = typeof rpAny.baseProductPrice === 'string' && rpAny.baseProductPrice.includes('₹');
       return hasStaleSetupFee || hasStalePricePerCycle || hasStaleBaseProductPrice;
     });
     

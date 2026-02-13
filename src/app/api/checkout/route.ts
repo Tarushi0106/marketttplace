@@ -38,9 +38,9 @@ const checkoutItemSchema = z.object({
   bundleId: z.string().optional().nullable(),
   quantity: z.number().int().min(1).default(1),
   // Pricing fields
-  baseProductPrice: z.number().optional().default(0), // One-time product price
-  recurringAmount: z.number().optional().default(0), // Recurring price per cycle
-  setupFee: z.number().optional().default(0), // One-time setup fee
+  baseProductPrice: z.coerce.number().optional().default(0), // One-time product price
+  recurringAmount: z.coerce.number().optional().default(0), // Recurring price per cycle
+  setupFee: z.coerce.number().optional().default(0), // One-time setup fee
   addons: z
     .array(
       z.object({
@@ -66,10 +66,10 @@ const checkoutItemSchema = z.object({
   recurringData: z.object({
     enabled: z.boolean(),
     billingCycle: z.enum(["ONE_TIME", "MONTHLY", "BIMONTHLY", "QUARTERLY", "FOUR_MONTHLY", "SEMI_ANNUAL", "TRI_ANNUAL", "YEARLY", "BIENNIAL", "TRIENNIAL"]),
-    setupFee: z.number().optional(),
-    baseProductPrice: z.number().optional(),
+    setupFee: z.coerce.number().optional(),
+    baseProductPrice: z.coerce.number().optional(),
     preferredTime: z.string(),
-    preferredDay: z.number().int().min(1).max(28),
+    preferredDay: z.coerce.number().int().min(1).max(28),
     autoRenew: z.boolean(),
   }).optional(),
 });

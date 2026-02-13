@@ -48,6 +48,8 @@ function extractRecurringPrices(data: any): RecurringPrice | null {
     yearlySetupFee: data.yearlySetupFee,
     biennialSetupFee: data.biennialSetupFee,
     triennialSetupFee: data.triennialSetupFee,
+    // One-time setup fee
+    oneTimeSetupFee: data.oneTimeSetupFee,
   };
 }
 
@@ -72,7 +74,17 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
     });
     return defaults;
   });
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("MONTHLY");
+  // Default billing cycle - prefer ONE_TIME if available, otherwise MONTHLY
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const variant = product.variants?.find((v: any) => v.isDefault) || product.variants?.[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rp = variant?.recurringPrices?.find((r: any) => !r.variantId);
+    if (rp && (rp as any).oneTimeSetupFee !== undefined) {
+      return "ONE_TIME" as BillingCycle;
+    }
+    return "MONTHLY" as BillingCycle;
+  });
 
   // Check if product is standalone (no variants or explicitly standalone product type)
   const isStandalone = product.productType === "STANDALONE" && (!product.variants || product.variants.length === 0);
@@ -209,10 +221,10 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       unitPrice: recurringPrice, // Recurring price per cycle (used for display)
       productPrice: oneTimeTotal, // One-time total (due today)
       billingCycle: billingCycle as import("@/types").BillingCycle,
-      isRecurring: isPricingAvailable,
+      isRecurring: isPricingAvailable && billingCycle !== "ONE_TIME",
       recurringData: isPricingAvailable ? {
-        enabled: true,
-        billingCycle: billingCycle as "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL",
+        enabled: billingCycle !== "ONE_TIME",
+        billingCycle: billingCycle as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL",
         setupFee: Number(setupFee),
         pricePerCycle: Number(recurringPrice),
         baseProductPrice: Number(baseVariantPrice), // One-time product price from variant
