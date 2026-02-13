@@ -14,6 +14,8 @@ interface RecurringBillingSectionProps {
   productId: string;
   variantId?: string;
   basePrice: number;
+  // Billing type: ONE_TIME or RECURRING
+  billingType?: "ONE_TIME" | "RECURRING";
   // Per-billing-frequency setup fees
   monthlySetupFee?: number;
   biMonthlySetupFee?: number;
@@ -110,6 +112,7 @@ export function RecurringBillingSection({
   productId,
   variantId,
   basePrice,
+  billingType = "RECURRING",
   monthlySetupFee,
   biMonthlySetupFee,
   quarterlySetupFee,
@@ -315,6 +318,12 @@ export function RecurringBillingSection({
   if (yearlyPrice !== undefined && yearlyPrice !== null && Number(yearlyPrice) > 0) availableCycles.push("YEARLY");
   if (biennialPrice !== undefined && biennialPrice !== null && Number(biennialPrice) > 0) availableCycles.push("BIENNIAL");
   if (triennialPrice !== undefined && triennialPrice !== null && Number(triennialPrice) > 0) availableCycles.push("TRIENNIAL");
+
+  // If billing type is ONE_TIME, don't show recurring billing UI
+  // This check must come BEFORE the hasRecurringPrices check
+  if (billingType === "ONE_TIME") {
+    return null;
+  }
 
   // If no cycles configured, show nothing
   if (!hasRecurringPrices()) {

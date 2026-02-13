@@ -408,10 +408,31 @@ export async function PUT(
 
         // Update or create variants
         for (const variant of variants) {
-          // Merge specifications into attributes
+          // Reserved keys that should NOT be in specifications
+          const reservedKeys = [
+            'billingType', 'setupFee',
+            'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+            'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+            'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+          ];
+          
+          // Filter out reserved keys from specifications
+          const filteredSpecs: Record<string, string> = {};
+          for (const [key, value] of Object.entries(variant.specifications || {})) {
+            if (!reservedKeys.includes(key)) {
+              filteredSpecs[key] = value;
+            }
+          }
+          
+          // Merge specifications into attributes, but preserve billingType and setupFee
           const mergedAttributes = {
-            ...(variant.attributes || {}),
-            ...(variant.specifications || {}),
+            ...filteredSpecs,
+            // Ensure billingType and setupFee are preserved
+            billingType: (variant.attributes as any)?.billingType || "RECURRING",
+            ...((variant.attributes as any)?.billingType === "ONE_TIME" && (variant.attributes as any)?.setupFee 
+              ? { setupFee: (variant.attributes as any).setupFee } 
+              : {}),
           };
           if (variant.id && existingVariantIds.includes(variant.id)) {
             // Update existing

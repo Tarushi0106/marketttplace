@@ -119,6 +119,26 @@ interface ProductVariant {
   yearlyPrice: string;
   biennialPrice: string;
   triennialPrice: string;
+  // Recurring setup fees
+  monthlySetupFee: string;
+  biMonthlySetupFee: string;
+  quarterlySetupFee: string;
+  fourMonthlySetupFee: string;
+  semiAnnualSetupFee: string;
+  triAnnualSetupFee: string;
+  yearlySetupFee: string;
+  biennialSetupFee: string;
+  triennialSetupFee: string;
+  // Recurring cost prices
+  monthlyCostPrice: string;
+  biMonthlyCostPrice: string;
+  quarterlyCostPrice: string;
+  fourMonthlyCostPrice: string;
+  semiAnnualCostPrice: string;
+  triAnnualCostPrice: string;
+  yearlyCostPrice: string;
+  biennialCostPrice: string;
+  triennialCostPrice: string;
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
@@ -469,6 +489,30 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               // Get variant-specific recurring prices from the recurringPrices array
               const variantRecurringPrices = v.recurringPrices?.find((rp: any) => rp.variantId === v.id) || v.recurringPrices?.[0] || {};
               
+              // Extract billingType from attributes (where it's stored)
+              const variantAttributes = v.attributes as Record<string, any> || {};
+              const billingType = variantAttributes.billingType || "RECURRING";
+              const setupFee = variantAttributes.setupFee || v.setupFee?.toString() || "";
+              
+              // Reserved keys that should NOT be included in specifications
+              const reservedKeys = [
+                'billingType', 'setupFee',
+                'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+                'monthlyCostPrice', 'biMonthlyCostPrice', 'quarterlyCostPrice', 'fourMonthlyCostPrice',
+                'semiAnnualCostPrice', 'triAnnualCostPrice', 'yearlyCostPrice', 'biennialCostPrice', 'triennialCostPrice'
+              ];
+              
+              // Extract specifications from attributes, excluding reserved keys
+              const specifications: Record<string, string> = {};
+              for (const [key, value] of Object.entries(variantAttributes)) {
+                if (!reservedKeys.includes(key)) {
+                  specifications[key] = value as string;
+                }
+              }
+              
               return {
                 id: v.id,
                 name: v.name,
@@ -478,10 +522,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 costPrice: v.costPrice?.toString() || "",
                 stockQuantity: v.stockQuantity?.toString() || "0",
                 attributes: v.attributes || {},
-                // Extract specifications from attributes (for existing data) or use separate field
-                specifications: v.specifications || (v.attributes as Record<string, string>) || {},
-                billingType: v.billingType || "ONE_TIME",
-                setupFee: v.setupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || "",
+                // Extract specifications from attributes (excluding reserved keys)
+                specifications: specifications,
+                billingType: billingType,
+                setupFee: setupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || "",
                 monthlyPrice: v.monthlyPrice?.toString() || variantRecurringPrices.monthlyPrice?.toString() || "",
                 biMonthlyPrice: v.biMonthlyPrice?.toString() || variantRecurringPrices.biMonthlyPrice?.toString() || "",
                 quarterlyPrice: v.quarterlyPrice?.toString() || variantRecurringPrices.quarterlyPrice?.toString() || "",
@@ -501,6 +545,16 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 yearlySetupFee: v.yearlySetupFee?.toString() || variantRecurringPrices.yearlySetupFee?.toString() || "",
                 biennialSetupFee: v.biennialSetupFee?.toString() || variantRecurringPrices.biennialSetupFee?.toString() || "",
                 triennialSetupFee: v.triennialSetupFee?.toString() || variantRecurringPrices.triennialSetupFee?.toString() || "",
+                // Cost prices
+                monthlyCostPrice: v.monthlyCostPrice?.toString() || variantRecurringPrices.monthlyCostPrice?.toString() || "",
+                biMonthlyCostPrice: v.biMonthlyCostPrice?.toString() || variantRecurringPrices.biMonthlyCostPrice?.toString() || "",
+                quarterlyCostPrice: v.quarterlyCostPrice?.toString() || variantRecurringPrices.quarterlyCostPrice?.toString() || "",
+                fourMonthlyCostPrice: v.fourMonthlyCostPrice?.toString() || variantRecurringPrices.fourMonthlyCostPrice?.toString() || "",
+                semiAnnualCostPrice: v.semiAnnualCostPrice?.toString() || variantRecurringPrices.semiAnnualCostPrice?.toString() || "",
+                triAnnualCostPrice: v.triAnnualCostPrice?.toString() || variantRecurringPrices.triAnnualCostPrice?.toString() || "",
+                yearlyCostPrice: v.yearlyCostPrice?.toString() || variantRecurringPrices.yearlyCostPrice?.toString() || "",
+                biennialCostPrice: v.biennialCostPrice?.toString() || variantRecurringPrices.biennialCostPrice?.toString() || "",
+                triennialCostPrice: v.triennialCostPrice?.toString() || variantRecurringPrices.triennialCostPrice?.toString() || "",
                 isDefault: v.isDefault || false,
                 isActive: v.isActive ?? true,
                 sortOrder: v.sortOrder || 0,
@@ -739,6 +793,24 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         yearlyPrice: "",
         biennialPrice: "",
         triennialPrice: "",
+        monthlySetupFee: "",
+        biMonthlySetupFee: "",
+        quarterlySetupFee: "",
+        fourMonthlySetupFee: "",
+        semiAnnualSetupFee: "",
+        triAnnualSetupFee: "",
+        yearlySetupFee: "",
+        biennialSetupFee: "",
+        triennialSetupFee: "",
+        monthlyCostPrice: "",
+        biMonthlyCostPrice: "",
+        quarterlyCostPrice: "",
+        fourMonthlyCostPrice: "",
+        semiAnnualCostPrice: "",
+        triAnnualCostPrice: "",
+        yearlyCostPrice: "",
+        biennialCostPrice: "",
+        triennialCostPrice: "",
         isDefault: variants.length === 0,
         isActive: true,
         sortOrder: variants.length,
@@ -756,7 +828,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       );
       
       // Save variant recurring prices to ProductRecurringPrice table
-      if (isEdit && editingVariant.billingType === "RECURRING") {
+      // Check billingType from both direct property and attributes
+      const variantBillingType = editingVariant.billingType || (editingVariant.attributes as any)?.billingType || "RECURRING";
+      if (isEdit && variantBillingType === "RECURRING") {
         try {
           const variant = editingVariant as any;
           const recurringPayload = {
@@ -780,6 +854,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             biennialSetupFee: variant.biennialSetupFee ? parseFloat(variant.biennialSetupFee) : null,
             triennialSetupFee: variant.triennialSetupFee ? parseFloat(variant.triennialSetupFee) : null,
           };
+          
+          console.log(`Saving recurring prices for variant ${variant.id}:`, recurringPayload);
           
           await fetch(`/api/products/${productId}/recurring-prices?variantId=${variant.id}`, {
             method: "POST",
@@ -908,14 +984,42 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           ...img,
           sortOrder: idx,
         })),
-        variants: variants.map((v, idx) => ({
-          ...v,
-          price: parseFloat(v.price) || 0,
-          compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
-          costPrice: v.costPrice ? parseFloat(v.costPrice) : null,
-          stockQuantity: parseInt(v.stockQuantity) || 0,
-          sortOrder: idx,
-        })),
+        variants: variants.map((v, idx) => {
+          // Reserved keys that should NOT be in specifications
+          const reservedKeys = [
+            'billingType', 'setupFee',
+            'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+            'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+            'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+          ];
+          
+          // Filter out reserved keys from specifications
+          const cleanSpecs: Record<string, string> = {};
+          for (const [key, value] of Object.entries(v.specifications || {})) {
+            if (!reservedKeys.includes(key)) {
+              cleanSpecs[key] = value as string;
+            }
+          }
+          
+          return {
+            ...v,
+            price: parseFloat(v.price) || 0,
+            compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
+            costPrice: v.costPrice ? parseFloat(v.costPrice) : null,
+            stockQuantity: parseInt(v.stockQuantity) || 0,
+            sortOrder: idx,
+            // Store billingType and setupFee in attributes
+            attributes: {
+              // Add billingType
+              billingType: v.billingType || "RECURRING",
+              // Add setupFee for ONE_TIME billing
+              ...(v.billingType === "ONE_TIME" && v.setupFee ? { setupFee: v.setupFee } : {}),
+            },
+            // Send specifications as a separate field (API will merge it with attributes)
+            specifications: cleanSpecs,
+          };
+        }),
         configs: configs.map((c, idx) => ({
           ...c,
           options: c.options.map((o) => ({
@@ -983,7 +1087,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         
         // Save variant recurring prices for existing variants
         for (const variant of variants as any[]) {
-          if (variant.id && variant.billingType === "RECURRING") {
+          // Check billingType from both direct property and attributes
+          const variantBillingType = variant.billingType || (variant.attributes as any)?.billingType || "RECURRING";
+          if (variant.id && variantBillingType === "RECURRING") {
             try {
               const variantRecurringPayload = {
                 monthlyPrice: variant.monthlyPrice ? parseFloat(variant.monthlyPrice) : null,
@@ -1005,7 +1111,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 yearlySetupFee: variant.yearlySetupFee ? parseFloat(variant.yearlySetupFee) : null,
                 biennialSetupFee: variant.biennialSetupFee ? parseFloat(variant.biennialSetupFee) : null,
                 triennialSetupFee: variant.triennialSetupFee ? parseFloat(variant.triennialSetupFee) : null,
+                // Cost prices
               };
+              
+              console.log(`Saving recurring prices for variant ${variant.id}:`, variantRecurringPayload);
               
               await fetch(`/api/products/${productId}/recurring-prices?variantId=${variant.id}`, {
                 method: "POST",
@@ -1713,7 +1822,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="basePrice">
-                        Base Price (â‚¹) <span className="text-red-500">*</span>
+                        Base Price (Rs) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="basePrice"
@@ -1728,7 +1837,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="compareAtPrice">Compare at Price (â‚¹)</Label>
+                      <Label htmlFor="compareAtPrice">Compare at Price (Rs)</Label>
                       <Input
                         id="compareAtPrice"
                         type="number"
@@ -1749,7 +1858,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="costPrice">Cost Price (â‚¹)</Label>
+                      <Label htmlFor="costPrice">Cost Price (Rs)</Label>
                       <Input
                         id="costPrice"
                         type="number"
@@ -1911,32 +2020,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       No specifications added yet.
                     </p>
                   )}
-                  {variants && variants.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm font-medium mb-2">Variant Specifications:</p>
-                      {variants && variants.map((variant, vIndex) => (
-                        <div key={variant.id || vIndex} className="mb-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                            {variant.name || `Variant ${vIndex + 1}`}
-                          </p>
-                          {Object.entries(variant.specifications || {}).length > 0 ? (
-                            <div className="space-y-1">
-                              {Object.entries(variant.specifications || {}).map(([key, value]) => (
-                                <div key={key} className="grid grid-cols-2 gap-2 text-xs">
-                                  <span className="font-medium">{key}</span>
-                                  <span>{value}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">
-                              No specifications
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
@@ -1967,7 +2050,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <>
                       {/* Billing Cycle Prices with Setup Fees */}
                       <div className="space-y-4">
-                        <Label className="text-base">Billing Cycle Prices & Setup Fees (â‚¹)</Label>
+                        <Label className="text-base">Billing Cycle Prices & Setup Fees (Rs)</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Monthly */}
                           <div className="border rounded-lg p-4 space-y-2">
@@ -2410,7 +2493,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           <TableCell className="font-mono text-sm">
                             {variant.sku || "-"}
                           </TableCell>
-                          <TableCell>â‚¹{variant.price}</TableCell>
+                          <TableCell>Rs {variant.price}</TableCell>
                           <TableCell>{variant.stockQuantity}</TableCell>
                           <TableCell>
                             {variant.isDefault && (
@@ -2504,7 +2587,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>â‚¹{addon.price}</TableCell>
+                          <TableCell>Rs {addon.price}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               {addon.pricingType.replace("_", " ")}
@@ -2598,11 +2681,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                     <span>{opt.label}</span>
                                     <span className="text-xs opacity-75">
                                       M: {parseFloat(opt.monthlyPriceModifier || opt.priceModifier) !== 0 
-                                        ? (parseFloat(opt.monthlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `â‚¹${opt.monthlyPriceModifier || opt.priceModifier}`
+                                        ? (parseFloat(opt.monthlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `Rs ${opt.monthlyPriceModifier || opt.priceModifier}`
                                         : 'Included'}
                                       {' | '}
                                       Y: {parseFloat(opt.yearlyPriceModifier || opt.priceModifier) !== 0 
-                                        ? (parseFloat(opt.yearlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `â‚¹${opt.yearlyPriceModifier || opt.priceModifier}`
+                                        ? (parseFloat(opt.yearlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `Rs ${opt.yearlyPriceModifier || opt.priceModifier}`
                                         : 'Included'}
                                     </span>
                                   </Badge>
@@ -2797,53 +2880,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Price (â‚¹) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editingVariant.price}
-                    onChange={(e) =>
-                      setEditingVariant({
-                        ...editingVariant,
-                        price: e.target.value,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Compare Price</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editingVariant.compareAtPrice}
-                    onChange={(e) =>
-                      setEditingVariant({
-                        ...editingVariant,
-                        compareAtPrice: e.target.value,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Cost Price</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editingVariant.costPrice}
-                    onChange={(e) =>
-                      setEditingVariant({
-                        ...editingVariant,
-                        costPrice: e.target.value,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
               
               {/* Billing Type */}
               <div className="space-y-4 pt-4 border-t">
@@ -2859,36 +2895,74 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ONE_TIME">One-time Setup</SelectItem>
+                      <SelectItem value="ONE_TIME">One-time</SelectItem>
                       <SelectItem value="RECURRING">Recurring Price</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {editingVariant.billingType === "ONE_TIME" ? (
-                  <div className="space-y-2">
-                    <Label>One-time Price (â‚¹)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={editingVariant.price}
-                      onChange={(e) =>
-                        setEditingVariant({
-                          ...editingVariant,
-                          price: e.target.value,
-                        })
-                      }
-                      placeholder="0.00"
-                    />
+                  <div className="space-y-4">
+                    <Label className="text-base">One Time</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">One-time Price *</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingVariant.price}
+                          onChange={(e) =>
+                            setEditingVariant({
+                              ...editingVariant,
+                              price: e.target.value,
+                            })
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Setup Fee</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingVariant.setupFee}
+                          onChange={(e) =>
+                            setEditingVariant({
+                              ...editingVariant,
+                              setupFee: e.target.value,
+                            })
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Cost Price</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingVariant.costPrice}
+                          onChange={(e) =>
+                            setEditingVariant({
+                              ...editingVariant,
+                              costPrice: e.target.value,
+                            })
+                          }
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      One-time price is the main product price. Setup fee is an additional one-time charge. No recurring charges will apply.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Label className="text-base">Recurring Prices & Setup Fees (â‚¹)</Label>
+                    <Label className="text-base">Recurring Prices & Setup Fees (Rs)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Monthly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Monthly</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -2919,13 +2993,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.monthlyCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  monthlyCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Quarterly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Quarterly</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -2956,13 +3045,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.quarterlyCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  quarterlyCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Bi-Monthly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Bi-Monthly</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -2993,13 +3097,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biMonthlyCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biMonthlyCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* 4-Monthly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">4-Monthly</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3030,13 +3149,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.fourMonthlyCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  fourMonthlyCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Semi-Annual */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Semi-Annual</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3067,13 +3201,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.semiAnnualCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  semiAnnualCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Tri-Annual */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Tri-Annual</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3104,13 +3253,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triAnnualCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triAnnualCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Yearly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Yearly</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3141,13 +3305,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.yearlyCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  yearlyCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Biennial */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Biennial</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3178,13 +3357,28 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               placeholder="0.00"
                             />
                           </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.biennialCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  biennialCostPrice: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Triennial */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium mb-2 block">Triennial</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Price</Label>
                             <Input
@@ -3210,6 +3404,21 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                 setEditingVariant({
                                   ...editingVariant,
                                   triennialSetupFee: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Cost Price</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingVariant.triennialCostPrice}
+                              onChange={(e) =>
+                                setEditingVariant({
+                                  ...editingVariant,
+                                  triennialCostPrice: e.target.value,
                                 })
                               }
                               placeholder="0.00"
@@ -3242,6 +3451,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <Label>Active</Label>
                 </div>
               </div>
+              
               {/* Variant Specifications */}
               <div className="space-y-2">
                 <Label>Specifications</Label>
@@ -3269,7 +3479,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         {key}: {value}
                         <button
                           type="button"
-                          onClick={() => removeVariantSpecification(key)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeVariantSpecification(key);
+                          }}
                           className="hover:text-destructive"
                         >
                           <X className="h-3 w-3" />
@@ -3335,7 +3549,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (â‚¹) *</Label>
+                  <Label>Price (Rs) *</Label>
                   <Input
                     type="number"
                     step="0.01"

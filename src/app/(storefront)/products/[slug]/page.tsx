@@ -86,6 +86,9 @@ async function getProduct(slug: string) {
   });
 
   if (product) {
+    // Store all recurring prices before filtering (for variant lookup)
+    const allRecurringPrices = product.recurringPrices ? [...product.recurringPrices] : [];
+    
     // Transform recurringPrices to include variant-specific pricing
     // For standalone products: recurringPrices where variantId is null
     // For variable products: recurringPrices for each variant
@@ -97,8 +100,8 @@ async function getProduct(slug: string) {
     // Ensure variant recurringPrices are properly associated
     if (product.variants) {
       product.variants = product.variants.map((variant) => {
-        // Find recurring prices specifically for this variant
-        const variantSpecificPrices = product.recurringPrices?.filter((rp) => rp.variantId === variant.id) || [];
+        // Find recurring prices specifically for this variant from the original array
+        const variantSpecificPrices = allRecurringPrices.filter((rp) => rp.variantId === variant.id);
         
         if (variantSpecificPrices.length > 0) {
           // Use variant-specific recurring prices
@@ -558,6 +561,59 @@ export default async function ProductDetailPage({ params }: Props) {
                     <div className="grid md:grid-cols-3 gap-6">
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {product.variants.map((variant: any) => {
+                        // Get billing type from variant attributes
+                        const variantBillingType = variant.attributes?.billingType || "RECURRING";
+                        const rp = variant.recurringPrices?.[0];
+                        
+                        // Get the first available price with its billing cycle suffix
+                        const getDisplayPrice = (): { price: number; suffix: string } => {
+                          if (!rp) return { price: Number(variant.price), suffix: "" };
+                          
+                          // Try monthly price first
+                          if (rp.monthlyPrice && Number(rp.monthlyPrice) > 0) {
+                            return { price: Number(rp.monthlyPrice), suffix: "/mo" };
+                          }
+                          // Try bi-monthly
+                          if (rp.biMonthlyPrice && Number(rp.biMonthlyPrice) > 0) {
+                            return { price: Number(rp.biMonthlyPrice), suffix: "/2mo" };
+                          }
+                          // Try quarterly
+                          if (rp.quarterlyPrice && Number(rp.quarterlyPrice) > 0) {
+                            return { price: Number(rp.quarterlyPrice), suffix: "/quarter" };
+                          }
+                          // Try 4-monthly
+                          if (rp.fourMonthlyPrice && Number(rp.fourMonthlyPrice) > 0) {
+                            return { price: Number(rp.fourMonthlyPrice), suffix: "/4mo" };
+                          }
+                          // Try semi-annual
+                          if (rp.semiAnnualPrice && Number(rp.semiAnnualPrice) > 0) {
+                            return { price: Number(rp.semiAnnualPrice), suffix: "/6mo" };
+                          }
+                          // Try tri-annual
+                          if (rp.triAnnualPrice && Number(rp.triAnnualPrice) > 0) {
+                            return { price: Number(rp.triAnnualPrice), suffix: "/3yr" };
+                          }
+                          // Try yearly
+                          if (rp.yearlyPrice && Number(rp.yearlyPrice) > 0) {
+                            return { price: Number(rp.yearlyPrice), suffix: "/yr" };
+                          }
+                          // Try biennial
+                          if (rp.biennialPrice && Number(rp.biennialPrice) > 0) {
+                            return { price: Number(rp.biennialPrice), suffix: "/2yr" };
+                          }
+                          // Try triennial
+                          if (rp.triennialPrice && Number(rp.triennialPrice) > 0) {
+                            return { price: Number(rp.triennialPrice), suffix: "/3yr" };
+                          }
+                          
+                          // Fall back to variant price
+                          return { price: Number(variant.price), suffix: "" };
+                        };
+                        
+                        const { price: displayPrice, suffix: priceSuffix } = variantBillingType === "RECURRING" 
+                          ? getDisplayPrice() 
+                          : { price: Number(variant.price), suffix: "" };
+                        
                         return (
                         <div
                           key={variant.id}
@@ -568,22 +624,35 @@ export default async function ProductDetailPage({ params }: Props) {
                           )}
                           <div className="text-center mb-6">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
-                            {/* Show base price from variant */}
+                            {/* Show price with appropriate billing cycle suffix */}
                             <p className="text-4xl font-bold text-gray-900">
-                              {formatPrice(Number(variant.price))}
+                              {formatPrice(displayPrice)}
+                              {priceSuffix && <span className="text-lg font-normal text-gray-500">{priceSuffix}</span>}
                             </p>
                           </div>
-                          {(variant.attributes as Record<string, string>) && Object.keys(variant.attributes as Record<string, string>).length > 0 && (
-                            <ul className="space-y-3 mb-4">
-                              {Object.entries(variant.attributes as Record<string, string>).map(([key, value]) => (
-                                <li key={key} className="flex items-center gap-3 text-sm">
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
-                                  <span className="text-gray-600 capitalize">{key}:</span>
-                                  <span className="font-medium text-gray-900">{value}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                          {(() => {
+                            // Filter out reserved pricing keys from variant attributes
+                            const reservedKeys = [
+                              'billingType', 'setupFee',
+                              'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                              'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                              'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                            ];
+                            const attrs = variant.attributes as Record<string, string> || {};
+                            const filteredAttrs = Object.entries(attrs).filter(([key]) => !reservedKeys.includes(key));
+                            return filteredAttrs.length > 0 ? (
+                              <ul className="space-y-3 mb-4">
+                                {filteredAttrs.map(([key, value]) => (
+                                  <li key={key} className="flex items-center gap-3 text-sm">
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                    <span className="text-gray-600 capitalize">{key}:</span>
+                                    <span className="font-medium text-gray-900">{value}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null;
+                          })()}
                           <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
                             <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                               Get Started <ArrowRight className="h-4 w-4 ml-2" />
@@ -608,7 +677,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         return (
                           <>
                             <p className="text-sm text-gray-500 mb-2">
-                              {!isConfigurable ? "One-time price" : "Starting from"}
+                              {!isConfigurable ? "One-time Price" : "Starting from"}
                             </p>
                             <p className="text-5xl font-bold text-gray-900 mb-2">
                               {formatPrice(displayPrice)}
@@ -629,25 +698,37 @@ export default async function ProductDetailPage({ params }: Props) {
                         </p>
                       )}
                       {/* Specifications for standalone products - show between price and buttons */}
-                      {product.variants && product.variants.length > 0 && product.variants[0].attributes && Object.keys(product.variants[0].attributes as Record<string, string>).length > 0 ? (
-                        <div className="my-6">
-                          {Object.entries(product.variants[0].attributes as Record<string, string>).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              <span className="capitalize">{key}: {value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : product.specifications && Object.keys(product.specifications).length > 0 ? (
-                        <div className="my-6">
-                          {Object.entries(product.specifications as Record<string, string>).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              <span className="capitalize">{key}: {value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
+                      {(() => {
+                        // Filter out reserved pricing keys from variant attributes
+                        const reservedKeys = [
+                          'billingType', 'setupFee',
+                          'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                          'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                          'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                        ];
+                        const attrs = product.variants?.[0]?.attributes as Record<string, string> || {};
+                        const filteredAttrs = Object.entries(attrs).filter(([key]) => !reservedKeys.includes(key));
+                        return filteredAttrs.length > 0 ? (
+                          <div className="my-6">
+                            {filteredAttrs.map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="capitalize">{key}: {value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : product.specifications && Object.keys(product.specifications).length > 0 ? (
+                          <div className="my-6">
+                            {Object.entries(product.specifications as Record<string, string>).map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="capitalize">{key}: {value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
                       <div className="space-y-3">
                         <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14" asChild>
                           <Link href={`/products/${product.slug}/configure/`}>

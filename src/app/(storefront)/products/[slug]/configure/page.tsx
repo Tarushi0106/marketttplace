@@ -68,6 +68,9 @@ async function getProduct(slug: string) {
   });
 
   if (product) {
+    // Store all recurring prices before filtering (for variant lookup)
+    const allRecurringPrices = product.recurringPrices ? [...product.recurringPrices] : [];
+    
     // Transform recurringPrices to include variant-specific pricing
     // For standalone products: recurringPrices where variantId is null
     // For variable products: recurringPrices for each variant
@@ -79,9 +82,18 @@ async function getProduct(slug: string) {
     // Ensure variant recurringPrices are properly associated
     if (product.variants) {
       product.variants = product.variants.map((variant) => {
-        if (variant.recurringPrices && variant.recurringPrices.length > 0) {
-          // Use the first recurring price for this variant (with matching variantId) or fall back to first
-          variant.recurringPrices = [variant.recurringPrices.find((rp) => rp.variantId === variant.id) || variant.recurringPrices[0]];
+        // Find recurring prices specifically for this variant from the original array
+        const variantSpecificPrices = allRecurringPrices.filter((rp) => rp.variantId === variant.id);
+        
+        if (variantSpecificPrices.length > 0) {
+          // Use variant-specific recurring prices
+          variant.recurringPrices = variantSpecificPrices;
+        } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+          // Variant already has recurring prices (included in query)
+          // Keep as is
+        } else {
+          // No variant-specific prices - clear to avoid stale data
+          variant.recurringPrices = [];
         }
         return variant;
       });
@@ -344,18 +356,31 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             basePrice: Number(product.basePrice),
             productType: product.productType,
             images: product.images,
+            isRecurring: product.isRecurring,
           }}
           selectedVariantId={selectedVariantId}
-          variants={product.productType === "CONFIGURABLE" ? product.variants.map((variant: any) => ({
-            id: variant.id,
-            name: variant.name,
-            price: Number(variant.price),
-            compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-            attributes: variant.attributes as Record<string, string> || {},
-            isDefault: variant.isDefault || false,
-            // Include variant-specific recurring prices (filter to only those with matching variantId)
-            recurringPrices: (variant.recurringPrices || []).filter((rp: any) => rp.variantId === variant.id),
-          })) : []}
+          variants={product.productType === "CONFIGURABLE" ? product.variants.map((variant: any) => {
+            // Extract billingType from variant attributes or default to RECURRING
+            const variantAttributes = variant.attributes as Record<string, any> || {};
+            const variantBillingType = variantAttributes.billingType || "RECURRING";
+            // Extract setupFee from variant attributes for ONE_TIME billing
+            const variantSetupFee = variantAttributes.setupFee ? Number(variantAttributes.setupFee) : Number(variant.price);
+            
+            return {
+              id: variant.id,
+              name: variant.name,
+              price: Number(variant.price),
+              compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
+              attributes: variant.attributes as Record<string, string> || {},
+              isDefault: variant.isDefault || false,
+              // Include variant-specific recurring prices (filter to only those with matching variantId)
+              recurringPrices: (variant.recurringPrices || []).filter((rp: any) => rp.variantId === variant.id),
+              // Include billingType from variant attributes
+              billingType: variantBillingType as "ONE_TIME" | "RECURRING",
+              // Include setupFee for ONE_TIME billing
+              setupFee: variantSetupFee,
+            };
+          }) : []}
           configs={allConfigs.map((config: any) => ({
             id: config.id,
             configType: config.configType || "STANDARD",

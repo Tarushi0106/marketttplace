@@ -181,6 +181,7 @@ interface ProductConfiguratorProps {
     basePrice: number;
     productType: string;
     images: any[];
+    isRecurring?: boolean;
   };
   selectedVariantId?: string | null;
   variants?: {
@@ -191,6 +192,8 @@ interface ProductConfiguratorProps {
     attributes?: Record<string, string>;
     isDefault?: boolean;
     recurringPrices?: any[];
+    billingType?: "ONE_TIME" | "RECURRING";
+    setupFee?: number;
   }[];
   configs?: ProductConfig[];
   inheritedConfigs?: ProductConfig[];
@@ -305,6 +308,16 @@ export function ProductConfigurator({
 
   // Get selected variant
   const currentVariant = variants.find(v => v.id === selectedVariant);
+
+  // Get billing type from selected variant (check both direct property and attributes)
+  // Also check product-level isRecurring setting
+  // Default to RECURRING if not specified
+  // If product.isRecurring is false, treat as ONE_TIME regardless of variant setting
+  const billingType = product.isRecurring === false 
+    ? "ONE_TIME" 
+    : (currentVariant?.billingType || 
+      (currentVariant?.attributes as any)?.billingType || 
+      "RECURRING");
 
   // Extract recurring prices from selected variant
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -504,7 +517,21 @@ export function ProductConfigurator({
     let monthlyEquivalent: number;
     let totalForPeriod: number;
 
-    if (recurringData) {
+    // For ONE_TIME billing type, there's no recurring price - just one-time setup fee
+    if (billingType === "ONE_TIME") {
+      // For ONE_TIME products: total = productPrice + setupFee + configs + addons
+      // The productPrice is the variant price, setupFee is a separate one-time fee
+      const variantAttributes = currentVariant?.attributes as any;
+      const productPrice = Number(currentVariant?.price) || Number(basePrice);
+      const oneTimeSetupFee = Number(variantAttributes?.setupFee) || Number(currentVariant?.setupFee) || 0;
+      
+      pricePerCycle = 0; // No recurring price
+      setupFee = oneTimeSetupFee;
+      savingsPercentage = 0;
+      monthlyEquivalent = 0;
+      // Total = product price + setup fee + configs + addons
+      totalForPeriod = productPrice + oneTimeSetupFee + Number(configsTotal) + Number(addonsTotal);
+    } else if (recurringData) {
       pricePerCycle = Number(recurringData.pricePerCycle);
       setupFee = Number(recurringData.setupFee);
       savingsPercentage = Number(recurringData.savingsPercentage);
@@ -549,11 +576,11 @@ export function ProductConfigurator({
       totalForPeriod,
       savingsPercentage,
       monthlyEquivalent,
-      billingCycle,
+      billingCycle: billingType === "ONE_TIME" ? "ONE_TIME" : billingCycle,
       configBreakdown,
       addonBreakdown,
     };
-  }, [product.basePrice, configs, allAddons, configInstances, recurringData, selectedVariantData, selectedConfigs, selectedAddons, isPricingAvailable]);
+  }, [product.basePrice, configs, allAddons, configInstances, recurringData, selectedVariantData, selectedConfigs, selectedAddons, isPricingAvailable, billingType, currentVariant]);
 
   // Watch for billingCycle changes and update cart immediately
   useEffect(() => {
@@ -892,6 +919,7 @@ export function ProductConfigurator({
           productId={product.id}
           variantId={selectedVariant || undefined}
           basePrice={pricing.subtotal}
+          billingType={billingType}
           monthlySetupFee={effectiveRecurringPrices?.monthlySetupFee}
           biMonthlySetupFee={effectiveRecurringPrices?.biMonthlySetupFee}
           quarterlySetupFee={effectiveRecurringPrices?.quarterlySetupFee}
@@ -915,37 +943,6 @@ export function ProductConfigurator({
           yearlySavings={recurringPrices?.yearlySavings}
           onRecurringChange={handleRecurringChange}
         />
-
-        {/* Variant Selector */}
-        {variants.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-5 w-5" />
-                Select Variant
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedVariant || ""} onValueChange={handleVariantChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a variant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {variants.map((variant) => (
-                    <SelectItem key={variant.id} value={variant.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{variant.name}</span>
-                        <span className="text-gray-500 ml-4">
-                          {formatPrice(Number(variant.price))}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Configurations Section - All configs grouped together */}
         {allConfigs.length > 0 && (
@@ -1346,21 +1343,41 @@ export function ProductConfigurator({
                                     <Separator />
 
                                     {/* Product Price - Due Today */}
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Product Price (Due Today)</span>
-                                      <span className="font-medium">{formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}</span>
-                                    </div>
-
-                                    {/* Setup Fee */}
-                                    {pricing.setupFee > 0 && (
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-600">Setup Fee</span>
-                                        <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
-                                      </div>
+                                    {billingType === "ONE_TIME" ? (
+                                      <>
+                                        {/* For ONE_TIME: Show product price and setup fee separately */}
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">Product Price</span>
+                                          <span className="font-medium">{formatPrice(pricing.basePrice)}</span>
+                                        </div>
+                                        {pricing.setupFee > 0 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">One-time Setup Fee</span>
+                                            <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        {/* For RECURRING: Show product price with configs/addons */}
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">Product Price (Due Today)</span>
+                                          <span className="font-medium">
+                                            {formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}
+                                          </span>
+                                        </div>
+                                        {/* Setup Fee - Only for RECURRING */}
+                                        {pricing.setupFee > 0 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-600">Setup Fee</span>
+                                            <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
+                                          </div>
+                                        )}
+                                      </>
                                     )}
 
-                                    {/* Dynamic Recurring Info */}
-                                    {pricing.billingCycle !== "ONE_TIME" && (
+                                    {/* Dynamic Recurring Info - Only show for RECURRING billing type */}
+                                    {pricing.billingCycle !== "ONE_TIME" && billingType !== "ONE_TIME" && (
                                       <div className="bg-gray-50 rounded-lg p-3 mt-2">
                                         <p className="text-sm text-gray-600">
                                           You will be charged <span className="font-medium">{formatPrice(pricing.pricePerCycle)}</span> every {
@@ -1374,13 +1391,25 @@ export function ProductConfigurator({
                                       </div>
                                     )}
 
+                                    {/* ONE_TIME billing info */}
+                                    {billingType === "ONE_TIME" && (
+                                      <div className="bg-green-50 rounded-lg p-3 mt-2">
+                                        <p className="text-sm text-green-600">
+                                          <span className="font-medium">One-time payment</span> - No recurring charges
+                                        </p>
+                                      </div>
+                                    )}
+
                                     <Separator />
 
                                     {/* Total Due Today */}
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total Due Today</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)}
+                                        {billingType === "ONE_TIME" 
+                                          ? formatPrice(pricing.basePrice + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
+                                          : formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)
+                                        }
                                       </span>
                                     </div>
 

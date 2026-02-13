@@ -94,6 +94,16 @@ export async function POST(
       yearlySetupFee,
       biennialSetupFee,
       triennialSetupFee,
+      // Cost Prices
+      monthlyCostPrice,
+      biMonthlyCostPrice,
+      quarterlyCostPrice,
+      fourMonthlyCostPrice,
+      semiAnnualCostPrice,
+      triAnnualCostPrice,
+      yearlyCostPrice,
+      biennialCostPrice,
+      triennialCostPrice,
     } = body;
 
     console.log("Saving recurring prices:", { 

@@ -162,6 +162,7 @@ const variantSchema = z.object({
   costPrice: z.coerce.number().min(0).optional().nullable(),
   stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.string()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().default(0),
@@ -317,19 +318,48 @@ export async function POST(request: NextRequest) {
       // Create variants if provided
       if (variants && variants.length > 0) {
         await tx.productVariant.createMany({
-          data: variants.map((v, idx) => ({
-            productId: newProduct.id,
-            name: v.name,
-            sku: v.sku,
-            price: v.price,
-            compareAtPrice: v.compareAtPrice,
-            costPrice: v.costPrice,
-            stockQuantity: v.stockQuantity,
-            attributes: v.attributes || {},
-            isDefault: v.isDefault ?? idx === 0,
-            isActive: v.isActive ?? true,
-            sortOrder: v.sortOrder ?? idx,
-          })),
+          data: variants.map((v, idx) => {
+            // Reserved keys that should NOT be in specifications
+            const reservedKeys = [
+              'billingType', 'setupFee',
+              'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+              'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+              'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+            ];
+            
+            // Filter out reserved keys from specifications
+            const filteredSpecs: Record<string, string> = {};
+            for (const [key, value] of Object.entries(v.specifications || {})) {
+              if (!reservedKeys.includes(key)) {
+                filteredSpecs[key] = value;
+              }
+            }
+            
+            // Merge specifications into attributes, preserving billingType and setupFee
+            const mergedAttributes = {
+              ...filteredSpecs,
+              // Ensure billingType and setupFee are preserved
+              billingType: (v.attributes as any)?.billingType || "RECURRING",
+              ...((v.attributes as any)?.billingType === "ONE_TIME" && (v.attributes as any)?.setupFee 
+                ? { setupFee: (v.attributes as any).setupFee } 
+                : {}),
+            };
+            
+            return {
+              productId: newProduct.id,
+              name: v.name,
+              sku: v.sku,
+              price: v.price,
+              compareAtPrice: v.compareAtPrice,
+              costPrice: v.costPrice,
+              stockQuantity: v.stockQuantity,
+              attributes: mergedAttributes,
+              isDefault: v.isDefault ?? idx === 0,
+              isActive: v.isActive ?? true,
+              sortOrder: v.sortOrder ?? idx,
+            };
+          }),
         });
       }
 
