@@ -1323,20 +1323,6 @@ export function ProductConfigurator({
                                     </CardTitle>
                                   </CardHeader>
                                   <CardContent className="space-y-4">
-                                    {/* Variant Price - Show when variant is selected */}
-                                    {currentVariant ? (
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">{currentVariant.name}</span>
-                                        <span>{formatPrice(Number(currentVariant.price))}</span>
-                                      </div>
-                                    ) : (
-                                      /* Base Price - Show only when no variant is selected */
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Base Price</span>
-                                        <span>{formatPrice(Number(product.basePrice))}</span>
-                                      </div>
-                                    )}
-
                                     {/* Config Breakdown */}
                                     {pricing.configBreakdown.length > 0 && pricing.configBreakdown.map((item, index) => (
                                       <div key={index} className="flex justify-between text-sm">
@@ -1365,7 +1351,7 @@ export function ProductConfigurator({
                                       <>
                                         {/* For ONE_TIME: Show product price and setup fee separately */}
                                         <div className="flex justify-between">
-                                          <span className="text-gray-600">Product Price</span>
+                                          <span className="text-gray-600">{currentVariant?.name || product.name}</span>
                                           <span className="font-medium">{formatPrice(pricing.basePrice)}</span>
                                         </div>
                                         {pricing.setupFee > 0 && (
@@ -1377,20 +1363,11 @@ export function ProductConfigurator({
                                       </>
                                     ) : (
                                       <>
-                                        {/* For RECURRING: Show product price with configs/addons */}
+                                        {/* For RECURRING: Show recurring price as product price */}
                                         <div className="flex justify-between">
-                                          <span className="text-gray-600">Product Price (Due Today)</span>
-                                          <span className="font-medium">
-                                            {formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}
-                                          </span>
+                                          <span className="text-gray-600">{currentVariant?.name || product.name}</span>
+                                          <span className="font-medium">{formatPrice(pricing.pricePerCycle + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)}</span>
                                         </div>
-                                        {/* Setup Fee - Only for RECURRING */}
-                                        {pricing.setupFee > 0 && (
-                                          <div className="flex justify-between">
-                                            <span className="text-gray-600">Setup Fee</span>
-                                            <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
-                                          </div>
-                                        )}
                                       </>
                                     )}
 
@@ -1426,7 +1403,7 @@ export function ProductConfigurator({
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
                                         {billingType === "ONE_TIME" 
                                           ? formatPrice(pricing.basePrice + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
-                                          : formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)
+                                          : formatPrice(pricing.pricePerCycle + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
                                         }
                                       </span>
                                     </div>
