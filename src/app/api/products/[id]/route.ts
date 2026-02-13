@@ -589,6 +589,7 @@ export async function PUT(
                     modifierType: option.modifierType || "ADD",
                     sortOrder: option.sortOrder ?? 0,
                     isAvailable: option.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when updating
                     stockStatus: option.stockStatus || null,
                   },
                 });
@@ -606,6 +607,7 @@ export async function PUT(
                     modifierType: option.modifierType || "ADD",
                     sortOrder: option.sortOrder ?? 0,
                     isAvailable: option.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when creating
                     stockStatus: option.stockStatus || null,
                   },
                 });
@@ -643,6 +645,7 @@ export async function PUT(
                     isPercentage: opt.isPercentage ?? false,
                     modifierType: opt.modifierType || "ADD",
                     isAvailable: opt.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when creating
                     sortOrder: opt.sortOrder ?? 0,
                     stockStatus: opt.stockStatus || null,
                   })),

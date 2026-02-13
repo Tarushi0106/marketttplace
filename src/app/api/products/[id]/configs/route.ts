@@ -90,7 +90,7 @@ export async function POST(
               data: {
                 configId: createdConfig.id,
                 value: opt.value || "",
-                label: opt.label || "",
+                label: opt.label || opt.value || "",
                 description: opt.description || null,
                 priceModifier: opt.priceModifier || 0,
                 monthlyPriceModifier: opt.monthlyPriceModifier ?? opt.priceModifier ?? 0,
@@ -99,6 +99,7 @@ export async function POST(
                 modifierType: opt.modifierType || "ADD",
                 sortOrder: opt.sortOrder || 0,
                 isAvailable: opt.isAvailable ?? true,
+                isActive: true, // Always ensure isActive is true when creating
                 stockStatus: opt.stockStatus || null,
               },
             });

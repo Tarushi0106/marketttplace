@@ -898,12 +898,24 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   function saveConfig() {
     if (!editingConfig || !editingConfig.name) return;
 
+    // Auto-generate value from label if value is empty
+    const processedConfig = {
+      ...editingConfig,
+      options: editingConfig.options.map((opt) => ({
+        ...opt,
+        // If value is empty but label exists, generate value from label
+        value: opt.value?.trim() || opt.label?.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || '',
+        // If label is empty but value exists, use value as label
+        label: opt.label?.trim() || opt.value || '',
+      })).filter((opt) => opt.value && opt.value.trim() !== ''), // Remove options with no value
+    };
+
     if (editingConfig.id) {
       setConfigs((prev) =>
-        prev.map((c) => (c.id === editingConfig.id ? editingConfig : c))
+        prev.map((c) => (c.id === editingConfig.id ? processedConfig : c))
       );
     } else {
-      setConfigs((prev) => [...prev, editingConfig]);
+      setConfigs((prev) => [...prev, processedConfig]);
     }
     setShowConfigModal(false);
     setEditingConfig(null);
@@ -1487,72 +1499,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     )}
                   </CardContent>
                 </Card>
-
-                {/* Specifications */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Specifications</CardTitle>
-                    <CardDescription>
-                      Technical specifications displayed as a table
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Specification name..."
-                        value={newSpecKey}
-                        onChange={(e) => setNewSpecKey(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Input
-                        placeholder="Value..."
-                        value={newSpecValue}
-                        onChange={(e) => setNewSpecValue(e.target.value)}
-                        className="flex-1"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addSpecification();
-                          }
-                        }}
-                      />
-                      <Button type="button" onClick={addSpecification}>
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {formData.specifications.length > 0 && (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Specification</TableHead>
-                            <TableHead>Value</TableHead>
-                            <TableHead className="w-12"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {formData.specifications.map((spec, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">
-                                {spec.key}
-                              </TableCell>
-                              <TableCell>{spec.value}</TableCell>
-                              <TableCell>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeSpecification(index)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </CardContent>
-                </Card>
               </div>
 
               {/* Right Column - Organization */}
@@ -1958,68 +1904,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Specifications</CardTitle>
-                  <CardDescription>Product specifications displayed on pricing page</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Add New Specification */}
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <Label className="text-sm font-medium mb-2 block">Add Specification</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Input
-                        placeholder="Name (e.g., RAM)"
-                        value={newSpecKey}
-                        onChange={(e) => setNewSpecKey(e.target.value)}
-                      />
-                      <Input
-                        placeholder="Value (e.g., 8GB)"
-                        value={newSpecValue}
-                        onChange={(e) => setNewSpecValue(e.target.value)}
-                      />
-                      <Button
-                        size="sm"
-                        onClick={addSpecification}
-                        disabled={!newSpecKey.trim() || !newSpecValue.trim()}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Existing Specifications */}
-                  {formData.specifications.length > 0 ? (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
-                        <span>Specification Name</span>
-                        <span>Value</span>
-                      </div>
-                      {formData.specifications.map((spec, index) => (
-                        <div key={index} className="grid grid-cols-2 gap-2 text-sm items-center">
-                          <span className="font-medium">{spec.key}</span>
-                          <div className="flex items-center gap-2">
-                            <span>{spec.value}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => removeSpecification(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No specifications added yet.
-                    </p>
-                  )}
                 </CardContent>
               </Card>
 
@@ -2477,7 +2361,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>SKU</TableHead>
-                        <TableHead>Price</TableHead>
                         <TableHead>Stock</TableHead>
                         <TableHead>Default</TableHead>
                         <TableHead>Active</TableHead>
@@ -2493,7 +2376,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           <TableCell className="font-mono text-sm">
                             {variant.sku || "-"}
                           </TableCell>
-                          <TableCell>Rs {variant.price}</TableCell>
                           <TableCell>{variant.stockQuantity}</TableCell>
                           <TableCell>
                             {variant.isDefault && (
@@ -3451,48 +3333,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <Label>Active</Label>
                 </div>
               </div>
-              
-              {/* Variant Specifications */}
-              <div className="space-y-2">
-                <Label>Specifications</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Input
-                    placeholder="Key (e.g., RAM)"
-                    value={newVariantSpecKey}
-                    onChange={(e) => setNewVariantSpecKey(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVariantSpecification())}
-                  />
-                  <Input
-                    placeholder="Value (e.g., 16GB)"
-                    value={newVariantSpecValue}
-                    onChange={(e) => setNewVariantSpecValue(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVariantSpecification())}
-                  />
-                  <Button type="button" onClick={addVariantSpecification} size="icon">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {editingVariant && Object.entries(editingVariant.specifications).length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {Object.entries(editingVariant.specifications).map(([key, value]) => (
-                      <Badge key={key} variant="secondary" className="gap-1">
-                        {key}: {value}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeVariantSpecification(key);
-                          }}
-                          className="hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           )}
           <DialogFooter>
@@ -3727,7 +3567,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   {editingConfig.options.map((option, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <Input
-                        placeholder="Value"
+                        placeholder="Value (auto from label)"
                         value={option.value}
                         onChange={(e) => {
                           const newOptions = [...editingConfig.options];
@@ -3740,11 +3580,15 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         className="flex-1"
                       />
                       <Input
-                        placeholder="Label"
+                        placeholder="Label (display name)"
                         value={option.label}
                         onChange={(e) => {
                           const newOptions = [...editingConfig.options];
                           newOptions[idx].label = e.target.value;
+                          // Auto-generate value if empty
+                          if (!newOptions[idx].value?.trim()) {
+                            newOptions[idx].value = e.target.value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                          }
                           setEditingConfig({
                             ...editingConfig,
                             options: newOptions,

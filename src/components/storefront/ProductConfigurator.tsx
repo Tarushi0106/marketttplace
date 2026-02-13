@@ -399,7 +399,14 @@ export function ProductConfigurator({
       name: c.name,
       inputType: c.inputType,
       optionsCount: c.options?.length || 0,
-      options: c.options?.map(o => ({ value: o.value, label: o.label }))
+      options: c.options?.map(o => ({ 
+        id: o.id,
+        value: o.value, 
+        label: o.label,
+        hasValue: !!o.value,
+        valueTrimmed: o.value?.trim(),
+        valueLength: o.value?.length
+      }))
     })));
   }, [configs]);
   
@@ -973,7 +980,8 @@ export function ProductConfigurator({
             </CardHeader>
             <CardContent className="space-y-6">
               {allConfigs.map((config) => {
-                const selectedValue = selectedConfigs[config.id];
+                // Use getSelectedValue helper to properly extract value from object format
+                const selectedValue = getSelectedValue(config.id);
                 
                 return (
                   <div key={config.id} className="space-y-3">
@@ -991,8 +999,8 @@ export function ProductConfigurator({
                       <p className="text-sm text-gray-500">{config.description}</p>
                     )}
 
-                    {/* SELECT / DROPDOWN */}
-                    {config.inputType === "SELECT" && (
+                    {/* SELECT / DROPDOWN - Also the default when inputType is null */}
+                    {(!config.inputType || config.inputType === "SELECT") && (
                       <div className="space-y-2">
                         <Select
                           value={getSelectedValue(config.id)}
@@ -1052,116 +1060,120 @@ export function ProductConfigurator({
 
                     {/* RADIO BUTTONS */}
                     {config.inputType === "RADIO" && (
-                      <div className="grid grid-cols-2 gap-3">
-                        {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
-                          const displayPrice = billingCycle === "YEARLY"
-                            ? Number(option.yearlyPriceModifier || 0)
-                            : Number(option.monthlyPriceModifier || option.priceModifier || 0);
-                          const isSelected = selectedValue === option.value;
-                          
-                          return (
-                            <div
-                              key={option.id}
-                              onClick={() => handleConfigChange(config.id, option.value)}
-                              className={`
-                                cursor-pointer p-4 rounded-xl border-2 transition-all
-                                ${isSelected 
-                                  ? "border-[#8B1D1D] bg-red-50" 
-                                  : "border-gray-200 hover:border-gray-300"
-                                }
-                              `}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <div className={`
-                                    w-4 h-4 rounded-full border-2 flex items-center justify-center
-                                                            ${isSelected ? "border-[#8B1D1D]" : "border-gray-300"}
-                                                          `}>
-                                                            {isSelected && (
-                                                              <div className="w-2 h-2 rounded-full bg-[#8B1D1D]" />
-                                                            )}
-                                                          </div>
-                                                          <div>
-                                                            <span className="font-medium">{option.label}</span>
-                                                            {option.description && (
-                                                              <p className="text-sm text-gray-500">{option.description}</p>
-                                                            )}
-                                                          </div>
-                                                        </div>
-                                                        {displayPrice !== 0 && (
-                                                          <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
-                                                            {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
-                                                            {billingCycle === "YEARLY" ? "/yr" : "/mo"}
-                                                          </span>
-                                                        )}
-                                                      </div>
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            )}
+                      <div className="space-y-3">
+                        {(config.options?.filter(opt => opt.value && opt.value.trim() !== "") || []).length > 0 ? (
+                          <div className="grid grid-cols-2 gap-3">
+                            {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
+                              const displayPrice = billingCycle === "YEARLY"
+                                ? Number(option.yearlyPriceModifier || 0)
+                                : Number(option.monthlyPriceModifier || option.priceModifier || 0);
+                              const isSelected = selectedValue === option.value;
+                              
+                              return (
+                                <div
+                                  key={option.id}
+                                  onClick={() => handleConfigChange(config.id, option.value)}
+                                  className={`
+                                    cursor-pointer p-4 rounded-xl border-2 transition-all
+                                    ${isSelected 
+                                      ? "border-[#8B1D1D] bg-red-50" 
+                                      : "border-gray-200 hover:border-gray-300"
+                                    }
+                                  `}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`
+                                        w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
+                                        ${isSelected ? "border-[#8B1D1D] bg-[#8B1D1D]" : "border-gray-300 bg-white"}
+                                      `}>
+                                        {isSelected && (
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">{option.label}</span>
+                                        {option.description && (
+                                          <p className="text-sm text-gray-500">{option.description}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {displayPrice !== 0 && (
+                                      <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
+                                        {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
+                                        {billingCycle === "YEARLY" ? "/yr" : "/mo"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">No options available</p>
+                        )}
+                      </div>
+                    )}
 
-                                            {/* CHECKBOX - For multi-select if needed */}
-                                            {config.inputType === "CHECKBOX" && (
-                                              <div className="space-y-2">
-                                                {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
-                                                  const configData = selectedConfigs[config.id];
-                                                  // Support both array (multi-select) and string (single-select) for checkboxes
-                                                  const isArray = Array.isArray(configData);
-                                                  const selectedValues = isArray ? configData : (configData ? [configData] : []);
-                                                  const isSelected = selectedValues.includes(option.value);
-                                                  
-                                                  return (
-                                                    <div
-                                                      key={option.id}
-                                                      onClick={() => {
-                                                        // Toggle selection: if selected, remove it; if not selected, add it
-                                                        const newSelectedValues = isSelected
-                                                          ? selectedValues.filter((v: string) => v !== option.value)
-                                                          : [...selectedValues, option.value];
-                                                        // Store as array for multi-select, or single value for single-select behavior
-                                                        handleConfigChange(config.id, newSelectedValues.length === 1 ? newSelectedValues[0] : newSelectedValues);
-                                                      }}
-                                                      className={`
-                                                        cursor-pointer p-3 rounded-lg border transition-all flex items-center justify-between
-                                                        ${isSelected 
-                                                          ? "border-[#8B1D1D] bg-red-50" 
-                                                          : "border-gray-200 hover:border-gray-300"
-                                                        }
-                                                      `}
-                                                    >
-                                                      <div className="flex items-center gap-2">
-                                                        <Checkbox 
-                                                          checked={isSelected} 
-                                                          onCheckedChange={(checked) => {
-                                                            // Toggle when checkbox is clicked directly
-                                                            // checked can be boolean or 'indeterminate'
-                                                            const newValue = checked === true || checked === 'indeterminate'
-                                                              ? [...selectedValues, option.value]
-                                                              : selectedValues.filter((v: string) => v !== option.value);
-                                                            handleConfigChange(config.id, newValue.length === 1 ? newValue[0] : newValue);
-                                                          }}
-                                                          onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                        <div>
-                                                          <span className="font-medium">{option.label}</span>
-                                                          {option.description && (
-                                                            <p className="text-sm text-gray-500">{option.description}</p>
-                                                          )}
-                                                        </div>
-                                                      </div>
-                                                      {Number(option.priceModifier) !== 0 && (
-                                                        <span className={`text-sm ${isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}`}>
-                                                          {Number(option.priceModifier) > 0 ? "+" : ""}{formatPrice(Number(option.priceModifier))}
-                                                        </span>
-                                                      )}
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            )}
+                    {/* CHECKBOX - Single selection only (like radio but with checkbox UI) */}
+                    {config.inputType === "CHECKBOX" && (
+                      <div className="space-y-3">
+                        {(config.options?.filter(opt => opt.value && opt.value.trim() !== "") || []).length > 0 ? (
+                          <div className="space-y-2">
+                            {config.options?.filter(opt => opt.value && opt.value.trim() !== "").map((option) => {
+                              // Use getSelectedValue for consistent value retrieval (single selection)
+                              const currentValue = getSelectedValue(config.id);
+                              const isSelected = currentValue === option.value;
+                              
+                              return (
+                                <div
+                                  key={option.id}
+                                  onClick={() => {
+                                    // Single selection: select only this option (or deselect if already selected)
+                                    handleConfigChange(config.id, isSelected ? "" : option.value);
+                                  }}
+                                  className={`
+                                    cursor-pointer p-3 rounded-lg border transition-all flex items-center justify-between
+                                    ${isSelected 
+                                      ? "border-[#8B1D1D] bg-red-50" 
+                                      : "border-gray-200 hover:border-gray-300"
+                                    }
+                                  `}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Checkbox 
+                                      checked={isSelected} 
+                                      onCheckedChange={(checked) => {
+                                        // Single selection: select only this option
+                                        handleConfigChange(config.id, checked === true ? option.value : "");
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <div>
+                                      <span className="font-medium">{option.label}</span>
+                                      {option.description && (
+                                        <p className="text-sm text-gray-500">{option.description}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {Number(option.priceModifier) !== 0 && (
+                                    <span className={`text-sm ${isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}`}>
+                                      {Number(option.priceModifier) > 0 ? "+" : ""}{formatPrice(Number(option.priceModifier))}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">No options available</p>
+                        )}
+                      </div>
+                    )}
 
-                                            {/* SLIDER */}
+                    {/* SLIDER */}
                                             {config.inputType === "SLIDER" && (
                                               <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
@@ -1193,9 +1205,11 @@ export function ProductConfigurator({
                                             {config.inputType === "NUMBER" && (
                                               <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                  <Label>{config.displayName || config.name}</Label>
                                                   <span className="text-sm text-gray-500">
-                                                    {formatPrice(
+                                                    {selectedValue || config.minValue || 0} {config.unit}
+                                                  </span>
+                                                  <span className="text-sm text-gray-500">
+                                                    Total: {formatPrice(
                                                       (Number(config.basePrice) || 0) + 
                                                       ((Number(selectedValue) || 0) * (Number(config.pricePerUnit) || 0))
                                                     )}/mo

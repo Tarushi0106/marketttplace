@@ -146,6 +146,9 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     },
     include: {
       options: {
+        where: {
+          isActive: true,
+        },
         orderBy: { sortOrder: "asc" },
       },
     },

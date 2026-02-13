@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, AlertCircle, Info, RefreshCw, Minus, Plus } from "lucide-react";
+import { CreditCard, RefreshCw, Minus, Plus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 interface RecurringBillingSectionProps {
@@ -453,40 +453,6 @@ export function RecurringBillingSection({
               You save {pricing.savingsPercentage}% compared to monthly billing
             </div>
           )}
-        </div>
-
-        <Separator />
-
-        {/* Benefits */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-green-600 mt-0.5" />
-            <div className="text-sm text-green-800">
-              <div className="font-medium mb-1">Recurring Billing Benefits:</div>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Never run out of service - automatic renewal</li>
-                <li>No manual repurchasing required</li>
-                <li>Lock in your current price (subject to terms)</li>
-                <li>Easy cancellation anytime from your account</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Warning */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-            <div className="text-sm text-amber-800">
-              <div className="font-medium mb-1">Important:</div>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Your payment method will be stored securely</li>
-                <li>You will receive email reminders before each billing</li>
-                <li>You can pause or cancel anytime from your account</li>
-                <li>Refunds are subject to our refund policy</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

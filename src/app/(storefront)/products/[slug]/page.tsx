@@ -176,7 +176,6 @@ export default async function ProductDetailPage({ params }: Props) {
   const relatedProducts = await getRelatedProducts(product.categoryId, product.id);
 
   const features = (product.features as string[]) || [];
-  const specifications = (product.specifications as Record<string, string>) || {};
 
   const hasDiscount =
     product.compareAtPrice && Number(product.compareAtPrice) > Number(product.basePrice);
@@ -463,35 +462,6 @@ export default async function ProductDetailPage({ params }: Props) {
                         </div>
                       </div>
                     </div>
-
-                    {/* Specs Preview */}
-                    {Object.keys(specifications).length > 0 && (
-                      <div className="bg-gray-50 rounded-2xl p-6">
-                        <h3 className="font-bold text-gray-900 mb-4">Specifications</h3>
-                        <div className="space-y-3">
-                          {Object.entries(specifications).slice(0, 5).map(([key, value]) => (
-                            <div key={key} className="flex justify-between text-sm">
-                              <span className="text-gray-500">{key}</span>
-                              <span className="font-medium text-gray-900">{value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quick CTA */}
-                    <div className="bg-[#8B1D1D] rounded-2xl p-6 text-center">
-                      <p className="text-white/80 text-sm mb-2">
-                        {isConfigurable ? "Starting from" : "Price"}
-                      </p>
-                      <p className="text-3xl font-bold text-white mb-4">
-                        {hasPricing ? formatPrice(startingPrice) : "Custom"}
-                        {hasPricing && <span className="text-lg font-normal">/mo</span>}
-                      </p>
-                      <Button className="w-full bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
-                        <a href="#pricing">View Pricing</a>
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </TabsContent>
@@ -520,21 +490,6 @@ export default async function ProductDetailPage({ params }: Props) {
                     </div>
                   ) : (
                     <div className="text-center py-16 text-gray-500">No features listed for this product.</div>
-                  )}
-
-                  {/* Specifications */}
-                  {Object.keys(specifications).length > 0 && (
-                    <div className="mt-16">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Specifications</h3>
-                      <div className="grid md:grid-cols-2 gap-3 max-w-3xl mx-auto">
-                        {Object.entries(specifications).map(([key, value]) => (
-                          <div key={key} className="flex justify-between p-4 bg-gray-50 rounded-xl">
-                            <span className="text-gray-500">{key}</span>
-                            <span className="font-semibold text-gray-900">{value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   )}
                 </div>
               </TabsContent>
@@ -712,15 +667,6 @@ export default async function ProductDetailPage({ params }: Props) {
                         return filteredAttrs.length > 0 ? (
                           <div className="my-6">
                             {filteredAttrs.map(([key, value]) => (
-                              <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="capitalize">{key}: {value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : product.specifications && Object.keys(product.specifications).length > 0 ? (
-                          <div className="my-6">
-                            {Object.entries(product.specifications as Record<string, string>).map(([key, value]) => (
                               <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                                 <span className="capitalize">{key}: {value}</span>
