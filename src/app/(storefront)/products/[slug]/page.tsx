@@ -44,7 +44,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -63,6 +63,9 @@ async function getProduct(slug: string) {
       variants: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
+        include: {
+          recurringPrices: true,
+        },
       },
       addons: {
         where: { isActive: true },
@@ -78,8 +81,39 @@ async function getProduct(slug: string) {
         },
       },
       seoMetadata: true,
+      recurringPrices: true,
     },
   });
+
+  if (product) {
+    // Transform recurringPrices to include variant-specific pricing
+    // For standalone products: recurringPrices where variantId is null
+    // For variable products: recurringPrices for each variant
+    if (product.recurringPrices) {
+      // Filter product-level recurring prices (variantId = null)
+      product.recurringPrices = product.recurringPrices.filter((rp) => !rp.variantId);
+    }
+    
+    // Ensure variant recurringPrices are properly associated
+    if (product.variants) {
+      product.variants = product.variants.map((variant) => {
+        // Find recurring prices specifically for this variant
+        const variantSpecificPrices = product.recurringPrices?.filter((rp) => rp.variantId === variant.id) || [];
+        
+        if (variantSpecificPrices.length > 0) {
+          // Use variant-specific recurring prices
+          variant.recurringPrices = variantSpecificPrices;
+        } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+          // Variant already has recurring prices (included in query)
+          // Keep as is
+        } else {
+          // No variant-specific prices - clear to avoid stale data
+          variant.recurringPrices = [];
+        }
+        return variant;
+      });
+    }
+  }
 
   if (product) {
     await prisma.product.update({
@@ -448,7 +482,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         {isConfigurable ? "Starting from" : "Price"}
                       </p>
                       <p className="text-3xl font-bold text-white mb-4">
-                        {hasPricing ? formatCurrency(startingPrice) : "Custom"}
+                        {hasPricing ? formatPrice(startingPrice) : "Custom"}
                         {hasPricing && <span className="text-lg font-normal">/mo</span>}
                       </p>
                       <Button className="w-full bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
@@ -522,7 +556,9 @@ export default async function ProductDetailPage({ params }: Props) {
                   {/* Variants Pricing */}
                   {isConfigurable && product.variants.length > 0 ? (
                     <div className="grid md:grid-cols-3 gap-6">
-                      {product.variants.map((variant: any) => (
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {product.variants.map((variant: any) => {
+                        return (
                         <div
                           key={variant.id}
                           className={`relative bg-white rounded-3xl p-8 ${variant.isDefault ? "ring-2 ring-[#8B1D1D] shadow-xl" : "border border-gray-200"}`}
@@ -532,82 +568,10 @@ export default async function ProductDetailPage({ params }: Props) {
                           )}
                           <div className="text-center mb-6">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
-                            {variant.billingType === "ONE_TIME" ? (
-                              <>
-                                {variant.setupFee && Number(variant.setupFee) > 0 ? (
-                                  <p className="text-4xl font-bold text-gray-900">
-                                    {formatCurrency(Number(variant.setupFee))}
-                                    <span className="text-base font-normal text-gray-500"> one-time</span>
-                                  </p>
-                                ) : (
-                                  <p className="text-4xl font-bold text-gray-900">
-                                    {formatCurrency(Number(variant.price))}
-                                    <span className="text-base font-normal text-gray-500">/mo</span>
-                                  </p>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-4xl font-bold text-gray-900">
-                                  {formatCurrency(Number(variant.price))}
-                                  <span className="text-base font-normal text-gray-500">/mo</span>
-                                </p>
-                                {/* Show all recurring prices */}
-                                <div className="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-gray-500">
-                                  {variant.monthlyPrice && Number(variant.monthlyPrice) > 0 && (
-                                    <span>Monthly: {formatCurrency(Number(variant.monthlyPrice))}</span>
-                                  )}
-                                  {variant.biMonthlyPrice && Number(variant.biMonthlyPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Bi-Monthly: {formatCurrency(Number(variant.biMonthlyPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.quarterlyPrice && Number(variant.quarterlyPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Quarterly: {formatCurrency(Number(variant.quarterlyPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.fourMonthlyPrice && Number(variant.fourMonthlyPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>4-Monthly: {formatCurrency(Number(variant.fourMonthlyPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.semiAnnualPrice && Number(variant.semiAnnualPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Semi-Annual: {formatCurrency(Number(variant.semiAnnualPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.triAnnualPrice && Number(variant.triAnnualPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Tri-Annual: {formatCurrency(Number(variant.triAnnualPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.yearlyPrice && Number(variant.yearlyPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Yearly: {formatCurrency(Number(variant.yearlyPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.biennialPrice && Number(variant.biennialPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Biennial: {formatCurrency(Number(variant.biennialPrice))}</span>
-                                    </>
-                                  )}
-                                  {variant.triennialPrice && Number(variant.triennialPrice) > 0 && (
-                                    <>
-                                      <span>|</span>
-                                      <span>Triennial: {formatCurrency(Number(variant.triennialPrice))}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                            {/* Show base price from variant */}
+                            <p className="text-4xl font-bold text-gray-900">
+                              {formatPrice(Number(variant.price))}
+                            </p>
                           </div>
                           {(variant.attributes as Record<string, string>) && Object.keys(variant.attributes as Record<string, string>).length > 0 && (
                             <ul className="space-y-3 mb-4">
@@ -626,81 +590,42 @@ export default async function ProductDetailPage({ params }: Props) {
                             </Link>
                           </Button>
                         </div>
-                      ))}
+                      )})}
                     </div>
                   ) : !isConfigurable && hasPricing ? (
                     <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
-                      <p className="text-sm text-gray-500 mb-2">
-                        {!isConfigurable ? "One-time price" : "Starting from"}
-                      </p>
-                      <p className="text-5xl font-bold text-gray-900 mb-2">
-                        {formatCurrency(isConfigurable ? startingPrice : Number(product.basePrice))}
-                        <span className="text-xl font-normal text-gray-500">/mo</span>
-                      </p>
-                      {/* Show all recurring prices from product level for standalone products */}
-                      {!isConfigurable && product.recurringPrices && (
-                        <div className="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs text-gray-500">
-                          {product.recurringPrices.monthlyPrice && Number(product.recurringPrices.monthlyPrice) > 0 && (
-                            <span>Monthly: {formatCurrency(Number(product.recurringPrices.monthlyPrice))}</span>
-                          )}
-                          {product.recurringPrices.biMonthlyPrice && Number(product.recurringPrices.biMonthlyPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Bi-Monthly: {formatCurrency(Number(product.recurringPrices.biMonthlyPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.quarterlyPrice && Number(product.recurringPrices.quarterlyPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Quarterly: {formatCurrency(Number(product.recurringPrices.quarterlyPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.fourMonthlyPrice && Number(product.recurringPrices.fourMonthlyPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>4-Monthly: {formatCurrency(Number(product.recurringPrices.fourMonthlyPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.semiAnnualPrice && Number(product.recurringPrices.semiAnnualPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Semi-Annual: {formatCurrency(Number(product.recurringPrices.semiAnnualPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.triAnnualPrice && Number(product.recurringPrices.triAnnualPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Tri-Annual: {formatCurrency(Number(product.recurringPrices.triAnnualPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.yearlyPrice && Number(product.recurringPrices.yearlyPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Yearly: {formatCurrency(Number(product.recurringPrices.yearlyPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.biennialPrice && Number(product.recurringPrices.biennialPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Biennial: {formatCurrency(Number(product.recurringPrices.biennialPrice))}</span>
-                            </>
-                          )}
-                          {product.recurringPrices.triennialPrice && Number(product.recurringPrices.triennialPrice) > 0 && (
-                            <>
-                              <span>|</span>
-                              <span>Triennial: {formatCurrency(Number(product.recurringPrices.triennialPrice))}</span>
-                            </>
-                          )}
-                        </div>
-                      )}
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {(() => {
+                        // For standalone products, use basePrice from Price tab (not recurring prices on main page)
+                        const isStandaloneProduct = product.productType === "STANDALONE";
+                        
+                        // For standalone products: use basePrice from Price tab
+                        // For configurable products: use startingPrice (lowest variant price)
+                        const displayPrice = isStandaloneProduct 
+                          ? product.basePrice 
+                          : startingPrice;
+                        
+                        return (
+                          <>
+                            <p className="text-sm text-gray-500 mb-2">
+                              {!isConfigurable ? "One-time price" : "Starting from"}
+                            </p>
+                            <p className="text-5xl font-bold text-gray-900 mb-2">
+                              {formatPrice(displayPrice)}
+                            </p>
+                            {/* Do NOT show recurring prices on main product page for standalone products */}
+                            {/* Recurring prices are only shown in configure page for VARIABLE products */}
+                          </>
+                        );
+                      })()}
                       {!isConfigurable && hasDiscount && (
                         <p className="text-gray-400 line-through mb-6">
-                          {formatCurrency(Number(product.compareAtPrice))}
+                          {formatPrice(product.compareAtPrice)}
                         </p>
                       )}
                       {!isConfigurable && !hasDiscount && product.compareAtPrice && (
                         <p className="text-gray-400 line-through mb-6">
-                          {formatCurrency(Number(product.compareAtPrice))}
+                          {formatPrice(product.compareAtPrice)}
                         </p>
                       )}
                       {/* Specifications for standalone products - show between price and buttons */}
@@ -758,7 +683,7 @@ export default async function ProductDetailPage({ params }: Props) {
                               </Badge>
                             </div>
                             {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
-                            <p className="text-2xl font-bold text-[#8B1D1D]">{formatCurrency(Number(addon.price))}</p>
+                            <p className="text-2xl font-bold text-[#8B1D1D]">{formatPrice(Number(addon.price))}</p>
                           </div>
                         ))}
                       </div>
@@ -959,7 +884,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div className="p-5">
                     <p className="text-sm text-gray-500 mb-1">{related.category?.name}</p>
                     <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-2">{related.name}</h3>
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(Number(related.basePrice))}<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                    <p className="text-lg font-bold text-gray-900">{formatPrice(Number(related.basePrice))}<span className="text-sm font-normal text-gray-500">/mo</span></p>
                   </div>
                 </Link>
               ))}

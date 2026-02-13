@@ -30,6 +30,7 @@ export interface Product {
   category: Category | null;
   subCategory: SubCategory | null;
   seoMetadata: SeoMetadata | null;
+  recurringPrices: ProductRecurringPrice[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +58,27 @@ export interface ProductVariant {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
+  recurringPrices: ProductRecurringPrice[];
+  // Recurring price fields for form editing
+  billingType?: "ONE_TIME" | "RECURRING";
+  monthlyPrice?: string;
+  biMonthlyPrice?: string;
+  fourMonthlyPrice?: string;
+  quarterlyPrice?: string;
+  semiAnnualPrice?: string;
+  triAnnualPrice?: string;
+  yearlyPrice?: string;
+  biennialPrice?: string;
+  triennialPrice?: string;
+  monthlySetupFee?: string;
+  biMonthlySetupFee?: string;
+  fourMonthlySetupFee?: string;
+  quarterlySetupFee?: string;
+  semiAnnualSetupFee?: string;
+  triAnnualSetupFee?: string;
+  yearlySetupFee?: string;
+  biennialSetupFee?: string;
+  triennialSetupFee?: string;
 }
 
 export interface ProductAddon {
@@ -153,8 +175,23 @@ export interface ProductRecurringPrice {
   yearlyPrice?: number;
   biennialPrice?: number;
   triennialPrice?: number;
+  biMonthlyPrice?: number;
+  fourMonthlyPrice?: number;
+  semiAnnualPrice?: number;
+  triAnnualPrice?: number;
   monthlySavings?: number;
+  quarterlySavings?: number;
   yearlySavings?: number;
+  // Setup fees per billing cycle
+  monthlySetupFee?: number;
+  biMonthlySetupFee?: number;
+  fourMonthlySetupFee?: number;
+  quarterlySetupFee?: number;
+  semiAnnualSetupFee?: number;
+  triAnnualSetupFee?: number;
+  yearlySetupFee?: number;
+  biennialSetupFee?: number;
+  triennialSetupFee?: number;
   currency?: string;
   isActive?: boolean;
 }
@@ -279,6 +316,9 @@ export interface CartItem {
   selectedAddons: SelectedAddon[];
   selectedConfigs: SelectedConfig[];
   bundle: Bundle | null;
+  unitPrice?: number;
+  billingCycle?: BillingCycle;
+  isRecurring?: boolean;
 }
 
 export interface SelectedAddon {

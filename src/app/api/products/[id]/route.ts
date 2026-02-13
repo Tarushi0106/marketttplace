@@ -61,6 +61,9 @@ export async function GET(
         variants: {
           where: isAdmin ? {} : { isActive: true },
           orderBy: { sortOrder: "asc" },
+          include: {
+            recurringPrices: true,
+          },
         },
         addons: {
           where: isAdmin ? {} : { isActive: true },
@@ -239,7 +242,7 @@ const updateProductSchema = z.object({
   // Note: Recurring prices are stored in product_recurring_prices table
   // and should be updated via the /api/products/[id]/recurring-prices endpoint
   
-  productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).optional(),
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),

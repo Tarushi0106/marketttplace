@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart-store";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 // Helper to get billing cycle label (slash format for prices)
 const getBillingCycleLabel = (cycle?: string): string => {
@@ -172,7 +172,7 @@ export function CartDrawer() {
                                 {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
                                   <div className="text-xs text-muted-foreground">
                                     {instance.selectedConfigs.map((c) => 
-                                      `${c.configName || c.configId}${c.price != null && c.price > 0 ? ` - ${formatCurrency(c.price)}` : ''}`
+                                      `${c.configName}${c.price != null && c.price > 0 ? ` - ${formatPrice(c.price)}` : ''}`
                                     ).join(", ")}
                                   </div>
                                 )}
@@ -190,7 +190,7 @@ export function CartDrawer() {
                             </Badge>
                             {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
                               <span className="text-xs text-amber-600">
-                                + {formatCurrency(item.recurringData.setupFee)} setup
+                                + {formatPrice(item.recurringData.setupFee)} setup
                               </span>
                             )}
                           </div>
@@ -226,7 +226,7 @@ export function CartDrawer() {
                           <p className="font-medium">
                             {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
                               <>
-                                {formatCurrency(item.recurringAmount || 0)}
+                                {formatPrice(item.recurringAmount || 0)}
                                 <span className="text-sm text-muted-foreground ml-1">
                                   {getBillingCycleLabel(item.billingCycle)}
                                 </span>
@@ -247,28 +247,28 @@ export function CartDrawer() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(getSubtotal())}</span>
+                    <span>{formatPrice(getSubtotal())}</span>
                   </div>
                   {discountCode && (
                     <div className="flex justify-between text-success">
                       <span>Discount ({discountCode})</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
+                      <span>-{formatPrice(discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tax</span>
-                    <span>{formatCurrency(getTax())}</span>
+                    <span>{formatPrice(getTax())}</span>
                   </div>
                   {getSetupFeeTotal() > 0 && (
                     <div className="flex justify-between text-amber-600">
                       <span className="font-medium">Setup Fees</span>
-                      <span>{formatCurrency(getSetupFeeTotal())}</span>
+                      <span>{formatPrice(getSetupFeeTotal())}</span>
                     </div>
                   )}
                   <Separator />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>{formatCurrency(getTotal())}</span>
+                    <span>{formatPrice(getTotal())}</span>
                   </div>
                 </div>
 

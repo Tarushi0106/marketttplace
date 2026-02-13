@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,16 +13,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCartStore } from "@/store/cart-store";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
+import {
+  useDynamicPricing,
+  type BillingCycle,
+  type RecurringPrice,
+} from "@/hooks/useDynamicPricing";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface AddToCartButtonProps {
   product: any;
+}
+
+// Helper function to extract recurring prices from product or variant data
+function extractRecurringPrices(data: any): RecurringPrice | null {
+  if (!data) return null;
+  
+  return {
+    monthlyPrice: data.monthlyPrice,
+    biMonthlyPrice: data.biMonthlyPrice,
+    quarterlyPrice: data.quarterlyPrice,
+    fourMonthlyPrice: data.fourMonthlyPrice,
+    semiAnnualPrice: data.semiAnnualPrice,
+    triAnnualPrice: data.triAnnualPrice,
+    yearlyPrice: data.yearlyPrice,
+    biennialPrice: data.biennialPrice,
+    triennialPrice: data.triennialPrice,
+    monthlySetupFee: data.monthlySetupFee,
+    biMonthlySetupFee: data.biMonthlySetupFee,
+    quarterlySetupFee: data.quarterlySetupFee,
+    fourMonthlySetupFee: data.fourMonthlySetupFee,
+    semiAnnualSetupFee: data.semiAnnualSetupFee,
+    triAnnualSetupFee: data.triAnnualSetupFee,
+    yearlySetupFee: data.yearlySetupFee,
+    biennialSetupFee: data.biennialSetupFee,
+    triennialSetupFee: data.triennialSetupFee,
+  };
 }
 
 export function AddToCartButton({ product }: AddToCartButtonProps) {
   const { addItem } = useCartStore();
 
   // State for selections
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     product.variants?.find((v: any) => v.isDefault)?.id || product.variants?.[0]?.id
@@ -39,24 +72,85 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
     });
     return defaults;
   });
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("MONTHLY");
+
+  // Check if product is standalone (no variants or explicitly standalone product type)
+  const isStandalone = product.productType === "STANDALONE" && (!product.variants || product.variants.length === 0);
 
   // Get selected variant
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectedVariant = product.variants?.find((v: any) => v.id === selectedVariantId);
 
-  // Calculate total price
-  const totalPrice = useMemo(() => {
-    let price = Number(selectedVariant?.price || product.basePrice);
+  // Extract recurring prices from product level
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const productRecurringPrices = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rp = product.recurringPrices?.find((rp: any) => !rp.variantId);
+    return extractRecurringPrices(rp);
+  }, [product.recurringPrices]);
 
-    // Add addon prices
+  // Extract recurring prices from selected variant
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const variantRecurringPrices = useMemo(() => {
+    if (!selectedVariant) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rp = selectedVariant.recurringPrices?.find((rp: any) => rp.variantId === selectedVariant.id);
+    return extractRecurringPrices(rp);
+  }, [selectedVariant]);
+
+  // Check if product is variable type (requires variant selection)
+  const isVariable = product.productType === "VARIABLE" || product.productType === "CONFIGURABLE";
+
+  // For VARIABLE products: base price comes ONLY from selected variant
+  // For STANDALONE products: base price comes from product level
+  const baseVariantPrice = useMemo(() => {
+    if (isVariable && selectedVariant) {
+      return Number(selectedVariant.price) || 0;
+    }
+    // For standalone, fall back to product base price
+    return Number(product.basePrice) || 0;
+  }, [isVariable, selectedVariant, product.basePrice]);
+
+  // Use the dynamic pricing hook
+  const {
+    recurringPrices,
+    availableBillingCycles,
+    isPricingAvailable,
+    getPriceForCycle,
+    getSetupFeeForCycle,
+  } = useDynamicPricing({
+    productType: product.productType as "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE",
+    productRecurringPrices,
+    variantRecurringPrices,
+    selectedVariantId,
+    variants: product.variants,
+  });
+
+  // Get recurring price for selected billing cycle (future charge only)
+  const recurringPrice = useMemo((): number => {
+    if (!isPricingAvailable) return 0;
+    return getPriceForCycle(billingCycle) || 0;
+  }, [isPricingAvailable, getPriceForCycle, billingCycle]);
+
+  // Get setup fee (one-time charge)
+  const setupFee = useMemo((): number => {
+    return getSetupFeeForCycle(billingCycle);
+  }, [getSetupFeeForCycle, billingCycle]);
+
+  // Calculate one-time total (due today)
+  // Formula: variant.basePrice + configurationTotal + setupFee (NO recurring price)
+  const oneTimeTotal = useMemo(() => {
+    let total = baseVariantPrice;
+
+    // Add addon prices (one-time)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     product.addons?.forEach((addon: any) => {
       if (selectedAddons[addon.id]) {
-        price += Number(addon.price);
+        total += Number(addon.price) || 0;
       }
     });
 
-    // Add config price modifiers
+    // Add config price modifiers (one-time)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     product.configs?.forEach((config: any) => {
       const selectedValue = selectedConfigs[config.id];
@@ -64,13 +158,20 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
         const options = config.options as Array<{ value: string; label: string; priceModifier?: number }>;
         const option = options.find((o) => o.value === selectedValue);
         if (option?.priceModifier) {
-          price += option.priceModifier;
+          total += option.priceModifier;
         }
       }
     });
 
-    return price * quantity;
-  }, [selectedVariant, selectedAddons, selectedConfigs, quantity, product]);
+    // Add setup fee (one-time)
+    // Ensure setupFee is a number to prevent string concatenation
+    total += Number(setupFee);
+
+    return total * quantity;
+  }, [baseVariantPrice, setupFee, selectedAddons, selectedConfigs, quantity, product]);
+
+  // recurringTotal is the future recurring charge (separate from one-time)
+  const recurringTotal = recurringPrice * quantity;
 
   const handleAddToCart = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,11 +190,13 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       .map((config: any) => {
         const options = (Array.isArray(config.options) ? config.options : []) as Array<{ value: string; label: string; priceModifier?: number }>;
         const option = options.find((o) => o.value === selectedConfigs[config.id]);
+        const priceModifier = Number(option?.priceModifier) || 0;
         return {
           configId: config.id,
           configName: config.name,
           value: option?.label || selectedConfigs[config.id],
-          priceModifier: option?.priceModifier || 0,
+          price: priceModifier, // Store price for display
+          priceModifier: priceModifier,
         };
       }) || [];
 
@@ -103,14 +206,69 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       quantity,
       selectedAddons: addons as unknown as Array<{ addon: import("@/types").ProductAddon; quantity: number }>,
       selectedConfigs: configs as { configId: string; configName: string; value: string; priceModifier: number }[],
-      unitPrice: Number(selectedVariant?.price || product.basePrice),
+      unitPrice: recurringPrice, // Recurring price per cycle (used for display)
+      productPrice: oneTimeTotal, // One-time total (due today)
+      billingCycle: billingCycle as import("@/types").BillingCycle,
+      isRecurring: isPricingAvailable,
+      recurringData: isPricingAvailable ? {
+        enabled: true,
+        billingCycle: billingCycle as "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL",
+        setupFee: Number(setupFee),
+        pricePerCycle: Number(recurringPrice),
+        baseProductPrice: Number(baseVariantPrice), // One-time product price from variant
+        totalForPeriod: Number(oneTimeTotal),
+        savingsPercentage: 0,
+        monthlyEquivalent: Number(recurringPrice),
+      } : undefined,
     });
+  };
+
+  // Check if there are multiple billing cycles available
+  const hasMultipleBillingCycles = useMemo(() => {
+    return availableBillingCycles.length > 1;
+  }, [availableBillingCycles]);
+
+  // Helper to get price for display
+  const getDisplayPrice = (price: number | undefined): string => {
+    if (price === undefined || price === null) return "Unavailable";
+    return formatPrice(price);
   };
 
   return (
     <div className="space-y-6">
+      {/* Billing Cycle Selection (for recurring products) */}
+      {hasMultipleBillingCycles && (
+        <div>
+          <Label className="text-sm font-medium mb-2 block">Billing Cycle</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {availableBillingCycles.slice(0, 8).map((cycle) => (
+              <button
+                key={cycle.cycle}
+                onClick={() => setBillingCycle(cycle.cycle)}
+                className={cn(
+                  "relative rounded-lg border-2 p-3 text-center transition-all",
+                  billingCycle === cycle.cycle
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                {billingCycle === cycle.cycle && (
+                  <div className="absolute top-1 right-1">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
+                )}
+                <div className="font-medium text-sm">{cycle.label}</div>
+                <div className="text-xs text-muted-foreground">
+                  {getDisplayPrice(cycle.price)}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Variants Selection */}
-      {product.variants && product.variants.length > 0 && (
+      {product.variants && product.variants.length > 0 && isVariable && (
         <div>
           <Label className="text-sm font-medium">Select Plan</Label>
           <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -118,7 +276,11 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
             {product.variants.map((variant: any) => (
               <button
                 key={variant.id}
-                onClick={() => setSelectedVariantId(variant.id)}
+                onClick={() => {
+                  setSelectedVariantId(variant.id);
+                  // Reset billing cycle when variant changes
+                  setBillingCycle("MONTHLY");
+                }}
                 className={cn(
                   "relative rounded-lg border-2 p-4 text-left transition-all",
                   selectedVariantId === variant.id
@@ -141,7 +303,9 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
                   </div>
                 )}
                 <div className="mt-2 font-semibold">
-                  {formatCurrency(Number(variant.price))}/mo
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {getDisplayPrice(variant.recurringPrices?.find((rp: any) => rp.variantId === variant.id)?.monthlyPrice || variant.price)}
+                  {isPricingAvailable && "/mo"}
                 </div>
               </button>
             ))}
@@ -175,7 +339,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
                         <span>{option.label}</span>
                         {option.priceModifier && option.priceModifier > 0 && (
                           <span className="ml-2 text-xs text-muted-foreground">
-                            +{formatCurrency(option.priceModifier)}/mo
+                            +{formatPrice(option.priceModifier)}/mo
                           </span>
                         )}
                       </div>
@@ -220,7 +384,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
                   )}
                 </div>
                 <div className="text-sm font-medium">
-                  +{formatCurrency(Number(addon.price))}
+                  +{formatPrice(Number(addon.price))}
                   {addon.pricingType === "RECURRING_MONTHLY" && "/mo"}
                   {addon.pricingType === "RECURRING_YEARLY" && "/yr"}
                 </div>
@@ -256,12 +420,18 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       {/* Total and Add to Cart */}
       <div className="flex items-center justify-between pt-4 border-t border-border">
         <div>
-          <div className="text-sm text-muted-foreground">Total</div>
-          <div className="text-2xl font-bold">{formatCurrency(totalPrice)}/mo</div>
+          <div className="text-sm text-muted-foreground">Due Today</div>
+          <div className="text-2xl font-bold">
+            {baseVariantPrice > 0 ? formatPrice(oneTimeTotal) : "Contact for Pricing"}
+          </div>
         </div>
-        <Button size="lg" onClick={handleAddToCart}>
+        <Button 
+          size="lg" 
+          onClick={handleAddToCart}
+          disabled={!isVariable && baseVariantPrice <= 0}
+        >
           <ShoppingCart className="mr-2 h-5 w-5" />
-          Add to Cart
+          {baseVariantPrice > 0 ? "Add to Cart" : "Contact for Pricing"}
         </Button>
       </div>
     </div>

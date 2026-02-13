@@ -33,9 +33,14 @@ export async function GET(
 ) {
   try {
     const { id: productId } = await params;
+    const searchParams = request.nextUrl.searchParams;
+    const variantId = searchParams.get("variantId") || null;
     
     const recurringPrices = await prisma.productRecurringPrice.findFirst({
-      where: { productId },
+      where: { 
+        productId,
+        ...(variantId ? { variantId } : { variantId: null }),
+      },
     });
     
     if (!recurringPrices) {
@@ -59,6 +64,9 @@ export async function POST(
 ) {
   try {
     const { id: productId } = await params;
+    const searchParams = request.nextUrl.searchParams;
+    const variantId = searchParams.get("variantId") || null;
+    
     const body = await request.json();
     
     const {
@@ -90,15 +98,19 @@ export async function POST(
 
     console.log("Saving recurring prices:", { 
       productId, 
+      variantId,
       monthlyPrice, 
       yearlyPrice, 
       monthlySavings,
       monthlySetupFee 
     });
 
-    // First try to find existing record
+    // First try to find existing record (with or without variantId)
     const existing = await prisma.productRecurringPrice.findFirst({
-      where: { productId },
+      where: { 
+        productId,
+        ...(variantId ? { variantId } : { variantId: null }),
+      },
     });
 
     let recurringPrices;
@@ -138,6 +150,7 @@ export async function POST(
       recurringPrices = await prisma.productRecurringPrice.create({
         data: {
           productId,
+          variantId: variantId || null,
           // Recurring Prices
           monthlyPrice: monthlyPrice ?? null,
           biMonthlyPrice: biMonthlyPrice ?? null,

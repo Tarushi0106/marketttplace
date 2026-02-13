@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingBag,
   Minus,
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 // Helper to get recurring interval text
 const getRecurringInterval = (billingCycle?: string): string => {
@@ -44,14 +44,20 @@ export default function CartPage() {
     updateQuantity,
     clearCart,
     getSubtotal,
-  getTax,
+    getTax,
     getTodayTotal,
     getSetupFeeTotal,
     discountCode,
     discountAmount,
     applyDiscount,
     removeDiscount,
+    cleanStaleData,
   } = useCartStore();
+
+  // Clean any stale formatted string data on mount
+  useEffect(() => {
+    cleanStaleData();
+  }, [cleanStaleData]);
 
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
@@ -65,7 +71,7 @@ export default function CartPage() {
 
     setTimeout(() => {
       if (couponCode.toUpperCase() === "SAVE20") {
-        const discount = getSubtotal() * 0.2;
+        const discount = Number(getSubtotal()) * 0.2;
         applyDiscount("SAVE20", discount);
         setCouponCode("");
       } else if (couponCode.toUpperCase() === "FLAT50") {
@@ -98,14 +104,15 @@ export default function CartPage() {
     );
   }
 
-  // Calculate totals for order summary
-  const subtotal = getSubtotal();
-  const tax = getTax();
-  const setupFeeTotal = getSetupFeeTotal();
-  const todayTotal = getTodayTotal();
+  // Calculate totals for order summary - ensure all values are numbers to prevent string concatenation
+  const subtotal = Number(getSubtotal());
+  const tax = Number(getTax());
+  const setupFeeTotal = Number(getSetupFeeTotal());
+  const todayTotal = Number(getTodayTotal());
+  // Recurring total is separate - NOT added to Total Due Today
   const recurringTotal = items
-    .filter(item => item.recurringAmount && item.recurringAmount > 0)
-    .reduce((sum, item) => sum + (item.recurringAmount || 0), 0);
+    .filter(item => Number(item.recurringAmount) > 0)
+    .reduce((sum, item) => sum + (Number(item.recurringAmount) * Number(item.quantity || 1)), 0);
   const billingCycle = items.find(item => item.billingCycle)?.billingCycle;
 
   return (
@@ -187,7 +194,7 @@ export default function CartPage() {
                               <span>
                                 {config.configName}: {config.value}
                               </span>
-                              <span>{formatCurrency(config.price || 0)}</span>
+                              <span>{formatPrice(config.price || 0)}</span>
                             </li>
                           ))}
                         </ul>
@@ -207,7 +214,7 @@ export default function CartPage() {
                                     <span>
                                       {config.configName || config.configId}
                                     </span>
-                                    <span>{formatCurrency(config.price ?? 0)}</span>
+                                    <span>{formatPrice(config.price ?? 0)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -218,7 +225,7 @@ export default function CartPage() {
                                 {instance.selectedAddons.map((addon) => (
                                   <li key={addon.addon?.id} className="text-muted-foreground flex justify-between">
                                     <span>+ {addon.addon?.name}</span>
-                                    <span>{formatCurrency(addon.addon?.price || 0)}</span>
+                                    <span>{formatPrice(addon.addon?.price || 0)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -298,7 +305,7 @@ export default function CartPage() {
                 <div className="flex items-center justify-between bg-success/10 text-success p-3 rounded-md">
                   <div>
                     <p className="font-medium">{discountCode}</p>
-                    <p className="text-sm">-{formatCurrency(discountAmount)}</p>
+                    <p className="text-sm">-{formatPrice(discountAmount)}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -320,7 +327,7 @@ export default function CartPage() {
                     {/* Product/Bundle name */}
                     <div className="flex justify-between text-sm font-medium">
                       <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
-                      <span>{formatCurrency(item.baseProductPrice || 0)}</span>
+                      <span>{formatPrice(item.baseProductPrice || 0)}</span>
                     </div>
 
                     {/* For configurable products with instances, show combined config price */}
@@ -328,22 +335,13 @@ export default function CartPage() {
                       <div className="ml-2">
                         {item.instances.map((instance) => (
                           <div key={instance.instanceId} className="mb-2">
-                            {/* Instance name and total */}
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">{instance.instanceName || `Instance ${instance.instanceNumber}`}</span>
-                              <span>{formatCurrency(
-                                (instance.selectedConfigs?.reduce((sum, c) => sum + (c.price || 0), 0) || 0) +
-                                (instance.selectedAddons?.reduce((sum, a) => sum + ((a.addon?.price || 0) * a.quantity), 0) || 0)
-                              )}</span>
-                            </div>
-                            
-                            {/* Config options */}
+                            {/* Config options - show dynamically with groupName: optionName format */}
                             {instance.selectedConfigs?.map((config) => (
-                              <div key={config.configId} className="flex justify-between text-sm ml-4">
+                              <div key={config.configId} className="flex justify-between text-sm">
                                 <span className="text-gray-500">
-                                  {config.configName || config.configId}: {config.optionLabel || config.value}
+                                  {config.configName}: {config.optionLabel || config.value}
                                 </span>
-                                <span>{formatCurrency(config.price || 0)}</span>
+                                <span>{formatPrice(config.price || 0)}</span>
                               </div>
                             ))}
                             
@@ -351,7 +349,7 @@ export default function CartPage() {
                             {instance.selectedAddons?.map((addon) => (
                               <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
                                 <span className="text-gray-500">+ {addon.addon?.name}</span>
-                                <span>{formatCurrency((addon.addon?.price || 0) * addon.quantity)}</span>
+                                <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
                               </div>
                             ))}
                           </div>
@@ -367,7 +365,7 @@ export default function CartPage() {
                             <span className="text-gray-600">
                               {config.configName || config.configId}: {config.optionLabel || config.value}
                             </span>
-                            <span>{formatCurrency(config.price || 0)}</span>
+                            <span>{formatPrice(config.price || 0)}</span>
                           </div>
                         ))}
                       </div>
@@ -379,17 +377,17 @@ export default function CartPage() {
                         {item.selectedAddons.map((addon) => (
                           <div key={addon.addon?.id} className="flex justify-between text-sm">
                             <span className="text-gray-600">+ {addon.addon?.name}</span>
-                            <span>{formatCurrency((addon.addon?.price || 0) * addon.quantity)}</span>
+                            <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
                           </div>
                         ))}
                       </div>
                     )}
 
                     {/* Recurring Amount */}
-                    {item.recurringAmount && item.recurringAmount > 0 && (
+                    {Number(item.recurringAmount) > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Recurring Amount</span>
-                        <span className="text-gray-500">{formatCurrency(item.recurringAmount)}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
+                        <span className="text-gray-500">{formatPrice(Number(item.recurringAmount))}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
                       </div>
                     )}
                   </div>
@@ -400,30 +398,30 @@ export default function CartPage() {
                 {/* Product Price (Due Today) */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Product Price (Due Today)</span>
-                  <span className="font-medium">{formatCurrency(subtotal)}</span>
+                  <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
 
                 {/* Setup Fee */}
-                {setupFeeTotal > 0 && (
+                {Number(setupFeeTotal) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Setup Fee</span>
-                    <span className="font-medium">{formatCurrency(setupFeeTotal)}</span>
+                    <span className="font-medium">{formatPrice(setupFeeTotal)}</span>
                   </div>
                 )}
 
                 {/* Tax (18% GST) */}
-                {tax > 0 && (
+                {Number(tax) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax (18% GST)</span>
-                    <span className="font-medium">{formatCurrency(tax)}</span>
+                    <span className="font-medium">{formatPrice(tax)}</span>
                   </div>
                 )}
 
                 {/* Recurring info */}
-                {recurringTotal > 0 && (
+                {Number(recurringTotal) > 0 && (
                   <div className="bg-gray-50 rounded-lg p-3 mt-2">
                     <p className="text-sm text-gray-600">
-                      You will be charged <span className="font-medium">{formatCurrency(recurringTotal)}</span> every {getRecurringInterval(billingCycle)} after purchase.
+                      You will be charged <span className="font-medium">{formatPrice(Number(recurringTotal))}</span> every {getRecurringInterval(billingCycle)} after purchase.
                     </p>
                   </div>
                 )}
@@ -434,7 +432,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatCurrency(todayTotal)}
+                    {formatPrice(todayTotal)}
                   </span>
                 </div>
               </div>

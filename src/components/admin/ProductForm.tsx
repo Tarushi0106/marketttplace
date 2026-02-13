@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -124,17 +124,6 @@ interface ProductVariant {
   sortOrder: number;
 }
 
-interface ProductAddon {
-  id?: string;
-  name: string;
-  description: string;
-  price: string;
-  pricingType: "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
-  isRequired: boolean;
-  isActive: boolean;
-  sortOrder: number;
-}
-
 interface ProductConfigOption {
   value: string;
   label?: string;
@@ -169,6 +158,16 @@ interface ProductConfig {
   allowCustom?: boolean;
   basePrice?: string;
   pricePerUnit?: string;
+}
+
+interface ProductAddon {
+  id?: string;
+  name: string;
+  description?: string;
+  price: string;
+  pricingType: "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
+  isRequired: boolean;
+  isActive: boolean;
 }
 
 interface Specification {
@@ -230,7 +229,7 @@ interface ProductFormData {
   
   categoryId: string;
   subCategoryId: string;
-  productType: "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE";
+  productType: "STANDALONE" | "CONFIGURABLE" | "BUNDLE";
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   isFeatured: boolean;
   isDigital: boolean;
@@ -324,8 +323,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   // Related data
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const [addons, setAddons] = useState<ProductAddon[]>([]);
   const [configs, setConfigs] = useState<ProductConfig[]>([]);
+  const [addons, setAddons] = useState<ProductAddon[]>([]);
   const [seoMetadata, setSeoMetadata] = useState<SEOMetadata>({
     metaTitle: "",
     metaDescription: "",
@@ -342,11 +341,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   const [newVariantSpecKey, setNewVariantSpecKey] = useState("");
   const [newVariantSpecValue, setNewVariantSpecValue] = useState("");
   const [showVariantModal, setShowVariantModal] = useState(false);
-  const [showAddonModal, setShowAddonModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showAddonModal, setShowAddonModal] = useState(false);
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
-  const [editingAddon, setEditingAddon] = useState<ProductAddon | null>(null);
   const [editingConfig, setEditingConfig] = useState<ProductConfig | null>(null);
+  const [editingAddon, setEditingAddon] = useState<ProductAddon | null>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
 
   // Fetch categories on mount
@@ -466,48 +465,47 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         // Set variants
         if (product.variants) {
           setVariants(
-            product.variants.map((v: any) => ({
-              id: v.id,
-              name: v.name,
-              sku: v.sku || "",
-              price: v.price?.toString() || "",
-              compareAtPrice: v.compareAtPrice?.toString() || "",
-              costPrice: v.costPrice?.toString() || "",
-              stockQuantity: v.stockQuantity?.toString() || "0",
-              attributes: v.attributes || {},
-              // Extract specifications from attributes (for existing data) or use separate field
-              specifications: v.specifications || (v.attributes as Record<string, string>) || {},
-              billingType: v.billingType || "ONE_TIME",
-              setupFee: v.setupFee?.toString() || "",
-              monthlyPrice: v.monthlyPrice?.toString() || "",
-              biMonthlyPrice: v.biMonthlyPrice?.toString() || "",
-              quarterlyPrice: v.quarterlyPrice?.toString() || "",
-              fourMonthlyPrice: v.fourMonthlyPrice?.toString() || "",
-              semiAnnualPrice: v.semiAnnualPrice?.toString() || "",
-              triAnnualPrice: v.triAnnualPrice?.toString() || "",
-              yearlyPrice: v.yearlyPrice?.toString() || "",
-              biennialPrice: v.biennialPrice?.toString() || "",
-              triennialPrice: v.triennialPrice?.toString() || "",
-              isDefault: v.isDefault || false,
-              isActive: v.isActive ?? true,
-              sortOrder: v.sortOrder || 0,
-            }))
-          );
-        }
-
-        // Set addons
-        if (product.addons) {
-          setAddons(
-            product.addons.map((a: any) => ({
-              id: a.id,
-              name: a.name,
-              description: a.description || "",
-              price: a.price?.toString() || "",
-              pricingType: a.pricingType || "ONE_TIME",
-              isRequired: a.isRequired || false,
-              isActive: a.isActive ?? true,
-              sortOrder: a.sortOrder || 0,
-            }))
+            product.variants.map((v: any) => {
+              // Get variant-specific recurring prices from the recurringPrices array
+              const variantRecurringPrices = v.recurringPrices?.find((rp: any) => rp.variantId === v.id) || v.recurringPrices?.[0] || {};
+              
+              return {
+                id: v.id,
+                name: v.name,
+                sku: v.sku || "",
+                price: v.price?.toString() || "",
+                compareAtPrice: v.compareAtPrice?.toString() || "",
+                costPrice: v.costPrice?.toString() || "",
+                stockQuantity: v.stockQuantity?.toString() || "0",
+                attributes: v.attributes || {},
+                // Extract specifications from attributes (for existing data) or use separate field
+                specifications: v.specifications || (v.attributes as Record<string, string>) || {},
+                billingType: v.billingType || "ONE_TIME",
+                setupFee: v.setupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || "",
+                monthlyPrice: v.monthlyPrice?.toString() || variantRecurringPrices.monthlyPrice?.toString() || "",
+                biMonthlyPrice: v.biMonthlyPrice?.toString() || variantRecurringPrices.biMonthlyPrice?.toString() || "",
+                quarterlyPrice: v.quarterlyPrice?.toString() || variantRecurringPrices.quarterlyPrice?.toString() || "",
+                fourMonthlyPrice: v.fourMonthlyPrice?.toString() || variantRecurringPrices.fourMonthlyPrice?.toString() || "",
+                semiAnnualPrice: v.semiAnnualPrice?.toString() || variantRecurringPrices.semiAnnualPrice?.toString() || "",
+                triAnnualPrice: v.triAnnualPrice?.toString() || variantRecurringPrices.triAnnualPrice?.toString() || "",
+                yearlyPrice: v.yearlyPrice?.toString() || variantRecurringPrices.yearlyPrice?.toString() || "",
+                biennialPrice: v.biennialPrice?.toString() || variantRecurringPrices.biennialPrice?.toString() || "",
+                triennialPrice: v.triennialPrice?.toString() || variantRecurringPrices.triennialPrice?.toString() || "",
+                // Setup fees
+                monthlySetupFee: v.monthlySetupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || "",
+                biMonthlySetupFee: v.biMonthlySetupFee?.toString() || variantRecurringPrices.biMonthlySetupFee?.toString() || "",
+                fourMonthlySetupFee: v.fourMonthlySetupFee?.toString() || variantRecurringPrices.fourMonthlySetupFee?.toString() || "",
+                quarterlySetupFee: v.quarterlySetupFee?.toString() || variantRecurringPrices.quarterlySetupFee?.toString() || "",
+                semiAnnualSetupFee: v.semiAnnualSetupFee?.toString() || variantRecurringPrices.semiAnnualSetupFee?.toString() || "",
+                triAnnualSetupFee: v.triAnnualSetupFee?.toString() || variantRecurringPrices.triAnnualSetupFee?.toString() || "",
+                yearlySetupFee: v.yearlySetupFee?.toString() || variantRecurringPrices.yearlySetupFee?.toString() || "",
+                biennialSetupFee: v.biennialSetupFee?.toString() || variantRecurringPrices.biennialSetupFee?.toString() || "",
+                triennialSetupFee: v.triennialSetupFee?.toString() || variantRecurringPrices.triennialSetupFee?.toString() || "",
+                isDefault: v.isDefault || false,
+                isActive: v.isActive ?? true,
+                sortOrder: v.sortOrder || 0,
+              };
+            })
           );
         }
 
@@ -749,13 +747,49 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     setShowVariantModal(true);
   }
 
-  function saveVariant() {
+  async function saveVariant() {
     if (!editingVariant || !editingVariant.name) return;
 
     if (editingVariant.id) {
       setVariants((prev) =>
         prev.map((v) => (v.id === editingVariant.id ? editingVariant : v))
       );
+      
+      // Save variant recurring prices to ProductRecurringPrice table
+      if (isEdit && editingVariant.billingType === "RECURRING") {
+        try {
+          const variant = editingVariant as any;
+          const recurringPayload = {
+            monthlyPrice: variant.monthlyPrice ? parseFloat(variant.monthlyPrice) : null,
+            biMonthlyPrice: editingVariant.biMonthlyPrice ? parseFloat(editingVariant.biMonthlyPrice) : null,
+            quarterlyPrice: variant.quarterlyPrice ? parseFloat(variant.quarterlyPrice) : null,
+            fourMonthlyPrice: variant.fourMonthlyPrice ? parseFloat(variant.fourMonthlyPrice) : null,
+            semiAnnualPrice: variant.semiAnnualPrice ? parseFloat(variant.semiAnnualPrice) : null,
+            triAnnualPrice: variant.triAnnualPrice ? parseFloat(variant.triAnnualPrice) : null,
+            yearlyPrice: variant.yearlyPrice ? parseFloat(variant.yearlyPrice) : null,
+            biennialPrice: variant.biennialPrice ? parseFloat(variant.biennialPrice) : null,
+            triennialPrice: variant.triennialPrice ? parseFloat(variant.triennialPrice) : null,
+            // All setup fees
+            monthlySetupFee: variant.monthlySetupFee ? parseFloat(variant.monthlySetupFee) : null,
+            biMonthlySetupFee: variant.biMonthlySetupFee ? parseFloat(variant.biMonthlySetupFee) : null,
+            quarterlySetupFee: variant.quarterlySetupFee ? parseFloat(variant.quarterlySetupFee) : null,
+            fourMonthlySetupFee: variant.fourMonthlySetupFee ? parseFloat(variant.fourMonthlySetupFee) : null,
+            semiAnnualSetupFee: variant.semiAnnualSetupFee ? parseFloat(variant.semiAnnualSetupFee) : null,
+            triAnnualSetupFee: variant.triAnnualSetupFee ? parseFloat(variant.triAnnualSetupFee) : null,
+            yearlySetupFee: variant.yearlySetupFee ? parseFloat(variant.yearlySetupFee) : null,
+            biennialSetupFee: variant.biennialSetupFee ? parseFloat(variant.biennialSetupFee) : null,
+            triennialSetupFee: variant.triennialSetupFee ? parseFloat(variant.triennialSetupFee) : null,
+          };
+          
+          await fetch(`/api/products/${productId}/recurring-prices?variantId=${variant.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(recurringPayload),
+          });
+        } catch (error) {
+          console.error("Error saving variant recurring prices:", error);
+        }
+      }
     } else {
       setVariants((prev) => [...prev, editingVariant]);
     }
@@ -765,49 +799,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
   function removeVariant(index: number) {
     setVariants((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  // Addon management
-  function openAddonModal(addon?: ProductAddon) {
-    if (addon) {
-      setEditingAddon(addon);
-    } else {
-      setEditingAddon({
-        name: "",
-        description: "",
-        price: "",
-        pricingType: "ONE_TIME",
-        isRequired: false,
-        isActive: true,
-        sortOrder: addons.length,
-      });
-    }
-    setShowAddonModal(true);
-  }
-
-  function saveAddon() {
-    if (!editingAddon || !editingAddon.name) return;
-
-    if (editingAddon.id) {
-      setAddons((prev) =>
-        prev.map((a) => (a.id === editingAddon.id ? editingAddon : a))
-      );
-    } else {
-      setAddons((prev) => [...prev, editingAddon]);
-    }
-    setShowAddonModal(false);
-    setEditingAddon(null);
-    
-    // Show toast to remind user to save the form
-    toast({
-      title: "Add-on saved locally",
-      description: "Click 'Save Changes' at the top to persist this add-on to the database.",
-      duration: 5000,
-    });
-  }
-
-  function removeAddon(index: number) {
-    setAddons((prev) => prev.filter((_, i) => i !== index));
   }
 
   // Config management
@@ -844,6 +835,43 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
   function removeConfig(index: number) {
     setConfigs((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  // Addon management
+  function openAddonModal(addon?: ProductAddon) {
+    if (addon) {
+      setEditingAddon(addon);
+    } else {
+      setEditingAddon({
+        name: "",
+        description: "",
+        price: "",
+        pricingType: "ONE_TIME",
+        isRequired: false,
+        isActive: true,
+      });
+    }
+    setShowAddonModal(true);
+  }
+
+  function saveAddon() {
+    if (!editingAddon || !editingAddon.name) return;
+    
+    if (editingAddon.id) {
+      // Update existing
+      setAddons((prev) =>
+        prev.map((a) => (a.id === editingAddon.id ? editingAddon : a))
+      );
+    } else {
+      // Add new
+      setAddons((prev) => [...prev, { ...editingAddon, id: `new-${Date.now()}` }]);
+    }
+    setShowAddonModal(false);
+    setEditingAddon(null);
+  }
+
+  function removeAddon(id: string) {
+    setAddons((prev) => prev.filter((a) => a.id !== id));
   }
 
   // Form submission
@@ -886,21 +914,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
           costPrice: v.costPrice ? parseFloat(v.costPrice) : null,
           stockQuantity: parseInt(v.stockQuantity) || 0,
-          setupFee: v.setupFee ? parseFloat(v.setupFee) : null,
-          monthlyPrice: v.monthlyPrice ? parseFloat(v.monthlyPrice) : null,
-          biMonthlyPrice: v.biMonthlyPrice ? parseFloat(v.biMonthlyPrice) : null,
-          quarterlyPrice: v.quarterlyPrice ? parseFloat(v.quarterlyPrice) : null,
-          fourMonthlyPrice: v.fourMonthlyPrice ? parseFloat(v.fourMonthlyPrice) : null,
-          semiAnnualPrice: v.semiAnnualPrice ? parseFloat(v.semiAnnualPrice) : null,
-          triAnnualPrice: v.triAnnualPrice ? parseFloat(v.triAnnualPrice) : null,
-          yearlyPrice: v.yearlyPrice ? parseFloat(v.yearlyPrice) : null,
-          biennialPrice: v.biennialPrice ? parseFloat(v.biennialPrice) : null,
-          triennialPrice: v.triennialPrice ? parseFloat(v.triennialPrice) : null,
-          sortOrder: idx,
-        })),
-        addons: addons.map((a, idx) => ({
-          ...a,
-          price: parseFloat(a.price) || 0,
           sortOrder: idx,
         })),
         configs: configs.map((c, idx) => ({
@@ -966,6 +979,43 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         if (!recurringResponse.ok) {
           const recurringData = await recurringResponse.json();
           console.error("Failed to save recurring prices:", recurringData.error);
+        }
+        
+        // Save variant recurring prices for existing variants
+        for (const variant of variants as any[]) {
+          if (variant.id && variant.billingType === "RECURRING") {
+            try {
+              const variantRecurringPayload = {
+                monthlyPrice: variant.monthlyPrice ? parseFloat(variant.monthlyPrice) : null,
+                biMonthlyPrice: variant.biMonthlyPrice ? parseFloat(variant.biMonthlyPrice) : null,
+                quarterlyPrice: variant.quarterlyPrice ? parseFloat(variant.quarterlyPrice) : null,
+                fourMonthlyPrice: variant.fourMonthlyPrice ? parseFloat(variant.fourMonthlyPrice) : null,
+                semiAnnualPrice: variant.semiAnnualPrice ? parseFloat(variant.semiAnnualPrice) : null,
+                triAnnualPrice: variant.triAnnualPrice ? parseFloat(variant.triAnnualPrice) : null,
+                yearlyPrice: variant.yearlyPrice ? parseFloat(variant.yearlyPrice) : null,
+                biennialPrice: variant.biennialPrice ? parseFloat(variant.biennialPrice) : null,
+                triennialPrice: variant.triennialPrice ? parseFloat(variant.triennialPrice) : null,
+                // All setup fees
+                monthlySetupFee: variant.monthlySetupFee ? parseFloat(variant.monthlySetupFee) : null,
+                biMonthlySetupFee: variant.biMonthlySetupFee ? parseFloat(variant.biMonthlySetupFee) : null,
+                quarterlySetupFee: variant.quarterlySetupFee ? parseFloat(variant.quarterlySetupFee) : null,
+                fourMonthlySetupFee: variant.fourMonthlySetupFee ? parseFloat(variant.fourMonthlySetupFee) : null,
+                semiAnnualSetupFee: variant.semiAnnualSetupFee ? parseFloat(variant.semiAnnualSetupFee) : null,
+                triAnnualSetupFee: variant.triAnnualSetupFee ? parseFloat(variant.triAnnualSetupFee) : null,
+                yearlySetupFee: variant.yearlySetupFee ? parseFloat(variant.yearlySetupFee) : null,
+                biennialSetupFee: variant.biennialSetupFee ? parseFloat(variant.biennialSetupFee) : null,
+                triennialSetupFee: variant.triennialSetupFee ? parseFloat(variant.triennialSetupFee) : null,
+              };
+              
+              await fetch(`/api/products/${productId}/recurring-prices?variantId=${variant.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(variantRecurringPayload),
+              });
+            } catch (error) {
+              console.error(`Error saving variant ${variant.id} recurring prices:`, error);
+            }
+          }
         }
       }
 
@@ -1135,7 +1185,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       {/* Main Form */}
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
             <TabsTrigger value="basic" className="gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden lg:inline">Basic</span>
@@ -1159,10 +1209,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             >
               <Layers className="h-4 w-4" />
               <span className="hidden lg:inline">Variants</span>
-            </TabsTrigger>
-            <TabsTrigger value="addons" className="gap-2">
-              <Puzzle className="h-4 w-4" />
-              <span className="hidden lg:inline">Add-ons</span>
             </TabsTrigger>
             <TabsTrigger value="variable" className="gap-2">
               <Sliders className="h-4 w-4" />
@@ -1667,7 +1713,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="basePrice">
-                        Base Price (₹) <span className="text-red-500">*</span>
+                        Base Price (â‚¹) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="basePrice"
@@ -1682,7 +1728,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="compareAtPrice">Compare at Price (₹)</Label>
+                      <Label htmlFor="compareAtPrice">Compare at Price (â‚¹)</Label>
                       <Input
                         id="compareAtPrice"
                         type="number"
@@ -1703,7 +1749,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="costPrice">Cost Price (₹)</Label>
+                      <Label htmlFor="costPrice">Cost Price (â‚¹)</Label>
                       <Input
                         id="costPrice"
                         type="number"
@@ -1865,10 +1911,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       No specifications added yet.
                     </p>
                   )}
-                  {formData.variants && formData.variants.length > 0 && (
+                  {variants && variants.length > 0 && (
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-sm font-medium mb-2">Variant Specifications:</p>
-                      {formData.variants && formData.variants.map((variant, vIndex) => (
+                      {variants && variants.map((variant, vIndex) => (
                         <div key={variant.id || vIndex} className="mb-3">
                           <p className="text-xs font-medium text-muted-foreground mb-1">
                             {variant.name || `Variant ${vIndex + 1}`}
@@ -1921,7 +1967,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <>
                       {/* Billing Cycle Prices with Setup Fees */}
                       <div className="space-y-4">
-                        <Label className="text-base">Billing Cycle Prices & Setup Fees (₹)</Label>
+                        <Label className="text-base">Billing Cycle Prices & Setup Fees (â‚¹)</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Monthly */}
                           <div className="border rounded-lg p-4 space-y-2">
@@ -2364,7 +2410,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           <TableCell className="font-mono text-sm">
                             {variant.sku || "-"}
                           </TableCell>
-                          <TableCell>₹{variant.price}</TableCell>
+                          <TableCell>â‚¹{variant.price}</TableCell>
                           <TableCell>{variant.stockQuantity}</TableCell>
                           <TableCell>
                             {variant.isDefault && (
@@ -2458,7 +2504,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>₹{addon.price}</TableCell>
+                          <TableCell>â‚¹{addon.price}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               {addon.pricingType.replace("_", " ")}
@@ -2552,11 +2598,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                     <span>{opt.label}</span>
                                     <span className="text-xs opacity-75">
                                       M: {parseFloat(opt.monthlyPriceModifier || opt.priceModifier) !== 0 
-                                        ? (parseFloat(opt.monthlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `₹${opt.monthlyPriceModifier || opt.priceModifier}`
+                                        ? (parseFloat(opt.monthlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `â‚¹${opt.monthlyPriceModifier || opt.priceModifier}`
                                         : 'Included'}
                                       {' | '}
                                       Y: {parseFloat(opt.yearlyPriceModifier || opt.priceModifier) !== 0 
-                                        ? (parseFloat(opt.yearlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `₹${opt.yearlyPriceModifier || opt.priceModifier}`
+                                        ? (parseFloat(opt.yearlyPriceModifier || opt.priceModifier) > 0 ? '+' : '') + `â‚¹${opt.yearlyPriceModifier || opt.priceModifier}`
                                         : 'Included'}
                                     </span>
                                   </Badge>
@@ -2753,7 +2799,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (₹) *</Label>
+                  <Label>Price (â‚¹) *</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -2821,7 +2867,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 
                 {editingVariant.billingType === "ONE_TIME" ? (
                   <div className="space-y-2">
-                    <Label>One-time Price (₹)</Label>
+                    <Label>One-time Price (â‚¹)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -2837,7 +2883,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Label className="text-base">Recurring Prices & Setup Fees (₹)</Label>
+                    <Label className="text-base">Recurring Prices & Setup Fees (â‚¹)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Monthly */}
                       <div className="bg-gray-50 p-3 rounded-lg">
@@ -3289,7 +3335,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (₹) *</Label>
+                  <Label>Price (â‚¹) *</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -3601,3 +3647,4 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     </div>
   );
 }
+

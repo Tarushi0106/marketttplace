@@ -102,6 +102,7 @@ interface CartState {
   getTodayTotal: () => number; // Total due today (base price + setup fees)
   getItemCount: () => number;
   getSetupFeeTotal: () => number;
+  cleanStaleData: () => void; // Clean any stale formatted string data
 }
 
 // Helper function to safely convert values to numbers
@@ -109,25 +110,19 @@ const safeNumber = (value: unknown): number => {
   if (value === null || value === undefined) return 0;
   if (typeof value === "number") return value;
   if (typeof value === "string") {
-    const parsed = parseFloat(value);
+    // Remove currency symbols, commas, and other non-numeric characters except decimal point
+    const cleaned = value.replace(/[^0-9.-]/g, '');
+    const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? 0 : parsed;
   }
   return 0;
 };
 
 const calculateItemTotal = (item: Omit<CartItem, "id" | "totalPrice">): number => {
-  // For items with productPrice (new format): total = productPrice + setupFee
-  // productPrice includes base + configs + addons
-  const productPrice = safeNumber(item.productPrice ?? item.baseProductPrice);
-  const setupFee = safeNumber(item.recurringData?.setupFee);
+  // For items with recurringData: use unitPrice (pricePerCycle) directly, setupFee is added separately in getSetupFeeTotal()
+  const unitPrice = safeNumber(item.unitPrice);
   const quantity = safeNumber(item.quantity);
   
-  if (productPrice > 0) {
-    return (productPrice + setupFee) * quantity;
-  }
-  
-  // Fallback for legacy items: use unitPrice
-  const unitPrice = safeNumber(item.unitPrice);
   return unitPrice * quantity;
 };
 
@@ -242,8 +237,9 @@ export const useCartStore = create<CartState>()(
               quantity: safeNumber(item.quantity),
               unitPrice,
               id,
-              // Calculate totalPrice including baseProductPrice + setupFee
-              totalPrice: (safeNumber(item.baseProductPrice) + safeNumber(item.recurringData?.setupFee)) * safeNumber(item.quantity),
+              // totalPrice is used for display only; the actual calculations use getTodayTotal() which adds setupFee separately
+              // For recurring items, unitPrice is the pricePerCycle (not including setupFee)
+              totalPrice: unitPrice * safeNumber(item.quantity),
             };
             console.log("[Cart Debug] New cart item created:", {
               id: newItem.id?.substring(0, 50),
@@ -326,29 +322,29 @@ export const useCartStore = create<CartState>()(
         // Subtotal includes productPrice (base + configs + addons) for all items
         // This represents "Product Price (Due Today)"
         return get().items.reduce((sum, item) => {
-          const productPrice = item.productPrice ?? item.baseProductPrice ?? 0;
-          const quantity = safeNumber(item.quantity) || 1;
+          const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
+          const quantity = Number(item.quantity) || 1;
           return sum + (productPrice * quantity);
         }, 0);
       },
 
       getTodayTotal: () => {
         // Total due today = subtotal (baseProductPrice) + setup fees
-        const subtotal = get().getSubtotal();
-        const setupFee = get().getSetupFeeTotal();
+        const subtotal = Number(get().getSubtotal());
+        const setupFee = Number(get().getSetupFeeTotal());
         return subtotal + setupFee;
       },
 
       getTax: () => {
         // Calculate 18% tax
-        return get().getSubtotal() * 0.18;
+        return Number(get().getSubtotal()) * 0.18;
       },
 
       getTotal: () => {
         // Total = Today Total (baseProductPrice + setup fees) + tax - discount
-        const todayTotal = get().getTodayTotal();
-        const tax = get().getTax();
-        const discount = safeNumber(get().discountAmount);
+        const todayTotal = Number(get().getTodayTotal());
+        const tax = Number(get().getTax());
+        const discount = Number(get().discountAmount);
         return Math.max(0, todayTotal + tax - discount);
       },
 
@@ -358,14 +354,56 @@ export const useCartStore = create<CartState>()(
 
       getSetupFeeTotal: () => {
         return get().items.reduce((sum, item) => {
-          const setupFee = item.recurringData?.setupFee;
-          const quantity = safeNumber(item.quantity) || 1;
+          const setupFee = Number(item.recurringData?.setupFee);
+          const quantity = Number(item.quantity) || 1;
           // Check if setupFee is a valid number greater than 0
-          if (typeof setupFee === 'number' && setupFee > 0) {
+          if (!isNaN(setupFee) && setupFee > 0) {
             return sum + (setupFee * quantity);
           }
           return sum;
         }, 0);
+      },
+
+      // Clean stale formatted string data from cart
+      cleanStaleData: () => {
+        const items = get().items;
+        
+        const hasStaleData = items.some((item: CartItem) => {
+          const rp = item.recurringData;
+          if (!rp) return false;
+          // Check if any numeric fields are strings with currency formatting
+          const hasStaleSetupFee = typeof rp.setupFee === 'string' && rp.setupFee.includes('₹');
+          const hasStalePricePerCycle = typeof rp.pricePerCycle === 'string' && rp.pricePerCycle.includes('₹');
+          const hasStaleBaseProductPrice = typeof rp.baseProductPrice === 'string' && rp.baseProductPrice.includes('₹');
+          return hasStaleSetupFee || hasStalePricePerCycle || hasStaleBaseProductPrice;
+        });
+        
+        if (hasStaleData) {
+          const cleanedItems = items.map((item: CartItem) => {
+            const rp = item.recurringData;
+            if (!rp) return item;
+            
+            return {
+              ...item,
+              recurringData: {
+                ...rp,
+                setupFee: Number(rp.setupFee),
+                pricePerCycle: Number(rp.pricePerCycle),
+                baseProductPrice: Number(rp.baseProductPrice),
+                totalForPeriod: Number(rp.totalForPeriod),
+                monthlyEquivalent: Number(rp.monthlyEquivalent),
+              },
+              // Also clean item-level price fields
+              unitPrice: Number(item.unitPrice),
+              productPrice: Number(item.productPrice),
+              baseProductPrice: Number(item.baseProductPrice),
+              totalPrice: Number(item.totalPrice),
+              recurringAmount: Number(item.recurringAmount),
+            };
+          });
+          set({ items: cleanedItems });
+          console.log("[Cart] Cleaned stale formatted string data from cart");
+        }
       },
     }),
     {
@@ -426,6 +464,44 @@ if (typeof window !== "undefined") {
         totalPrice: calculateItemTotal(item as Omit<CartItem, "id" | "totalPrice">),
       }));
       useCartStore.setState({ items: recalculatedItems });
+    }
+    
+    // Clean any stale formatted string data in recurringData
+    const hasStaleData = items.some((item: CartItem) => {
+      const rp = item.recurringData;
+      if (!rp) return false;
+      // Check if any numeric fields are strings with currency formatting
+      const hasStaleSetupFee = typeof rp.setupFee === 'string' && rp.setupFee.includes('₹');
+      const hasStalePricePerCycle = typeof rp.pricePerCycle === 'string' && rp.pricePerCycle.includes('₹');
+      const hasStaleBaseProductPrice = typeof rp.baseProductPrice === 'string' && rp.baseProductPrice.includes('₹');
+      return hasStaleSetupFee || hasStalePricePerCycle || hasStaleBaseProductPrice;
+    });
+    
+    if (hasStaleData) {
+      const cleanedItems = items.map((item: CartItem) => {
+        const rp = item.recurringData;
+        if (!rp) return item;
+        
+        return {
+          ...item,
+          recurringData: {
+            ...rp,
+            setupFee: Number(rp.setupFee),
+            pricePerCycle: Number(rp.pricePerCycle),
+            baseProductPrice: Number(rp.baseProductPrice),
+            totalForPeriod: Number(rp.totalForPeriod),
+            monthlyEquivalent: Number(rp.monthlyEquivalent),
+          },
+          // Also clean item-level price fields
+          unitPrice: Number(item.unitPrice),
+          productPrice: Number(item.productPrice),
+          baseProductPrice: Number(item.baseProductPrice),
+          totalPrice: Number(item.totalPrice),
+          recurringAmount: Number(item.recurringAmount),
+        };
+      });
+      useCartStore.setState({ items: cleanedItems });
+      console.log("[Cart] Cleaned stale formatted string data from cart");
     }
   });
 }

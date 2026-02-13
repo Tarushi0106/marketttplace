@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, AlertCircle, Info, RefreshCw, Minus, Plus } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 interface RecurringBillingSectionProps {
   productId: string;
@@ -304,17 +304,17 @@ export function RecurringBillingSection({
   const pricing = getPricing();
   const currentSetupFee = getSetupFeeForCycle(billingCycle);
 
-  // Build list of available billing cycles based on configured prices
+  // Build list of available billing cycles based on configured prices (filter out undefined and 0 prices)
   const availableCycles: BillingCycleType[] = [];
-  if (monthlyPrice !== undefined) availableCycles.push("MONTHLY");
-  if (biMonthlyPrice !== undefined) availableCycles.push("BIMONTHLY");
-  if (quarterlyPrice !== undefined) availableCycles.push("QUARTERLY");
-  if (fourMonthlyPrice !== undefined) availableCycles.push("FOUR_MONTHLY");
-  if (semiAnnualPrice !== undefined) availableCycles.push("SEMI_ANNUAL");
-  if (triAnnualPrice !== undefined) availableCycles.push("TRI_ANNUAL");
-  if (yearlyPrice !== undefined) availableCycles.push("YEARLY");
-  if (biennialPrice !== undefined) availableCycles.push("BIENNIAL");
-  if (triennialPrice !== undefined) availableCycles.push("TRIENNIAL");
+  if (monthlyPrice !== undefined && monthlyPrice !== null && Number(monthlyPrice) > 0) availableCycles.push("MONTHLY");
+  if (biMonthlyPrice !== undefined && biMonthlyPrice !== null && Number(biMonthlyPrice) > 0) availableCycles.push("BIMONTHLY");
+  if (quarterlyPrice !== undefined && quarterlyPrice !== null && Number(quarterlyPrice) > 0) availableCycles.push("QUARTERLY");
+  if (fourMonthlyPrice !== undefined && fourMonthlyPrice !== null && Number(fourMonthlyPrice) > 0) availableCycles.push("FOUR_MONTHLY");
+  if (semiAnnualPrice !== undefined && semiAnnualPrice !== null && Number(semiAnnualPrice) > 0) availableCycles.push("SEMI_ANNUAL");
+  if (triAnnualPrice !== undefined && triAnnualPrice !== null && Number(triAnnualPrice) > 0) availableCycles.push("TRI_ANNUAL");
+  if (yearlyPrice !== undefined && yearlyPrice !== null && Number(yearlyPrice) > 0) availableCycles.push("YEARLY");
+  if (biennialPrice !== undefined && biennialPrice !== null && Number(biennialPrice) > 0) availableCycles.push("BIENNIAL");
+  if (triennialPrice !== undefined && triennialPrice !== null && Number(triennialPrice) > 0) availableCycles.push("TRIENNIAL");
 
   // If no cycles configured, show nothing
   if (!hasRecurringPrices()) {
@@ -362,7 +362,7 @@ export function RecurringBillingSection({
                       {BILLING_CYCLE_DESCRIPTIONS[cycle]}
                     </div>
                     <div className="text-sm font-semibold text-[#8B1D1D] mt-2">
-                      {formatCurrency(cyclePrice)}
+                      {formatPrice(cyclePrice)}
                       {BILLING_CYCLE_PERIODS[cycle]}
                     </div>
                     {cycleSavings !== undefined && cycleSavings > 0 && (
@@ -372,7 +372,7 @@ export function RecurringBillingSection({
                     )}
                     {cycleSetupFee > 0 && (
                       <div className="text-xs text-amber-600 mt-1">
-                        + {formatCurrency(cycleSetupFee)} setup fee
+                        + {formatPrice(cycleSetupFee)} setup fee
                       </div>
                     )}
                   </Label>
@@ -393,7 +393,7 @@ export function RecurringBillingSection({
                 <Label className="text-amber-800 font-medium">One-time Setup Fee</Label>
               </div>
               <span className="text-xl font-bold text-amber-700">
-                {formatCurrency(currentSetupFee)}
+                {formatPrice(currentSetupFee)}
               </span>
             </div>
             <p className="text-sm text-amber-600 mt-1">
@@ -409,7 +409,7 @@ export function RecurringBillingSection({
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium">Total per {BILLING_CYCLE_LABELS[billingCycle].toLowerCase()}</span>
             <span className="text-2xl font-bold text-[#8B1D1D]">
-              {formatCurrency(pricing.pricePerCycle)}
+              {formatPrice(pricing.pricePerCycle)}
               {pricing.periodLabel}
             </span>
           </div>

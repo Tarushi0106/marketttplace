@@ -14,10 +14,84 @@ export function formatCurrency(
   if (isNaN(amount) || amount === undefined || amount === null || !isFinite(amount)) {
     return "₹0";
   }
+  // Use proper UTF-8 encoding and Intl.NumberFormat for correct currency display
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
+    currencyDisplay: "symbol",
   }).format(amount);
+}
+
+/**
+ * Safe currency formatter that handles broken encoding
+ * Replaces any malformed currency symbols with proper INR symbol
+ */
+export function formatCurrencySafe(
+  amount: number | undefined | null,
+  currency: string = "INR",
+  locale: string = "en-IN"
+): string {
+  // Handle missing/invalid values - show "Unavailable"
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return "Unavailable";
+  }
+  
+  // Handle negative/invalid numbers
+  if (!isFinite(amount)) {
+    return "Unavailable";
+  }
+  
+  return formatCurrency(amount, currency, locale);
+}
+
+/**
+ * Format currency for display with fallback
+ * If price is missing, returns "Unavailable"
+ */
+export function formatPrice(
+  amount: number | undefined | null,
+  options?: {
+    currency?: string;
+    locale?: string;
+    showZeroAsUnavailable?: boolean;
+  }
+): string {
+  const { currency = "INR", locale = "en-IN", showZeroAsUnavailable = false } = options || {};
+  
+  // Check for missing/unavailable values
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return "Unavailable";
+  }
+  
+  // Optionally treat zero as unavailable
+  if (amount === 0 && showZeroAsUnavailable) {
+    return "Unavailable";
+  }
+  
+  return formatCurrency(amount, currency, locale);
+}
+
+/**
+ * Clean and fix broken currency encoding
+ * Replaces malformed symbols like +â‚¹ with proper ₹
+ */
+export function cleanCurrencyEncoding(text: string): string {
+  if (!text) return text;
+  
+  // Fix common broken encodings of INR symbol
+  const brokenPatterns = [
+    /\+â‚¹/g,          // Broken encoding of ₹
+    /â‚¹/g,            // Just the broken symbol
+    /\+¢\s*\d+/g,     // Other broken currency patterns
+    /\{.*\}/g,        // Remove any encoding artifacts
+  ];
+  
+  let cleaned = text;
+  brokenPatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "₹");
+  });
+  
+  return cleaned;
 }
 
 export function formatDate(

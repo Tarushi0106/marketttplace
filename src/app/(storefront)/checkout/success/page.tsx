@@ -447,7 +447,7 @@ export default function CheckoutSuccessPage() {
                     <span className="text-gray-600">Setup Fee</span>
                     <span className="font-medium">
                       {formatCurrency(
-                        order.items?.reduce((sum: number, item: any) => sum + (item.setupFee || 0), 0) || 0,
+                        order.items?.reduce((sum: number, item: any) => sum + Number(item.setupFee || 0), 0) || 0,
                         order.currency
                       )}
                     </span>

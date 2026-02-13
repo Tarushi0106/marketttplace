@@ -51,6 +51,9 @@ async function getProduct(slug: string) {
       variants: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
+        include: {
+          recurringPrices: true,
+        },
       },
       addons: {
         where: { isActive: true },
@@ -59,12 +62,31 @@ async function getProduct(slug: string) {
       configs: {
         orderBy: { sortOrder: "asc" },
       },
-      recurringPrices: {
-        where: { isActive: true },
-      },
+      recurringPrices: true,
       seoMetadata: true,
     },
   });
+
+  if (product) {
+    // Transform recurringPrices to include variant-specific pricing
+    // For standalone products: recurringPrices where variantId is null
+    // For variable products: recurringPrices for each variant
+    if (product.recurringPrices) {
+      // Filter product-level recurring prices (variantId = null)
+      product.recurringPrices = product.recurringPrices.filter((rp) => !rp.variantId);
+    }
+    
+    // Ensure variant recurringPrices are properly associated
+    if (product.variants) {
+      product.variants = product.variants.map((variant) => {
+        if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+          // Use the first recurring price for this variant (with matching variantId) or fall back to first
+          variant.recurringPrices = [variant.recurringPrices.find((rp) => rp.variantId === variant.id) || variant.recurringPrices[0]];
+        }
+        return variant;
+      });
+    }
+  }
 
   return product;
 }
@@ -331,6 +353,8 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
             attributes: variant.attributes as Record<string, string> || {},
             isDefault: variant.isDefault || false,
+            // Include variant-specific recurring prices (filter to only those with matching variantId)
+            recurringPrices: (variant.recurringPrices || []).filter((rp: any) => rp.variantId === variant.id),
           })) : []}
           configs={allConfigs.map((config: any) => ({
             id: config.id,

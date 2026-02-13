@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import type { Product, ProductAddon as ProductAddonType } from "@/types";
@@ -40,8 +41,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { RecurringBillingSection, type RecurringData, type BillingCycleType, BILLING_CYCLE_LABELS } from "./RecurringBillingSection";
+import {
+  useDynamicPricing,
+  type BillingCycle,
+  type RecurringPrice,
+} from "@/hooks/useDynamicPricing";
 
 // Billing cycle periods (copied from RecurringBillingSection)
 const BILLING_CYCLE_PERIODS: Record<string, string> = {
@@ -126,6 +132,32 @@ interface RecurringPrices {
   yearlySavings?: number;
 }
 
+// Helper function to extract recurring prices from product or variant data
+function extractRecurringPrices(data: any): RecurringPrice | null {
+  if (!data) return null;
+  
+  return {
+    monthlyPrice: data.monthlyPrice,
+    biMonthlyPrice: data.biMonthlyPrice,
+    quarterlyPrice: data.quarterlyPrice,
+    fourMonthlyPrice: data.fourMonthlyPrice,
+    semiAnnualPrice: data.semiAnnualPrice,
+    triAnnualPrice: data.triAnnualPrice,
+    yearlyPrice: data.yearlyPrice,
+    biennialPrice: data.biennialPrice,
+    triennialPrice: data.triennialPrice,
+    monthlySetupFee: data.monthlySetupFee,
+    biMonthlySetupFee: data.biMonthlySetupFee,
+    quarterlySetupFee: data.quarterlySetupFee,
+    fourMonthlySetupFee: data.fourMonthlySetupFee,
+    semiAnnualSetupFee: data.semiAnnualSetupFee,
+    triAnnualSetupFee: data.triAnnualSetupFee,
+    yearlySetupFee: data.yearlySetupFee,
+    biennialSetupFee: data.biennialSetupFee,
+    triennialSetupFee: data.triennialSetupFee,
+  };
+}
+
 interface AddonWithSource {
   id: string;
   name: string;
@@ -158,6 +190,7 @@ interface ProductConfiguratorProps {
     compareAtPrice?: number | null;
     attributes?: Record<string, string>;
     isDefault?: boolean;
+    recurringPrices?: any[];
   }[];
   configs?: ProductConfig[];
   inheritedConfigs?: ProductConfig[];
@@ -231,6 +264,25 @@ export function ProductConfigurator({
     selectedVariantId || variants.find(v => v.isDefault)?.id || variants[0]?.id || null
   );
 
+  // Sync selectedVariant state with selectedVariantId prop when it changes
+  useEffect(() => {
+    if (selectedVariantId) {
+      setSelectedVariant(selectedVariantId);
+    }
+  }, [selectedVariantId]);
+
+  // Handle variant selection - update URL
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const handleVariantChange = (variantId: string) => {
+    setSelectedVariant(variantId);
+    // Update URL with new variant
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('variant', variantId);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
   // Recurring billing state
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null);
 
@@ -245,6 +297,38 @@ export function ProductConfigurator({
     console.log(`[ProductConfigurator] Received recurring data:`, data);
     setRecurringData(data);
   }, []);
+
+  // Extract recurring prices from product level
+  const productRecurringPrices = useMemo(() => {
+    return extractRecurringPrices(recurringPrices);
+  }, [recurringPrices]);
+
+  // Get selected variant
+  const currentVariant = variants.find(v => v.id === selectedVariant);
+
+  // Extract recurring prices from selected variant
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const variantRecurringPrices = useMemo(() => {
+    if (!currentVariant) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rp = currentVariant.recurringPrices?.find((rp: any) => rp.variantId === currentVariant.id);
+    return extractRecurringPrices(rp);
+  }, [currentVariant]);
+
+  // Use the dynamic pricing hook
+  const {
+    recurringPrices: dynamicRecurringPrices,
+    availableBillingCycles,
+    isPricingAvailable,
+    getPriceForCycle,
+    getSetupFeeForCycle,
+  } = useDynamicPricing({
+    productType: product.productType as "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE",
+    productRecurringPrices,
+    variantRecurringPrices,
+    selectedVariantId: selectedVariant,
+    variants: variants,
+  });
 
   // Initialize selections from config defaults (only once on mount)
   useEffect(() => {
@@ -312,13 +396,19 @@ export function ProductConfigurator({
   // Get selected addons from the first instance
   const selectedAddons = configInstances[0]?.addons || {};
   
-  // Get selected variant
-  const currentVariant = variants.find(v => v.id === selectedVariant);
+  // Get selected variant (use existing variable from above)
+  const selectedVariantData = currentVariant;
+  
+  // Get variant recurring prices - use dynamic recurring prices if available
+  const effectiveRecurringPrices = dynamicRecurringPrices || recurringPrices || null;
+  
+  // Check if pricing is unavailable
+  const isPricingUnavailable = !isPricingAvailable && !selectedVariantData?.price;
   
   // Calculate total price for all instances
   const pricing = useMemo(() => {
-    // Base price from variant or product
-    const basePrice = currentVariant ? Number(currentVariant.price) : Number(product.basePrice) || 0;
+    // Base price from variant or product (use selectedVariantData from outer scope)
+    const basePrice = selectedVariantData ? Number(selectedVariantData.price) : Number(product.basePrice) || 0;
 
     // Calculate addons total
     let addonsTotal = 0;
@@ -415,12 +505,13 @@ export function ProductConfigurator({
     let totalForPeriod: number;
 
     if (recurringData) {
-      pricePerCycle = recurringData.pricePerCycle;
-      setupFee = recurringData.setupFee;
-      savingsPercentage = recurringData.savingsPercentage;
-      monthlyEquivalent = recurringData.monthlyEquivalent;
+      pricePerCycle = Number(recurringData.pricePerCycle);
+      setupFee = Number(recurringData.setupFee);
+      savingsPercentage = Number(recurringData.savingsPercentage);
+      monthlyEquivalent = Number(recurringData.monthlyEquivalent);
       // Total due today = basePrice + configs + setup fee (not including recurring price)
-      totalForPeriod = basePrice + configsTotal + recurringData.setupFee;
+      // Ensure all values are numbers to prevent string concatenation
+      totalForPeriod = Number(basePrice) + Number(configsTotal) + Number(recurringData.setupFee);
     } else {
       // Fallback for products without recurring prices configured
       // Calculate billing prices based on billingCycle
@@ -462,7 +553,7 @@ export function ProductConfigurator({
       configBreakdown,
       addonBreakdown,
     };
-  }, [product.basePrice, configs, allAddons, configInstances, recurringData, currentVariant, selectedConfigs, selectedAddons]);
+  }, [product.basePrice, configs, allAddons, configInstances, recurringData, selectedVariantData, selectedConfigs, selectedAddons, isPricingAvailable]);
 
   // Watch for billingCycle changes and update cart immediately
   useEffect(() => {
@@ -801,29 +892,60 @@ export function ProductConfigurator({
           productId={product.id}
           variantId={selectedVariant || undefined}
           basePrice={pricing.subtotal}
-          monthlySetupFee={recurringPrices?.monthlySetupFee}
-          biMonthlySetupFee={recurringPrices?.biMonthlySetupFee}
-          quarterlySetupFee={recurringPrices?.quarterlySetupFee}
-          fourMonthlySetupFee={recurringPrices?.fourMonthlySetupFee}
-          semiAnnualSetupFee={recurringPrices?.semiAnnualSetupFee}
-          triAnnualSetupFee={recurringPrices?.triAnnualSetupFee}
-          yearlySetupFee={recurringPrices?.yearlySetupFee}
-          biennialSetupFee={recurringPrices?.biennialSetupFee}
-          triennialSetupFee={recurringPrices?.triennialSetupFee}
-          monthlyPrice={recurringPrices?.monthlyPrice}
-          biMonthlyPrice={recurringPrices?.biMonthlyPrice}
-          quarterlyPrice={recurringPrices?.quarterlyPrice}
-          fourMonthlyPrice={recurringPrices?.fourMonthlyPrice}
-          semiAnnualPrice={recurringPrices?.semiAnnualPrice}
-          triAnnualPrice={recurringPrices?.triAnnualPrice}
-          yearlyPrice={recurringPrices?.yearlyPrice}
-          biennialPrice={recurringPrices?.biennialPrice}
-          triennialPrice={recurringPrices?.triennialPrice}
-          monthlySavings={recurringPrices?.monthlySavings}
-          quarterlySavings={recurringPrices?.quarterlySavings}
+          monthlySetupFee={effectiveRecurringPrices?.monthlySetupFee}
+          biMonthlySetupFee={effectiveRecurringPrices?.biMonthlySetupFee}
+          quarterlySetupFee={effectiveRecurringPrices?.quarterlySetupFee}
+          fourMonthlySetupFee={effectiveRecurringPrices?.fourMonthlySetupFee}
+          semiAnnualSetupFee={effectiveRecurringPrices?.semiAnnualSetupFee}
+          triAnnualSetupFee={effectiveRecurringPrices?.triAnnualSetupFee}
+          yearlySetupFee={effectiveRecurringPrices?.yearlySetupFee}
+          biennialSetupFee={effectiveRecurringPrices?.biennialSetupFee}
+          triennialSetupFee={effectiveRecurringPrices?.triennialSetupFee}
+          monthlyPrice={effectiveRecurringPrices?.monthlyPrice}
+          biMonthlyPrice={effectiveRecurringPrices?.biMonthlyPrice}
+          quarterlyPrice={effectiveRecurringPrices?.quarterlyPrice}
+          fourMonthlyPrice={effectiveRecurringPrices?.fourMonthlyPrice}
+          semiAnnualPrice={effectiveRecurringPrices?.semiAnnualPrice}
+          triAnnualPrice={effectiveRecurringPrices?.triAnnualPrice}
+          yearlyPrice={effectiveRecurringPrices?.yearlyPrice}
+          biennialPrice={effectiveRecurringPrices?.biennialPrice}
+          triennialPrice={effectiveRecurringPrices?.triennialPrice}
+          monthlySavings={effectiveRecurringPrices?.monthlySavings}
+          quarterlySavings={effectiveRecurringPrices?.quarterlySavings}
           yearlySavings={recurringPrices?.yearlySavings}
           onRecurringChange={handleRecurringChange}
         />
+
+        {/* Variant Selector */}
+        {variants.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Select Variant
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedVariant || ""} onValueChange={handleVariantChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a variant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {variants.map((variant) => (
+                    <SelectItem key={variant.id} value={variant.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{variant.name}</span>
+                        <span className="text-gray-500 ml-4">
+                          {formatPrice(Number(variant.price))}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Configurations Section - All configs grouped together */}
         {allConfigs.length > 0 && (
@@ -875,7 +997,7 @@ export function ProductConfigurator({
                                   {option.label}
                                   {displayPrice !== 0 && (
                                     <span className="ml-2 text-gray-500">
-                                      {displayPrice > 0 ? "+" : "-"}{formatCurrency(Math.abs(displayPrice))}
+                                      {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
                                       {billingCycle === "YEARLY" ? "/yr" : "/mo"}
                                     </span>
                                   )}
@@ -953,7 +1075,7 @@ export function ProductConfigurator({
                                                         </div>
                                                         {displayPrice !== 0 && (
                                                           <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
-                                                            {displayPrice > 0 ? "+" : "-"}{formatCurrency(Math.abs(displayPrice))}
+                                                            {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
                                                             {billingCycle === "YEARLY" ? "/yr" : "/mo"}
                                                           </span>
                                                         )}
@@ -1015,7 +1137,7 @@ export function ProductConfigurator({
                                                       </div>
                                                       {Number(option.priceModifier) !== 0 && (
                                                         <span className={`text-sm ${isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}`}>
-                                                          {Number(option.priceModifier) > 0 ? "+" : ""}{formatCurrency(Number(option.priceModifier))}
+                                                          {Number(option.priceModifier) > 0 ? "+" : ""}{formatPrice(Number(option.priceModifier))}
                                                         </span>
                                                       )}
                                                     </div>
@@ -1032,7 +1154,7 @@ export function ProductConfigurator({
                                                     {selectedValue || config.minValue || 0} {config.unit}
                                                   </span>
                                                   <span className="text-sm text-gray-500">
-                                                    Total: {formatCurrency(
+                                                    Total: {formatPrice(
                                                       (Number(config.basePrice) || 0) + 
                                                       ((Number(selectedValue) || Number(config.minValue) || 0) * (Number(config.pricePerUnit) || 0))
                                                     )}/mo
@@ -1058,7 +1180,7 @@ export function ProductConfigurator({
                                                 <div className="flex items-center justify-between">
                                                   <Label>{config.displayName || config.name}</Label>
                                                   <span className="text-sm text-gray-500">
-                                                    {formatCurrency(
+                                                    {formatPrice(
                                                       (Number(config.basePrice) || 0) + 
                                                       ((Number(selectedValue) || 0) * (Number(config.pricePerUnit) || 0))
                                                     )}/mo
@@ -1138,7 +1260,7 @@ export function ProductConfigurator({
                                             <div className="flex items-center gap-3">
                                               {addon.price !== undefined && (
                                                 <span className="font-medium">
-                                                  +{formatCurrency(Number(addon.price))}
+                                                  +{formatPrice(Number(addon.price))}
                                                 </span>
                                               )}
                                                                                              {isSelected && (
@@ -1190,13 +1312,13 @@ export function ProductConfigurator({
                                     {currentVariant ? (
                                       <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">{currentVariant.name}</span>
-                                        <span>{formatCurrency(Number(currentVariant.price))}</span>
+                                        <span>{formatPrice(Number(currentVariant.price))}</span>
                                       </div>
                                     ) : (
                                       /* Base Price - Show only when no variant is selected */
                                       <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Base Price</span>
-                                        <span>{formatCurrency(Number(product.basePrice))}</span>
+                                        <span>{formatPrice(Number(product.basePrice))}</span>
                                       </div>
                                     )}
 
@@ -1207,7 +1329,7 @@ export function ProductConfigurator({
                                           {item.name}
                                           {item.value && ` - ${item.value}`}
                                         </span>
-                                        <span>{formatCurrency(item.price)}</span>
+                                        <span>{formatPrice(item.price)}</span>
                                       </div>
                                     ))}
 
@@ -1217,7 +1339,7 @@ export function ProductConfigurator({
                                         <span className="text-gray-600">
                                           {item.name} x{item.quantity}
                                         </span>
-                                        <span>{formatCurrency(item.price)}</span>
+                                        <span>{formatPrice(item.price)}</span>
                                       </div>
                                     ))}
 
@@ -1226,14 +1348,14 @@ export function ProductConfigurator({
                                     {/* Product Price - Due Today */}
                                     <div className="flex justify-between">
                                       <span className="text-gray-600">Product Price (Due Today)</span>
-                                      <span className="font-medium">{formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}</span>
+                                      <span className="font-medium">{formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal)}</span>
                                     </div>
 
                                     {/* Setup Fee */}
                                     {pricing.setupFee > 0 && (
                                       <div className="flex justify-between">
                                         <span className="text-gray-600">Setup Fee</span>
-                                        <span className="font-medium">{formatCurrency(pricing.setupFee)}</span>
+                                        <span className="font-medium">{formatPrice(pricing.setupFee)}</span>
                                       </div>
                                     )}
 
@@ -1241,7 +1363,7 @@ export function ProductConfigurator({
                                     {pricing.billingCycle !== "ONE_TIME" && (
                                       <div className="bg-gray-50 rounded-lg p-3 mt-2">
                                         <p className="text-sm text-gray-600">
-                                          You will be charged <span className="font-medium">{formatCurrency(pricing.pricePerCycle)}</span> every {
+                                          You will be charged <span className="font-medium">{formatPrice(pricing.pricePerCycle)}</span> every {
                                             pricing.billingCycle === "MONTHLY" ? "1 month" :
                                             pricing.billingCycle === "BIMONTHLY" ? "2 months" :
                                             pricing.billingCycle === "QUARTERLY" ? "3 months" :
@@ -1258,7 +1380,7 @@ export function ProductConfigurator({
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total Due Today</span>
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
-                                        {formatCurrency(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)}
+                                        {formatPrice(pricing.basePrice + pricing.configsTotal + pricing.addonsTotal + pricing.setupFee)}
                                       </span>
                                     </div>
 
