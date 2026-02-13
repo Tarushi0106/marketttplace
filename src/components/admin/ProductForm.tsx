@@ -3539,9 +3539,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Pricing per Billing Cycle</Label>
+                <Label>Options</Label>
                 <div className="text-sm text-muted-foreground mb-2">
-                  Set different prices for monthly and yearly billing cycles
+                  Add options with label (display name) and value (price)
                 </div>
                 <div className="flex items-center justify-between">
                   <Label>Options</Label>
@@ -3567,19 +3567,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   {editingConfig.options.map((option, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <Input
-                        placeholder="Value (auto from label)"
-                        value={option.value}
-                        onChange={(e) => {
-                          const newOptions = [...editingConfig.options];
-                          newOptions[idx].value = e.target.value;
-                          setEditingConfig({
-                            ...editingConfig,
-                            options: newOptions,
-                          });
-                        }}
-                        className="flex-1"
-                      />
-                      <Input
                         placeholder="Label (display name)"
                         value={option.label}
                         onChange={(e) => {
@@ -3596,36 +3583,21 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         }}
                         className="flex-1"
                       />
-                      <div className="flex flex-col gap-1">
-                        <Input
-                          type="number"
-                          placeholder="Monthly +/-"
-                          value={option.monthlyPriceModifier ?? option.priceModifier}
-                          onChange={(e) => {
-                            const newOptions = [...editingConfig.options];
-                            newOptions[idx].monthlyPriceModifier = e.target.value;
-                            setEditingConfig({
-                              ...editingConfig,
-                              options: newOptions,
-                            });
-                          }}
-                          className="w-24 text-xs"
-                        />
-                        <Input
-                          type="number"
-                          placeholder="Yearly +/-"
-                          value={option.yearlyPriceModifier ?? option.priceModifier}
-                          onChange={(e) => {
-                            const newOptions = [...editingConfig.options];
-                            newOptions[idx].yearlyPriceModifier = e.target.value;
-                            setEditingConfig({
-                              ...editingConfig,
-                              options: newOptions,
-                            });
-                          }}
-                          className="w-24 text-xs"
-                        />
-                      </div>
+                      <Input
+                        type="number"
+                        placeholder="Price (₹)"
+                        value={option.monthlyPriceModifier ?? option.priceModifier ?? ""}
+                        onChange={(e) => {
+                          const newOptions = [...editingConfig.options];
+                          newOptions[idx].monthlyPriceModifier = e.target.value;
+                          newOptions[idx].priceModifier = e.target.value;
+                          setEditingConfig({
+                            ...editingConfig,
+                            options: newOptions,
+                          });
+                        }}
+                        className="w-32"
+                      />
                       <Button
                         type="button"
                         variant="ghost"

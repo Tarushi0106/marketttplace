@@ -205,6 +205,8 @@ export default function ProductConfigurationsPage() {
     isRequired: true,
     allowCustom: false,
     sortOrder: 0,
+    basePrice: 0,
+    pricePerUnit: 0,
     options: [],
   });
   const { toast } = useToast();
@@ -318,6 +320,8 @@ export default function ProductConfigurationsPage() {
       isRequired: true,
       allowCustom: false,
       sortOrder: configurations.length,
+      basePrice: 0,
+      pricePerUnit: 0,
       options: preset.options.map((opt, index) => ({
         value: opt.value,
         label: opt.label,
@@ -846,11 +850,19 @@ export default function ProductConfigurationsPage() {
                       {formData.options.map((option, index) => (
                         <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
                           <div className="flex-1 grid gap-4 md:grid-cols-2">
-                            <Input
-                              value={option.label}
-                              onChange={(e) => updateOption(index, "label", e.target.value)}
-                              placeholder="Option Label (e.g., Ubuntu 22.04 LTS)"
-                            />
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={option.label}
+                                onChange={(e) => updateOption(index, "label", e.target.value)}
+                                placeholder="Option Label (e.g., Ubuntu 22.04 LTS)"
+                                className="flex-1"
+                              />
+                              {Number(option.monthlyPriceModifier) > 0 && (
+                                <span className="text-sm font-medium text-green-600 whitespace-nowrap">
+                                  ₹{option.monthlyPriceModifier}/mo
+                                </span>
+                              )}
+                            </div>
                             <Input
                               value={option.value}
                               onChange={(e) => updateOption(index, "value", e.target.value)}
@@ -862,14 +874,18 @@ export default function ProductConfigurationsPage() {
                               placeholder="Description"
                               className="md:col-span-2"
                             />
-                            <Input
-                              type="number"
-                              value={option.monthlyPriceModifier}
-                              onChange={(e) =>
-                                updateOption(index, "monthlyPriceModifier", parseFloat(e.target.value) || 0)
-                              }
-                              placeholder="Select Price (Rs)"
-                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500">Monthly Price:</span>
+                              <Input
+                                type="number"
+                                value={option.monthlyPriceModifier}
+                                onChange={(e) =>
+                                  updateOption(index, "monthlyPriceModifier", parseFloat(e.target.value) || 0)
+                                }
+                                placeholder="0"
+                                className="w-32"
+                              />
+                            </div>
                           </div>
                           <Button
                             variant="ghost"
@@ -901,11 +917,19 @@ export default function ProductConfigurationsPage() {
                       {formData.options.map((option, index) => (
                         <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
                           <div className="flex-1 grid gap-4 md:grid-cols-2">
-                            <Input
-                              value={option.label}
-                              onChange={(e) => updateOption(index, "label", e.target.value)}
-                              placeholder="Option Label (e.g., Ubuntu 22.04 LTS)"
-                            />
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={option.label}
+                                onChange={(e) => updateOption(index, "label", e.target.value)}
+                                placeholder="Option Label (e.g., Ubuntu 22.04 LTS)"
+                                className="flex-1"
+                              />
+                              {Number(option.yearlyPriceModifier) > 0 && (
+                                <span className="text-sm font-medium text-green-600 whitespace-nowrap">
+                                  ₹{option.yearlyPriceModifier}/yr
+                                </span>
+                              )}
+                            </div>
                             <Input
                               value={option.value}
                               onChange={(e) => updateOption(index, "value", e.target.value)}
@@ -917,14 +941,18 @@ export default function ProductConfigurationsPage() {
                               placeholder="Description"
                               className="md:col-span-2"
                             />
-                            <Input
-                              type="number"
-                              value={option.yearlyPriceModifier}
-                              onChange={(e) =>
-                                updateOption(index, "yearlyPriceModifier", parseFloat(e.target.value) || 0)
-                              }
-                              placeholder="Select Price (Rs)"
-                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500">Yearly Price:</span>
+                              <Input
+                                type="number"
+                                value={option.yearlyPriceModifier}
+                                onChange={(e) =>
+                                  updateOption(index, "yearlyPriceModifier", parseFloat(e.target.value) || 0)
+                                }
+                                placeholder="0"
+                                className="w-32"
+                              />
+                            </div>
                           </div>
                           <Button
                             variant="ghost"

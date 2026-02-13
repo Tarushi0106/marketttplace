@@ -473,6 +473,36 @@ export function ProductConfigurator({
     configs.forEach((config) => {
       const configData = selectedConfigs[config.id];
       
+      // Handle NUMBER and SLIDER input types - they use pricePerUnit, not options
+      if (config.inputType === 'NUMBER' || config.inputType === 'SLIDER') {
+        const numericValue = Number(getSelectedValue(config.id)) || 0;
+        
+        // For NUMBER/SLIDER, check if there's an option with price (use as pricePerUnit)
+        // The option's label becomes the displayName, and price becomes pricePerUnit
+        const firstOption = config.options?.[0];
+        const effectivePricePerUnit = Number(config.pricePerUnit) || 
+          (firstOption ? Number(firstOption.monthlyPriceModifier || firstOption.priceModifier) || 0 : 0);
+        const effectiveDisplayName = config.displayName || 
+          (firstOption?.label) || config.name;
+        const basePrice = Number(config.basePrice) || 0;
+        
+        // Calculate price: basePrice + (quantity * pricePerUnit)
+        const configPrice = basePrice + (numericValue * effectivePricePerUnit);
+        
+        if (configPrice > 0 || numericValue > 0) {
+          configsTotal += configPrice;
+          configBreakdown.push({
+            name: effectiveDisplayName,
+            value: `${numericValue} ${config.unit || ''}`.trim(),
+            price: configPrice,
+            quantity: numericValue,
+            unit: config.unit,
+            pricePerUnit: effectivePricePerUnit,
+          });
+        }
+        return;
+      }
+      
       // Support both array (multi-select checkboxes) and single value
       let values: string[] = [];
       if (Array.isArray(configData)) {
@@ -1017,11 +1047,11 @@ export function ProductConfigurator({
                               
                               return (
                                 <SelectItem key={option.id} value={option.value}>
-                                  {option.label}
+                                  <span className="text-gray-700">{option.label}</span>
                                   {displayPrice !== 0 && (
-                                    <span className="ml-2 text-gray-500">
-                                      {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
-                                      {billingCycle === "YEARLY" ? "/yr" : "/mo"}
+                                    <span className="ml-2">
+                                      <span className="text-gray-500">{displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}</span>
+                                      <span className="text-green-600">{billingCycle === "YEARLY" ? "/yr" : "/mo"}</span>
                                     </span>
                                   )}
                                 </SelectItem>
@@ -1101,9 +1131,9 @@ export function ProductConfigurator({
                                       </div>
                                     </div>
                                     {displayPrice !== 0 && (
-                                      <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
-                                        {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
-                                        {billingCycle === "YEARLY" ? "/yr" : "/mo"}
+                                      <span className="">
+                                        <span className={isSelected ? "text-[#8B1D1D]" : "text-gray-500"}>{displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}</span>
+                                        <span className="text-green-600">{billingCycle === "YEARLY" ? "/yr" : "/mo"}</span>
                                       </span>
                                     )}
                                   </div>
@@ -1126,6 +1156,9 @@ export function ProductConfigurator({
                               // Use getSelectedValue for consistent value retrieval (single selection)
                               const currentValue = getSelectedValue(config.id);
                               const isSelected = currentValue === option.value;
+                              const displayPrice = billingCycle === "YEARLY"
+                                ? Number(option.yearlyPriceModifier || option.priceModifier || 0)
+                                : Number(option.monthlyPriceModifier || option.priceModifier || 0);
                               
                               return (
                                 <div
@@ -1158,9 +1191,12 @@ export function ProductConfigurator({
                                       )}
                                     </div>
                                   </div>
-                                  {Number(option.priceModifier) !== 0 && (
-                                    <span className={`text-sm ${isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}`}>
-                                      {Number(option.priceModifier) > 0 ? "+" : ""}{formatPrice(Number(option.priceModifier))}
+                                  {displayPrice !== 0 && (
+                                    <span className="text-sm">
+                                      <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
+                                        {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
+                                      </span>
+                                      <span className="text-green-600">{billingCycle === "YEARLY" ? "/yr" : "/mo"}</span>
                                     </span>
                                   )}
                                 </div>
@@ -1177,15 +1213,35 @@ export function ProductConfigurator({
                                             {config.inputType === "SLIDER" && (
                                               <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
-                                                  <span className="text-sm font-medium">
-                                                    {selectedValue || config.minValue || 0} {config.unit}
+                                                  <span className="text-sm font-medium text-gray-700">
+                                                    {/* Use option label as displayName for SLIDER inputs */}
+                                                    {config.displayName || config.options?.[0]?.label || config.name}
                                                   </span>
-                                                  <span className="text-sm text-gray-500">
-                                                    Total: {formatPrice(
-                                                      (Number(config.basePrice) || 0) + 
-                                                      ((Number(selectedValue) || Number(config.minValue) || 0) * (Number(config.pricePerUnit) || 0))
-                                                    )}/mo
+                                                  {(() => {
+                                                    // For SLIDER inputs, price can come from pricePerUnit or first option's price
+                                                    const effectivePricePerUnit = Number(config.pricePerUnit) || 
+                                                      Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0;
+                                                    return effectivePricePerUnit > 0 && (
+                                                      <span className="text-sm">
+                                                        <span className="text-green-600 font-medium">₹{effectivePricePerUnit.toFixed(2)}</span>
+                                                        <span className="text-gray-500">/{config.unit || 'unit'}</span>
+                                                      </span>
+                                                    );
+                                                  })()}
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                  <span className="text-sm text-gray-600">
+                                                    Selected: {selectedValue || config.minValue || 0} {config.unit}
                                                   </span>
+                                                  {Number(selectedValue) > 0 && (
+                                                    <span className="text-sm font-medium text-gray-900">
+                                                      {formatPrice(
+                                                        (Number(config.basePrice) || 0) + 
+                                                        ((Number(selectedValue) || Number(config.minValue) || 0) * (Number(config.pricePerUnit) || 
+                                                          Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0))
+                                                      )}/mo
+                                                    </span>
+                                                  )}
                                                 </div>
                                                 <Slider
                                                   value={[Number(selectedValue) || Number(config.minValue) || 0]}
@@ -1205,15 +1261,21 @@ export function ProductConfigurator({
                                             {config.inputType === "NUMBER" && (
                                               <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                  <span className="text-sm text-gray-500">
-                                                    {selectedValue || config.minValue || 0} {config.unit}
+                                                  <span className="text-sm font-medium text-gray-700">
+                                                    {/* Use option label as displayName for NUMBER inputs */}
+                                                    {config.displayName || config.options?.[0]?.label || config.name}
                                                   </span>
-                                                  <span className="text-sm text-gray-500">
-                                                    Total: {formatPrice(
-                                                      (Number(config.basePrice) || 0) + 
-                                                      ((Number(selectedValue) || 0) * (Number(config.pricePerUnit) || 0))
-                                                    )}/mo
-                                                  </span>
+                                                  {(() => {
+                                                    // For NUMBER inputs, price can come from pricePerUnit or first option's price
+                                                    const effectivePricePerUnit = Number(config.pricePerUnit) || 
+                                                      Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0;
+                                                    return effectivePricePerUnit > 0 && (
+                                                      <span className="text-sm">
+                                                        <span className="text-green-600 font-medium">₹{effectivePricePerUnit.toFixed(2)}</span>
+                                                        <span className="text-gray-500">/{config.unit || 'unit'}</span>
+                                                      </span>
+                                                    );
+                                                  })()}
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                   <Input
@@ -1224,11 +1286,26 @@ export function ProductConfigurator({
                                                     max={config.maxValue}
                                                     step={config.stepValue}
                                                     placeholder={`Enter ${config.unit || "value"}`}
+                                                    className="flex-1"
                                                   />
                                                   {config.unit && (
-                                                    <span className="text-sm text-gray-500">{config.unit}</span>
+                                                    <span className="text-sm text-gray-500 min-w-fit">{config.unit}</span>
                                                   )}
                                                 </div>
+                                                {Number(selectedValue) > 0 && (
+                                                  <div className="flex items-center justify-between text-sm bg-gray-50 rounded-lg p-2">
+                                                    <span className="text-gray-600">
+                                                      {Number(selectedValue)} {config.unit || 'units'}
+                                                    </span>
+                                                    <span className="font-medium text-gray-900">
+                                                      {formatPrice(
+                                                        (Number(config.basePrice) || 0) + 
+                                                        ((Number(selectedValue) || 0) * (Number(config.pricePerUnit) || 
+                                                          Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0))
+                                                      )}/mo
+                                                    </span>
+                                                  </div>
+                                                )}
                                               </div>
                                             )}
                                           </div>
@@ -1363,9 +1440,20 @@ export function ProductConfigurator({
                                       <div key={index} className="flex justify-between text-sm">
                                         <span className="text-gray-600">
                                           {item.name}
-                                          {item.value && ` - ${item.value}`}
+                                          {item.value && item.quantity > 0 && ` - ${item.value}`}
                                         </span>
-                                        <span>{formatPrice(item.price)}</span>
+                                        <span>
+                                          {item.pricePerUnit && item.quantity > 0 ? (
+                                            <span>
+                                              {formatPrice(item.price)}
+                                              <span className="text-xs text-gray-400 ml-1">
+                                                ({item.quantity} × {formatPrice(item.pricePerUnit)}/{item.unit || 'unit'})
+                                              </span>
+                                            </span>
+                                          ) : (
+                                            formatPrice(item.price)
+                                          )}
+                                        </span>
                                       </div>
                                     ))}
 
