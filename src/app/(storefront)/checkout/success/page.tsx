@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, Download, Loader2, FileText, ArrowRight, User, MapPin, Mail } from "lucide-react";
+import { CheckCircle, Download, Loader2, FileText, ArrowRight, User, MapPin, Mail, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { formatCurrency } from "@/lib/utils";
@@ -710,6 +711,44 @@ export default function CheckoutSuccessPage() {
                   )}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Order Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Order Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Order Status:</span>
+                <Badge variant="outline" className={
+                  order?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                  order?.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                  order?.status === 'PROCESSING' ? 'bg-purple-100 text-purple-800' :
+                  order?.status === 'SHIPPED' ? 'bg-indigo-100 text-indigo-800' :
+                  order?.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                  order?.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }>
+                  {order?.status}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Payment Status:</span>
+                <Badge variant="outline" className={
+                  order?.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                  order?.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                  order?.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                  order?.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
+                  'bg-orange-100 text-orange-800'
+                }>
+                  {order?.paymentStatus}
+                </Badge>
+              </div>
             </CardContent>
           </Card>
 
