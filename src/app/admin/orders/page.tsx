@@ -10,6 +10,7 @@ import {
   XCircle,
   Download,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -76,6 +85,11 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [newPaymentStatus, setNewPaymentStatus] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -115,6 +129,39 @@ export default function OrdersPage() {
       order.email.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  function openStatusDialog(order: Order) {
+    setSelectedOrder(order);
+    setNewStatus(order.status);
+    setNewPaymentStatus(order.paymentStatus);
+    setShowStatusDialog(true);
+  }
+
+  async function updateOrderStatus() {
+    if (!selectedOrder) return;
+    setUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/orders/${selectedOrder.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: newStatus,
+          paymentStatus: newPaymentStatus,
+        }),
+      });
+      if (response.ok) {
+        toast({ title: "Success", description: "Order status updated" });
+        setShowStatusDialog(false);
+        fetchOrders();
+      } else {
+        toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -234,7 +281,7 @@ export default function OrdersPage() {
                             View Details
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openStatusDialog(order)}>
                           <Truck className="mr-2 h-4 w-4" />
                           Update Status
                         </DropdownMenuItem>
@@ -258,6 +305,70 @@ export default function OrdersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Update Status Dialog */}
+      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogDescription>
+              Update status for order {selectedOrder?.orderNumber}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Order Status</label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="PROCESSING">Processing</SelectItem>
+                  <SelectItem value="SHIPPED">Shipped</SelectItem>
+                  <SelectItem value="DELIVERED">Delivered</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="REFUNDED">Refunded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Payment Status</label>
+              <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="PAID">Paid</SelectItem>
+                  <SelectItem value="FAILED">Failed</SelectItem>
+                  <SelectItem value="REFUNDED">Refunded</SelectItem>
+                  <SelectItem value="PARTIALLY_REFUNDED">Partially Refunded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowStatusDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateOrderStatus} disabled={updatingStatus}>
+              {updatingStatus ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Update Status
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

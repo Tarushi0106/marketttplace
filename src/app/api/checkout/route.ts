@@ -154,13 +154,8 @@ export async function POST(request: NextRequest) {
           sku = product.sku || "";
           
           console.log("Using pre-calculated unitPrice:", unitPrice);
-          
-          // Add setup fee to unitPrice if recurring with setup fee
-          if (item.isRecurring && item.recurringData?.setupFee) {
-            console.log("Adding setup fee:", item.recurringData.setupFee);
-            unitPrice = unitPrice + item.recurringData.setupFee;
-          }
-          console.log("Final unitPrice:", unitPrice);
+          // Note: setup fee is already included in unitPrice for recurring products
+          // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
           console.log("Using fallback calculation - basePrice:", Number(product.basePrice));
           // Fallback to traditional calculation

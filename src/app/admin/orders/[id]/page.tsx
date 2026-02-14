@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -216,6 +223,9 @@ export default function OrderDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("");
 
   useEffect(() => {
     if (params.id) {
@@ -230,6 +240,8 @@ export default function OrderDetailPage() {
 
       if (data.data) {
         setOrder(data.data);
+        setSelectedStatus(data.data.status);
+        setSelectedPaymentStatus(data.data.paymentStatus);
         
         // Fetch invoice
         try {
@@ -298,6 +310,47 @@ export default function OrderDetailPage() {
       });
     } finally {
       setGeneratingInvoice(false);
+    }
+  }
+
+  async function updateOrderStatus() {
+    if (!order?.id) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          status: selectedStatus,
+          paymentStatus: selectedPaymentStatus,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOrder(data.data);
+        toast({
+          title: "Success",
+          description: "Order status updated successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to update order status",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
     }
   }
 
@@ -606,6 +659,69 @@ export default function OrderDetailPage() {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Update Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Update Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Order Status</label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="relative z-50">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100]">
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                    <SelectItem value="PROCESSING">Processing</SelectItem>
+                    <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="DELIVERED">Delivered</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="REFUNDED">Refunded</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Payment Status</label>
+                <Select value={selectedPaymentStatus} onValueChange={setSelectedPaymentStatus}>
+                  <SelectTrigger className="relative z-50">
+                    <SelectValue placeholder="Select payment status" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100]">
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    <SelectItem value="FAILED">Failed</SelectItem>
+                    <SelectItem value="REFUNDED">Refunded</SelectItem>
+                    <SelectItem value="PARTIALLY_REFUNDED">Partially Refunded</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                onClick={updateOrderStatus} 
+                disabled={updatingStatus || (selectedStatus === order.status && selectedPaymentStatus === order.paymentStatus)}
+                className="w-full"
+              >
+                {updatingStatus ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Update Status
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
 

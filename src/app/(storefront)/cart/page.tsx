@@ -324,14 +324,15 @@ export default function CartPage() {
               <div className="space-y-3">
                 {items.map((item) => (
                   <div key={item.id}>
-                    {/* Product/Bundle name */}
+                    {/* Product/Bundle name - show recurring price for recurring products */}
                     <div className="flex justify-between text-sm font-medium">
                       <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
-                      <span>{formatPrice(item.baseProductPrice || 0)}</span>
+                      <span>{formatPrice(item.isRecurring ? (item.recurringAmount || item.unitPrice || 0) : (item.baseProductPrice || 0))}</span>
                     </div>
 
-                    {/* For configurable products with instances, show combined config price */}
-                    {item.instances && item.instances.length > 0 && (
+                    {/* For configurable products with instances - only show for ONE_TIME products */}
+                    {/* For recurring products, configs are included in recurringAmount */}
+                    {item.instances && item.instances.length > 0 && !item.isRecurring && (
                       <div className="ml-2">
                         {item.instances.map((instance) => (
                           <div key={instance.instanceId} className="mb-2">
@@ -357,8 +358,35 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Legacy flat configs */}
-                    {item.selectedConfigs && item.selectedConfigs.length > 0 && !item.instances && (
+                    {/* Show config names for recurring products (without prices since they're included in recurringAmount) */}
+                    {item.instances && item.instances.length > 0 && item.isRecurring && (
+                      <div className="ml-2">
+                        {item.instances.map((instance) => (
+                          <div key={instance.instanceId} className="mb-1">
+                            {/* Config options - show names only for recurring products */}
+                            {instance.selectedConfigs?.map((config) => (
+                              <div key={config.configId} className="flex justify-between text-sm">
+                                <span className="text-gray-500">
+                                  {config.configName}: {config.optionLabel || config.value}
+                                </span>
+                                <span className="text-gray-400 text-xs">included</span>
+                              </div>
+                            ))}
+                            
+                            {/* Addons - these are one-time charges */}
+                            {instance.selectedAddons?.map((addon) => (
+                              <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
+                                <span className="text-gray-500">+ {addon.addon?.name}</span>
+                                <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Legacy flat configs - only for ONE_TIME products */}
+                    {item.selectedConfigs && item.selectedConfigs.length > 0 && !item.instances && !item.isRecurring && (
                       <div className="ml-2">
                         {item.selectedConfigs.map((config) => (
                           <div key={config.configId} className="flex justify-between text-sm">
@@ -383,11 +411,19 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Recurring Amount */}
+                    {/* Recurring Amount - show total recurring with cycle */}
                     {Number(item.recurringAmount) > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Recurring Amount</span>
                         <span className="text-gray-500">{formatPrice(Number(item.recurringAmount))}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
+                      </div>
+                    )}
+
+                    {/* Setup Fee */}
+                    {Number(item.recurringData?.setupFee) > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Setup Fee</span>
+                        <span className="text-gray-500">{formatPrice(Number(item.recurringData?.setupFee))}</span>
                       </div>
                     )}
                   </div>
@@ -400,14 +436,6 @@ export default function CartPage() {
                   <span className="text-gray-600">Product Price (Due Today)</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
-
-                {/* Setup Fee */}
-                {Number(setupFeeTotal) > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Setup Fee</span>
-                    <span className="font-medium">{formatPrice(setupFeeTotal)}</span>
-                  </div>
-                )}
 
                 {/* Tax (18% GST) */}
                 {Number(tax) > 0 && (
@@ -432,7 +460,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatPrice(todayTotal)}
+                    {formatPrice(subtotal + tax)}
                   </span>
                 </div>
               </div>

@@ -1,15 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Building2, Package, Sparkles, ShoppingBag, MessageCircle, Eye } from "lucide-react";
+import { Star, Building2, Package, Sparkles, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-// Helper to check if product has pricing
-function hasPricing(price: any): boolean {
-  const numPrice = Number(price);
-  return !isNaN(numPrice) && numPrice > 0;
-}
 
 interface Product {
   id: string;
@@ -135,8 +129,6 @@ function ProductCard({ product }: { product: Product }) {
           100
       )
     : 0;
-  const displayPrice = getDisplayPrice(product);
-  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
@@ -238,20 +230,7 @@ function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
 
-       
         <div className="mt-auto pt-3 border-t border-gray-100">
-          {hasPrice && (
-            <div className="mb-3">
-              <span className="text-lg font-bold text-gray-900">
-                ₹{displayPrice.toLocaleString("en-IN")}
-              </span>
-              {product.compareAtPrice && (
-                <span className="text-sm text-gray-400 line-through ml-2">
-                  ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-                </span>
-              )}
-            </div>
-          )}
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -289,8 +268,6 @@ function CompactProductCard({ product }: { product: Product }) {
           100
       )
     : 0;
-  const displayPrice = getDisplayPrice(product);
-  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
@@ -368,20 +345,6 @@ function CompactProductCard({ product }: { product: Product }) {
           </span>
         </div>
 
-        {/* Price */}
-        {hasPrice && (
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-sm font-bold text-gray-900">
-              ₹{displayPrice.toLocaleString("en-IN")}
-            </span>
-            {product.compareAtPrice && (
-              <span className="text-xs text-gray-400 line-through">
-                ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-              </span>
-            )}
-          </div>
-        )}
-
         {/* CTA Button */}
         <div className="mt-auto pt-2">
           <Button
@@ -409,8 +372,6 @@ function ProductListItem({ product }: { product: Product }) {
           100
       )
     : 0;
-  const displayPrice = getDisplayPrice(product);
-  const hasPrice = hasPricing(displayPrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 group">
@@ -498,27 +459,8 @@ function ProductListItem({ product }: { product: Product }) {
             </div>
           </div>
 
-          {/* Price & CTA */}
+          {/* CTA */}
           <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-            {hasPrice && (
-              <div className="text-right">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-bold text-gray-900">
-                    ₹{displayPrice.toLocaleString("en-IN")}
-                  </span>
-                  {discount > 0 && (
-                    <Badge className="bg-green-100 text-green-700 border-0 text-xs">
-                      -{discount}%
-                    </Badge>
-                  )}
-                </div>
-                {product.compareAtPrice && (
-                  <span className="text-sm text-gray-400 line-through">
-                    ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-                  </span>
-                )}
-              </div>
-            )}
             <div className="flex gap-2">
               <Button
                 size="sm"

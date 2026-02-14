@@ -40,14 +40,13 @@ const countries = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, getSubtotal, getTax, getSetupFeeTotal, discountCode, clearCart } = useCartStore();
+  const { items, getSubtotal, getTax, discountCode, clearCart } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
   const subtotal = getSubtotal();
   const tax = getTax();
-  const setupFee = getSetupFeeTotal();
 
   const [shippingAddress, setShippingAddress] = useState({
     firstName: "",
@@ -114,6 +113,19 @@ export default function CheckoutPage() {
               variantId: item.variant?.id || undefined,
               bundleId: item.bundle?.id || undefined,
               quantity: item.quantity,
+              // For recurring products: unitPrice is the total due today (setup fee + first recurring + addons)
+              // For one-time products: unitPrice is the full product price
+              unitPrice: item.isRecurring 
+                ? (() => {
+                    const setupFee = Number(item.recurringData?.setupFee) || 0;
+                    const recurringAmount = Number(item.recurringAmount) || 0;
+                    const addonsTotal = item.instances?.reduce((instSum: number, inst: any) => {
+                      return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) => 
+                        addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
+                    }, 0) || 0;
+                    return setupFee + recurringAmount + addonsTotal;
+                  })()
+                : (item.productPrice || item.unitPrice || 0),
               baseProductPrice: item.baseProductPrice || 0,
               recurringAmount: item.recurringAmount || 0,
               billingCycle: item.billingCycle,
@@ -585,28 +597,34 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   {items.map((item: any) => (
                     <div key={item.id}>
-                      {/* Product/Bundle name */}
+                      {/* Product/Bundle name - show recurring price for recurring products */}
                       <div className="flex justify-between text-sm font-medium">
                         <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
-                        <span>{formatPrice(item.baseProductPrice || 0)}</span>
+                        <span>{formatPrice(item.isRecurring && item.billingCycle !== 'ONE_TIME' ? (item.recurringAmount || 0) : (item.baseProductPrice || 0))}</span>
                       </div>
 
-                      {/* For configurable products with instances, show combined config price */}
+                      {/* For configurable products with instances */}
+                      {/* For recurring products, configs are included in recurringAmount - show "included" */}
+                      {/* For ONE_TIME products, show config prices separately */}
                       {item.instances && item.instances.length > 0 && (
                         <div className="ml-2">
                           {item.instances.map((instance: any) => (
                             <div key={instance.instanceId} className="mb-2">
-                              {/* Config options - show dynamically with groupName: optionName format */}
+                              {/* Config options */}
                               {instance.selectedConfigs?.map((config: any) => (
                                 <div key={config.configId} className="flex justify-between text-sm">
                                   <span className="text-gray-500">
                                     {config.configName}: {config.optionLabel || config.value}
                                   </span>
-                                  <span>{formatPrice(config.price || 0)}</span>
+                                  {item.isRecurring && item.billingCycle !== 'ONE_TIME' ? (
+                                    <span className="text-gray-400 text-xs">included</span>
+                                  ) : (
+                                    <span>{formatPrice(config.price || 0)}</span>
+                                  )}
                                 </div>
                               ))}
                               
-                              {/* Addons */}
+                              {/* Addons - these are one-time charges */}
                               {instance.selectedAddons?.map((addon: any) => (
                                 <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
                                   <span className="text-gray-500">+ {addon.addon?.name}</span>
@@ -618,7 +636,7 @@ export default function CheckoutPage() {
                         </div>
                       )}
 
-                      {/* Legacy flat configs */}
+                      {/* Legacy flat configs - only show prices for ONE_TIME products */}
                       {item.selectedConfigs && item.selectedConfigs.length > 0 && !item.instances && (
                         <div className="ml-2">
                           {item.selectedConfigs.map((config: any) => (
@@ -626,7 +644,11 @@ export default function CheckoutPage() {
                               <span className="text-gray-600">
                                 {config.configName || config.configId}: {config.optionLabel || config.value}
                               </span>
-                              <span>{formatPrice(config.price || 0)}</span>
+                              {item.isRecurring && item.billingCycle !== 'ONE_TIME' ? (
+                                <span className="text-gray-400 text-xs">included</span>
+                              ) : (
+                                <span>{formatPrice(config.price || 0)}</span>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -644,39 +666,18 @@ export default function CheckoutPage() {
                         </div>
                       )}
 
-                      {/* Recurring Amount - only show for recurring billing cycles */}
-                      {item.recurringAmount && item.recurringAmount > 0 && item.billingCycle !== 'ONE_TIME' && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Recurring Amount</span>
-                          <span className="text-gray-500">{formatPrice(item.recurringAmount)}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
-                        </div>
-                      )}
-                      {/* One-time Setup Fee - show for ONE_TIME billing */}
-                      {item.billingCycle === 'ONE_TIME' && item.recurringData?.setupFee && item.recurringData.setupFee > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">One-time Setup Fee</span>
-                          <span className="text-gray-500">{formatPrice(item.recurringData.setupFee)}</span>
-                        </div>
-                      )}
+                      {/* Setup Fee for recurring products - shown in summary section instead */}
                     </div>
                   ))}
                 </div>
 
                 <Separator />
 
-                {/* Product Price (Due Today) */}
+                {/* Product Price (Due Today) - includes setup fee for recurring products */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Product Price (Due Today)</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
-
-                {/* Setup Fee */}
-                {setupFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Setup Fee</span>
-                    <span className="font-medium">{formatPrice(setupFee)}</span>
-                  </div>
-                )}
 
                 {/* Tax (18% GST) */}
                 {tax > 0 && (
@@ -694,7 +695,15 @@ export default function CheckoutPage() {
                         {formatPrice(
                           items.reduce((sum: number, item: any) => sum + (item.recurringAmount || 0), 0)
                         )}
-                      </span> every {items[0]?.billingCycle === 'MONTHLY' ? '1 month' : items[0]?.billingCycle === 'BIMONTHLY' ? '2 months' : items[0]?.billingCycle || ''} after purchase.
+                      </span> every {
+                        items[0]?.billingCycle === 'MONTHLY' ? '1 month' :
+                        items[0]?.billingCycle === 'BIMONTHLY' ? '2 months' :
+                        items[0]?.billingCycle === 'QUARTERLY' ? '3 months' :
+                        items[0]?.billingCycle === 'FOUR_MONTHLY' ? '4 months' :
+                        items[0]?.billingCycle === 'SEMI_ANNUAL' ? '6 months' :
+                        items[0]?.billingCycle === 'YEARLY' ? '1 year' :
+                        items[0]?.billingCycle || ''
+                      } after purchase.
                     </p>
                   </div>
                 )}
@@ -705,7 +714,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatPrice(Number(subtotal) + Number(setupFee))}
+                    {formatPrice(Number(subtotal) + Number(tax))}
                   </span>
                 </div>
 

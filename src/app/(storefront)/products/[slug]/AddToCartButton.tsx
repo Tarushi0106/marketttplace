@@ -221,12 +221,15 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       ?.filter((config: any) => selectedConfigs[config.id])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((config: any) => {
-        const options = (Array.isArray(config.options) ? config.options : []) as Array<{ value: string; label: string; priceModifier?: number }>;
+        const options = (Array.isArray(config.options) ? config.options : []) as Array<{ value: string; label: string; priceModifier?: number; monthlyPriceModifier?: number }>;
         const option = options.find((o) => o.value === selectedConfigs[config.id]);
-        const priceModifier = Number(option?.priceModifier) || 0;
+        // For NUMBER/SLIDER inputs, use monthlyPriceModifier; for others use priceModifier
+        const priceModifier = Number(option?.monthlyPriceModifier || option?.priceModifier) || 0;
+        // Use displayName or first option's label for NUMBER/SLIDER, otherwise use config name
+        const configName = config.displayName || config.name;
         return {
           configId: config.id,
-          configName: config.name,
+          configName: configName,
           value: option?.label || selectedConfigs[config.id],
           price: priceModifier, // Store price for display
           priceModifier: priceModifier,

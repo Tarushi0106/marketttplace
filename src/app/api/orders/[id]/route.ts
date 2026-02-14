@@ -1,5 +1,105 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+
+/**
+ * PATCH /api/orders/[id] - Update order status
+ * Used by admin to update order and payment status
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+    const { status, paymentStatus } = body;
+
+    // Build update data
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+
+    // Update the order
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: updateData,
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            variant: true,
+            bundle: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        shippingAddress: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: updatedOrder.id,
+        orderNumber: updatedOrder.orderNumber,
+        status: updatedOrder.status,
+        paymentStatus: updatedOrder.paymentStatus,
+        paymentMethod: updatedOrder.paymentMethod,
+        subtotal: Number(updatedOrder.subtotal) || 0,
+        discountAmount: Number(updatedOrder.discountAmount) || 0,
+        taxAmount: Number(updatedOrder.taxAmount) || 0,
+        shippingAmount: Number(updatedOrder.shippingAmount) || 0,
+        total: Number(updatedOrder.total) || 0,
+        currency: updatedOrder.currency,
+        email: updatedOrder.email,
+        phone: updatedOrder.phone,
+        notes: updatedOrder.notes,
+        createdAt: updatedOrder.createdAt,
+        updatedAt: updatedOrder.updatedAt,
+        items: updatedOrder.items.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice) || 0,
+          totalPrice: Number(item.totalPrice) || 0,
+          product: item.product,
+          variant: item.variant,
+          bundle: item.bundle,
+          configuration: item.configuration,
+          billingCycle: item.billingCycle,
+          isRecurring: item.isRecurring,
+          recurringPrice: Number(item.recurringPrice) || 0,
+          setupFee: Number(item.setupFee) || 0,
+        })),
+        user: updatedOrder.user,
+        shippingAddress: updatedOrder.shippingAddress,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating order:", error);
+    return NextResponse.json(
+      { error: "Failed to update order", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * GET /api/orders/[id] - Get single order by ID

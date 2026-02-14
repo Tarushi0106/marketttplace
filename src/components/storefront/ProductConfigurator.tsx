@@ -249,7 +249,7 @@ export function ProductConfigurator({
   // State for multiple configuration instances
   const [configInstances, setConfigInstances] = useState<ConfigInstanceWithAddons[]>([
     {
-      id: `instance-1-${Date.now()}`,
+      id: `instance-1`,
       instanceNumber: 1,
       name: "Configuration 1",
       configs: {},
@@ -480,10 +480,12 @@ export function ProductConfigurator({
         // For NUMBER/SLIDER, check if there's an option with price (use as pricePerUnit)
         // The option's label becomes the displayName, and price becomes pricePerUnit
         const firstOption = config.options?.[0];
-        const effectivePricePerUnit = Number(config.pricePerUnit) || 
-          (firstOption ? Number(firstOption.monthlyPriceModifier || firstOption.priceModifier) || 0 : 0);
-        const effectiveDisplayName = config.displayName || 
-          (firstOption?.label) || config.name;
+        // Priority: first option's monthlyPriceModifier > pricePerUnit > first option's priceModifier
+        const effectivePricePerUnit = Number(firstOption?.monthlyPriceModifier) || 
+          Number(config.pricePerUnit) || 
+          Number(firstOption?.priceModifier) || 0;
+        // Use label from first option as displayName (admin sets this in variable tab)
+        const effectiveDisplayName = firstOption?.label || config.displayName || config.name;
         const basePrice = Number(config.basePrice) || 0;
         
         // Calculate price: basePrice + (quantity * pricePerUnit)
@@ -591,9 +593,8 @@ export function ProductConfigurator({
       setupFee = Number(recurringData.setupFee);
       savingsPercentage = Number(recurringData.savingsPercentage);
       monthlyEquivalent = Number(recurringData.monthlyEquivalent);
-      // Total due today = basePrice + configs + setup fee (not including recurring price)
-      // Ensure all values are numbers to prevent string concatenation
-      totalForPeriod = Number(basePrice) + Number(configsTotal) + Number(recurringData.setupFee);
+      // Total due today = setup fee + first recurring payment + addons
+      totalForPeriod = Number(recurringData.setupFee) + Number(recurringData.pricePerCycle) + Number(configsTotal) + Number(addonsTotal);
     } else {
       // Fallback for products without recurring prices configured
       // Calculate billing prices based on billingCycle
@@ -851,8 +852,11 @@ export function ProductConfigurator({
             ? yearlyPrice
             : monthlyPrice;
           
+          // For NUMBER/SLIDER inputs, use the first option's label as displayName
+          const effectiveConfigName = config?.options?.[0]?.label || config?.displayName || config?.name;
+          
           console.log("[AddToCart] Config price:", {
-            configName: config?.displayName || config?.name,
+            configName: effectiveConfigName,
             value,
             option: option,
             priceModifier,
@@ -863,7 +867,7 @@ export function ProductConfigurator({
           
           return {
             configId,
-            configName: config?.displayName || config?.name,
+            configName: effectiveConfigName,
             value: value,
             quantity: configQuantity,
             optionLabel: option?.label || value,
@@ -896,34 +900,43 @@ export function ProductConfigurator({
     // For recurring products: use recurringData.pricePerCycle if available, otherwise fall back to pricing
     // This ensures we use the configured recurring price (e.g., ₹200) instead of variant basePrice (e.g., ₹2,299)
     const currentRecurringData = recurringData;
-    const unitPrice = currentRecurringData?.pricePerCycle ?? pricing.pricePerCycle;
+    const baseRecurringPrice = currentRecurringData?.pricePerCycle ?? pricing.pricePerCycle;
     const setupFee = currentRecurringData?.setupFee ?? pricing.setupFee;
     
-    // Product Price (Due Today) = basePrice + configsTotal + addonsTotal
-    // This is the total one-time price for configs and addons
-    const productPriceDueToday = pricing.basePrice + pricing.configsTotal + pricing.addonsTotal;
+    // For recurring products: the recurring amount should include base price + configs (both are recurring)
+    // Configs with monthlyPriceModifier are recurring charges
+    const totalRecurringAmount = baseRecurringPrice + pricing.configsTotal;
+    
+    // For recurring products: productPrice should include setup fee + first recurring payment + addons
+    // For one-time products: productPrice includes base + configs + addons
+    const isRecurringProduct = currentRecurringData?.enabled ?? false;
+    const productPriceDueToday = isRecurringProduct 
+      ? setupFee + baseRecurringPrice + pricing.configsTotal + pricing.addonsTotal  // Setup fee + first recurring + addons
+      : pricing.basePrice + pricing.configsTotal + pricing.addonsTotal;  // Full price for one-time
 
     const cartItem = {
       product,
       variant: currentVariant || undefined,
       quantity: 1,
       instances,
-      unitPrice,
+      unitPrice: totalRecurringAmount,
       // Store the base product price separately for display purposes
       baseProductPrice: pricing.basePrice, 
-      // Store the full product price (base + configs + addons) for calculations
-      productPrice: pricing.basePrice + pricing.configsTotal + pricing.addonsTotal,
+      // Store the full product price (addons for recurring, base + configs + addons for one-time)
+      productPrice: productPriceDueToday,
       // Use billing cycle from recurringData if available
       billingCycle: (currentRecurringData?.billingCycle ?? pricing.billingCycle) as "ONE_TIME" | "MONTHLY" | "BIMONTHLY" | "QUARTERLY" | "FOUR_MONTHLY" | "SEMI_ANNUAL" | "TRI_ANNUAL" | "YEARLY" | "BIENNIAL" | "TRIENNIAL" | undefined,
       // Recurring billing data
-      isRecurring: currentRecurringData?.enabled ?? false,
-      recurringAmount: unitPrice, // The recurring amount per cycle
+      isRecurring: isRecurringProduct,
+      recurringAmount: totalRecurringAmount, // The recurring amount per cycle (base + configs)
       recurringData: currentRecurringData ? {
         ...currentRecurringData,
         setupFee,
-        pricePerCycle: unitPrice,
-        // Store full product price in recurringData
-        baseProductPrice: pricing.basePrice + pricing.configsTotal + pricing.addonsTotal,
+        pricePerCycle: baseRecurringPrice,
+        // Store one-time charges in recurringData
+        baseProductPrice: productPriceDueToday,
+        // Store configs total for display
+        configsTotal: pricing.configsTotal,
       } : undefined,
     };
 
@@ -1214,13 +1227,12 @@ export function ProductConfigurator({
                                               <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                   <span className="text-sm font-medium text-gray-700">
-                                                    {/* Use option label as displayName for SLIDER inputs */}
-                                                    {config.displayName || config.options?.[0]?.label || config.name}
+                                                    {/* Use label from first option as displayName for SLIDER inputs */}
+                                                    {config.options?.[0]?.label || config.displayName || config.name}
                                                   </span>
                                                   {(() => {
-                                                    // For SLIDER inputs, price can come from pricePerUnit or first option's price
-                                                    const effectivePricePerUnit = Number(config.pricePerUnit) || 
-                                                      Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0;
+                                                    // For SLIDER inputs, price comes from first option's monthlyPriceModifier
+                                                    const effectivePricePerUnit = Number(config.options?.[0]?.monthlyPriceModifier || config.pricePerUnit || config.options?.[0]?.priceModifier) || 0;
                                                     return effectivePricePerUnit > 0 && (
                                                       <span className="text-sm">
                                                         <span className="text-green-600 font-medium">₹{effectivePricePerUnit.toFixed(2)}</span>
@@ -1237,8 +1249,7 @@ export function ProductConfigurator({
                                                     <span className="text-sm font-medium text-gray-900">
                                                       {formatPrice(
                                                         (Number(config.basePrice) || 0) + 
-                                                        ((Number(selectedValue) || Number(config.minValue) || 0) * (Number(config.pricePerUnit) || 
-                                                          Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0))
+                                                        ((Number(selectedValue) || Number(config.minValue) || 0) * (Number(config.options?.[0]?.monthlyPriceModifier || config.pricePerUnit || config.options?.[0]?.priceModifier) || 0))
                                                       )}/mo
                                                     </span>
                                                   )}
@@ -1262,13 +1273,12 @@ export function ProductConfigurator({
                                               <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
                                                   <span className="text-sm font-medium text-gray-700">
-                                                    {/* Use option label as displayName for NUMBER inputs */}
-                                                    {config.displayName || config.options?.[0]?.label || config.name}
+                                                    {/* Use label from first option as displayName for NUMBER inputs */}
+                                                    {config.options?.[0]?.label || config.displayName || config.name}
                                                   </span>
                                                   {(() => {
-                                                    // For NUMBER inputs, price can come from pricePerUnit or first option's price
-                                                    const effectivePricePerUnit = Number(config.pricePerUnit) || 
-                                                      Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0;
+                                                    // For NUMBER inputs, price comes from first option's monthlyPriceModifier
+                                                    const effectivePricePerUnit = Number(config.options?.[0]?.monthlyPriceModifier || config.pricePerUnit || config.options?.[0]?.priceModifier) || 0;
                                                     return effectivePricePerUnit > 0 && (
                                                       <span className="text-sm">
                                                         <span className="text-green-600 font-medium">₹{effectivePricePerUnit.toFixed(2)}</span>
@@ -1300,8 +1310,7 @@ export function ProductConfigurator({
                                                     <span className="font-medium text-gray-900">
                                                       {formatPrice(
                                                         (Number(config.basePrice) || 0) + 
-                                                        ((Number(selectedValue) || 0) * (Number(config.pricePerUnit) || 
-                                                          Number(config.options?.[0]?.monthlyPriceModifier || config.options?.[0]?.priceModifier) || 0))
+                                                        ((Number(selectedValue) || 0) * (Number(config.options?.[0]?.monthlyPriceModifier || config.pricePerUnit || config.options?.[0]?.priceModifier) || 0))
                                                       )}/mo
                                                     </span>
                                                   </div>
@@ -1473,7 +1482,7 @@ export function ProductConfigurator({
                                     {pricing.billingCycle !== "ONE_TIME" && billingType !== "ONE_TIME" && (
                                       <div className="bg-gray-50 rounded-lg p-3 mt-2">
                                         <p className="text-sm text-gray-600">
-                                          You will be charged <span className="font-medium">{formatPrice(pricing.pricePerCycle)}</span> every {
+                                          You will be charged <span className="font-medium">{formatPrice(pricing.pricePerCycle + pricing.configsTotal)}</span> every {
                                             pricing.billingCycle === "MONTHLY" ? "1 month" :
                                             pricing.billingCycle === "BIMONTHLY" ? "2 months" :
                                             pricing.billingCycle === "QUARTERLY" ? "3 months" :
@@ -1501,7 +1510,7 @@ export function ProductConfigurator({
                                       <span className="text-2xl font-bold text-[#8B1D1D]">
                                         {billingType === "ONE_TIME" 
                                           ? formatPrice(pricing.basePrice + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
-                                          : formatPrice(pricing.pricePerCycle + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
+                                          : formatPrice(pricing.setupFee + pricing.pricePerCycle + pricing.configsTotal + pricing.addonsTotal)
                                         }
                                       </span>
                                     </div>

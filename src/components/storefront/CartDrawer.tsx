@@ -232,7 +232,7 @@ export function CartDrawer() {
                                 </span>
                               </>
                             ) : (
-                              formatCurrency(item.totalPrice || 0)
+                              formatPrice(item.totalPrice || 0)
                             )}
                           </p>
                         </div>
@@ -259,12 +259,6 @@ export function CartDrawer() {
                     <span className="text-muted-foreground">Tax</span>
                     <span>{formatPrice(getTax())}</span>
                   </div>
-                  {getSetupFeeTotal() > 0 && (
-                    <div className="flex justify-between text-amber-600">
-                      <span className="font-medium">Setup Fees</span>
-                      <span>{formatPrice(getSetupFeeTotal())}</span>
-                    </div>
-                  )}
                   <Separator />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>

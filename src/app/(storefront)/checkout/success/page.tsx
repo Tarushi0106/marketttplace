@@ -22,6 +22,10 @@ interface OrderItem {
   isRecurring?: boolean;
   recurringPrice?: number | null;
   setupFee?: number | null;
+  // Cart-style pricing fields
+  recurringAmount?: number | null;
+  productPrice?: number | null;
+  baseProductPrice?: number | null;
 }
 
 interface Order {
@@ -363,38 +367,61 @@ export default function CheckoutSuccessPage() {
               {/* Order Items */}
               <div className="space-y-3">
                 <h3 className="font-medium">Items Ordered</h3>
-                {order.items?.map((item) => (
-                  <div key={item.id} className="p-3 border rounded-lg">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="font-medium">{item.name}</span>
-                      <span className="font-medium">
-                        {formatCurrency(item.totalPrice, order.currency)}
-                      </span>
-                    </div>
-                    {item.configuration && Object.keys(item.configuration).length > 0 && (
-                      <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                        {Object.entries(item.configuration).map(([key, value]) => (
-                          <span key={key} className="mr-3">
-                            {configLabels[key.toLowerCase()] || key.charAt(0).toUpperCase() + key.slice(1)}: {formatConfigValue(key, String(value))}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                      {item.isRecurring && item.billingCycle && item.billingCycle !== 'ONE_TIME' && (
-                        <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200">
-                          {getBillingCycleLabel(item.billingCycle)}
+                {order.items?.map((item: any) => {
+                  // Use cart-style pricing: recurringAmount for recurring products
+                  const displayPrice = item.isRecurring && item.billingCycle !== 'ONE_TIME'
+                    ? (item.recurringAmount || item.unitPrice || 0)
+                    : (item.productPrice || item.baseProductPrice || item.totalPrice || 0);
+                  
+                  // Get instances from configuration
+                  const instances = item.configuration?.instances || item.instances || [];
+                  
+                  return (
+                    <div key={item.id} className="p-3 border rounded-lg">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="font-medium">{item.name}</span>
+                        <span className="font-medium">
+                          {item.isRecurring && item.billingCycle !== 'ONE_TIME'
+                            ? `${formatCurrency(displayPrice, order.currency)}/${getBillingCycleLabel(item.billingCycle)?.toLowerCase() === 'monthly' ? 'mo' : 'cycle'}`
+                            : formatCurrency(displayPrice, order.currency)
+                          }
                         </span>
+                      </div>
+                      
+                      {/* Show configs for this item */}
+                      {instances.map((instance: any) => (
+                        <div key={instance.instanceId}>
+                          {instance.selectedConfigs?.map((config: any) => (
+                            <div key={config.configId} className="flex justify-between text-xs text-muted-foreground ml-2">
+                              <span>{config.configName || config.configId}</span>
+                              <span>{item.isRecurring && item.billingCycle !== 'ONE_TIME' ? 'included' : formatCurrency(config.price || 0, order.currency)}</span>
+                            </div>
+                          ))}
+                          {instance.selectedAddons?.map((addon: any) => (
+                            <div key={addon.addon?.id} className="flex justify-between text-xs text-muted-foreground ml-2">
+                              <span>+ {addon.addon?.name}</span>
+                              <span>{formatCurrency(addon.addon?.price || 0, order.currency)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                        {item.isRecurring && item.billingCycle && item.billingCycle !== 'ONE_TIME' && (
+                          <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200">
+                            {getBillingCycleLabel(item.billingCycle)}
+                          </span>
+                        )}
+                      </div>
+                      {item.setupFee && item.setupFee > 0 && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          + {formatCurrency(item.setupFee, order.currency)} setup fee included
+                        </p>
                       )}
                     </div>
-                    {item.setupFee && item.setupFee > 0 && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        + {formatCurrency(item.setupFee, order.currency)} setup fee included
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <Separator />
@@ -403,42 +430,45 @@ export default function CheckoutSuccessPage() {
               <div className="bg-muted/30 rounded-lg p-4 space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Order Summary</h3>
                 
-                {/* Product name and base price */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{order.items?.[0]?.name || 'Product'}</span>
-                  <span>{formatCurrency(order.subtotal, order.currency)}</span>
-                </div>
-                
-                {/* Configs breakdown - showing instance configs */}
-                {order.items?.map((item: any) => (
-                  <div key={item.id}>
-                    {item.instances?.map((instance: any) => (
-                      <div key={instance.instanceId}>
-                        {instance.selectedConfigs?.map((config: any) => (
-                          <div key={config.configId} className="flex justify-between text-sm">
-                            <span className="text-gray-600">
-                              {config.configName || config.configId}
-                            </span>
-                            <span>{formatCurrency(config.price || 0, order.currency)}</span>
-                          </div>
-                        ))}
-                        {instance.selectedAddons?.map((addon: any) => (
-                          <div key={addon.addon?.id} className="flex justify-between text-sm">
-                            <span className="text-gray-600">+ {addon.addon?.name}</span>
-                            <span>{formatCurrency(addon.addon?.price || 0, order.currency)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-                
-                <Separator className="my-2" />
-                
-                {/* Check if billing is ONE_TIME */}
+                {/* Check if billing is ONE_TIME or RECURRING */}
                 {order.items?.[0]?.billingCycle === 'ONE_TIME' ? (
-                  /* ONE TIME BILLING: Show setup fee as part of product price, no recurring info */
+                  /* ONE TIME BILLING */
                   <>
+                    {/* Product name and base price */}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">{order.items?.[0]?.name || 'Product'}</span>
+                      <span>{formatCurrency(order.subtotal, order.currency)}</span>
+                    </div>
+                    
+                    {/* Configs breakdown - showing instance configs with prices for ONE_TIME */}
+                    {order.items?.map((item: any) => {
+                      const instances = item.configuration?.instances || item.instances || [];
+                      return (
+                        <div key={item.id}>
+                          {instances.map((instance: any) => (
+                            <div key={instance.instanceId}>
+                              {instance.selectedConfigs?.map((config: any) => (
+                                <div key={config.configId} className="flex justify-between text-sm">
+                                  <span className="text-gray-600">
+                                    {config.configName || config.configId}
+                                  </span>
+                                  <span>{formatCurrency(config.price || 0, order.currency)}</span>
+                                </div>
+                              ))}
+                              {instance.selectedAddons?.map((addon: any) => (
+                                <div key={addon.addon?.id} className="flex justify-between text-sm">
+                                  <span className="text-gray-600">+ {addon.addon?.name}</span>
+                                  <span>{formatCurrency(addon.addon?.price || 0, order.currency)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    
+                    <Separator className="my-2" />
+                    
                     <div className="flex justify-between">
                       <span className="text-gray-600">One-time Setup</span>
                       <span className="font-medium">
@@ -464,25 +494,54 @@ export default function CheckoutSuccessPage() {
                     )}
                   </>
                 ) : (
-                  /* RECURRING BILLING: Show setup fee separately and show recurring info */
+                  /* RECURRING BILLING */
                   <>
+                    {/* Product name and recurring price (includes configs) */}
+                    {order.items?.map((item: any) => {
+                      // Use cart-style pricing: recurringAmount for recurring products
+                      const displayPrice = item.recurringAmount || item.unitPrice || 0;
+                      
+                      // Get instances from configuration
+                      const instances = item.configuration?.instances || item.instances || [];
+                      
+                      return (
+                        <div key={item.id}>
+                          <div className="flex justify-between text-sm font-medium">
+                            <span className="text-gray-900">{item.name}</span>
+                            <span>{formatCurrency(displayPrice, order.currency)}/{getBillingCycleLabel(item.billingCycle)?.toLowerCase() === 'monthly' ? 'mo' : 'cycle'}</span>
+                          </div>
+                          
+                          {/* Configs - show names only, prices included in recurring */}
+                          {instances.map((instance: any) => (
+                            <div key={instance.instanceId}>
+                              {instance.selectedConfigs?.map((config: any) => (
+                                <div key={config.configId} className="flex justify-between text-sm">
+                                  <span className="text-gray-500">
+                                    {config.configName || config.configId}
+                                  </span>
+                                  <span className="text-gray-400 text-xs">included</span>
+                                </div>
+                              ))}
+                              {/* Addons - these are one-time charges */}
+                              {instance.selectedAddons?.map((addon: any) => (
+                                <div key={addon.addon?.id} className="flex justify-between text-sm">
+                                  <span className="text-gray-500">+ {addon.addon?.name}</span>
+                                  <span>{formatCurrency(addon.addon?.price || 0, order.currency)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    
+                    <Separator className="my-2" />
+                    
+                    {/* Product Price (Due Today) - includes setup fee for recurring products */}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Product Price (Due Today)</span>
                       <span className="font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
                     </div>
-                    
-                    {/* Setup Fee */}
-                    {order.items?.some((item: any) => item.setupFee && item.setupFee > 0) && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Setup Fee</span>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            order.items?.reduce((sum: number, item: any) => sum + Number(item.setupFee || 0), 0) || 0,
-                            order.currency
-                          )}
-                        </span>
-                      </div>
-                    )}
                     
                     {/* Tax */}
                     {order.taxAmount > 0 && (
@@ -506,7 +565,7 @@ export default function CheckoutSuccessPage() {
                         <p className="text-sm text-gray-600">
                           You will be charged <span className="font-medium">
                             {formatCurrency(
-                              order.items?.reduce((sum: number, item: any) => sum + (item.recurringPrice || 0), 0),
+                              order.items?.reduce((sum: number, item: any) => sum + Number(item.recurringAmount || item.unitPrice || 0), 0),
                               order.currency
                             )}
                           </span> every {getRecurringInterval(order.items?.[0]?.billingCycle)} after purchase.
@@ -532,6 +591,44 @@ export default function CheckoutSuccessPage() {
 
         {/* Invoice Section */}
         <div className="space-y-6">
+          {/* Order Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Order Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Order Status</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                    order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
+                    order.status === 'PROCESSING' ? 'bg-purple-100 text-purple-800' :
+                    order.status === 'CONFIRMED' ? 'bg-indigo-100 text-indigo-800' :
+                    order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Payment Status</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                    order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                    order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {order.paymentStatus}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

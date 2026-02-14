@@ -134,10 +134,10 @@ const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   
   // Check for new instances format first
   if (item.instances && item.instances.length > 0) {
-    // Generate a hash from all instances' configs and addons
+    // Generate a hash from all instances' configs and addons (excluding timestamp-based instanceId)
     const instancesHash = item.instances.map(inst => ({
-      id: inst.instanceId,
-      name: inst.instanceName,
+      // Use instanceNumber instead of instanceId to avoid timestamp-based uniqueness
+      num: inst.instanceNumber,
       configs: inst.selectedConfigs?.map(c => ({ id: c.configId, value: c.value, price: c.price })) || [],
       addons: inst.selectedAddons?.map(a => ({ id: a.addon?.id || "", qty: a.quantity })) || [],
     }));
@@ -320,33 +320,43 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        // Subtotal includes productPrice (base + configs + addons) for all items
-        // This represents "Product Price (Due Today)"
+        // Subtotal = total due today
+        // For recurring products: setup fee + first recurring payment (base + configs) + addons
+        // For one-time products: productPrice (base + configs + addons)
         return get().items.reduce((sum, item) => {
-          const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           const quantity = Number(item.quantity) || 1;
+          // For recurring items, charge: setup fee + first recurring payment + addons
+          if (item.isRecurring && item.billingCycle !== "ONE_TIME") {
+            const setupFee = Number(item.recurringData?.setupFee) || 0;
+            const recurringAmount = Number(item.recurringAmount) || 0; // First recurring payment (base + configs)
+            const addonsTotal = item.instances?.reduce((instSum: number, inst: any) => {
+              return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) => 
+                addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
+            }, 0) || 0;
+            // Total due today = setup fee + first recurring payment + addons
+            return sum + ((setupFee + recurringAmount + addonsTotal) * quantity);
+          }
+          const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           return sum + (productPrice * quantity);
         }, 0);
       },
 
       getTodayTotal: () => {
-        // Total due today = subtotal (baseProductPrice) + setup fees
-        const subtotal = Number(get().getSubtotal());
-        const setupFee = Number(get().getSetupFeeTotal());
-        return subtotal + setupFee;
+        // Total due today = subtotal (already includes setup fee for recurring products)
+        return Number(get().getSubtotal());
       },
 
       getTax: () => {
-        // Calculate 18% tax
+        // Calculate 18% tax on subtotal
         return Number(get().getSubtotal()) * 0.18;
       },
 
       getTotal: () => {
-        // Total = Today Total (baseProductPrice + setup fees) + tax - discount
-        const todayTotal = Number(get().getTodayTotal());
+        // Total = subtotal + tax - discount
+        const subtotal = Number(get().getSubtotal());
         const tax = Number(get().getTax());
         const discount = Number(get().discountAmount);
-        return Math.max(0, todayTotal + tax - discount);
+        return Math.max(0, subtotal + tax - discount);
       },
 
       getItemCount: () => {

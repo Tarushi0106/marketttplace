@@ -1758,6 +1758,65 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
           {/* PRICING TAB */}
           <TabsContent value="pricing" className="space-y-6">
+            {/* Specifications for STANDALONE products */}
+            {formData.productType === "STANDALONE" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Specifications</CardTitle>
+                  <CardDescription>
+                    Product specifications displayed on the product page (e.g., CPU, RAM)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Existing specifications */}
+                  {formData.specifications.length > 0 && (
+                    <div className="space-y-2">
+                      {formData.specifications.map((spec, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 bg-muted p-3 rounded-lg"
+                        >
+                          <span className="font-medium flex-1">{spec.key}</span>
+                          <span className="text-muted-foreground flex-1">{spec.value}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeSpecification(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new specification */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Name (e.g., CPU)"
+                      value={newSpecKey}
+                      onChange={(e) => setNewSpecKey(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder="Value (e.g., INTEL)"
+                      value={newSpecValue}
+                      onChange={(e) => setNewSpecValue(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addSpecification}
+                      disabled={!newSpecKey.trim() || !newSpecValue.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid gap-6 lg:grid-cols-3">
               <Card>
                 <CardHeader>
@@ -3311,6 +3370,79 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     </div>
                   </div>
                 )}
+              </div>
+              
+              {/* Variant Specifications */}
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label className="text-base">Specifications</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Add specifications like CPU, RAM, Storage for this variant
+                  </p>
+                </div>
+                
+                {/* Existing specifications */}
+                {Object.entries(editingVariant.specifications || {}).filter(([key]) => {
+                  const reservedKeys = [
+                    'billingType', 'setupFee',
+                    'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                    'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                    'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                    'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                  ];
+                  return !reservedKeys.includes(key);
+                }).length > 0 && (
+                  <div className="space-y-2">
+                    {Object.entries(editingVariant.specifications || {})
+                      .filter(([key]) => {
+                        const reservedKeys = [
+                          'billingType', 'setupFee',
+                          'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                          'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                          'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                        ];
+                        return !reservedKeys.includes(key);
+                      })
+                      .map(([key, value]) => (
+                        <div key={key} className="flex items-center gap-2 bg-muted p-3 rounded-lg">
+                          <span className="font-medium flex-1">{key}</span>
+                          <span className="text-muted-foreground flex-1">{value}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeVariantSpecification(key)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                
+                {/* Add new specification */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Name (e.g., CPU)"
+                    value={newVariantSpecKey}
+                    onChange={(e) => setNewVariantSpecKey(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    placeholder="Value (e.g., INTEL)"
+                    value={newVariantSpecValue}
+                    onChange={(e) => setNewVariantSpecValue(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={addVariantSpecification}
+                    disabled={!newVariantSpecKey.trim() || !newVariantSpecValue.trim()}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               
               <div className="flex items-center gap-6">

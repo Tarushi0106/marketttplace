@@ -652,9 +652,10 @@ export default async function ProductDetailPage({ params }: Props) {
                           {formatPrice(product.compareAtPrice)}
                         </p>
                       )}
-                      {/* Specifications for standalone products - show between price and buttons */}
+                      {/* Specifications - show between price and buttons */}
                       {(() => {
-                        // Filter out reserved pricing keys from variant attributes
+                        // For STANDALONE products: fetch specifications from product.specifications (Pricing tab)
+                        // For VARIABLE products: fetch specifications from variant attributes (Variants tab)
                         const reservedKeys = [
                           'billingType', 'setupFee',
                           'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
@@ -662,11 +663,22 @@ export default async function ProductDetailPage({ params }: Props) {
                           'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
                           'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
                         ];
-                        const attrs = product.variants?.[0]?.attributes as Record<string, string> || {};
-                        const filteredAttrs = Object.entries(attrs).filter(([key]) => !reservedKeys.includes(key));
-                        return filteredAttrs.length > 0 ? (
+                        
+                        let specs: [string, string][] = [];
+                        
+                        if (!isConfigurable) {
+                          // STANDALONE: Use product.specifications from Pricing tab
+                          const productSpecs = product.specifications as Record<string, string> || {};
+                          specs = Object.entries(productSpecs);
+                        } else {
+                          // VARIABLE: Use variant attributes from Variants tab
+                          const attrs = product.variants?.[0]?.attributes as Record<string, string> || {};
+                          specs = Object.entries(attrs).filter(([key]) => !reservedKeys.includes(key));
+                        }
+                        
+                        return specs.length > 0 ? (
                           <div className="my-6">
-                            {filteredAttrs.map(([key, value]) => (
+                            {specs.map(([key, value]) => (
                               <div key={key} className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-1">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                                 <span className="capitalize">{key}: {value}</span>

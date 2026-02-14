@@ -88,6 +88,10 @@ interface OrderItem {
   isRecurring?: boolean | null;
   billingCycle?: string | null;
   recurringPrice?: number | null;
+  instances?: Array<{
+    instanceId?: string;
+    selectedConfigs?: Array<{ configId?: string; configName?: string; price?: number }>;
+  }>;
 }
 
 interface Order {
@@ -410,8 +414,15 @@ export default function InvoicePage() {
               <h4 className="text-sm font-bold text-blue-800 mb-2">Recurring Billing Information</h4>
               <p className="text-sm text-blue-700">
                 You will be charged according to your selected recurring plan: <span className="font-medium">{getBillingCycleLabel(recurringItem?.billingCycle)}</span>
-                {recurringItem?.recurringPrice && (
-                  <> (₹{Number(recurringItem.recurringPrice).toLocaleString("en-IN")}{getBillingCycleLabel(recurringItem?.billingCycle)?.toLowerCase().includes("one") ? "" : "/" + recurringItem?.billingCycle?.toLowerCase().replace("_", "-")})</>
+                {recurringItem && (
+                  <> (₹{(
+                    Number(recurringItem.recurringPrice || 0) + 
+                    ((recurringItem.configuration && typeof recurringItem.configuration === 'object' && (recurringItem.configuration as any).instances ? 
+                      (recurringItem.configuration as any).instances : [])?.reduce((instSum: number, inst: any) => {
+                      return instSum + (inst.selectedConfigs?.reduce((cfgSum: number, cfg: any) => 
+                        cfgSum + Number(cfg.price || 0), 0) || 0);
+                    }, 0) || 0)
+                  ).toLocaleString("en-IN")}{getBillingCycleLabel(recurringItem?.billingCycle)?.toLowerCase().includes("one") ? "" : "/" + recurringItem?.billingCycle?.toLowerCase().replace("_", "-")})</>
                 )}
               </p>
               {setupFeeTotal > 0 && (
