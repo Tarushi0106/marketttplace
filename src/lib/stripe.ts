@@ -1,9 +1,16 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-  typescript: true,
-});
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2026-01-28.clover",
+      typescript: true,
+    });
+  }
+  return _stripe;
+}
 
 export async function createCheckoutSession({
   lineItems,
@@ -18,7 +25,7 @@ export async function createCheckoutSession({
   cancelUrl: string;
   metadata?: Record<string, string>;
 }) {
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
     line_items: lineItems,
@@ -46,7 +53,7 @@ export async function createPaymentIntent({
   customerEmail?: string;
   metadata?: Record<string, string>;
 }) {
-  const paymentIntent = await stripe.paymentIntents.create({
+  const paymentIntent = await getStripe().paymentIntents.create({
     amount: Math.round(amount * 100), // Convert to cents
     currency,
     receipt_email: customerEmail,
@@ -60,14 +67,14 @@ export async function createPaymentIntent({
 }
 
 export async function retrievePaymentIntent(paymentIntentId: string) {
-  return stripe.paymentIntents.retrieve(paymentIntentId);
+  return getStripe().paymentIntents.retrieve(paymentIntentId);
 }
 
 export async function constructWebhookEvent(
   payload: string | Buffer,
   signature: string
 ) {
-  return stripe.webhooks.constructEvent(
+  return getStripe().webhooks.constructEvent(
     payload,
     signature,
     process.env.STRIPE_WEBHOOK_SECRET!

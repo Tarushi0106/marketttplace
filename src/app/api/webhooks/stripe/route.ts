@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, constructWebhookEvent } from "@/lib/stripe";
+import { constructWebhookEvent } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
 import fs from "fs";

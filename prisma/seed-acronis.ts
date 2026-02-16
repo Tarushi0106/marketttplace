@@ -166,68 +166,84 @@ async function main() {
     ]
   });
 
-  // Add product configurations
-  await prisma.productConfig.createMany({
-    data: [
-      {
-        productId: product.id,
-        name: "Number of Workstations",
-        type: "SELECT",
-        options: [
-          { value: "10", label: "Up to 10 Workstations", priceModifier: "0" },
-          { value: "25", label: "Up to 25 Workstations", priceModifier: "2000" },
-          { value: "50", label: "Up to 50 Workstations", priceModifier: "4000" },
-          { value: "100", label: "Up to 100 Workstations", priceModifier: "7500" },
-          { value: "unlimited", label: "Unlimited Workstations", priceModifier: "12000" }
-        ],
-        isRequired: true,
-        defaultValue: "10",
-        sortOrder: 0
-      },
-      {
-        productId: product.id,
-        name: "Number of Servers",
-        type: "SELECT",
-        options: [
-          { value: "1", label: "1 Server", priceModifier: "0" },
-          { value: "3", label: "Up to 3 Servers", priceModifier: "3000" },
-          { value: "5", label: "Up to 5 Servers", priceModifier: "5000" },
-          { value: "10", label: "Up to 10 Servers", priceModifier: "9000" },
-          { value: "unlimited", label: "Unlimited Servers", priceModifier: "15000" }
-        ],
-        isRequired: true,
-        defaultValue: "1",
-        sortOrder: 1
-      },
-      {
-        productId: product.id,
-        name: "Cloud Storage",
-        type: "SELECT",
-        options: [
-          { value: "50", label: "50 GB Cloud Storage", priceModifier: "0" },
-          { value: "100", label: "100 GB Cloud Storage", priceModifier: "500" },
-          { value: "250", label: "250 GB Cloud Storage", priceModifier: "1200" },
-          { value: "500", label: "500 GB Cloud Storage", priceModifier: "2200" },
-          { value: "1000", label: "1 TB Cloud Storage", priceModifier: "4000" },
-          { value: "5000", label: "5 TB Cloud Storage", priceModifier: "15000" }
-        ],
-        isRequired: true,
-        defaultValue: "50",
-        sortOrder: 2
-      },
-      {
-        productId: product.id,
-        name: "Billing Cycle",
-        type: "RADIO",
-        options: [
-          { value: "monthly", label: "Monthly Billing", priceModifier: "0" },
-          { value: "annual", label: "Annual Billing (Save 20%)", priceModifier: "-20%" }
-        ],
-        isRequired: true,
-        defaultValue: "monthly",
-        sortOrder: 3
+  // Add product configurations with options
+  await prisma.productConfig.create({
+    data: {
+      productId: product.id,
+      name: "Number of Workstations",
+      inputType: "SELECT",
+      isRequired: true,
+      defaultValue: "10",
+      sortOrder: 0,
+      options: {
+        create: [
+          { value: "10", label: "Up to 10 Workstations", priceModifier: 0, sortOrder: 0 },
+          { value: "25", label: "Up to 25 Workstations", priceModifier: 2000, sortOrder: 1 },
+          { value: "50", label: "Up to 50 Workstations", priceModifier: 4000, sortOrder: 2 },
+          { value: "100", label: "Up to 100 Workstations", priceModifier: 7500, sortOrder: 3 },
+          { value: "unlimited", label: "Unlimited Workstations", priceModifier: 12000, sortOrder: 4 }
+        ]
       }
-    ]
+    }
+  });
+
+  await prisma.productConfig.create({
+    data: {
+      productId: product.id,
+      name: "Number of Servers",
+      inputType: "SELECT",
+      isRequired: true,
+      defaultValue: "1",
+      sortOrder: 1,
+      options: {
+        create: [
+          { value: "1", label: "1 Server", priceModifier: 0, sortOrder: 0 },
+          { value: "3", label: "Up to 3 Servers", priceModifier: 3000, sortOrder: 1 },
+          { value: "5", label: "Up to 5 Servers", priceModifier: 5000, sortOrder: 2 },
+          { value: "10", label: "Up to 10 Servers", priceModifier: 9000, sortOrder: 3 },
+          { value: "unlimited", label: "Unlimited Servers", priceModifier: 15000, sortOrder: 4 }
+        ]
+      }
+    }
+  });
+
+  await prisma.productConfig.create({
+    data: {
+      productId: product.id,
+      name: "Cloud Storage",
+      inputType: "SELECT",
+      unit: "GB",
+      isRequired: true,
+      defaultValue: "50",
+      sortOrder: 2,
+      options: {
+        create: [
+          { value: "50", label: "50 GB Cloud Storage", priceModifier: 0, sortOrder: 0 },
+          { value: "100", label: "100 GB Cloud Storage", priceModifier: 500, sortOrder: 1 },
+          { value: "250", label: "250 GB Cloud Storage", priceModifier: 1200, sortOrder: 2 },
+          { value: "500", label: "500 GB Cloud Storage", priceModifier: 2200, sortOrder: 3 },
+          { value: "1000", label: "1 TB Cloud Storage", priceModifier: 4000, sortOrder: 4 },
+          { value: "5000", label: "5 TB Cloud Storage", priceModifier: 15000, sortOrder: 5 }
+        ]
+      }
+    }
+  });
+
+  await prisma.productConfig.create({
+    data: {
+      productId: product.id,
+      name: "Billing Cycle",
+      inputType: "RADIO",
+      isRequired: true,
+      defaultValue: "monthly",
+      sortOrder: 3,
+      options: {
+        create: [
+          { value: "monthly", label: "Monthly Billing", priceModifier: 0, sortOrder: 0 },
+          { value: "annual", label: "Annual Billing (Save 20%)", priceModifier: 0, isPercentage: true, sortOrder: 1 }
+        ]
+      }
+    }
   });
 
   // Add product add-ons
