@@ -702,9 +702,11 @@ enum PricingModel {
 enum BillingCycle {
   ONE_TIME        // One-time payment
   MONTHLY         // Monthly recurring
-  QUARTERLY       // Quarterly recurring
-  FOUR_MONTHLY    // Every 4 months
   BIMONTHLY       // Every 2 months
+  QUARTERLY       // Quarterly recurring (every 3 months)
+  FOUR_MONTHLY    // Every 4 months
+  SEMI_ANNUAL     // Every 6 months (twice a year)
+  TRI_ANNUAL      // Every 4 months (3 times a year)
   YEARLY          // Yearly recurring
   BIENNIAL        // Every 2 years
   TRIENNIAL       // Every 3 years

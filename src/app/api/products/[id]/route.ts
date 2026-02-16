@@ -434,40 +434,108 @@ export async function PUT(
               ? { setupFee: (variant.attributes as any).setupFee } 
               : {}),
           };
+          
           if (variant.id && existingVariantIds.includes(variant.id)) {
-            // Update existing
-            await tx.productVariant.update({
-              where: { id: variant.id },
-              data: {
-                name: variant.name,
-                sku: variant.sku,
-                price: variant.price,
-                compareAtPrice: variant.compareAtPrice,
-                costPrice: variant.costPrice,
-                stockQuantity: variant.stockQuantity,
-                attributes: mergedAttributes,
-                isDefault: variant.isDefault,
-                isActive: variant.isActive,
-                sortOrder: variant.sortOrder,
-              },
-            });
+            // Update existing - check if SKU is being changed to one that already exists
+            const existingVariant = existingProduct.variants.find(v => v.id === variant.id);
+            if (existingVariant && existingVariant.sku !== variant.sku) {
+              // SKU is being changed, check if new SKU already exists
+              const skuExists = await tx.productVariant.findFirst({
+                where: { sku: variant.sku, NOT: { id: variant.id } },
+              });
+              if (skuExists) {
+                // Generate a unique SKU by appending a timestamp
+                const uniqueSku = `${variant.sku}-${Date.now()}`;
+                await tx.productVariant.update({
+                  where: { id: variant.id },
+                  data: {
+                    name: variant.name,
+                    sku: uniqueSku,
+                    price: variant.price,
+                    compareAtPrice: variant.compareAtPrice,
+                    costPrice: variant.costPrice,
+                    stockQuantity: variant.stockQuantity,
+                    attributes: mergedAttributes,
+                    isDefault: variant.isDefault,
+                    isActive: variant.isActive,
+                    sortOrder: variant.sortOrder,
+                  },
+                });
+              } else {
+                await tx.productVariant.update({
+                  where: { id: variant.id },
+                  data: {
+                    name: variant.name,
+                    sku: variant.sku,
+                    price: variant.price,
+                    compareAtPrice: variant.compareAtPrice,
+                    costPrice: variant.costPrice,
+                    stockQuantity: variant.stockQuantity,
+                    attributes: mergedAttributes,
+                    isDefault: variant.isDefault,
+                    isActive: variant.isActive,
+                    sortOrder: variant.sortOrder,
+                  },
+                });
+              }
+            } else {
+              // SKU not changed, just update
+              await tx.productVariant.update({
+                where: { id: variant.id },
+                data: {
+                  name: variant.name,
+                  sku: variant.sku,
+                  price: variant.price,
+                  compareAtPrice: variant.compareAtPrice,
+                  costPrice: variant.costPrice,
+                  stockQuantity: variant.stockQuantity,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault,
+                  isActive: variant.isActive,
+                  sortOrder: variant.sortOrder,
+                },
+              });
+            }
           } else {
-            // Create new
-            await tx.productVariant.create({
-              data: {
-                productId: id,
-                name: variant.name,
-                sku: variant.sku,
-                price: variant.price,
-                compareAtPrice: variant.compareAtPrice,
-                costPrice: variant.costPrice,
-                stockQuantity: variant.stockQuantity,
-                attributes: mergedAttributes,
-                isDefault: variant.isDefault,
-                isActive: variant.isActive ?? true,
-                sortOrder: variant.sortOrder,
-              },
+            // Create new - check if SKU already exists
+            const skuExists = await tx.productVariant.findFirst({
+              where: { sku: variant.sku },
             });
+            if (skuExists) {
+              // Generate a unique SKU by appending a timestamp
+              const uniqueSku = `${variant.sku}-${Date.now()}`;
+              await tx.productVariant.create({
+                data: {
+                  productId: id,
+                  name: variant.name,
+                  sku: uniqueSku,
+                  price: variant.price,
+                  compareAtPrice: variant.compareAtPrice,
+                  costPrice: variant.costPrice,
+                  stockQuantity: variant.stockQuantity,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault,
+                  isActive: variant.isActive ?? true,
+                  sortOrder: variant.sortOrder,
+                },
+              });
+            } else {
+              await tx.productVariant.create({
+                data: {
+                  productId: id,
+                  name: variant.name,
+                  sku: variant.sku,
+                  price: variant.price,
+                  compareAtPrice: variant.compareAtPrice,
+                  costPrice: variant.costPrice,
+                  stockQuantity: variant.stockQuantity,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault,
+                  isActive: variant.isActive ?? true,
+                  sortOrder: variant.sortOrder,
+                },
+              });
+            }
           }
         }
       }

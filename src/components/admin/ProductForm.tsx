@@ -822,20 +822,26 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   async function saveVariant() {
     if (!editingVariant || !editingVariant.name) return;
 
-    if (editingVariant.id) {
+    // For RECURRING billing, set the price field from monthlyPrice (for storefront display)
+    let updatedVariant = { ...editingVariant };
+    if (editingVariant.billingType === "RECURRING" && editingVariant.monthlyPrice) {
+      updatedVariant.price = editingVariant.monthlyPrice;
+    }
+
+    if (updatedVariant.id) {
       setVariants((prev) =>
-        prev.map((v) => (v.id === editingVariant.id ? editingVariant : v))
+        prev.map((v) => (v.id === updatedVariant.id ? updatedVariant : v))
       );
       
       // Save variant recurring prices to ProductRecurringPrice table
       // Check billingType from both direct property and attributes
-      const variantBillingType = editingVariant.billingType || (editingVariant.attributes as any)?.billingType || "RECURRING";
+      const variantBillingType = updatedVariant.billingType || (updatedVariant.attributes as any)?.billingType || "RECURRING";
       if (isEdit && variantBillingType === "RECURRING") {
         try {
-          const variant = editingVariant as any;
+          const variant = updatedVariant as any;
           const recurringPayload = {
             monthlyPrice: variant.monthlyPrice ? parseFloat(variant.monthlyPrice) : null,
-            biMonthlyPrice: editingVariant.biMonthlyPrice ? parseFloat(editingVariant.biMonthlyPrice) : null,
+            biMonthlyPrice: updatedVariant.biMonthlyPrice ? parseFloat(updatedVariant.biMonthlyPrice) : null,
             quarterlyPrice: variant.quarterlyPrice ? parseFloat(variant.quarterlyPrice) : null,
             fourMonthlyPrice: variant.fourMonthlyPrice ? parseFloat(variant.fourMonthlyPrice) : null,
             semiAnnualPrice: variant.semiAnnualPrice ? parseFloat(variant.semiAnnualPrice) : null,
@@ -867,7 +873,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         }
       }
     } else {
-      setVariants((prev) => [...prev, editingVariant]);
+      setVariants((prev) => [...prev, updatedVariant]);
     }
     setShowVariantModal(false);
     setEditingVariant(null);
@@ -1014,9 +1020,15 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             }
           }
           
+          // For RECURRING billing, use monthlyPrice as the variant price (for storefront display)
+          // For ONE_TIME billing, use the price field directly
+          const variantPrice = v.billingType === "RECURRING" 
+            ? (v.monthlyPrice ? parseFloat(v.monthlyPrice) : parseFloat(v.price) || 0)
+            : parseFloat(v.price) || 0;
+          
           return {
             ...v,
-            price: parseFloat(v.price) || 0,
+            price: variantPrice,
             compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
             costPrice: v.costPrice ? parseFloat(v.costPrice) : null,
             stockQuantity: parseInt(v.stockQuantity) || 0,
@@ -2420,6 +2432,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>SKU</TableHead>
+                        <TableHead>Price</TableHead>
                         <TableHead>Stock</TableHead>
                         <TableHead>Default</TableHead>
                         <TableHead>Active</TableHead>
@@ -2434,6 +2447,22 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           </TableCell>
                           <TableCell className="font-mono text-sm">
                             {variant.sku || "-"}
+                          </TableCell>
+                          <TableCell>
+                            {variant.billingType === "RECURRING" ? (
+                              <span>
+                                {variant.monthlyPrice ? `₹${parseFloat(variant.monthlyPrice).toLocaleString()}/mo` : 
+                                 variant.yearlyPrice ? `₹${parseFloat(variant.yearlyPrice).toLocaleString()}/yr` : 
+                                 variant.price ? `₹${parseFloat(variant.price).toLocaleString()}` : "-"}
+                              </span>
+                            ) : (
+                              <span>
+                                {variant.price ? `₹${parseFloat(variant.price).toLocaleString()}` : "-"}
+                                {variant.setupFee && parseFloat(variant.setupFee) > 0 && (
+                                  <span className="text-muted-foreground text-xs block">+₹{parseFloat(variant.setupFee).toLocaleString()} setup</span>
+                                )}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell>{variant.stockQuantity}</TableCell>
                           <TableCell>

@@ -511,6 +511,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating checkout:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     if (error instanceof z.ZodError) {
       console.error("Validation errors:", JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
@@ -519,7 +520,11 @@ export async function POST(request: NextRequest) {
       );
     }
     return NextResponse.json(
-      { error: "Failed to create checkout", message: error instanceof Error ? error.message : "Unknown error" },
+      { 
+        error: "Failed to create checkout", 
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+      },
       { status: 500 }
     );
   }
