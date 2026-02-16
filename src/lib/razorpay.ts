@@ -1,10 +1,17 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let _razorpay: Razorpay | null = null;
+
+function getRazorpay(): Razorpay {
+  if (!_razorpay) {
+    _razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
+  }
+  return _razorpay;
+}
 
 export async function createRazorpayOrder({
   amount,
@@ -17,7 +24,7 @@ export async function createRazorpayOrder({
   receipt: string;
   notes?: Record<string, string>;
 }) {
-  const order = await razorpay.orders.create({
+  const order = await getRazorpay().orders.create({
     amount: Math.round(amount * 100), // Convert to paise
     currency,
     receipt,
@@ -46,7 +53,7 @@ export function verifyRazorpaySignature({
 }
 
 export async function fetchRazorpayPayment(paymentId: string) {
-  return razorpay.payments.fetch(paymentId);
+  return getRazorpay().payments.fetch(paymentId);
 }
 
 export async function refundRazorpayPayment({
@@ -56,7 +63,7 @@ export async function refundRazorpayPayment({
   paymentId: string;
   amount?: number;
 }) {
-  const refund = await razorpay.payments.refund(paymentId, {
+  const refund = await getRazorpay().payments.refund(paymentId, {
     amount: amount ? Math.round(amount * 100) : undefined,
   });
 

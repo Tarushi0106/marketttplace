@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice-pdfkit";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import fs from "fs";
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Retrieve Stripe session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== "paid") {
       return NextResponse.json(
