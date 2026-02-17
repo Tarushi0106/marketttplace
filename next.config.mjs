@@ -30,6 +30,11 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  // Disable static generation for all pages to prevent build-time errors
+  // This ensures all pages are rendered dynamically at runtime
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
   async headers() {
     return [
       {

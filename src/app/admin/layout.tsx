@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth";
 import { AdminSidebar } from "@/components/admin/Sidebar";
 import { Toaster } from "@/components/ui/toaster";
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({
   children,
 }: {

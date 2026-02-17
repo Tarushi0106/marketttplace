@@ -7,6 +7,9 @@ import { CartDrawer } from "@/components/storefront/CartDrawer";
 import { SearchModal } from "@/components/storefront/SearchModal";
 import Script from "next/script";
 
+// This is already a client component, so no need for dynamic export
+// The issue is with server components trying to use client hooks
+
 export default function StorefrontLayout({
   children,
 }: {
