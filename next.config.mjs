@@ -3,6 +3,7 @@ const nextConfig = {
   // Remove 'standalone' output as it can cause issues with Amplify
   // output: 'standalone',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
