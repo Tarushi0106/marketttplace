@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getToken } from "next-auth/jwt";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // GET - List all users (admin only)
 export async function GET(request: NextRequest) {
   try {

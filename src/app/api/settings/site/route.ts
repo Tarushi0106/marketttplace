@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch site settings (public)
 export async function GET() {
   try {
