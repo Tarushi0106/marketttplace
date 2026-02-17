@@ -7,6 +7,9 @@ import { CompanyLogos } from "@/components/storefront/CompanyLogos";
 import { prisma } from "@/lib/prisma";
 import { SolutionsCarousel } from "@/components/storefront/SolutionsCarousel";
 
+// Force dynamic rendering to avoid build-time database calls
+export const dynamic = 'force-dynamic';
+
 interface LandingPageSettings {
   hero: {
     title: string;
