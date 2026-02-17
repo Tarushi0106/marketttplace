@@ -6,6 +6,7 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
+        - node scripts/generate-env.js
         - npm run build
   artifacts:
     baseDirectory: .next
