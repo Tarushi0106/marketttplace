@@ -5,6 +5,9 @@ import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice";
 import fs from "fs";
 import path from "path";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Extend Prisma client with Invoice model (type assertion)
 const invoices = (prisma as any);
 
