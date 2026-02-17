@@ -4,6 +4,9 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import Script from "next/script";
 
+// Force dynamic rendering for the entire app to prevent build-time prerendering errors
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

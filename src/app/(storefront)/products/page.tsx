@@ -25,6 +25,9 @@ import { ProductsGrid } from "@/components/storefront/ProductsGrid";
 import type { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Products | Browse All Products",
   description: "Browse our comprehensive range of NaaS products and services. Find cloud solutions, network services, security products, and more.",

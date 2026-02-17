@@ -33,6 +33,9 @@ import {
   Folder,
 } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "All Categories | Shaurrya Teleservices",
   description: "Explore our comprehensive range of enterprise solutions and services. Find cloud infrastructure, security, networking, and more.",
