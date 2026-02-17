@@ -32,3 +32,10 @@ export default function Custom404() {
     </div>
   );
 }
+
+// Force server-side rendering to avoid static generation
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

@@ -2,6 +2,8 @@
 const nextConfig = {
   // Remove 'standalone' output as it can cause issues with Amplify
   // output: 'standalone',
+  // Disable static export to prevent prerendering errors
+  output: undefined,
   images: {
     unoptimized: true,
     remotePatterns: [
