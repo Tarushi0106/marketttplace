@@ -6,6 +6,11 @@ frontend:
         - npm ci --legacy-peer-deps
     build:
       commands:
+        - echo "NEXTAUTH_URL=$NEXTAUTH_URL"
+        - echo "AUTH_URL=$AUTH_URL"
+        - echo "AUTH_TRUST_HOST=$AUTH_TRUST_HOST"
+        - echo "DATABASE_URL is set=$(test -n "$DATABASE_URL" && echo yes || echo no)"
+        - echo "AUTH_SECRET is set=$(test -n "$AUTH_SECRET" && echo yes || echo no)"
         - npx prisma generate
         - npx prisma db push --skip-generate
         - npm run build
