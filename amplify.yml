@@ -6,6 +6,7 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
+        - export DATABASE_URL="postgresql://neondb_owner:npg_5nQ7SFAeTXwK@ep-restless-grass-aiiba51j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
         - node scripts/generate-env.js
         - npm run build
   artifacts:
