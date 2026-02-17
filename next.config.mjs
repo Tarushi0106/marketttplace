@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Remove 'standalone' output as it can cause issues with Amplify
+  // output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -30,8 +31,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // Disable static generation for all pages to prevent build-time errors
-  // This ensures all pages are rendered dynamically at runtime
+  // Disable static optimization completely
   generateBuildId: async () => {
     return 'build-' + Date.now()
   },
