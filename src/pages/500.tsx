@@ -1,18 +1,6 @@
 import Link from 'next/link';
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
 
 export default function Custom500() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Redirect to home after 3 seconds
-    const timer = setTimeout(() => {
-      router.push('/');
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [router]);
-
   return (
     <div style={{
       minHeight: '100vh',
