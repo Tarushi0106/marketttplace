@@ -3,7 +3,9 @@ frontend:
   phases:
     preBuild:
       commands:
-        - rm -rf node_modules .next
+        - echo "=== Clearing all caches ==="
+        - rm -rf node_modules .next .cache tsconfig.tsbuildinfo
+        - rm -rf /tmp/.npm /tmp/.cache
         - export DATABASE_URL="postgresql://neondb_owner:npg_5nQ7SFAeTXwK@ep-restless-grass-aiiba51j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
         - export NEXTAUTH_SECRET="your-nextauth-secret-here"
         - export NEXTAUTH_URL="https://developer.d28fa2102uro78.amplifyapp.com"
@@ -22,6 +24,8 @@ frontend:
         - ls -la src/contexts/
         - ls -la src/components/
         - ls -la src/components/ui/
+        - echo "=== Checking for any tsconfig or jsconfig files ==="
+        - find . -name "tsconfig*.json" -o -name "jsconfig*.json" 2>/dev/null
         - echo "=== Starting Next.js build ==="
         - npm run build
   artifacts:
