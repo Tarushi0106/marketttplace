@@ -6,12 +6,9 @@ frontend:
         - echo "=== PROJECT ROOT DEBUG ==="
         - pwd
         - ls -la
-        - echo "=== Checking if src folder exists ==="
-        - ls -la src/ 2>/dev/null || echo "src folder NOT FOUND"
-        - echo "=== Clearing all caches and stale files ==="
-        - rm -rf node_modules .next .cache tsconfig.tsbuildinfo
+        - echo "=== Clearing ALL caches ==="
+        - rm -rf node_modules .next .cache tsconfig.tsbuildinfo package-lock.json
         - rm -rf /tmp/.npm /tmp/.cache
-        - rm -rf .next/types
         - export DATABASE_URL="postgresql://neondb_owner:npg_5nQ7SFAeTXwK@ep-restless-grass-aiiba51j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
         - export NEXTAUTH_SECRET="your-nextauth-secret-here"
         - export NEXTAUTH_URL="https://developer.d28fa2102uro78.amplifyapp.com"
@@ -23,12 +20,8 @@ frontend:
       commands:
         - echo "=== BUILD PHASE DEBUG ==="
         - pwd
-        - echo "=== tsconfig.json content ==="
-        - cat tsconfig.json
-        - echo "=== Checking src directory structure ==="
-        - ls -la src/
-        - ls -la src/contexts/
-        - ls -la src/components/ui/
+        - echo "=== Checking @types/react in node_modules ==="
+        - ls -la node_modules/@types/react 2>/dev/null || echo "@types/react NOT FOUND"
         - echo "=== Starting Next.js build ==="
         - npm run build
   artifacts:
