@@ -3,6 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "=== PROJECT ROOT DEBUG ==="
+        - pwd
+        - ls -la
+        - echo "=== Checking if src folder exists ==="
+        - ls -la src/ 2>/dev/null || echo "src folder NOT FOUND"
         - echo "=== Clearing all caches and stale files ==="
         - rm -rf node_modules .next .cache tsconfig.tsbuildinfo
         - rm -rf /tmp/.npm /tmp/.cache
@@ -16,16 +21,13 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
-        - echo "=== Regenerating next-env.d.ts ==="
-        - npx next telemetry disable
-        - echo "=== Current working directory ==="
+        - echo "=== BUILD PHASE DEBUG ==="
         - pwd
         - echo "=== tsconfig.json content ==="
         - cat tsconfig.json
         - echo "=== Checking src directory structure ==="
         - ls -la src/
         - ls -la src/contexts/
-        - ls -la src/components/
         - ls -la src/components/ui/
         - echo "=== Starting Next.js build ==="
         - npm run build
