@@ -2,14 +2,27 @@ import Stripe from "stripe";
 
 let _stripe: Stripe | null = null;
 
+// Check if Stripe key is available
+function getStripeKey(): string {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured. Please add your Stripe secret key to environment variables.");
+  }
+  return key;
+}
+
 export function getStripe(): Stripe {
   if (!_stripe) {
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    _stripe = new Stripe(getStripeKey(), {
       apiVersion: "2026-01-28.clover",
       typescript: true,
     });
   }
   return _stripe;
+}
+
+export function isStripeConfigured(): boolean {
+  return !!process.env.STRIPE_SECRET_KEY;
 }
 
 export async function createCheckoutSession({

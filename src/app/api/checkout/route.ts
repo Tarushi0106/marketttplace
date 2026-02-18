@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { createCheckoutSession, createPaymentIntent } from "@/lib/stripe";
-import { createRazorpayOrder } from "@/lib/razorpay";
+import { createCheckoutSession, createPaymentIntent, isStripeConfigured } from "@/lib/stripe";
+import { createRazorpayOrder, isRazorpayConfigured } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { z } from "zod";
 
@@ -440,6 +440,14 @@ export async function POST(request: NextRequest) {
     let paymentData: any = {};
 
     if (data.paymentMethod === "stripe") {
+      // Check if Stripe is configured
+      if (!isStripeConfigured()) {
+        return NextResponse.json(
+          { error: "Stripe is not configured. Please add STRIPE_SECRET_KEY to environment variables." },
+          { status: 500 }
+        );
+      }
+      
       const lineItems = order.items.map((item) => ({
         price_data: {
           currency: "inr",
@@ -481,6 +489,14 @@ export async function POST(request: NextRequest) {
         url: checkoutSession.url,
       };
     } else if (data.paymentMethod === "razorpay") {
+      // Check if Razorpay is configured
+      if (!isRazorpayConfigured()) {
+        return NextResponse.json(
+          { error: "Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables." },
+          { status: 500 }
+        );
+      }
+      
       const razorpayOrder = await createRazorpayOrder({
         amount: total,
         currency: "INR",

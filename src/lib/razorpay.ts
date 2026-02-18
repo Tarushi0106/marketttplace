@@ -3,14 +3,28 @@ import crypto from "crypto";
 
 let _razorpay: Razorpay | null = null;
 
+function getRazorpayKeys(): { keyId: string; keySecret: string } {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    throw new Error("Razorpay keys are not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.");
+  }
+  return { keyId, keySecret };
+}
+
 function getRazorpay(): Razorpay {
   if (!_razorpay) {
+    const { keyId, keySecret } = getRazorpayKeys();
     _razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+      key_id: keyId,
+      key_secret: keySecret,
     });
   }
   return _razorpay;
+}
+
+export function isRazorpayConfigured(): boolean {
+  return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 }
 
 export async function createRazorpayOrder({
