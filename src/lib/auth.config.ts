@@ -1,5 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 
+// Hardcoded Amplify URL for SSR runtime (env vars not available at runtime on Amplify)
+const AMPLIFY_URL = 'https://developer.d28fa2102uro78.amplifyapp.com';
+
 /**
  * Edge-compatible auth config (no Prisma, no bcrypt).
  * Used by middleware only. The full auth config in auth.ts
@@ -7,7 +10,7 @@ import type { NextAuthConfig } from "next-auth";
  */
 export const authConfig: NextAuthConfig = {
   trustHost: true,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'your-auth-secret-here',
   providers: [], // Providers added in auth.ts (requires Node.js runtime)
   session: {
     strategy: "jwt",
@@ -43,16 +46,22 @@ export const authConfig: NextAuthConfig = {
         if (isLoggedIn && (auth.user.role === "ADMIN" || auth.user.role === "SUPER_ADMIN")) {
           return true;
         }
-        return false;
+        // Redirect to login with callbackUrl using the correct Amplify URL
+        const loginUrl = new URL("/login", AMPLIFY_URL);
+        loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+        return Response.redirect(loginUrl);
       }
 
       if (isOnDashboard) {
         if (isLoggedIn) return true;
-        return false;
+        // Redirect to login with callbackUrl using the correct Amplify URL
+        const loginUrl = new URL("/login", AMPLIFY_URL);
+        loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+        return Response.redirect(loginUrl);
       }
 
       if (isOnAuth && isLoggedIn) {
-        return Response.redirect(new URL("/", nextUrl));
+        return Response.redirect(new URL("/", AMPLIFY_URL));
       }
 
       return true;
