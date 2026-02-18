@@ -15,6 +15,7 @@ frontend:
         - export AUTH_SECRET="your-auth-secret-here"
         - export AUTH_URL="https://developer.d28fa2102uro78.amplifyapp.com"
         - export AUTH_TRUST_HOST="true"
+        - export NEXT_PUBLIC_APP_URL="https://developer.d28fa2102uro78.amplifyapp.com"
         - npm install --legacy-peer-deps
     build:
       commands:
