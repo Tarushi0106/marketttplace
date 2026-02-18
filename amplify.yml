@@ -22,8 +22,8 @@ frontend:
         - echo "=== BUILD PHASE DEBUG ==="
         - pwd
         - echo "=== Checking Razorpay env vars ==="
-        - echo "RAZORPAY_KEY_ID is set: $(if [ -n \"$RAZORPAY_KEY_ID\" ]; then echo 'YES'; else echo 'NO'; fi)"
-        - echo "RAZORPAY_KEY_SECRET is set: $(if [ -n \"$RAZORPAY_KEY_SECRET\" ]; then echo 'YES'; else echo 'NO'; fi)"
+        - 'if [ -n "$RAZORPAY_KEY_ID" ]; then echo "RAZORPAY_KEY_ID is set"; else echo "RAZORPAY_KEY_ID is NOT set"; fi'
+        - 'if [ -n "$RAZORPAY_KEY_SECRET" ]; then echo "RAZORPAY_KEY_SECRET is set"; else echo "RAZORPAY_KEY_SECRET is NOT set"; fi'
         - echo "=== Generating runtime-env.ts with environment variables ==="
         - node scripts/generate-env.js
         - echo "=== Contents of generated runtime-env.ts ==="
