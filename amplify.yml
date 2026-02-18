@@ -35,9 +35,3 @@ frontend:
       - '**/*'
   cache:
     paths: []
-  artifacts:
-    baseDirectory: .next
-    files:
-      - '**/*'
-  cache:
-    paths: []
