@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Remove 'standalone' output as it can cause issues with Amplify
@@ -37,6 +43,14 @@ const nextConfig = {
   // Disable static optimization completely
   generateBuildId: async () => {
     return 'build-' + Date.now()
+  },
+  // Explicitly configure webpack to resolve @ alias
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+    };
+    return config;
   },
   async headers() {
     return [
