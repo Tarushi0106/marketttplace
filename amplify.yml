@@ -13,8 +13,16 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
+        - echo "=== Current working directory ==="
+        - pwd
+        - echo "=== tsconfig.json content ==="
+        - cat tsconfig.json
+        - echo "=== Checking src directory structure ==="
+        - ls -la src/
         - ls -la src/contexts/
+        - ls -la src/components/
         - ls -la src/components/ui/
+        - echo "=== Starting Next.js build ==="
         - npm run build
   artifacts:
     baseDirectory: .next
