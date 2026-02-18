@@ -3,6 +3,8 @@ frontend:
   phases:
     preBuild:
       commands:
+        - rm -rf node_modules .next src
+        - git checkout -- .
         - export DATABASE_URL="postgresql://neondb_owner:npg_5nQ7SFAeTXwK@ep-restless-grass-aiiba51j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
         - export NEXTAUTH_SECRET="your-nextauth-secret-here"
         - export NEXTAUTH_URL="https://developer.d28fa2102uro78.amplifyapp.com"
@@ -18,5 +20,4 @@ frontend:
     files:
       - '**/*'
   cache:
-    paths:
-      - node_modules/**/*
+    paths: []
