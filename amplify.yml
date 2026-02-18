@@ -21,6 +21,8 @@ frontend:
       commands:
         - echo "=== BUILD PHASE DEBUG ==="
         - pwd
+        - echo "=== Generating runtime-env.ts with environment variables ==="
+        - node scripts/generate-env.js
         - echo "=== Checking @types/react in node_modules ==="
         - ls -la node_modules/@types/react 2>/dev/null || echo "@types/react NOT FOUND"
         - echo "=== Starting Next.js build ==="

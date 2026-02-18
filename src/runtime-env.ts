@@ -15,6 +15,8 @@ export const runtimeEnv = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
   SMTP_HOST: process.env.SMTP_HOST || '',
   SMTP_PORT: process.env.SMTP_PORT || '',
   SMTP_USER: process.env.SMTP_USER || '',

@@ -1,11 +1,13 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { runtimeEnv } from "@/runtime-env";
 
 let _razorpay: Razorpay | null = null;
 
 function getRazorpayKeys(): { keyId: string; keySecret: string } {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const keyId = runtimeEnv.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+  const keySecret = runtimeEnv.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
   if (!keyId || !keySecret) {
     throw new Error("Razorpay keys are not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.");
   }
@@ -24,7 +26,10 @@ function getRazorpay(): Razorpay {
 }
 
 export function isRazorpayConfigured(): boolean {
-  return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const keyId = runtimeEnv.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+  const keySecret = runtimeEnv.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  return !!(keyId && keySecret);
 }
 
 export async function createRazorpayOrder({
@@ -57,9 +62,10 @@ export function verifyRazorpaySignature({
   paymentId: string;
   signature: string;
 }): boolean {
+  const { keySecret } = getRazorpayKeys();
   const body = orderId + "|" + paymentId;
   const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+    .createHmac("sha256", keySecret)
     .update(body)
     .digest("hex");
 

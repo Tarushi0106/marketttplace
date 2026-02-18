@@ -1,10 +1,12 @@
 import Stripe from "stripe";
+import { runtimeEnv } from "@/runtime-env";
 
 let _stripe: Stripe | null = null;
 
 // Check if Stripe key is available
 function getStripeKey(): string {
-  const key = process.env.STRIPE_SECRET_KEY;
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const key = runtimeEnv.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not configured. Please add your Stripe secret key to environment variables.");
   }
@@ -22,7 +24,9 @@ export function getStripe(): Stripe {
 }
 
 export function isStripeConfigured(): boolean {
-  return !!process.env.STRIPE_SECRET_KEY;
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const key = runtimeEnv.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  return !!key;
 }
 
 export async function createCheckoutSession({
