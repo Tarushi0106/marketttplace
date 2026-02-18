@@ -1,9 +1,8 @@
 // Auto-generated runtime config - DO NOT EDIT
-// This file is generated during build by scripts/generate-env.js
-// For local development, this placeholder is used
+// This file contains environment variables for AWS Amplify SSR runtime
 
 export const runtimeEnv = {
-  DATABASE_URL: process.env.DATABASE_URL || '',
+  DATABASE_URL: 'postgresql://neondb_owner:npg_5nQ7SFAeTXwK@ep-restless-grass-aiiba51j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require',
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || '',
   AUTH_SECRET: process.env.AUTH_SECRET || '',
