@@ -21,10 +21,13 @@ frontend:
       commands:
         - echo "=== BUILD PHASE DEBUG ==="
         - pwd
+        - echo "=== Checking Razorpay env vars ==="
+        - echo "RAZORPAY_KEY_ID is set: $(if [ -n \"$RAZORPAY_KEY_ID\" ]; then echo 'YES'; else echo 'NO'; fi)"
+        - echo "RAZORPAY_KEY_SECRET is set: $(if [ -n \"$RAZORPAY_KEY_SECRET\" ]; then echo 'YES'; else echo 'NO'; fi)"
         - echo "=== Generating runtime-env.ts with environment variables ==="
         - node scripts/generate-env.js
-        - echo "=== Checking @types/react in node_modules ==="
-        - ls -la node_modules/@types/react 2>/dev/null || echo "@types/react NOT FOUND"
+        - echo "=== Contents of generated runtime-env.ts ==="
+        - cat src/runtime-env.ts
         - echo "=== Starting Next.js build ==="
         - npm run build
   artifacts:
