@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice-pdfkit";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import type { Order, OrderItem, Address, AddressType } from "@/types";
-
-const INVOICES_DIR = path.join(process.cwd(), "public/uploads/invoices");
 
 // Extend Prisma client with Invoice model (type assertion)
 const invoices = (prisma as any);
@@ -203,14 +200,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure invoices directory exists
-    await mkdir(INVOICES_DIR, { recursive: true });
-
-    // Save PDF to disk
+    // Convert PDF to base64 for storage (Amplify has ephemeral filesystem)
+    const pdfBase64 = pdfBuffer.toString('base64');
     const pdfFilename = `${invoiceNumber}.pdf`;
-    const pdfPath = path.join(INVOICES_DIR, pdfFilename);
-    await writeFile(pdfPath, pdfBuffer);
-    console.log("PDF saved to:", pdfPath);
+    const pdfUrl = `data:application/pdf;base64,${pdfBase64}`;
 
     // Fetch company info for email
     const companyInfo = await prisma.companyInfo.findFirst() || {
@@ -219,15 +212,14 @@ export async function POST(request: NextRequest) {
       phone: '+91 99999 99999',
     };
 
-    // Create invoice record in database
-    const pdfUrl = `/uploads/invoices/${pdfFilename}`;
+    // Create invoice record in database with PDF data
     let invoice: any;
     try {
       invoice = await invoices.invoice.create({
         data: {
           orderId: order.id,
           invoiceNumber,
-          pdfUrl,
+          pdfUrl: pdfFilename, // Store filename for reference
           status: "ISSUED",
           issuedAt: new Date(),
         },
@@ -235,13 +227,14 @@ export async function POST(request: NextRequest) {
       console.log("Invoice record created:", invoice.id);
     } catch (dbError) {
       console.error("Error creating invoice record:", dbError);
-      // Still return success since PDF was saved
+      // Still return success with PDF data
       return NextResponse.json({
         success: true,
         invoice: {
           id: null,
           invoiceNumber,
-          pdfUrl,
+          pdfUrl: pdfFilename,
+          pdfData: pdfBase64,
           status: "ISSUED",
         },
         message: "Invoice PDF generated but database record creation failed",
@@ -326,6 +319,7 @@ export async function POST(request: NextRequest) {
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
         pdfUrl: invoice.pdfUrl,
+        pdfData: pdfBase64, // Include base64 PDF data for download
         status: invoice.status,
         issuedAt: invoice.issuedAt,
         orderId: invoice.orderId,
