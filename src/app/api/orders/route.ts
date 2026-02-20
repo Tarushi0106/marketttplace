@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -7,23 +8,10 @@ export const dynamic = 'force-dynamic';
 // GET - List all orders (admin only)
 export async function GET(request: NextRequest) {
   try {
-    const origin = request.headers.get("origin") || request.headers.get("referer");
-
-    // Allow admin access or same-origin requests
-    // Skip detailed token check to avoid errors
-    const isLocalhost = origin?.includes("localhost:3000") || origin?.includes("127.0.0.1:3000");
-    
-    if (!isLocalhost) {
-      // Try to get token for non-localhost requests
-      try {
-        const { getToken } = await import("next-auth/jwt");
-        const token = await getToken({ req: request });
-        if (!token) {
-          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-      } catch (authError) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    // Check authentication using auth()
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
