@@ -189,13 +189,24 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         console.error("Checkout API error:", data);
-        throw new Error(data.error || data.details || "Checkout failed");
+        throw new Error(data.error || data.details || data.message || "Checkout failed");
+      }
+
+      // Check if payment data exists
+      if (!data.data?.payment) {
+        console.error("No payment data in response:", data);
+        throw new Error("Payment initialization failed. Please try again.");
       }
 
       if (paymentMethod === "stripe" && data.data.payment.url) {
         // Redirect to Stripe Checkout
         window.location.href = data.data.payment.url;
       } else if (paymentMethod === "razorpay") {
+        // Check if Razorpay has required fields
+        if (!data.data.payment.keyId || !data.data.payment.orderId) {
+          throw new Error("Razorpay is not properly configured. Please contact support.");
+        }
+        
         // Initialize Razorpay
         const options = {
           key: data.data.payment.keyId,

@@ -5,6 +5,7 @@ import { createCheckoutSession, createPaymentIntent, isStripeConfigured } from "
 import { createRazorpayOrder, isRazorpayConfigured } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { z } from "zod";
+import { runtimeEnv } from "@/runtime-env";
 
 // Instance-based configuration (from ProductConfigurator)
 const cartItemInstanceSchema = z.object({
@@ -511,7 +512,7 @@ export async function POST(request: NextRequest) {
         orderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        keyId: process.env.RAZORPAY_KEY_ID,
+        keyId: runtimeEnv.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
       };
     }
 
