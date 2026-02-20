@@ -63,6 +63,7 @@ interface Invoice {
   id: string;
   invoiceNumber: string;
   pdfUrl: string;
+  pdfData?: string; // Base64 PDF data for download
   status: string;
 }
 
@@ -276,6 +277,24 @@ function CheckoutSuccessContent() {
       }
     } catch (error) {
       console.error("Error sending invoice email:", error);
+    }
+  };
+
+  // Download invoice PDF (handles base64 data)
+  const downloadInvoicePdf = () => {
+    if (!invoice) return;
+    
+    if (invoice.pdfData) {
+      // Use base64 data for download
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${invoice.pdfData}`;
+      link.download = `${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else if (invoice.pdfUrl) {
+      // Fallback to URL if no base64 data
+      window.open(invoice.pdfUrl, '_blank');
     }
   };
 
@@ -659,11 +678,9 @@ function CheckoutSuccessContent() {
                     <p>Invoice Number:</p>
                     <p className="font-medium text-foreground">{invoice.invoiceNumber}</p>
                   </div>
-                  <Button className="w-full" asChild>
-                    <a href={invoice.pdfUrl} download target="_blank" rel="noopener noreferrer">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download Invoice PDF
-                    </a>
+                  <Button className="w-full" onClick={downloadInvoicePdf}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Invoice PDF
                   </Button>
                 </div>
               ) : (

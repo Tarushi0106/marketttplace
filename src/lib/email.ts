@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { prisma } from '@/lib/prisma';
+import { runtimeEnv } from '@/runtime-env';
 
 interface EmailSettings {
   smtpHost: string;
@@ -38,15 +39,19 @@ interface OrderDetails {
  * Get email settings from environment variables or database
  */
 async function getEmailSettings(): Promise<EmailSettings | null> {
-  // First check environment variables
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // First check runtime environment (for Amplify compatibility)
+  const smtpHost = runtimeEnv.SMTP_HOST || process.env.SMTP_HOST;
+  const smtpUser = runtimeEnv.SMTP_USER || process.env.SMTP_USER;
+  const smtpPass = runtimeEnv.SMTP_PASS || process.env.SMTP_PASS;
+  
+  if (smtpHost && smtpUser && smtpPass) {
     return {
-      smtpHost: process.env.SMTP_HOST,
-      smtpPort: parseInt(process.env.SMTP_PORT || '587'),
-      smtpUser: process.env.SMTP_USER,
-      smtpPass: process.env.SMTP_PASS,
-      fromEmail: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      fromName: process.env.SMTP_FROM_NAME || 'Marketplace',
+      smtpHost,
+      smtpPort: parseInt(runtimeEnv.SMTP_PORT || process.env.SMTP_PORT || '587'),
+      smtpUser,
+      smtpPass,
+      fromEmail: runtimeEnv.SMTP_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || smtpUser,
+      fromName: runtimeEnv.SMTP_FROM_NAME || process.env.SMTP_FROM_NAME || 'Marketplace',
     };
   }
 

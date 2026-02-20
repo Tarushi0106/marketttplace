@@ -409,12 +409,25 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      // Regenerate PDF for existing invoice (Amplify has ephemeral filesystem)
+      let pdfBase64: string | null = null;
+      try {
+        const orderForPdf = transformOrderForPDF(invoice.order);
+        const pdfBuffer = await generateInvoicePDF(orderForPdf);
+        pdfBase64 = pdfBuffer.toString('base64');
+        console.log("PDF regenerated for existing invoice, size:", pdfBuffer.length);
+      } catch (pdfError) {
+        console.error("Error regenerating PDF:", pdfError);
+        // Continue without PDF data
+      }
+
       return NextResponse.json({
         success: true,
         invoice: {
           id: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
           pdfUrl: invoice.pdfUrl,
+          pdfData: pdfBase64, // Include regenerated PDF data
           status: invoice.status,
           issuedAt: invoice.issuedAt,
           createdAt: invoice.createdAt,
