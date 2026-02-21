@@ -810,10 +810,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Soft delete by setting status to ARCHIVED
-    await prisma.product.update({
+    // Hard delete - remove product and all related records
+    // Due to cascade delete in schema, this will also delete:
+    // - variants, addons, configs, images, recurringPrices, pricingTiers, etc.
+    await prisma.product.delete({
       where: { id },
-      data: { status: "ARCHIVED" },
     });
 
     return NextResponse.json({ message: "Product deleted successfully" });

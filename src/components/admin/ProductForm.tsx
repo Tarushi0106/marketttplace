@@ -2803,7 +2803,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
       {/* Variant Modal */}
       <Dialog open={showVariantModal} onOpenChange={setShowVariantModal}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingVariant?.id ? "Edit Variant" : "Add Variant"}
