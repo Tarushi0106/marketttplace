@@ -513,108 +513,149 @@ export default async function ProductDetailPage({ params }: Props) {
 
                   {/* Variants Pricing */}
                   {isConfigurable && product.variants.length > 0 ? (
-                    <div className="grid md:grid-cols-3 gap-6">
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {product.variants.map((variant: any) => {
-                        // Get billing type from variant attributes
-                        const variantBillingType = variant.attributes?.billingType || "RECURRING";
-                        const rp = variant.recurringPrices?.[0];
-                        
-                        // Get the first available price with its billing cycle suffix
-                        const getDisplayPrice = (): { price: number; suffix: string } => {
-                          if (!rp) return { price: Number(variant.price), suffix: "" };
+                    <div className="space-y-8">
+                      {/* Variant Cards Grid */}
+                      <div className="grid md:grid-cols-3 gap-6">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {product.variants.map((variant: any) => {
+                          // Get billing type from variant attributes
+                          const variantBillingType = variant.attributes?.billingType || "RECURRING";
+                          const rp = variant.recurringPrices?.[0];
                           
-                          // Try monthly price first
-                          if (rp.monthlyPrice && Number(rp.monthlyPrice) > 0) {
-                            return { price: Number(rp.monthlyPrice), suffix: "/mo" };
-                          }
-                          // Try bi-monthly
-                          if (rp.biMonthlyPrice && Number(rp.biMonthlyPrice) > 0) {
-                            return { price: Number(rp.biMonthlyPrice), suffix: "/2mo" };
-                          }
-                          // Try quarterly
-                          if (rp.quarterlyPrice && Number(rp.quarterlyPrice) > 0) {
-                            return { price: Number(rp.quarterlyPrice), suffix: "/quarter" };
-                          }
-                          // Try 4-monthly
-                          if (rp.fourMonthlyPrice && Number(rp.fourMonthlyPrice) > 0) {
-                            return { price: Number(rp.fourMonthlyPrice), suffix: "/4mo" };
-                          }
-                          // Try semi-annual
-                          if (rp.semiAnnualPrice && Number(rp.semiAnnualPrice) > 0) {
-                            return { price: Number(rp.semiAnnualPrice), suffix: "/6mo" };
-                          }
-                          // Try tri-annual
-                          if (rp.triAnnualPrice && Number(rp.triAnnualPrice) > 0) {
-                            return { price: Number(rp.triAnnualPrice), suffix: "/3yr" };
-                          }
-                          // Try yearly
-                          if (rp.yearlyPrice && Number(rp.yearlyPrice) > 0) {
-                            return { price: Number(rp.yearlyPrice), suffix: "/yr" };
-                          }
-                          // Try biennial
-                          if (rp.biennialPrice && Number(rp.biennialPrice) > 0) {
-                            return { price: Number(rp.biennialPrice), suffix: "/2yr" };
-                          }
-                          // Try triennial
-                          if (rp.triennialPrice && Number(rp.triennialPrice) > 0) {
-                            return { price: Number(rp.triennialPrice), suffix: "/3yr" };
-                          }
+                          // Get the first available price with its billing cycle suffix
+                          const getDisplayPrice = (): { price: number; suffix: string } => {
+                            if (!rp) return { price: Number(variant.price), suffix: "" };
+                            
+                            // Try monthly price first
+                            if (rp.monthlyPrice && Number(rp.monthlyPrice) > 0) {
+                              return { price: Number(rp.monthlyPrice), suffix: "/mo" };
+                            }
+                            // Try bi-monthly
+                            if (rp.biMonthlyPrice && Number(rp.biMonthlyPrice) > 0) {
+                              return { price: Number(rp.biMonthlyPrice), suffix: "/2mo" };
+                            }
+                            // Try quarterly
+                            if (rp.quarterlyPrice && Number(rp.quarterlyPrice) > 0) {
+                              return { price: Number(rp.quarterlyPrice), suffix: "/quarter" };
+                            }
+                            // Try 4-monthly
+                            if (rp.fourMonthlyPrice && Number(rp.fourMonthlyPrice) > 0) {
+                              return { price: Number(rp.fourMonthlyPrice), suffix: "/4mo" };
+                            }
+                            // Try semi-annual
+                            if (rp.semiAnnualPrice && Number(rp.semiAnnualPrice) > 0) {
+                              return { price: Number(rp.semiAnnualPrice), suffix: "/6mo" };
+                            }
+                            // Try tri-annual
+                            if (rp.triAnnualPrice && Number(rp.triAnnualPrice) > 0) {
+                              return { price: Number(rp.triAnnualPrice), suffix: "/3yr" };
+                            }
+                            // Try yearly
+                            if (rp.yearlyPrice && Number(rp.yearlyPrice) > 0) {
+                              return { price: Number(rp.yearlyPrice), suffix: "/yr" };
+                            }
+                            // Try biennial
+                            if (rp.biennialPrice && Number(rp.biennialPrice) > 0) {
+                              return { price: Number(rp.biennialPrice), suffix: "/2yr" };
+                            }
+                            // Try triennial
+                            if (rp.triennialPrice && Number(rp.triennialPrice) > 0) {
+                              return { price: Number(rp.triennialPrice), suffix: "/3yr" };
+                            }
+                            
+                            // Fall back to variant price
+                            return { price: Number(variant.price), suffix: "" };
+                          };
                           
-                          // Fall back to variant price
-                          return { price: Number(variant.price), suffix: "" };
-                        };
+                          const { price: displayPrice, suffix: priceSuffix } = variantBillingType === "RECURRING" 
+                            ? getDisplayPrice() 
+                            : { price: Number(variant.price), suffix: "" };
+                          
+                          return (
+                          <div
+                            key={variant.id}
+                            className={`relative bg-white rounded-3xl p-8 ${variant.isDefault ? "ring-2 ring-[#8B1D1D] shadow-xl" : "border border-gray-200"}`}
+                          >
+                            {variant.isDefault && (
+                              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#8B1D1D]">Most Popular</Badge>
+                            )}
+                            <div className="text-center mb-6">
+                              <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
+                              {/* Show price with appropriate billing cycle suffix */}
+                              <p className="text-4xl font-bold text-gray-900">
+                                {formatPrice(displayPrice)}
+                                {priceSuffix && <span className="text-lg font-normal text-gray-500">{priceSuffix}</span>}
+                              </p>
+                            </div>
+                            <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
+                              <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
+                                Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                              </Link>
+                            </Button>
+                          </div>
+                        )})}
+                      </div>
+
+                      {/* Specifications Comparison Table */}
+                      {(() => {
+                        const reservedKeys = [
+                          'billingType', 'setupFee',
+                          'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                          'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                          'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                        ];
                         
-                        const { price: displayPrice, suffix: priceSuffix } = variantBillingType === "RECURRING" 
-                          ? getDisplayPrice() 
-                          : { price: Number(variant.price), suffix: "" };
+                        // Get all unique specification keys from all variants
+                        const allSpecKeys = new Set<string>();
+                        product.variants.forEach((variant: any) => {
+                          const attrs = variant.attributes as Record<string, string> || {};
+                          Object.keys(attrs).forEach(key => {
+                            if (!reservedKeys.includes(key)) {
+                              allSpecKeys.add(key);
+                            }
+                          });
+                        });
+                        
+                        const specKeys = Array.from(allSpecKeys);
+                        
+                        if (specKeys.length === 0) return null;
                         
                         return (
-                        <div
-                          key={variant.id}
-                          className={`relative bg-white rounded-3xl p-8 ${variant.isDefault ? "ring-2 ring-[#8B1D1D] shadow-xl" : "border border-gray-200"}`}
-                        >
-                          {variant.isDefault && (
-                            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#8B1D1D]">Most Popular</Badge>
-                          )}
-                          <div className="text-center mb-6">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
-                            {/* Show price with appropriate billing cycle suffix */}
-                            <p className="text-4xl font-bold text-gray-900">
-                              {formatPrice(displayPrice)}
-                              {priceSuffix && <span className="text-lg font-normal text-gray-500">{priceSuffix}</span>}
-                            </p>
+                          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Specifications</th>
+                                    {product.variants.map((variant: any) => (
+                                      <th key={variant.id} className="text-center py-4 px-4 font-semibold text-gray-900 min-w-[120px]">
+                                        {variant.name}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {specKeys.map((key, index) => (
+                                    <tr key={key} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                      <td className="py-3 px-6 text-gray-700 font-medium capitalize">{key}</td>
+                                      {product.variants.map((variant: any) => {
+                                        const attrs = variant.attributes as Record<string, string> || {};
+                                        const value = attrs[key] || '-';
+                                        return (
+                                          <td key={variant.id} className="py-3 px-4 text-center text-gray-900">
+                                            {value}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                          {(() => {
-                            // Filter out reserved pricing keys from variant attributes
-                            const reservedKeys = [
-                              'billingType', 'setupFee',
-                              'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
-                              'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
-                              'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-                              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
-                            ];
-                            const attrs = variant.attributes as Record<string, string> || {};
-                            const filteredAttrs = Object.entries(attrs).filter(([key]) => !reservedKeys.includes(key));
-                            return filteredAttrs.length > 0 ? (
-                              <ul className="space-y-3 mb-4">
-                                {filteredAttrs.map(([key, value]) => (
-                                  <li key={key} className="flex items-center gap-3 text-sm">
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
-                                    <span className="text-gray-600 capitalize">{key}:</span>
-                                    <span className="font-medium text-gray-900">{value}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : null;
-                          })()}
-                          <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
-                            <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
-                              Get Started <ArrowRight className="h-4 w-4 ml-2" />
-                            </Link>
-                          </Button>
-                        </div>
-                      )})}
+                        );
+                      })()}
                     </div>
                   ) : !isConfigurable && hasPricing ? (
                     <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
