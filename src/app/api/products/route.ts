@@ -173,6 +173,7 @@ const addonSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   price: z.coerce.number().min(0),
+  unit: z.string().optional(),
   pricingType: z.enum(["ONE_TIME", "RECURRING_MONTHLY", "RECURRING_YEARLY"]).default("ONE_TIME"),
   isRequired: z.boolean().default(false),
   isActive: z.boolean().default(true),

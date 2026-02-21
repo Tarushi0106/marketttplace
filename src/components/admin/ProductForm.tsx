@@ -608,6 +608,22 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             ogImage: product.seoMetadata.ogImage || "",
           });
         }
+
+        // Set addons
+        if (product.addons) {
+          setAddons(
+            product.addons.map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              description: a.description || "",
+              price: a.price?.toString() || "0",
+              unit: a.unit || "",
+              pricingType: a.pricingType || "ONE_TIME",
+              isRequired: a.isRequired || false,
+              isActive: a.isActive ?? true,
+            }))
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching product:", error);
