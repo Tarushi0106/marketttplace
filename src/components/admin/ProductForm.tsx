@@ -1347,9 +1347,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <Sliders className="h-4 w-4" />
               <span className="hidden lg:inline">Variable</span>
             </TabsTrigger>
-            <TabsTrigger value="seo" className="gap-2">
-              <SearchIcon className="h-4 w-4" />
-              <span className="hidden lg:inline">SEO</span>
+            <TabsTrigger value="addons" className="gap-2">
+              <Puzzle className="h-4 w-4" />
+              <span className="hidden lg:inline">Addons</span>
             </TabsTrigger>
           </TabsList>
 
@@ -2686,115 +2686,6 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* SEO TAB */}
-          <TabsContent value="seo" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Engine Optimization</CardTitle>
-                <CardDescription>
-                  Optimize how your product appears in search results
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="metaTitle">Meta Title</Label>
-                  <Input
-                    id="metaTitle"
-                    value={seoMetadata.metaTitle}
-                    onChange={(e) =>
-                      setSeoMetadata({ ...seoMetadata, metaTitle: e.target.value })
-                    }
-                    placeholder={formData.name || "Product name"}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {seoMetadata.metaTitle.length || 0}/60 characters (recommended)
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="metaDescription">Meta Description</Label>
-                  <Textarea
-                    id="metaDescription"
-                    value={seoMetadata.metaDescription}
-                    onChange={(e) =>
-                      setSeoMetadata({
-                        ...seoMetadata,
-                        metaDescription: e.target.value,
-                      })
-                    }
-                    placeholder={formData.shortDescription || "Product description"}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {seoMetadata.metaDescription.length || 0}/160 characters
-                    (recommended)
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="metaKeywords">Meta Keywords</Label>
-                  <Input
-                    id="metaKeywords"
-                    value={seoMetadata.metaKeywords}
-                    onChange={(e) =>
-                      setSeoMetadata({
-                        ...seoMetadata,
-                        metaKeywords: e.target.value,
-                      })
-                    }
-                    placeholder="keyword1, keyword2, keyword3"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Media Preview</CardTitle>
-                <CardDescription>
-                  Control how the product appears when shared on social media
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="ogTitle">Open Graph Title</Label>
-                  <Input
-                    id="ogTitle"
-                    value={seoMetadata.ogTitle}
-                    onChange={(e) =>
-                      setSeoMetadata({ ...seoMetadata, ogTitle: e.target.value })
-                    }
-                    placeholder={seoMetadata.metaTitle || formData.name}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ogDescription">Open Graph Description</Label>
-                  <Textarea
-                    id="ogDescription"
-                    value={seoMetadata.ogDescription}
-                    onChange={(e) =>
-                      setSeoMetadata({
-                        ...seoMetadata,
-                        ogDescription: e.target.value,
-                      })
-                    }
-                    placeholder={seoMetadata.metaDescription || formData.shortDescription}
-                    rows={2}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ogImage">Open Graph Image URL</Label>
-                  <Input
-                    id="ogImage"
-                    value={seoMetadata.ogImage}
-                    onChange={(e) =>
-                      setSeoMetadata({ ...seoMetadata, ogImage: e.target.value })
-                    }
-                    placeholder={images[0]?.url || "https://..."}
-                  />
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
