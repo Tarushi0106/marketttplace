@@ -148,6 +148,7 @@ model CategoryAddon {
   price       Decimal?        @db.Decimal(10, 2)
   monthlyPrice Decimal?       @db.Decimal(10, 2)
   yearlyPrice  Decimal?       @db.Decimal(10, 2)
+  unit        String?         // e.g., "per user", "per server", "per GB", "per tunnel"
   pricingType AddonPricingType @default(ONE_TIME)
   options     Json?          // Array of addon options
   isRequired  Boolean         @default(false)
@@ -316,6 +317,7 @@ model ProductAddon {
   name            String
   description     String?         @db.Text
   price           Decimal         @db.Decimal(10, 2)
+  unit            String?         // e.g., "per user", "per server", "per GB", "per tunnel"
   pricingType     AddonPricingType @default(ONE_TIME)
   isRequired      Boolean         @default(false)
   isActive        Boolean         @default(true)

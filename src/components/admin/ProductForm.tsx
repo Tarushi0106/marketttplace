@@ -185,6 +185,7 @@ interface ProductAddon {
   name: string;
   description?: string;
   price: string;
+  unit?: string;
   pricingType: "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
   isRequired: boolean;
   isActive: boolean;
@@ -940,6 +941,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         name: "",
         description: "",
         price: "",
+        unit: "",
         pricingType: "ONE_TIME",
         isRequired: false,
         isActive: true,
@@ -2537,7 +2539,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Price</TableHead>
+                        <TableHead>Rate</TableHead>
+                        <TableHead>Unit</TableHead>
                         <TableHead>Pricing Type</TableHead>
                         <TableHead>Required</TableHead>
                         <TableHead>Active</TableHead>
@@ -2558,6 +2561,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                             </div>
                           </TableCell>
                           <TableCell>Rs {addon.price}</TableCell>
+                          <TableCell>
+                            {addon.unit && (
+                              <Badge variant="outline">{addon.unit}</Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               {addon.pricingType.replace("_", " ")}
@@ -2589,7 +2597,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => removeAddon(index)}
+                                onClick={() => removeAddon(addon.id || "")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -3441,7 +3449,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price (Rs) *</Label>
+                  <Label>Rate (Rs) *</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -3453,30 +3461,40 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Pricing Type</Label>
-                  <Select
-                    value={editingAddon.pricingType}
-                    onValueChange={(value) =>
-                      setEditingAddon({
-                        ...editingAddon,
-                        pricingType: value as any,
-                      })
+                  <Label>Unit</Label>
+                  <Input
+                    value={editingAddon.unit || ""}
+                    onChange={(e) =>
+                      setEditingAddon({ ...editingAddon, unit: e.target.value })
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ONE_TIME">One-time</SelectItem>
-                      <SelectItem value="RECURRING_MONTHLY">
-                        Monthly Recurring
-                      </SelectItem>
-                      <SelectItem value="RECURRING_YEARLY">
-                        Yearly Recurring
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="e.g., per user, per server, per GB"
+                  />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Pricing Type</Label>
+                <Select
+                  value={editingAddon.pricingType}
+                  onValueChange={(value) =>
+                    setEditingAddon({
+                      ...editingAddon,
+                      pricingType: value as any,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ONE_TIME">One-time</SelectItem>
+                    <SelectItem value="RECURRING_MONTHLY">
+                      Monthly Recurring
+                    </SelectItem>
+                    <SelectItem value="RECURRING_YEARLY">
+                      Yearly Recurring
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
