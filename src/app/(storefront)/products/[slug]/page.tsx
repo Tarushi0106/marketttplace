@@ -534,8 +534,7 @@ export default async function ProductDetailPage({ params }: Props) {
                           // Get specifications from variant attributes
                           const variantAttrs = variant.attributes as Record<string, string> || {};
                           const specifications = Object.entries(variantAttrs)
-                            .filter(([key]) => !reservedKeys.includes(key))
-                            .slice(0, 6); // Show max 6 specs
+                            .filter(([key]) => !reservedKeys.includes(key)); // Show all specs
                           
                           // Get the first available price with its billing cycle suffix
                           const getDisplayPrice = (): { price: number; suffix: string } => {
