@@ -129,6 +129,7 @@ const acronisVariants = [
     description: `Acronis Cyber Protect Advanced Backup - Virtual Host (1 Year Subscription) with Active Protection`,
     price: 27900,
     unit: 'per virtual host',
+    setupFee: 4999,
     sortOrder: 12,
   },
   {
@@ -138,6 +139,7 @@ const acronisVariants = [
     description: `Acronis Cyber Protect Advanced Backup - Virtual Host (2 Year Subscription) with Active Protection`,
     price: 22410,
     unit: 'per virtual host',
+    setupFee: 0,
     sortOrder: 13,
   },
   {
@@ -147,6 +149,7 @@ const acronisVariants = [
     description: `Acronis Cyber Protect Advanced Backup - Virtual Host (3 Year Subscription) with Active Protection`,
     price: 17910,
     unit: 'per virtual host',
+    setupFee: 0,
     sortOrder: 14,
   },
   // Office 365 Mailbox variants
@@ -400,6 +403,7 @@ Contract Terms:
           description: variant.description,
           unit: variant.unit,
           billingType: 'ONE_TIME',
+          setupFee: variant.setupFee || 0,
         },
         
         isDefault: i === 0,
@@ -411,6 +415,9 @@ Contract Terms:
     console.log(`✅ Variant: ${variant.name}`);
     console.log(`   SKU: ${variant.sku}`);
     console.log(`   Price: ₹${variant.price} (${variant.unit})`);
+    if (variant.setupFee) {
+      console.log(`   Setup Fee: ₹${variant.setupFee}`);
+    }
     console.log('');
   }
 
