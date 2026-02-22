@@ -14,7 +14,7 @@ const acronisVariants = [
     name: 'Standard Storage - 50 GB',
     sku: 'ACRONIS-CLOUD-50GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 50 GB (per GB)',
-    description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 50 GB**
+    description: `Acronis Cyber Backup Cloud Standard Storage Subscription - 50 GB
 
 Cloud storage subscription with unlimited Backup Agents.`,
     price: 345, // 50 GB * 6.9 per GB
@@ -25,7 +25,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
     name: 'Standard Storage - 100 GB',
     sku: 'ACRONIS-CLOUD-100GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 100 GB (per GB)',
-    description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 100 GB**
+    description: `Acronis Cyber Backup Cloud Standard Storage Subscription - 100 GB
 
 Cloud storage subscription with unlimited Backup Agents.`,
     price: 690, // 100 GB * 6.9 per GB
@@ -36,7 +36,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
     name: 'Standard Storage - 500 GB',
     sku: 'ACRONIS-CLOUD-500GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 500 GB (per GB)',
-    description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 500 GB**
+    description: `Acronis Cyber Backup Cloud Standard Storage Subscription - 500 GB
 
 Cloud storage subscription with unlimited Backup Agents.`,
     price: 3450, // 500 GB * 6.9 per GB
@@ -47,7 +47,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
     name: 'Standard Storage - 2 TB',
     sku: 'ACRONIS-CLOUD-2TB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 2 TB (per GB)',
-    description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 2 TB**
+    description: `Acronis Cyber Backup Cloud Standard Storage Subscription - 2 TB
 
 Cloud storage subscription with unlimited Backup Agents.`,
     price: 6900, // ~1000 GB * 6.9 per GB
@@ -58,7 +58,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
     name: 'Standard Storage - Cloud (per TB)',
     sku: 'ACRONIS-CLOUD-TB',
     shortDesc: 'Acronis Cyber Protect Cloud Standard Storage - Cloud (per TB)',
-    description: `**Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Cloud Storage)**
+    description: `Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Cloud Storage)
 
 Cloud storage subscription with unlimited Backup Agents.`,
     price: 6900,
@@ -69,7 +69,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
     name: 'Standard Storage - Local (per TB)',
     sku: 'ACRONIS-LOCAL-TB',
     shortDesc: 'Acronis Cyber Protect Cloud Standard Storage - Local (per TB)',
-    description: `**Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Local Storage)**
+    description: `Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Local Storage)
 
 Local storage subscription with unlimited Backup Agents.`,
     price: 4140,
@@ -80,7 +80,7 @@ Local storage subscription with unlimited Backup Agents.`,
     name: 'Managed Backup Services',
     sku: 'ACRONIS-MANAGED-TB',
     shortDesc: 'Managed Backup Services (per TB)',
-    description: `**Managed Backup Services**
+    description: `Managed Backup Services
 
 Comprehensive managed backup service including:
 - Creating Backup Plan [Frequency of Backup, What to Backup, Restoration Plan]
@@ -199,26 +199,26 @@ async function main() {
       
       shortDescription: 'XcellBackup | Secure Cloud Backup Services - Powered by Acronis Cyber Protect Cloud. Protect your data against system hardware, viruses & trojans, ransomware, data thefts, accidental deletion, natural disasters, human errors etc.',
       
-      description: `**XcellBackup | Secure Cloud Backup Services - Powered by Acronis Cyber Protect Cloud**
+      description: `XcellBackup | Secure Cloud Backup Services - Powered by Acronis Cyber Protect Cloud
 
 Protect your data against system hardware, viruses & trojans, ransomware, data thefts, accidental deletion, natural disasters, human errors etc.
 
-**Cloud Storage Options:**
+Cloud Storage Options:
 - Standard Storage Subscription (50 GB - 2 TB)
 - Standard Storage Cloud (per TB)
 - Standard Storage Local (per TB)
 
-**Managed Services:**
+Managed Services:
 - Managed Backup Services (per TB)
 
-**Included Components:**
+Included Components:
 - Infrastructure-As-A-Service (Cloud Gateway + Cloud Repository + WAN Acceleration) Hosted in Acronis Cyber Backup Cloud
 - Acronis Software Agent Licenses
 - Incoming + Outgoing Bandwidth
 - Acronis Cloud Storage
 - 100% Infrastructure Uptime SLA
 
-**Contract Terms:**
+Contract Terms:
 - Annual Advance Payment with One Time Setup Charges
 - Annual Contract (Auto Renewable). 30 days Termination Notice required
 - Setup Charges does not include any Initial Backup Seeding Charges
