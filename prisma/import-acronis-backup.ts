@@ -1,8 +1,8 @@
 /**
  * Import Acronis Cyber Backup Cloud Products from Excel
  * 
- * Adds variants to existing Acronis product
- * Included Components become addons with 0 price
+ * Creates new product "Acronis Cyber Backup Cloud for India Partners-Storage"
+ * with variants and addons (Included Components with 0 price)
  */
 
 const { PrismaClient } = require('@prisma/client');
@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 const acronisVariants = [
   {
     name: 'Standard Storage - 50 GB',
-    sku: 'ACRONIS-STORAGE-50GB',
+    sku: 'ACRONIS-CLOUD-50GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 50 GB (per GB)',
     description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 50 GB**
 
@@ -23,7 +23,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Standard Storage - 100 GB',
-    sku: 'ACRONIS-STORAGE-100GB',
+    sku: 'ACRONIS-CLOUD-100GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 100 GB (per GB)',
     description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 100 GB**
 
@@ -34,7 +34,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Standard Storage - 500 GB',
-    sku: 'ACRONIS-STORAGE-500GB',
+    sku: 'ACRONIS-CLOUD-500GB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 500 GB (per GB)',
     description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 500 GB**
 
@@ -45,7 +45,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Standard Storage - 2 TB',
-    sku: 'ACRONIS-STORAGE-2TB',
+    sku: 'ACRONIS-CLOUD-2TB',
     shortDesc: 'Acronis Cyber Backup Cloud Standard Storage - 2 TB (per GB)',
     description: `**Acronis Cyber Backup Cloud Standard Storage Subscription - 2 TB**
 
@@ -56,7 +56,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Standard Storage - Cloud (per TB)',
-    sku: 'ACRONIS-STORAGE-CLOUD-TB',
+    sku: 'ACRONIS-CLOUD-TB',
     shortDesc: 'Acronis Cyber Protect Cloud Standard Storage - Cloud (per TB)',
     description: `**Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Cloud Storage)**
 
@@ -67,7 +67,7 @@ Cloud storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Standard Storage - Local (per TB)',
-    sku: 'ACRONIS-STORAGE-LOCAL-TB',
+    sku: 'ACRONIS-LOCAL-TB',
     shortDesc: 'Acronis Cyber Protect Cloud Standard Storage - Local (per TB)',
     description: `**Acronis Cyber Protect Cloud - Standard Storage Subscription - per TB (Local Storage)**
 
@@ -78,7 +78,7 @@ Local storage subscription with unlimited Backup Agents.`,
   },
   {
     name: 'Managed Backup Services',
-    sku: 'ACRONIS-MANAGED-BACKUP',
+    sku: 'ACRONIS-MANAGED-TB',
     shortDesc: 'Managed Backup Services (per TB)',
     description: `**Managed Backup Services**
 
@@ -142,37 +142,120 @@ const includedComponents = [
 async function main() {
   console.log('🚀 Starting Acronis Cyber Backup Cloud import...\n');
 
-  // 1. Find existing Acronis product
-  const existingProduct = await prisma.product.findFirst({
-    where: { 
-      slug: { contains: 'acronis' } 
-    },
-    include: { variants: true, addons: true },
+  // 1. Find or create category
+  let category = await prisma.category.findFirst({
+    where: { slug: 'acronis-backup' },
   });
 
-  if (!existingProduct) {
-    console.log('❌ No Acronis product found. Please create it first in the admin panel.');
-    process.exit(1);
+  if (!category) {
+    category = await prisma.category.create({
+      data: {
+        name: 'Acronis Backup',
+        slug: 'acronis-backup',
+        description: 'Acronis Cyber Backup Cloud Services',
+        icon: 'cloud',
+        isActive: true,
+        sortOrder: 15,
+      },
+    });
+    console.log('✅ Created category:', category.name);
+  } else {
+    console.log('✅ Found existing category:', category.name);
   }
 
-  console.log(`✅ Found existing product: ${existingProduct.name} (${existingProduct.variants.length} existing variants, ${existingProduct.addons.length} existing addons)`);
-
-  // 2. Delete existing variants and addons
-  if (existingProduct.variants.length > 0) {
-    console.log(`⚠️ Deleting ${existingProduct.variants.length} existing variants...`);
+  // 2. Delete existing product if exists
+  const existingProduct = await prisma.product.findFirst({
+    where: { slug: 'acronis-cyber-backup-cloud-india' },
+    include: { variants: true, addons: true },
+  });
+  
+  if (existingProduct) {
+    console.log(`⚠️ Deleting existing product with ${existingProduct.variants.length} variants and ${existingProduct.addons.length} addons...`);
     await prisma.productVariant.deleteMany({
       where: { productId: existingProduct.id },
     });
-  }
-
-  if (existingProduct.addons.length > 0) {
-    console.log(`⚠️ Deleting ${existingProduct.addons.length} existing addons...`);
     await prisma.productAddon.deleteMany({
       where: { productId: existingProduct.id },
     });
+    await prisma.product.delete({ where: { id: existingProduct.id } });
   }
 
-  // 3. Create variants
+  // 2b. Delete any existing variants with these SKUs
+  console.log('🗑️ Cleaning up existing variants with same SKUs...');
+  for (const variant of acronisVariants) {
+    await prisma.productVariant.deleteMany({
+      where: { sku: variant.sku },
+    });
+  }
+
+  // 3. Create new product
+  console.log('\n📦 Creating Acronis Cyber Backup Cloud product...\n');
+  
+  const product = await prisma.product.create({
+    data: {
+      name: 'Acronis Cyber Backup Cloud for India Partners-Storage',
+      slug: 'acronis-cyber-backup-cloud-india',
+      categoryId: category.id,
+      
+      shortDescription: 'XcellBackup | Secure Cloud Backup Services - Powered by Acronis Cyber Protect Cloud. Protect your data against system hardware, viruses & trojans, ransomware, data thefts, accidental deletion, natural disasters, human errors etc.',
+      
+      description: `**XcellBackup | Secure Cloud Backup Services - Powered by Acronis Cyber Protect Cloud**
+
+Protect your data against system hardware, viruses & trojans, ransomware, data thefts, accidental deletion, natural disasters, human errors etc.
+
+**Cloud Storage Options:**
+- Standard Storage Subscription (50 GB - 2 TB)
+- Standard Storage Cloud (per TB)
+- Standard Storage Local (per TB)
+
+**Managed Services:**
+- Managed Backup Services (per TB)
+
+**Included Components:**
+- Infrastructure-As-A-Service (Cloud Gateway + Cloud Repository + WAN Acceleration) Hosted in Acronis Cyber Backup Cloud
+- Acronis Software Agent Licenses
+- Incoming + Outgoing Bandwidth
+- Acronis Cloud Storage
+- 100% Infrastructure Uptime SLA
+
+**Contract Terms:**
+- Annual Advance Payment with One Time Setup Charges
+- Annual Contract (Auto Renewable). 30 days Termination Notice required
+- Setup Charges does not include any Initial Backup Seeding Charges
+- Delivery: Within 2 working days from PO + Advance Payment Receipt
+- Overage Billing will be billed as actuals`,
+      
+      features: [
+        'Cloud Storage Subscription',
+        'Unlimited Backup Agents',
+        'Managed Backup Services Available',
+        'Infrastructure-As-A-Service',
+        '100% Infrastructure Uptime SLA',
+        'Acronis Software Agent Licenses Included',
+      ],
+      
+      specifications: {
+        uptime: '100% Infrastructure Uptime SLA',
+        agents: 'Unlimited Backup Agents',
+        bandwidth: 'Incoming + Outgoing Bandwidth Included',
+        storage: 'Acronis Cloud Storage',
+      },
+      
+      basePrice: 345, // Lowest variant price
+      isRecurring: false,
+      productType: 'CONFIGURABLE',
+      status: 'ACTIVE',
+      isFeatured: true,
+      isDigital: true,
+      requiresShipping: false,
+      trackInventory: false,
+      stockQuantity: 999,
+    },
+  });
+  
+  console.log(`✅ Created product: ${product.name}`);
+
+  // 4. Create variants
   console.log('\n📦 Creating variants...\n');
   
   for (let i = 0; i < acronisVariants.length; i++) {
@@ -180,13 +263,12 @@ async function main() {
     
     await prisma.productVariant.create({
       data: {
-        productId: existingProduct.id,
+        productId: product.id,
         name: variant.name,
         sku: variant.sku,
-        price: variant.price, // ONE_TIME price
+        price: variant.price,
         compareAtPrice: variant.price,
         
-        // Store additional info in attributes
         attributes: {
           shortDesc: variant.shortDesc,
           description: variant.description,
@@ -194,7 +276,7 @@ async function main() {
           billingType: 'ONE_TIME',
         },
         
-        isDefault: i === 0, // First variant is default
+        isDefault: i === 0,
         isActive: true,
         sortOrder: variant.sortOrder,
       },
@@ -206,7 +288,7 @@ async function main() {
     console.log('');
   }
 
-  // 4. Create addons (Included Components with 0 price)
+  // 5. Create addons (Included Components with 0 price)
   console.log('\n📦 Creating addons (Included Components)...\n');
   
   for (let i = 0; i < includedComponents.length; i++) {
@@ -214,10 +296,10 @@ async function main() {
     
     await prisma.productAddon.create({
       data: {
-        productId: existingProduct.id,
+        productId: product.id,
         name: addon.name,
         description: addon.description,
-        price: addon.price, // 0 price for included components
+        price: addon.price,
         unit: addon.unit,
         pricingType: 'ONE_TIME',
         isActive: true,
@@ -232,7 +314,7 @@ async function main() {
 
   console.log('\n✨ Import completed successfully!');
   console.log('\n📊 Summary:');
-  console.log(`  - Product: ${existingProduct.name}`);
+  console.log(`  - Product: ${product.name}`);
   console.log(`  - ${acronisVariants.length} Variants Created`);
   console.log(`  - ${includedComponents.length} Addons Created (Included Components with 0 price)`);
   console.log(`  - Billing Type: ONE_TIME`);
