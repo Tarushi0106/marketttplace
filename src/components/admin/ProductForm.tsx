@@ -526,7 +526,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 // Extract specifications from attributes (excluding reserved keys)
                 specifications: specifications,
                 billingType: billingType,
-                setupFee: setupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || "",
+                // For ONE_TIME billing, setupFee should only come from attributes, not from recurring prices
+                setupFee: billingType === "ONE_TIME" ? (setupFee?.toString() || "") : (setupFee?.toString() || variantRecurringPrices.monthlySetupFee?.toString() || ""),
                 monthlyPrice: v.monthlyPrice?.toString() || variantRecurringPrices.monthlyPrice?.toString() || "",
                 biMonthlyPrice: v.biMonthlyPrice?.toString() || variantRecurringPrices.biMonthlyPrice?.toString() || "",
                 quarterlyPrice: v.quarterlyPrice?.toString() || variantRecurringPrices.quarterlyPrice?.toString() || "",
@@ -1070,6 +1071,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             monthlyPriceModifier: o.monthlyPriceModifier ? parseFloat(o.monthlyPriceModifier) : null,
             yearlyPriceModifier: o.yearlyPriceModifier ? parseFloat(o.yearlyPriceModifier) : null,
           })),
+          sortOrder: idx,
+        })),
+        addons: addons.map((a, idx) => ({
+          ...a,
+          price: parseFloat(a.price) || 0,
           sortOrder: idx,
         })),
         seoMetadata,
