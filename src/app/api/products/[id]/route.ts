@@ -318,7 +318,8 @@ export async function PUT(
     }
 
     // Check if SKU is unique (if updating SKU)
-    if (productData.sku && productData.sku !== existingProduct.sku) {
+    // Only check if SKU is provided and not empty
+    if (productData.sku && productData.sku.trim() !== "" && productData.sku !== existingProduct.sku) {
       const skuExists = await prisma.product.findFirst({
         where: {
           sku: productData.sku,
@@ -332,6 +333,11 @@ export async function PUT(
           { status: 400 }
         );
       }
+    }
+    
+    // If SKU is empty string, set to null to avoid unique constraint issues
+    if (productData.sku === "" || productData.sku === null) {
+      productData.sku = null;
     }
 
     // Validate categoryId if provided
@@ -363,6 +369,7 @@ export async function PUT(
     }
 
     // Update product with all related data in a transaction
+    // Use extended timeout for large product updates with many variants
     const product = await prisma.$transaction(async (tx) => {
       // Update the product
       const updatedProduct = await tx.product.update({
@@ -747,6 +754,9 @@ export async function PUT(
       }
 
       return updatedProduct;
+    }, {
+      maxWait: 30000, // Maximum time to wait for transaction to start (30 seconds)
+      timeout: 60000, // Maximum time for transaction to complete (60 seconds)
     });
 
     // Fetch the complete product with all relations
