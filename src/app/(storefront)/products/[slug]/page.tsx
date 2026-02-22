@@ -638,7 +638,7 @@ export default async function ProductDetailPage({ params }: Props) {
                                 <tbody>
                                   {specKeys.map((key, index) => (
                                     <tr key={key} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                      <td className="py-3 px-6 text-gray-700 font-medium capitalize">{key}</td>
+                                      <td className="py-3 px-6 text-gray-700 font-medium">{key}</td>
                                       {product.variants.map((variant: any) => {
                                         const attrs = variant.attributes as Record<string, string> || {};
                                         const value = attrs[key] || '-';
@@ -650,6 +650,36 @@ export default async function ProductDetailPage({ params }: Props) {
                                       })}
                                     </tr>
                                   ))}
+                                  {/* Pricing Row */}
+                                  <tr className="bg-gray-50 border-t border-gray-200">
+                                    <td className="py-4 px-6 text-gray-700 font-semibold">Monthly Price</td>
+                                    {product.variants.map((variant: any) => {
+                                      const variantRecurringPrices = variant.recurringPrices?.find((rp: any) => rp.variantId === variant.id) || variant.recurringPrices?.[0] || {};
+                                      const monthlyPrice = variantRecurringPrices.monthlyPrice || variant.monthlyPrice;
+                                      return (
+                                        <td key={variant.id} className="py-4 px-4 text-center">
+                                          <span className="text-xl font-bold text-gray-900">
+                                            {monthlyPrice ? formatPrice(monthlyPrice) : 'Contact Us'}
+                                          </span>
+                                          <span className="text-gray-500 text-sm">/month</span>
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                  {/* Get Started Button Row */}
+                                  <tr className="bg-white border-t border-gray-200">
+                                    <td className="py-4 px-6"></td>
+                                    {product.variants.map((variant: any) => (
+                                      <td key={variant.id} className="py-4 px-4 text-center">
+                                        <Link
+                                          href={`/products/${product.slug}/configure?variant=${variant.id}`}
+                                          className="inline-flex items-center justify-center px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                        >
+                                          Get Started
+                                        </Link>
+                                      </td>
+                                    ))}
+                                  </tr>
                                 </tbody>
                               </table>
                             </div>
