@@ -367,7 +367,8 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             const variantAttributes = variant.attributes as Record<string, any> || {};
             const variantBillingType = variantAttributes.billingType || "RECURRING";
             // Extract setupFee from variant attributes for ONE_TIME billing
-            const variantSetupFee = variantAttributes.setupFee ? Number(variantAttributes.setupFee) : Number(variant.price);
+            // For ONE_TIME billing, setupFee should only be used if explicitly set, otherwise 0
+            const variantSetupFee = variantAttributes.setupFee ? Number(variantAttributes.setupFee) : 0;
             
             // Convert Decimal values in recurring prices to numbers
             const convertedRecurringPrices = (variant.recurringPrices || [])
