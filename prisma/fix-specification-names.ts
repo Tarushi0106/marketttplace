@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Correct specification names from Excel "Item Description" column
+// Note: "Enterprise NextGen Endpoint Detection & Response Security" includes the full text with line break
 const variantSpecifications = [
   {
     name: 'Cloud Multi-Tenant',
@@ -24,7 +25,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -41,7 +42,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -58,7 +59,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -75,7 +76,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -92,7 +93,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -109,7 +110,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -126,7 +127,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -143,7 +144,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -160,7 +161,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -235,13 +236,17 @@ async function main() {
       });
 
       console.log(`Updated variant: ${variant.name}`);
-      console.log(`  Specifications: ${JSON.stringify(specData.specifications, null, 2).split('\n').join('\n  ')}`);
+      console.log(`  Specifications:`);
+      Object.entries(specData.specifications).forEach(([key, value]) => {
+        console.log(`    ${key}: ${value}`);
+      });
+      console.log('');
     } else {
       console.log(`No matching specifications found for variant: ${variant.name}`);
     }
   }
 
-  console.log('\n✅ Variant specifications updated successfully!');
+  console.log('✅ Variant specifications updated successfully!');
 }
 
 main()
