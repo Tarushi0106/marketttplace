@@ -2,6 +2,7 @@
  * Update Tally Cloud Server Product Specifications with Correct Names
  * 
  * Specification names should match exactly what's in the Excel under "Item Description" column
+ * Note: Removed \r\n from long specification names to avoid JSON parsing issues
  * 
  * Run with: npx tsx prisma/fix-specification-names.ts
  */
@@ -11,7 +12,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Correct specification names from Excel "Item Description" column
-// Note: "Enterprise NextGen Endpoint Detection & Response Security" includes the full text with line break
+// Note: "Enterprise NextGen Endpoint Detection & Response Security" - removed the \r\n to avoid issues
 const variantSpecifications = [
   {
     name: 'Cloud Multi-Tenant',
@@ -25,7 +26,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -42,7 +43,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -59,7 +60,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -76,7 +77,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -93,7 +94,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -110,7 +111,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -127,7 +128,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -144,7 +145,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
@@ -161,7 +162,7 @@ const variantSpecifications = [
       'Dedicated IP Address': '1',
       'SuperFast Storage': 'SSD',
       'Operating Systems': 'Windows Server 2022',
-      'Enterprise NextGen Endpoint Detection & Response Security \n(Anti-Virus, Anti-Malware, Anti-Ransomware, Patch Management)': 'Acronis Cyber Protect Cloud',
+      'Enterprise NextGen Endpoint Detection & Response Security': 'Acronis Cyber Protect Cloud',
       'Enterprise NextGen Firewall in High Availability': 'Fortinet',
       'Managed SysAdmin Services': '24 x 7 Support',
     },
