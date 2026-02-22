@@ -225,22 +225,6 @@ Contract Terms:
 - Delivery: Within 2 working days from PO + Advance Payment Receipt
 - Overage Billing will be billed as actuals`,
       
-      features: [
-        'Cloud Storage Subscription',
-        'Unlimited Backup Agents',
-        'Managed Backup Services Available',
-        'Infrastructure-As-A-Service',
-        '100% Infrastructure Uptime SLA',
-        'Acronis Software Agent Licenses Included',
-      ],
-      
-      specifications: {
-        uptime: '100% Infrastructure Uptime SLA',
-        agents: 'Unlimited Backup Agents',
-        bandwidth: 'Incoming + Outgoing Bandwidth Included',
-        storage: 'Acronis Cloud Storage',
-      },
-      
       basePrice: 345, // Lowest variant price
       isRecurring: false,
       productType: 'CONFIGURABLE',

@@ -262,22 +262,6 @@ Contract Terms:
 - Delivery: Within 3-4 working days from PO + Advance Payment Receipt
 - Overage Billing will be billed as actuals`,
       
-      features: [
-        'Standard & Advanced Backup',
-        'Microsoft 365 & Google Workspace Backup',
-        'Advanced Security + EDR',
-        'Remote Monitoring and Management',
-        'Advanced Email Security',
-        'Data Loss Prevention',
-      ],
-      
-      specifications: {
-        backup: 'Standard & Advanced Backup for Workstations, VMs, Servers',
-        security: 'Anti-Virus, Anti-Malware, EDR, Email Security',
-        management: 'Remote Monitoring & Patch Management',
-        dlp: 'Advanced Data Loss Prevention',
-      },
-      
       basePrice: 109, // Lowest variant price
       isRecurring: false,
       productType: 'CONFIGURABLE',
