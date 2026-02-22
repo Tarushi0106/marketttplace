@@ -522,6 +522,21 @@ export default async function ProductDetailPage({ params }: Props) {
                           const variantBillingType = variant.attributes?.billingType || "RECURRING";
                           const rp = variant.recurringPrices?.[0];
                           
+                          // Reserved keys to exclude from specifications
+                          const reservedKeys = [
+                            'billingType', 'setupFee',
+                            'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                            'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                            'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                          ];
+                          
+                          // Get specifications from variant attributes
+                          const variantAttrs = variant.attributes as Record<string, string> || {};
+                          const specifications = Object.entries(variantAttrs)
+                            .filter(([key]) => !reservedKeys.includes(key))
+                            .slice(0, 6); // Show max 6 specs
+                          
                           // Get the first available price with its billing cycle suffix
                           const getDisplayPrice = (): { price: number; suffix: string } => {
                             if (!rp) return { price: Number(variant.price), suffix: "" };
@@ -587,6 +602,24 @@ export default async function ProductDetailPage({ params }: Props) {
                                 {priceSuffix && <span className="text-lg font-normal text-gray-500">{priceSuffix}</span>}
                               </p>
                             </div>
+                            
+                            {/* Specifications with green checkmarks */}
+                            {specifications.length > 0 && (
+                              <ul className="space-y-3 mb-6">
+                                {specifications.map(([key, value]) => (
+                                  <li key={key} className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
+                                      <CheckCircle className="w-4 h-4 text-green-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-sm text-gray-600">{key}:</span>
+                                      <span className="text-sm font-medium text-gray-900 ml-1">{value}</span>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            
                             <Button asChild className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
                               <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                                 Get Started <ArrowRight className="h-4 w-4 ml-2" />
@@ -595,87 +628,6 @@ export default async function ProductDetailPage({ params }: Props) {
                           </div>
                         )})}
                       </div>
-
-                      {/* Specifications Comparison Table */}
-                      {(() => {
-                        const reservedKeys = [
-                          'billingType', 'setupFee',
-                          'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
-                          'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
-                          'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
-                        ];
-                        
-                        // Get all unique specification keys from all variants
-                        const allSpecKeys = new Set<string>();
-                        product.variants.forEach((variant: any) => {
-                          const attrs = variant.attributes as Record<string, string> || {};
-                          Object.keys(attrs).forEach(key => {
-                            if (!reservedKeys.includes(key)) {
-                              allSpecKeys.add(key);
-                            }
-                          });
-                        });
-                        
-                        const specKeys = Array.from(allSpecKeys);
-                        
-                        if (specKeys.length === 0) return null;
-                        
-                        return (
-                          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="bg-gray-50 border-b border-gray-200">
-                                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Specifications</th>
-                                    {product.variants.map((variant: any) => (
-                                      <th key={variant.id} className="text-center py-4 px-4 font-semibold text-gray-900 min-w-[120px]">
-                                        {variant.name}
-                                      </th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {specKeys.map((key, index) => (
-                                    <tr key={key} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                      <td className="py-3 px-6 text-gray-700 font-medium">{key}</td>
-                                      {product.variants.map((variant: any) => {
-                                        const attrs = variant.attributes as Record<string, string> || {};
-                                        const value = attrs[key] || '-';
-                                        return (
-                                          <td key={variant.id} className="py-3 px-4 text-center text-gray-900">
-                                            {value}
-                                          </td>
-                                        );
-                                      })}
-                                    </tr>
-                                  ))}
-                                  {/* Pricing Row - Highlighted */}
-                                  <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t-2 border-blue-200">
-                                    <td className="py-5 px-6">
-                                      <span className="text-gray-800 font-bold text-lg">Monthly Price</span>
-                                    </td>
-                                    {product.variants.map((variant: any) => {
-                                      const variantRecurringPrices = variant.recurringPrices?.find((rp: any) => rp.variantId === variant.id) || variant.recurringPrices?.[0] || {};
-                                      const monthlyPrice = variantRecurringPrices.monthlyPrice || variant.monthlyPrice;
-                                      return (
-                                        <td key={variant.id} className="py-5 px-4 text-center">
-                                          <div className="flex flex-col items-center">
-                                            <span className="text-2xl font-bold text-blue-700">
-                                              {monthlyPrice ? formatPrice(monthlyPrice) : 'Contact Us'}
-                                            </span>
-                                            <span className="text-gray-500 text-sm font-medium">/month</span>
-                                          </div>
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        );
-                      })()}
                     </div>
                   ) : !isConfigurable && hasPricing ? (
                     <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
