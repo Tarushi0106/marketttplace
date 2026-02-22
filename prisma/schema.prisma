@@ -318,6 +318,7 @@ model ProductAddon {
   name            String
   description     String?         @db.Text
   price           Decimal         @db.Decimal(10, 2)
+  setupFee        Decimal?        @db.Decimal(10, 2) @default(0)
   unit            String?         // e.g., "per user", "per server", "per GB", "per tunnel"
   pricingType     AddonPricingType @default(ONE_TIME)
   isRequired      Boolean         @default(false)

@@ -234,48 +234,56 @@ const addons = [
     name: 'Backup Server Setup',
     description: 'Backup Server Setup (addon)',
     price: 29250,
+    setupFee: 0,
     unit: 'per install',
   },
   {
     name: 'Backup NAS Setup',
     description: 'Backup NAS Setup (addon)',
     price: 15750,
+    setupFee: 9999,
     unit: 'per install',
   },
   {
     name: 'Windows 2019 Standard Edition for Backup Server',
     description: 'Windows 2019 Standard Edition for Backup Server (main and addon)',
     price: 540,
+    setupFee: 0,
     unit: 'per 2 core',
   },
   {
     name: 'Backup Cloud Storage',
     description: 'Backup Cloud Storage (main and addon)',
     price: 5625,
+    setupFee: 9999,
     unit: 'per TB',
   },
   {
     name: 'Managed Backup Services - Cloud Storage',
     description: 'Managed Backup Services - Cloud Storage (addon)',
     price: 1170,
+    setupFee: 0,
     unit: 'per TB',
   },
   {
     name: 'Managed Backup Services - per Virtual Host',
     description: 'Managed Backup Services - per Virtual Host',
     price: 11250,
+    setupFee: 0,
     unit: 'per virtual host',
   },
   {
     name: 'Managed Backup Services - per Server/VM',
     description: 'Managed Backup Services - per Server/ Virtual Machine',
     price: 270,
+    setupFee: 0,
     unit: 'per device',
   },
   {
     name: 'Managed Backup Services - per Workstation',
     description: 'Managed Backup Services - per Workstation',
     price: 90,
+    setupFee: 0,
     unit: 'per device',
   },
   {
@@ -433,6 +441,7 @@ Contract Terms:
         name: addon.name,
         description: addon.description,
         price: addon.price,
+        setupFee: addon.setupFee || 0,
         unit: addon.unit,
         pricingType: 'ONE_TIME',
         isActive: true,
@@ -442,6 +451,9 @@ Contract Terms:
     
     console.log(`✅ Addon: ${addon.name}`);
     console.log(`   Price: ₹${addon.price} (${addon.unit})`);
+    if (addon.setupFee) {
+      console.log(`   Setup Fee: ₹${addon.setupFee}`);
+    }
     console.log('');
   }
 
