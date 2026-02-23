@@ -14,141 +14,104 @@ const acronisVariants = [
   {
     name: 'Standard Backup - Workstation',
     sku: 'ACRONIS-PROTECT-STD-WKST',
-    shortDesc: 'Acronis Cyber Protect Cloud | Standard Backup - Workstation',
-    description: `Acronis Cyber Protect Cloud | Standard Backup - Workstation
-
-Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.`,
     price: 115,
     unit: 'per workload',
     sortOrder: 0,
+    specifications: 'Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.',
   },
   {
     name: 'Standard Backup - VM',
     sku: 'ACRONIS-PROTECT-STD-VM',
-    shortDesc: 'Acronis Cyber Protect Cloud | Standard Backup - VM',
-    description: `Acronis Cyber Protect Cloud | Standard Backup - VM
-
-Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.`,
     price: 368,
     unit: 'per workload',
     sortOrder: 1,
+    specifications: 'Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.',
   },
   {
     name: 'Standard Backup - Server',
     sku: 'ACRONIS-PROTECT-STD-SVR',
-    shortDesc: 'Acronis Cyber Protect Cloud | Standard Backup - Server',
-    description: `Acronis Cyber Protect Cloud | Standard Backup - Server
-
-Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.`,
     price: 1104,
     unit: 'per workload',
     sortOrder: 2,
+    specifications: 'Workstations, Servers (Windows, Linux, Mac) backup, Virtual machine backup, File backup, Image backup, Immutable backups, Standard applications backup (Microsoft 365, Google Workspace, Microsoft Exchange, Microsoft SQL), Network Shares backup, Backup to local storage.',
   },
   // Advanced Backup
   {
     name: 'Advanced Backup - Workstation',
     sku: 'ACRONIS-PROTECT-ADV-WKST',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Backup - Workstation',
-    description: `Acronis Cyber Protect Cloud | Advanced Backup - Workstation
-
-Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.`,
     price: 138,
     unit: 'per workload',
     sortOrder: 3,
+    specifications: 'Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.',
   },
   {
     name: 'Advanced Backup - VM',
     sku: 'ACRONIS-PROTECT-ADV-VM',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Backup - VM',
-    description: `Acronis Cyber Protect Cloud | Advanced Backup - VM
-
-Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.`,
     price: 368,
     unit: 'per workload',
     sortOrder: 4,
+    specifications: 'Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.',
   },
   {
     name: 'Advanced Backup - Server',
     sku: 'ACRONIS-PROTECT-ADV-SVR',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Backup - Server',
-    description: `Acronis Cyber Protect Cloud | Advanced Backup - Server
-
-Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.`,
     price: 1610,
     unit: 'per workload',
     sortOrder: 5,
+    specifications: 'Microsoft SQL Server and Microsoft Exchange clusters, Oracle DB, SAP HANA, MySQL / MariaDB, Continuous data protection, Off-host data processing, Data protection map.',
   },
   // Microsoft 365 & Google Workspace
   {
     name: 'Microsoft 365 Seat',
     sku: 'ACRONIS-PROTECT-M365',
-    shortDesc: 'Acronis Cyber Protect Cloud | Microsoft 365 Seat',
-    description: `Acronis Cyber Protect Cloud | Microsoft 365 Seat
-
-With unlimited Acronis Hosted Cloud storage.`,
     price: 161,
     unit: 'per workload',
     sortOrder: 6,
+    specifications: 'With unlimited Acronis Hosted Cloud storage.',
   },
   {
     name: 'Google Workspace Seat',
     sku: 'ACRONIS-PROTECT-GWS',
-    shortDesc: 'Acronis Cyber Protect Cloud | Google Workspace Seat',
-    description: `Acronis Cyber Protect Cloud | Google Workspace Seat
-
-With unlimited Acronis Hosted Cloud storage.`,
     price: 184,
     unit: 'per workload',
     sortOrder: 7,
+    specifications: 'With unlimited Acronis Hosted Cloud storage.',
   },
   // Advanced Security
   {
     name: 'Advanced Security + EDR',
     sku: 'ACRONIS-PROTECT-SEC-EDR',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Security + EDR',
-    description: `Acronis Cyber Protect Cloud | Advanced Security + EDR
-
-Anti-Virus & Anti Malware Protection: Local signature-based file detection. URL Filtering, Forensic Backup Centralized backup scanning for malware, Safe recovery, Corporate whitelist, Smart protection plans (integration with CPOC alerts), Endpoint firewall management. #CyberFit Score with Compliance Scorecard & Advanced configuration assessment plus Device Control plus Endpoint Detection and Response (events collection, automated response, security incident management).`,
     price: 112,
     unit: 'per user',
     sortOrder: 8,
+    specifications: 'Anti-Virus & Anti Malware Protection: Local signature-based file detection. URL Filtering, Forensic Backup Centralized backup scanning for malware, Safe recovery, Corporate whitelist, Smart protection plans (integration with CPOC alerts), Endpoint firewall management. #CyberFit Score with Compliance Scorecard & Advanced configuration assessment plus Device Control plus Endpoint Detection and Response (events collection, automated response, security incident management).',
   },
   // Advanced Management
   {
     name: 'Remote Monitoring and Management (RMM)',
     sku: 'ACRONIS-PROTECT-RMM',
-    shortDesc: 'Acronis Cyber Protect Cloud | Remote Monitoring and Management',
-    description: `Acronis Cyber Protect Cloud | Remote Monitoring and Management (RMM)
-
-Vulnerability Assessment with integrated Patch Management Fail-safe patching + Asset management with Software Inventory Drive health monitoring + #CyberFit Score Remote desktop connection to Windows, Macos & Linux workloads File transfer + Monitoring based on machine intelligence, Patch management, HDD health, Software inventory, Fail-safe Patching, Cyber Scripting, AI-based monitoring, Software deployment.`,
     price: 109,
     unit: 'per user',
     sortOrder: 9,
+    specifications: 'Vulnerability Assessment with integrated Patch Management Fail-safe patching + Asset management with Software Inventory Drive health monitoring + #CyberFit Score Remote desktop connection to Windows, Macos & Linux workloads File transfer + Monitoring based on machine intelligence, Patch management, HDD health, Software inventory, Fail-safe Patching, Cyber Scripting, AI-based monitoring, Software deployment.',
   },
   // Advanced Email Security
   {
     name: 'Advanced Email Security (AES)',
     sku: 'ACRONIS-PROTECT-AES',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Email Security',
-    description: `Acronis Cyber Protect Cloud | Advanced Email Security (AES)
-
-Advanced Email Security enables real-time protection for your Microsoft 365 & Gmail mailboxes:
-Anti-Malware + Anti-Spam + URL scan in emails + Anti-Phishing DMARC analysis + BEC + ATO + Impersonation protection Attachments Scan + Content disarm & reconstruction + Graph of Trust Anti-phishing, anti-spam protection, anti-malware, APT and zero-day protection, impression (BEC) protection, account takeover (ATO) detection, attachments deep scanning, URL filtering, threat intelligence, incident response services.`,
     price: 161,
     unit: 'per user',
     sortOrder: 10,
+    specifications: 'Advanced Email Security enables real-time protection for your Microsoft 365 & Gmail mailboxes: Anti-Malware + Anti-Spam + URL scan in emails + Anti-Phishing DMARC analysis + BEC + ATO + Impersonation protection Attachments Scan + Content disarm & reconstruction + Graph of Trust Anti-phishing, anti-spam protection, anti-malware, APT and zero-day protection, impression (BEC) protection, account takeover (ATO) detection, attachments deep scanning, URL filtering, threat intelligence, incident response services.',
   },
   // Advanced DLP
   {
     name: 'Advanced Data Loss Prevention (DLP)',
     sku: 'ACRONIS-PROTECT-DLP',
-    shortDesc: 'Acronis Cyber Protect Cloud | Advanced Data Loss Prevention',
-    description: `Acronis Cyber Protect Cloud | Advanced Data Loss Prevention (DLP)
-
-Advanced Data Loss Prevention Workloads (Servers, VMs, Workstations, Hosting Servers).`,
     price: 217,
     unit: 'per user',
     sortOrder: 11,
+    specifications: 'Advanced Data Loss Prevention Workloads (Servers, VMs, Workstations, Hosting Servers).',
   },
 ];
 
@@ -293,6 +256,7 @@ Contract Terms:
         attributes: {
           unit: variant.unit,
           billingType: 'ONE_TIME',
+          specifications: variant.specifications || '',
         },
         
         isDefault: i === 0,
