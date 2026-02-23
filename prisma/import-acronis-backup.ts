@@ -254,8 +254,6 @@ Contract Terms:
         compareAtPrice: variant.price,
         
         attributes: {
-          shortDesc: variant.shortDesc,
-          description: variant.description,
           unit: variant.unit,
           billingType: 'ONE_TIME',
         },
