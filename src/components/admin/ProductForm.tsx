@@ -1674,7 +1674,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <div className="space-y-2">
                       <Label>Pricing Display Format</Label>
                       <Select
-                        value={formData.pricingDisplayFormat}
+                        value={formData.pricingDisplayFormat || "TABLE"}
                         onValueChange={(value) =>
                           setFormData({ ...formData, pricingDisplayFormat: value as "TABLE" | "CARD" })
                         }
