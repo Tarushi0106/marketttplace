@@ -1695,16 +1695,16 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <div className="space-y-2">
                       <Label>Product Icon</Label>
                       <Select
-                        value={formData.icon || ""}
+                        value={formData.icon || "none"}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, icon: value })
+                          setFormData({ ...formData, icon: value === "none" ? "" : value })
                         }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select an icon" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None (use first letter)</SelectItem>
+                          <SelectItem value="none">None (use first letter)</SelectItem>
                           <SelectItem value="Cloud">Cloud</SelectItem>
                           <SelectItem value="Server">Server</SelectItem>
                           <SelectItem value="Database">Database</SelectItem>
