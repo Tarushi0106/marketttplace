@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Smartphone Body -->
+  <rect x="18" y="6" width="28" height="52" rx="4" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Screen Line -->
+  <line x1="24" y1="14" x2="40" y2="14" stroke="#2D3436" stroke-width="2"/>
+  <!-- Screen Area -->
+  <rect x="22" y="18" width="20" height="30" stroke="#2D3436" stroke-width="2" fill="none"/>
+  <!-- Home Button -->
+  <circle cx="32" cy="52" r="3" stroke="#2D3436" stroke-width="2"/>
+  <!-- Red Accent - Screen Glare -->
+  <path d="M24 20l-2 10" stroke="#E74C3C" stroke-width="2" stroke-linecap="round"/>
+</svg>

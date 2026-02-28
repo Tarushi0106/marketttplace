@@ -162,7 +162,7 @@ const variantSchema = z.object({
   costPrice: z.coerce.number().min(0).optional().nullable(),
   stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
-  specifications: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.any()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().default(0),
@@ -213,7 +213,7 @@ const createProductSchema = z.object({
   shortDescription: z.string().optional(),
   description: z.string().optional(),
   features: z.array(z.string()).optional(),
-  specifications: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.any()).optional(),
   sku: z.string().optional(),
   barcode: z.string().optional(),
   basePrice: z.coerce.number().min(0),
@@ -237,13 +237,14 @@ const createProductSchema = z.object({
   lowStockThreshold: z.coerce.number().int().min(0).default(5),
   weight: z.coerce.number().min(0).optional().nullable(),
   weightUnit: z.string().default("kg"),
+  brandLogo: z.string().optional().nullable(),
   // Related data
   images: z.array(imageSchema).optional(),
   variants: z.array(variantSchema).optional(),
   addons: z.array(addonSchema).optional(),
   configs: z.array(configSchema).optional(),
   seoMetadata: seoSchema.optional(),
-});
+}).passthrough();
 
 export async function POST(request: NextRequest) {
   try {
@@ -326,7 +327,8 @@ export async function POST(request: NextRequest) {
               'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
               'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
               'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+              'shortDesc', 'longDesc'
             ];
             
             // Filter out reserved keys from specifications

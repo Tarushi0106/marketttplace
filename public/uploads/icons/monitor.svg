@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Monitor Screen -->
+  <rect x="6" y="8" width="52" height="36" rx="3" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Monitor Screen Inner -->
+  <rect x="10" y="12" width="44" height="28" stroke="#2D3436" stroke-width="2"/>
+  <!-- Red Accent - Screen Display -->
+  <rect x="12" y="14" width="16" height="10" fill="#E74C3C"/>
+  <!-- Monitor Stand Neck -->
+  <rect x="26" y="44" width="12" height="8" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Monitor Base -->
+  <path d="M20 52h24l-2 4H22l-2-4z" fill="#ffffff" stroke="#2D3436" stroke-width="3" stroke-linejoin="round"/>
+</svg>

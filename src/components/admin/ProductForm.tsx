@@ -551,7 +551,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
                 'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
                 'monthlyCostPrice', 'biMonthlyCostPrice', 'quarterlyCostPrice', 'fourMonthlyCostPrice',
-                'semiAnnualCostPrice', 'triAnnualCostPrice', 'yearlyCostPrice', 'biennialCostPrice', 'triennialCostPrice'
+                'semiAnnualCostPrice', 'triAnnualCostPrice', 'yearlyCostPrice', 'biennialCostPrice', 'triennialCostPrice',
+                'shortDesc', 'longDesc'
               ];
               
               // Extract specifications from attributes, excluding reserved keys
@@ -1082,7 +1083,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
             'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
             'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+            'shortDesc', 'longDesc'
           ];
           
           // Filter out reserved keys from specifications
@@ -1815,7 +1817,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     </div>
                   )}
                   <div className="flex-1">
-                    <Label htmlFor="brandLogo">Logo URL</Label>
+                    <Label htmlFor="brandLogo">Brand Logo URL</Label>
                     <Input
                       id="brandLogo"
                       value={formData.brandLogo}
@@ -1826,7 +1828,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Enter a URL or upload an image and paste the URL
+                      Enter a logo URL
                     </p>
                   </div>
                 </div>
@@ -3593,7 +3595,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
                     'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
                     'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-                    'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                    'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+                    'shortDesc', 'longDesc'
                   ];
                   return !reservedKeys.includes(key);
                 }).length > 0 && (
@@ -3605,7 +3608,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
                           'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
                           'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+                          'shortDesc', 'longDesc'
                         ];
                         return !reservedKeys.includes(key);
                       })

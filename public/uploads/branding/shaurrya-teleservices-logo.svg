@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150" width="500" height="150">
+  <!-- Background -->
+  <rect width="500" height="150" fill="#ffffff"/>
+  
+  <!-- Logo Mark - Left Side -->
+  <g transform="translate(30, 25)">
+    <!-- Abstract Cloud Shape - Dark Grey -->
+    <path d="M20 65 
+             Q5 65 5 50 
+             Q5 35 20 35 
+             Q20 25 30 20
+             Q40 10 55 15
+             Q65 5 80 15
+             Q95 10 105 20
+             Q115 25 115 40
+             Q130 40 130 55
+             Q130 70 115 70
+             Q115 80 100 80
+             Q85 90 65 85
+             Q50 95 35 85
+             Q20 85 20 65Z" 
+          fill="#2D3436"/>
+    
+    <!-- Shield Overlay - Red -->
+    <path d="M55 15
+             L55 35
+             Q55 50 70 58
+             L70 72
+             Q70 85 85 90
+             Q100 85 100 72
+             L100 58
+             Q115 50 115 35
+             L115 15
+             Q85 20 55 15Z" 
+          fill="#E74C3C"/>
+    
+    <!-- Shield Highlight -->
+    <path d="M70 25
+             L70 40
+             Q70 50 80 55
+             L80 65
+             Q80 72 85 75
+             Q90 72 90 65
+             L90 55
+             Q100 50 100 40
+             L100 25
+             Q85 28 70 25Z" 
+          fill="#C0392B"/>
+    
+    <!-- Connectivity Signal Dots -->
+    <circle cx="130" cy="30" r="4" fill="#E74C3C"/>
+    <circle cx="145" cy="30" r="4" fill="#E74C3C"/>
+    <circle cx="160" cy="30" r="4" fill="#E74C3C"/>
+    
+    <!-- Signal Arcs -->
+    <path d="M135 18 Q147 8 160 18" stroke="#E74C3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M128 10 Q147 -3 167 10" stroke="#E74C3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Company Name -->
+  <text x="250" y="100" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="32" 
+        font-weight="bold" 
+        fill="#2D3436"
+        text-anchor="middle"
+        letter-spacing="2">
+    SHAURRYA
+  </text>
+  
+  <!-- Company Name Secondary Line -->
+  <text x="250" y="125" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="14" 
+        font-weight="600"
+        fill="#E74C3C"
+        text-anchor="middle"
+        letter-spacing="6">
+    TELE SERVICES
+  </text>
+  
+  <!-- Tagline -->
+  <text x="250" y="145" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="9" 
+        fill="#7F8C8D"
+        text-anchor="middle"
+        letter-spacing="2">
+    B2B CLOUD & CYBERSECURITY MARKETPLACE
+  </text>
+</svg>

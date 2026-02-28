@@ -50,14 +50,15 @@ interface ProductsPageProps {
 }
 
 async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams"]>) {
-  const page = parseInt(searchParams.page || "1");
-  const limit = 12;
-  const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(searchParams.page || "1");
+    const limit = 12;
+    const skip = (page - 1) * limit;
 
-  // Build where clause
-  const where: Prisma.ProductWhereInput = {
-    status: "ACTIVE",
-  };
+    // Build where clause
+    const where: Prisma.ProductWhereInput = {
+      status: "ACTIVE",
+    };
 
   // Search filter
   if (searchParams.search) {
@@ -147,7 +148,20 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        shortDescription: true,
+        description: true,
+        basePrice: true,
+        compareAtPrice: true,
+        averageRating: true,
+        reviewCount: true,
+        isFeatured: true,
+        productType: true,
+        icon: true,
+        brandLogo: true,
         category: true,
         subCategory: true,
         images: {
@@ -200,6 +214,18 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
       totalPages: Math.ceil(total / limit),
     },
   };
+  } catch (error) {
+    console.error('Database error in getProducts:', error);
+    return {
+      products: [],
+      pagination: {
+        page: 1,
+        limit: 12,
+        total: 0,
+        totalPages: 0,
+      },
+    };
+  }
 }
 
 async function getCategories() {

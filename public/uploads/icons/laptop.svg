@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Laptop Screen -->
+  <rect x="8" y="8" width="48" height="32" rx="3" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Laptop Screen Inner -->
+  <rect x="12" y="12" width="40" height="24" stroke="#2D3436" stroke-width="2"/>
+  <!-- Red Accent on Screen -->
+  <rect x="14" y="14" width="8" height="6" fill="#E74C3C"/>
+  <!-- Laptop Base -->
+  <path d="M4 40h56l-4 12H8l-4-12z" fill="#ffffff" stroke="#2D3436" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Base Line Detail -->
+  <line x1="8" y1="44" x2="56" y2="44" stroke="#2D3436" stroke-width="2"/>
+  <!-- Trackpad -->
+  <rect x="26" y="46" width="12" height="2" fill="#2D3436"/>
+</svg>

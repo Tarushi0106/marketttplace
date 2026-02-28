@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Server Rack Outline -->
+  <rect x="12" y="8" width="40" height="48" rx="4" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Server Lines -->
+  <line x1="20" y1="20" x2="44" y2="20" stroke="#2D3436" stroke-width="2"/>
+  <line x1="20" y1="32" x2="44" y2="32" stroke="#2D3436" stroke-width="2"/>
+  <line x1="20" y1="44" x2="44" y2="44" stroke="#2D3436" stroke-width="2"/>
+  <!-- Status Lights - Red Accents -->
+  <circle cx="17" cy="14" r="2" fill="#E74C3C"/>
+  <circle cx="24" cy="14" r="2" fill="#2D3436"/>
+  <circle cx="17" cy="26" r="2" fill="#E74C3C"/>
+  <circle cx="24" cy="26" r="2" fill="#2D3436"/>
+  <circle cx="17" cy="38" r="2" fill="#E74C3C"/>
+  <circle cx="24" cy="38" r="2" fill="#2D3436"/>
+</svg>

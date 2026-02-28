@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Soft rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="#FDECEC"/>
+  
+  <!-- Lock body outline -->
+  <rect x="36" y="52" width="56" height="44" rx="8" 
+        fill="none" 
+        stroke="#C62828" 
+        stroke-width="4"/>
+  
+  <!-- Lock shackle outline -->
+  <path d="M48 52V36a16 16 0 0 1 32 0v16" 
+        fill="none" 
+        stroke="#C62828" 
+        stroke-width="4" 
+        stroke-linecap="round"/>
+</svg>

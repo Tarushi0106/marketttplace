@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Shield Outline -->
+  <path d="M32 6L12 16v16c0 12 8.5 23 20 26 11.5-3 20-14 20-26V16L32 6z" fill="#ffffff" stroke="#2D3436" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Shield Inner Detail -->
+  <path d="M32 14L18 21v12c0 8 5.5 15 14 17 8.5-2 14-9 14-17V21L32 14z" stroke="#2D3436" stroke-width="2" fill="none"/>
+  <!-- Checkmark - Red Accent -->
+  <path d="M26 32l4 4 8-8" stroke="#E74C3C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

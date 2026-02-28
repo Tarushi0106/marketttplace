@@ -139,7 +139,7 @@ const variantSchema = z.object({
   costPrice: z.coerce.number().min(0).optional().nullable(),
   stockQuantity: z.coerce.number().int().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(),
-  specifications: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.any()).optional(),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().default(0),
@@ -247,6 +247,7 @@ const updateProductSchema = z.object({
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   pricingDisplayFormat: z.enum(["TABLE", "CARD"]).optional(),
   icon: z.string().optional().nullable(),
+  brandLogo: z.string().optional().nullable(),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),
   isFeatured: z.boolean().optional(),
@@ -265,7 +266,7 @@ const updateProductSchema = z.object({
   addons: z.array(addonSchema).optional(),
   configs: z.array(configSchema).optional(),
   seoMetadata: seoSchema.optional(),
-});
+}).passthrough();
 
 export async function PUT(
   request: NextRequest,
@@ -303,7 +304,26 @@ export async function PUT(
     }
 
     // Extract related data
-    const { images, variants, addons, configs, seoMetadata, ...productData } = data;
+    const { images, variants, addons, configs, seoMetadata, ...restData } = data;
+    
+    // Filter out any extra fields that are not valid Prisma product fields
+    // This handles fields that come from the form but aren't in the schema
+    const allowedProductFields = [
+      'name', 'slug', 'shortDescription', 'description', 'features', 'specifications',
+      'sku', 'barcode', 'basePrice', 'compareAtPrice', 'costPrice', 'taxRate',
+      'isRecurring', 'setupFee', 'productType', 'status', 'pricingDisplayFormat', 'icon', 'brandLogo',
+      'categoryId', 'subCategoryId', 'isFeatured', 'isDigital', 'requiresShipping',
+      'trackInventory', 'allowBackorder', 'stockQuantity', 'lowStockThreshold',
+      'weight', 'weightUnit', 'sortOrder'
+    ];
+    
+    // Create a clean productData object with only allowed fields
+    const productData: Record<string, any> = {};
+    for (const key of allowedProductFields) {
+      if (key in restData) {
+        productData[key] = restData[key];
+      }
+    }
 
     // Check if slug is unique (if updating slug)
     if (productData.slug && productData.slug !== existingProduct.slug) {
@@ -424,7 +444,8 @@ export async function PUT(
             'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
             'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
             'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
-            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+            'shortDesc', 'longDesc'
           ];
           
           // Filter out reserved keys from specifications

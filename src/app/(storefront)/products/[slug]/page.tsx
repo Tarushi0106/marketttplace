@@ -28,6 +28,10 @@ import {
   Sparkles,
   BadgeCheck,
   Rocket,
+  Cloud,
+  Server,
+  Database,
+  Lock,
   Headphones,
   Info,
   LayoutGrid,
@@ -45,6 +49,26 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { formatPrice } from "@/lib/utils";
+
+// Render icon based on icon name
+function renderIcon(iconName?: string | null) {
+  const props = { size: 28, className: "text-red-600" };
+
+  switch (iconName) {
+    case "Cloud":
+      return <Cloud {...props} />;
+    case "Shield":
+      return <Shield {...props} />;
+    case "Server":
+      return <Server {...props} />;
+    case "Database":
+      return <Database {...props} />;
+    case "Lock":
+      return <Lock {...props} />;
+    default:
+      return <Cloud {...props} />;
+  }
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -66,7 +90,8 @@ async function getProductDisplaySetting(): Promise<"card" | "table"> {
 }
 
 async function getProduct(slug: string) {
-  const product = await prisma.product.findFirst({
+  try {
+    const product = await prisma.product.findFirst({
     where: {
       OR: [{ slug }, { id: slug }],
       status: "ACTIVE",
@@ -134,31 +159,44 @@ async function getProduct(slug: string) {
   }
 
   if (product) {
-    await prisma.product.update({
-      where: { id: product.id },
-      data: { viewCount: { increment: 1 } },
-    });
+    try {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { viewCount: { increment: 1 } },
+      });
+    } catch (error) {
+      // Silently fail for view count update
+    }
   }
 
   return product;
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return null;
+  }
 }
 
 async function getRelatedProducts(categoryId: string | null, currentProductId: string) {
   if (!categoryId) return [];
 
-  return prisma.product.findMany({
-    where: {
-      categoryId,
-      status: "ACTIVE",
-      id: { not: currentProductId },
-    },
-    include: {
-      images: { take: 1 },
-      category: true,
-    },
-    take: 4,
-    orderBy: { salesCount: "desc" },
-  });
+  try {
+    return await prisma.product.findMany({
+      where: {
+        categoryId,
+        status: "ACTIVE",
+        id: { not: currentProductId },
+      },
+      include: {
+        images: { take: 1 },
+        category: true,
+      },
+      take: 4,
+      orderBy: { salesCount: "desc" },
+    });
+  } catch (error) {
+    console.error('Database connection error in getRelatedProducts:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -218,88 +256,37 @@ export default async function ProductDetailPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section with Image */}
-      <section className="relative">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
-          <div className="relative h-[280px] md:h-[320px] rounded-2xl overflow-hidden">
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
-              }}
-            />
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-
-            <div className="relative h-full flex flex-col justify-end p-6 md:p-8">
-              <nav className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-                <Link href="/" className="hover:text-white transition-colors">Home</Link>
-                <ChevronRight className="h-4 w-4 text-gray-500" />
-                <Link href="/products" className="hover:text-white transition-colors">Products</Link>
-                {product.category && (
-                  <>
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
-                    <Link href={`/categories/${product.category.slug}`} className="hover:text-white transition-colors">
-                      {product.category.name}
-                    </Link>
-                  </>
-                )}
-                <ChevronRight className="h-4 w-4 text-gray-500" />
-                <span className="text-white truncate max-w-[200px]">{product.name}</span>
-              </nav>
-
-              <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-gray-200">
-                  {product.brandLogo ? (
-                    <Image src={product.brandLogo} alt={`${product.name} logo`} width={80} height={80} className="w-full h-full object-contain p-2" />
-                  ) : product.images[0]?.url ? (
-                    <Image src={product.images[0].url} alt={product.name} width={80} height={80} className="w-full h-full object-contain p-2" />
-                  ) : (
-                    <Building2 className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    {product.isFeatured && <Badge className="bg-amber-500 text-white text-xs shadow-lg">Featured</Badge>}
-                    {hasDiscount && <Badge className="bg-green-500 text-white text-xs shadow-lg">{discountPercent}% OFF</Badge>}
-                    <Badge variant="outline" className="text-gray-300 border-gray-600 text-xs">
-                      {product.productType.replace("_", " ")}
-                    </Badge>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">{product.name}</h1>
-                </div>
+      <section className="bg-white">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-2xl p-8 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-red-50">
+                {renderIcon(product.icon)}
               </div>
-
-              {product.shortDescription && (
-                <p className="text-gray-300 max-w-3xl mb-4 line-clamp-2">{product.shortDescription}</p>
-              )}
-
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`h-4 w-4 ${star <= Math.round(averageRating) ? "fill-amber-400 text-amber-400" : "text-gray-600"}`} />
-                      ))}
-                    </div>
-                    <span className="font-medium text-white">{averageRating.toFixed(1)}</span>
-                    <span>({reviewCount} reviews)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Users className="h-4 w-4" />
-                    <span>{product.salesCount || 0}+ users</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
-                  </Button>
-                  <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
-                    <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
-                  </Button>
-                </div>
+              <div>
+                <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                  <Link href="/" className="hover:text-[#8B1D1D] transition-colors">Home</Link>
+                  <ChevronRight className="h-4 w-4" />
+                  <Link href="/products" className="hover:text-[#8B1D1D] transition-colors">Products</Link>
+                  {product.category && (
+                    <>
+                      <ChevronRight className="h-4 w-4" />
+                      <Link href={`/categories/${product.category.slug}`} className="hover:text-[#8B1D1D] transition-colors">
+                        {product.category.name}
+                      </Link>
+                    </>
+                  )}
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="text-gray-900">{product.name}</span>
+                </nav>
+                <h1 className="text-3xl font-semibold text-gray-900">
+                  {product.name}
+                </h1>
+                {product.shortDescription && (
+                  <p className="text-gray-500 mt-2">
+                    {product.shortDescription}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -403,23 +390,6 @@ export default async function ProductDetailPage({ params }: Props) {
 
                 <div className="grid lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-2 space-y-10">
-                    {/* Image Gallery */}
-                    {product.images.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Gallery</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {product.images.slice(0, 4).map((image, index) => (
-                            <div
-                              key={image.id}
-                              className={`relative rounded-2xl overflow-hidden bg-gray-100 ${index === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
-                            >
-                              <Image src={image.url} alt={image.alt || product.name} fill className="object-cover hover:scale-105 transition-transform duration-300" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Description */}
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>

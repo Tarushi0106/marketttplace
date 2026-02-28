@@ -126,43 +126,48 @@ const defaultSettings: LandingPageSettings = {
 };
 
 async function getCategories() {
-  const categories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-    include: {
-      _count: {
-        select: { products: { where: { status: "ACTIVE" } } },
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      include: {
+        _count: {
+          select: { products: { where: { status: "ACTIVE" } } },
+        },
       },
-    },
-  });
+    });
 
-  function getCategoryColors(bgColor: string | null) {
-    const colorMap: Record<string, { bgClass: string; titleClass: string; textClass: string; iconBg: string }> = {
-      "#000000": { bgClass: "bg-gradient-to-br from-gray-900 to-gray-800", titleClass: "text-white", textClass: "text-gray-300", iconBg: "bg-white/10" },
-      "#D4A574": { bgClass: "bg-[#FDF6E9]", titleClass: "text-[#92400E]", textClass: "text-[#78716C]", iconBg: "bg-white/60" },
-      "#E5E5E5": { bgClass: "bg-[#F3F4F6]", titleClass: "text-[#111827]", textClass: "text-[#6B7280]", iconBg: "bg-white/80" },
-      "#FFE4E4": { bgClass: "bg-[#FEE2E2]", titleClass: "text-[#8B1D1D]", textClass: "text-[#7F1D1D]", iconBg: "bg-white/60" },
-      "#F5F5F5": { bgClass: "bg-[#F5F5F5]", titleClass: "text-[#374151]", textClass: "text-[#6B7280]", iconBg: "bg-white/80" },
-      "#DBEAFE": { bgClass: "bg-[#DBEAFE]", titleClass: "text-[#1E40AF]", textClass: "text-[#3B82F6]", iconBg: "bg-white/60" },
-      "#D1FAE5": { bgClass: "bg-[#D1FAE5]", titleClass: "text-[#065F46]", textClass: "text-[#059669]", iconBg: "bg-white/60" },
-      "#FEF3C7": { bgClass: "bg-[#FEF3C7]", titleClass: "text-[#92400E]", textClass: "text-[#D97706]", iconBg: "bg-white/60" },
-    };
-    return colorMap[bgColor || "#E5E5E5"] || colorMap["#E5E5E5"];
+    function getCategoryColors(bgColor: string | null) {
+      const colorMap: Record<string, { bgClass: string; titleClass: string; textClass: string; iconBg: string }> = {
+        "#000000": { bgClass: "bg-gradient-to-br from-gray-900 to-gray-800", titleClass: "text-white", textClass: "text-gray-300", iconBg: "bg-white/10" },
+        "#D4A574": { bgClass: "bg-[#FDF6E9]", titleClass: "text-[#92400E]", textClass: "text-[#78716C]", iconBg: "bg-white/60" },
+        "#E5E5E5": { bgClass: "bg-[#F3F4F6]", titleClass: "text-[#111827]", textClass: "text-[#6B7280]", iconBg: "bg-white/80" },
+        "#FFE4E4": { bgClass: "bg-[#FEE2E2]", titleClass: "text-[#8B1D1D]", textClass: "text-[#7F1D1D]", iconBg: "bg-white/60" },
+        "#F5F5F5": { bgClass: "bg-[#F5F5F5]", titleClass: "text-[#374151]", textClass: "text-[#6B7280]", iconBg: "bg-white/80" },
+        "#DBEAFE": { bgClass: "bg-[#DBEAFE]", titleClass: "text-[#1E40AF]", textClass: "text-[#3B82F6]", iconBg: "bg-white/60" },
+        "#D1FAE5": { bgClass: "bg-[#D1FAE5]", titleClass: "text-[#065F46]", textClass: "text-[#059669]", iconBg: "bg-white/60" },
+        "#FEF3C7": { bgClass: "bg-[#FEF3C7]", titleClass: "text-[#92400E]", textClass: "text-[#D97706]", iconBg: "bg-white/60" },
+      };
+      return colorMap[bgColor || "#E5E5E5"] || colorMap["#E5E5E5"];
+    }
+
+    return categories.map((cat) => {
+      const colors = getCategoryColors(cat.iconBgColor);
+      return {
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        icon: cat.icon,
+        iconBgColor: cat.iconBgColor,
+        productCount: cat._count.products,
+        ...colors,
+      };
+    });
+  } catch (error) {
+    console.error('Database error in getCategories:', error);
+    return [];
   }
-
-  return categories.map((cat) => {
-    const colors = getCategoryColors(cat.iconBgColor);
-    return {
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      icon: cat.icon,
-      iconBgColor: cat.iconBgColor,
-      productCount: cat._count.products,
-      ...colors,
-    };
-  });
 }
 
 async function getLandingPageSettings(): Promise<LandingPageSettings> {
