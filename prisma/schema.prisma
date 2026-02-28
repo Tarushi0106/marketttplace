@@ -245,6 +245,7 @@ model Product {
   salesCount      Int           @default(0)
   averageRating   Decimal?      @db.Decimal(3, 2)
   reviewCount     Int           @default(0)
+  pricingDisplayFormat PricingDisplayFormat? @default(TABLE)  // Card or Table format for pricing display
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -409,6 +410,11 @@ enum ProductStatus {
   DRAFT
   ACTIVE
   ARCHIVED
+}
+
+enum PricingDisplayFormat {
+  TABLE
+  CARD
 }
 
 enum AddonPricingType {

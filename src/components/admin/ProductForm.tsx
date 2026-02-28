@@ -28,6 +28,8 @@ import {
   ChevronUp,
   AlertCircle,
   Check,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -252,6 +254,7 @@ interface ProductFormData {
   subCategoryId: string;
   productType: "STANDALONE" | "CONFIGURABLE" | "BUNDLE";
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  pricingDisplayFormat: "TABLE" | "CARD";
   isFeatured: boolean;
   isDigital: boolean;
   requiresShipping: boolean;
@@ -328,6 +331,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     subCategoryId: "",
     productType: "STANDALONE",
     status: "DRAFT",
+    pricingDisplayFormat: "TABLE",
     isFeatured: false,
     isDigital: true,
     requiresShipping: false,
@@ -368,14 +372,54 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   const [editingConfig, setEditingConfig] = useState<ProductConfig | null>(null);
   const [editingAddon, setEditingAddon] = useState<ProductAddon | null>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [displayFormat, setDisplayFormat] = useState<"card" | "table">("card");
+  const [savingDisplayFormat, setSavingDisplayFormat] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
+    fetchDisplaySettings();
     if (isEdit && productId) {
       fetchProduct();
     }
   }, [isEdit, productId]);
+
+  async function fetchDisplaySettings() {
+    try {
+      const response = await fetch("/api/settings/product-display");
+      const data = await response.json();
+      if (data && data.displayFormat) {
+        setDisplayFormat(data.displayFormat);
+      }
+    } catch (error) {
+      console.error("Error fetching display settings:", error);
+    }
+  }
+
+  async function saveDisplaySettings(format: "card" | "table") {
+    setSavingDisplayFormat(true);
+    try {
+      const response = await fetch("/api/settings/product-display", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayFormat: format }),
+      });
+      if (!response.ok) throw new Error("Failed to save");
+      setDisplayFormat(format);
+      toast({
+        title: "Success",
+        description: `Product display format set to ${format === "card" ? "Card View" : "Table View"}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save display settings",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingDisplayFormat(false);
+    }
+  }
 
   async function fetchCategories() {
     try {
@@ -455,6 +499,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           subCategoryId: product.subCategoryId || "",
           productType: product.productType || "STANDALONE",
           status: product.status || "DRAFT",
+          pricingDisplayFormat: product.pricingDisplayFormat || "TABLE",
           isFeatured: product.isFeatured || false,
           isDigital: product.isDigital ?? true,
           requiresShipping: product.requiresShipping ?? false,
@@ -1006,6 +1051,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         // Product Type - One-time or Recurring
         isRecurring: formData.isRecurring,
         
+        // Pricing Display Format
+        pricingDisplayFormat: formData.pricingDisplayFormat,
+        
         // Per-Billing-Cycle Setup Fees (only for recurring products - using quarterly as default)
         setupFee: formData.quarterlySetupFee ? parseFloat(formData.quarterlySetupFee) : null,
         
@@ -1342,7 +1390,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
       {/* Main Form */}
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
             <TabsTrigger value="basic" className="gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden lg:inline">Basic</span>
@@ -1351,16 +1399,16 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <ImageIcon className="h-4 w-4" />
               <span className="hidden lg:inline">Media</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="pricing" 
+            <TabsTrigger
+              value="pricing"
               className="gap-2"
               disabled={formData.productType === "CONFIGURABLE"}
             >
               <DollarSign className="h-4 w-4" />
               <span className="hidden lg:inline">Pricing</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="variants" 
+            <TabsTrigger
+              value="variants"
               className="gap-2"
               disabled={formData.productType === "STANDALONE"}
             >
@@ -1374,6 +1422,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             <TabsTrigger value="addons" className="gap-2">
               <Puzzle className="h-4 w-4" />
               <span className="hidden lg:inline">Addons</span>
+            </TabsTrigger>
+            <TabsTrigger value="display-settings" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden lg:inline">Display Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1611,6 +1663,27 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           setFormData({ ...formData, isFeatured: checked })
                         }
                       />
+                    </div>
+                    {/* Pricing Display Format */}
+                    <div className="space-y-2">
+                      <Label>Pricing Display Format</Label>
+                      <Select
+                        value={formData.pricingDisplayFormat}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, pricingDisplayFormat: value as "TABLE" | "CARD" })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select display format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TABLE">Table View</SelectItem>
+                          <SelectItem value="CARD">Card View</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Choose how pricing options are displayed on the product page
+                      </p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
@@ -2714,6 +2787,130 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         </CardContent>
                       </Card>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* DISPLAY SETTINGS TAB */}
+          <TabsContent value="display-settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LayoutGrid className="h-5 w-5" />
+                  Product Display Format
+                </CardTitle>
+                <CardDescription>
+                  Control how products are displayed on the frontend storefront. This setting applies globally to all products.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Card View Option */}
+                  <div
+                    className={`relative cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                      displayFormat === "card"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    onClick={() => saveDisplaySettings("card")}
+                  >
+                    {displayFormat === "card" && (
+                      <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <LayoutGrid className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">Card View</h3>
+                        <p className="text-xs text-muted-foreground">Default layout</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Products are displayed as visual cards with images, pricing, and a brief description. Best for browsing.
+                    </p>
+                    {/* Card View Preview */}
+                    <div className="mt-4 grid grid-cols-3 gap-1.5">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="rounded-md bg-muted h-14 flex flex-col p-1.5 gap-1">
+                          <div className="h-5 bg-muted-foreground/20 rounded" />
+                          <div className="h-2 bg-muted-foreground/15 rounded w-3/4" />
+                          <div className="h-2 bg-muted-foreground/15 rounded w-1/2" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Table View Option */}
+                  <div
+                    className={`relative cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                      displayFormat === "table"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    onClick={() => saveDisplaySettings("table")}
+                  >
+                    {displayFormat === "table" && (
+                      <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Table2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">Table View</h3>
+                        <p className="text-xs text-muted-foreground">Structured layout</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Products are displayed in a table with columns: Product Name, Price (₹/mo), Server Type, Operating System, and Specifications.
+                    </p>
+                    {/* Table View Preview */}
+                    <div className="mt-4 space-y-1">
+                      <div className="grid grid-cols-4 gap-1">
+                        {["Name", "Price", "Type", "OS"].map((h) => (
+                          <div key={h} className="h-3 bg-muted-foreground/30 rounded text-[8px] flex items-center justify-center text-muted-foreground font-medium">
+                            {h}
+                          </div>
+                        ))}
+                      </div>
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="grid grid-cols-4 gap-1">
+                          {[1, 2, 3, 4].map((j) => (
+                            <div key={j} className="h-3 bg-muted/80 rounded" />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-muted/50 p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Current Setting</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Products are currently displayed in{" "}
+                        <span className="font-semibold text-foreground">
+                          {displayFormat === "card" ? "Card View" : "Table View"}
+                        </span>
+                        {" "}on the frontend. Click on a view option above to change it.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {savingDisplayFormat && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving display settings...
                   </div>
                 )}
               </CardContent>
