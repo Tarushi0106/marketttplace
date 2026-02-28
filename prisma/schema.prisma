@@ -246,6 +246,7 @@ model Product {
   averageRating   Decimal?      @db.Decimal(3, 2)
   reviewCount     Int           @default(0)
   pricingDisplayFormat PricingDisplayFormat? @default(TABLE)  // Card or Table format for pricing display
+  icon            String?       // Custom icon name (lucide-react icon name) for product listing
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

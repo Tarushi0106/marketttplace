@@ -1,9 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Building2, Package, Sparkles, MessageCircle, Eye } from "lucide-react";
+import { Star, Building2, Package, Sparkles, MessageCircle, Eye, Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+// Map icon name to lucide-react component
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart,
+};
+
+// Fallback icon when no custom icon is set
+function FallbackIcon({ name }: { name: string }) {
+  return (
+    <span className="text-3xl font-bold text-gray-400">
+      {name.charAt(0)}
+    </span>
+  );
+}
+
+// Icon component that renders the appropriate icon or fallback
+function ProductIcon({ iconName, productName }: { iconName?: string | null; productName: string }) {
+  if (iconName && iconMap[iconName]) {
+    const IconComponent = iconMap[iconName];
+    return <IconComponent className="w-8 h-8 text-[#8B1D1D]" />;
+  }
+  return <FallbackIcon name={productName} />;
+}
 
 interface Product {
   id: string;
@@ -16,6 +39,7 @@ interface Product {
   reviewCount: number;
   isFeatured: boolean;
   productType: string;
+  icon?: string | null;
   category: {
     id: string;
     name: string;
@@ -144,9 +168,7 @@ function ProductCard({ product }: { product: Product }) {
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                <span className="text-3xl font-bold text-gray-400">
-                  {product.name.charAt(0)}
-                </span>
+                <ProductIcon iconName={product.icon} productName={product.name} />
               </div>
             </div>
           )}
@@ -176,9 +198,7 @@ function ProductCard({ product }: { product: Product }) {
                   className="w-8 h-8 object-contain"
                 />
               ) : (
-                <span className="text-lg font-bold text-[#8B1D1D]">
-                  {product.name.charAt(0)}
-                </span>
+                <ProductIcon iconName={product.icon} productName={product.name} />
               )}
             </div>
           </div>
@@ -294,9 +314,7 @@ function CompactProductCard({ product }: { product: Product }) {
                 className="w-12 h-12 object-contain"
               />
             ) : (
-              <span className="text-2xl font-bold text-[#8B1D1D]">
-                {product.name.charAt(0)}
-              </span>
+              <ProductIcon iconName={product.icon} productName={product.name} />
             )}
           </div>
 
@@ -388,9 +406,7 @@ function ProductListItem({ product }: { product: Product }) {
             </div>
           ) : (
             <div className="w-20 h-20 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100">
-              <span className="text-2xl font-bold text-[#8B1D1D]">
-                {product.name.charAt(0)}
-              </span>
+              <ProductIcon iconName={product.icon} productName={product.name} />
             </div>
           )}
 

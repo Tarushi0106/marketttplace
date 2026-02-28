@@ -246,6 +246,7 @@ const updateProductSchema = z.object({
   productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   pricingDisplayFormat: z.enum(["TABLE", "CARD"]).optional(),
+  icon: z.string().optional().nullable(),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),
   isFeatured: z.boolean().optional(),

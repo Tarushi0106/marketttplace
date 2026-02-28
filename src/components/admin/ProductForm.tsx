@@ -255,6 +255,7 @@ interface ProductFormData {
   productType: "STANDALONE" | "CONFIGURABLE" | "BUNDLE";
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   pricingDisplayFormat: "TABLE" | "CARD";
+  icon: string;
   isFeatured: boolean;
   isDigital: boolean;
   requiresShipping: boolean;
@@ -332,6 +333,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     productType: "STANDALONE",
     status: "DRAFT",
     pricingDisplayFormat: "TABLE",
+    icon: "",
     isFeatured: false,
     isDigital: true,
     requiresShipping: false,
@@ -500,6 +502,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           productType: product.productType || "STANDALONE",
           status: product.status || "DRAFT",
           pricingDisplayFormat: product.pricingDisplayFormat || "TABLE",
+          icon: product.icon || "",
           isFeatured: product.isFeatured || false,
           isDigital: product.isDigital ?? true,
           requiresShipping: product.requiresShipping ?? false,
@@ -1053,6 +1056,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         
         // Pricing Display Format
         pricingDisplayFormat: formData.pricingDisplayFormat,
+        
+        // Icon
+        icon: formData.icon || null,
         
         // Per-Billing-Cycle Setup Fees (only for recurring products - using quarterly as default)
         setupFee: formData.quarterlySetupFee ? parseFloat(formData.quarterlySetupFee) : null,
@@ -1683,6 +1689,58 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       </Select>
                       <p className="text-xs text-muted-foreground">
                         Choose how pricing options are displayed on the product page
+                      </p>
+                    </div>
+                    {/* Product Icon */}
+                    <div className="space-y-2">
+                      <Label>Product Icon</Label>
+                      <Select
+                        value={formData.icon || ""}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, icon: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an icon" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None (use first letter)</SelectItem>
+                          <SelectItem value="Cloud">Cloud</SelectItem>
+                          <SelectItem value="Server">Server</SelectItem>
+                          <SelectItem value="Database">Database</SelectItem>
+                          <SelectItem value="Shield">Shield</SelectItem>
+                          <SelectItem value="Lock">Lock</SelectItem>
+                          <SelectItem value="Globe">Globe</SelectItem>
+                          <SelectItem value="Wifi">Wifi</SelectItem>
+                          <SelectItem value="Smartphone">Smartphone</SelectItem>
+                          <SelectItem value="Laptop">Laptop</SelectItem>
+                          <SelectItem value="Monitor">Monitor</SelectItem>
+                          <SelectItem value="HardDrive">Hard Drive</SelectItem>
+                          <SelectItem value="Cpu">CPU</SelectItem>
+                          <SelectItem value="Network">Network</SelectItem>
+                          <SelectItem value="Mail">Mail</SelectItem>
+                          <SelectItem value="MessageSquare">Message</SelectItem>
+                          <SelectItem value="Phone">Phone</SelectItem>
+                          <SelectItem value="Video">Video</SelectItem>
+                          <SelectItem value="Users">Users</SelectItem>
+                          <SelectItem value="ShoppingCart">Shopping Cart</SelectItem>
+                          <SelectItem value="CreditCard">Payment</SelectItem>
+                          <SelectItem value="FileText">Document</SelectItem>
+                          <SelectItem value="Calendar">Calendar</SelectItem>
+                          <SelectItem value="Clock">Clock</SelectItem>
+                          <SelectItem value="BarChart">Analytics</SelectItem>
+                          <SelectItem value="TrendingUp">Growth</SelectItem>
+                          <SelectItem value="Zap">Power</SelectItem>
+                          <SelectItem value="Leaf">Eco</SelectItem>
+                          <SelectItem value="CloudLightning">Lightning</SelectItem>
+                          <SelectItem value="Building">Building</SelectItem>
+                          <SelectItem value="Briefcase">Business</SelectItem>
+                          <SelectItem value="Heart">Health</SelectItem>
+                          <SelectItem value="Star">Star</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Choose an icon to display on the products listing page
                       </p>
                     </div>
                     <div className="flex items-center justify-between">
