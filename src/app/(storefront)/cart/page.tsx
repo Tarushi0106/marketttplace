@@ -12,7 +12,35 @@ import {
   Tag,
   X,
   Calculator,
+  Cloud,
+  Shield,
+  Server,
+  Database,
+  Lock,
+  Globe,
 } from "lucide-react";
+
+// Render icon based on icon name
+function renderCartIcon(iconName?: string | null) {
+  const props = { size: 28, className: "text-[#C62828]" };
+
+  switch (iconName) {
+    case "Cloud":
+      return <Cloud {...props} />;
+    case "Shield":
+      return <Shield {...props} />;
+    case "Server":
+      return <Server {...props} />;
+    case "Database":
+      return <Database {...props} />;
+    case "Lock":
+      return <Lock {...props} />;
+    case "Globe":
+      return <Globe {...props} />;
+    default:
+      return <Cloud {...props} />;
+  }
+}
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,18 +171,13 @@ export default function CartPage() {
             <Card key={item.id}>
               <CardContent className="p-4">
                 <div className="flex gap-4">
-                  {/* Product image */}
-                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-surface">
-                    {item.product?.images?.[0]?.url ? (
-                      <Image
-                        src={item.product.images[0].url}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover"
-                      />
+                  {/* Product icon */}
+                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-[#FDECEC] flex items-center justify-center">
+                    {item.product?.icon ? (
+                      renderCartIcon(item.product.icon)
                     ) : (
                       <div className="flex h-full items-center justify-center text-muted-foreground">
-                        <ShoppingBag className="h-8 w-8" />
+                        <ShoppingBag className="h-8 w-8 text-[#C62828]" />
                       </div>
                     )}
                   </div>
