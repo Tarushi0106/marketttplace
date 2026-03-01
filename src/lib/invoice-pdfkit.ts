@@ -63,7 +63,8 @@ export function generateInvoiceNumber(): string {
  * Format currency for PDF with Indian Rupee symbol
  */
 function formatCurrency(amount: number): string {
-  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  // Use Rs. instead of ₹ symbol because StandardFonts.Helvetica cannot encode Unicode characters
+  return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

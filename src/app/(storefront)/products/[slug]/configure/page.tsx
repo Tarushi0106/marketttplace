@@ -2,9 +2,31 @@ import { notFound, redirect } from "next/navigation";
 import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { ChevronRight, ArrowLeft, Building2 } from "lucide-react";
+import { ChevronRight, ArrowLeft, Building2, Cloud, Shield, Server, Database, Lock, Globe } from "lucide-react";
 import Image from "next/image";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
+
+// Render icon based on icon name
+function renderProductIcon(iconName?: string | null) {
+  const props = { size: 32, className: "text-[#C62828]" };
+
+  switch (iconName) {
+    case "Cloud":
+      return <Cloud {...props} />;
+    case "Shield":
+      return <Shield {...props} />;
+    case "Server":
+      return <Server {...props} />;
+    case "Database":
+      return <Database {...props} />;
+    case "Lock":
+      return <Lock {...props} />;
+    case "Globe":
+      return <Globe {...props} />;
+    default:
+      return <Cloud {...props} />;
+  }
+}
 
 // Type for recurring prices with per-billing-frequency setup fees
 interface RecurringPricesWithSetupFees {
@@ -300,27 +322,9 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
       <div className="bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8">
           <div className="flex items-start gap-6">
-            {/* Product Logo/Image */}
-            <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl border border-gray-200 flex items-center justify-center overflow-hidden">
-              {product.brandLogo ? (
-                <Image
-                  src={product.brandLogo}
-                  alt={`${product.name} logo`}
-                  width={120}
-                  height={120}
-                  className="w-full h-full object-contain p-3"
-                />
-              ) : product.images[0]?.url ? (
-                <Image
-                  src={product.images[0].url}
-                  alt={product.name}
-                  width={120}
-                  height={120}
-                  className="w-full h-full object-contain p-3"
-                />
-              ) : (
-                <Building2 className="w-12 h-12 text-gray-400" />
-              )}
+            {/* Product Icon */}
+            <div className="flex-shrink-0 w-16 h-16 md:w-16 md:h-16 bg-[#FDECEC] rounded-xl flex items-center justify-center">
+              {renderProductIcon(product.icon)}
             </div>
 
             {/* Product Info */}
