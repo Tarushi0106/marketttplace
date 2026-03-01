@@ -41,7 +41,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { items, getSubtotal, getTax, discountCode, clearCart } = useCartStore();
-  const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
@@ -185,11 +185,35 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("Failed to parse response:", parseError);
+        throw new Error("Invalid server response. Please try again.");
+      }
+
+      console.log("Checkout response status:", response.status);
+      console.log("Checkout response data:", JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         console.error("Checkout API error:", data);
-        throw new Error(data.error || data.details || data.message || "Checkout failed");
+        console.error("Response status:", response.status);
+        
+        // Provide more user-friendly error messages
+        let errorMessage = data.error || data.details || data.message || "Checkout failed";
+        
+        if (response.status === 500) {
+          if (errorMessage.includes("Stripe") || errorMessage.includes("Razorpay") || errorMessage.includes("payment")) {
+            errorMessage = "Payment system is not available. Please try again later or contact support.";
+          } else if (errorMessage.includes("Database") || errorMessage.includes("database")) {
+            errorMessage = "Server error. Please try again.";
+          } else if (errorMessage.includes("empty")) {
+            errorMessage = "Your cart is empty. Please add items before checking out.";
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Check if payment data exists

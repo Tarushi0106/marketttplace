@@ -112,6 +112,19 @@ export async function POST(request: NextRequest) {
       console.log("recurringData:", JSON.stringify(firstItem.recurringData, null, 2));
       console.log("instances:", firstItem.instances ? "present" : "absent");
       console.log("=====================");
+    } else {
+      console.log("=== DEBUG CHECKOUT ===");
+      console.log("No items in cart!");
+      console.log("Body:", JSON.stringify(body, null, 2));
+      console.log("=====================");
+    }
+    
+    // Validate cart has items before proceeding
+    if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+      return NextResponse.json(
+        { error: "Your cart is empty. Please add items before checking out." },
+        { status: 400 }
+      );
     }
     
     console.log("Checkout request body:", JSON.stringify(body, null, 2));
@@ -120,8 +133,13 @@ export async function POST(request: NextRequest) {
     // Calculate order totals
     let subtotal = 0;
     const orderItems: any[] = [];
+    
+    console.log("Starting order item processing...");
+    console.log("Number of items in data.items:", data.items.length);
 
     for (const item of data.items) {
+      console.log("Processing item:", JSON.stringify(item, null, 2));
+      
       if (!item.productId && !item.bundleId) {
         console.warn("Skipping item without productId or bundleId:", item);
         continue;
@@ -132,6 +150,7 @@ export async function POST(request: NextRequest) {
       let sku = "";
 
       if (item.productId) {
+        console.log("Looking up product:", item.productId);
         const product = await prisma.product.findUnique({
           where: { id: item.productId },
           include: {
@@ -140,6 +159,8 @@ export async function POST(request: NextRequest) {
             configs: { include: { options: true } },
           },
         });
+        
+        console.log("Product found:", product ? product.name : "NOT FOUND");
 
         if (!product || product.status !== "ACTIVE") {
           return NextResponse.json(
@@ -357,26 +378,36 @@ export async function POST(request: NextRequest) {
 
     // Create shipping address if provided
     let shippingAddressId: string | undefined;
-    if (data.shippingAddress) {
-      // Only create address record if user is logged in
-      if (session?.user?.id) {
-        const address = await prisma.address.create({
-          data: {
-            userId: session.user.id,
-            type: "SHIPPING",
-            firstName: data.shippingAddress.firstName || "",
-            lastName: data.shippingAddress.lastName || "",
-            company: data.shippingAddress.company || null,
-            address1: data.shippingAddress.address1 || "",
-            address2: data.shippingAddress.address2 || null,
-            city: data.shippingAddress.city || "",
-            state: data.shippingAddress.state || "",
-            postalCode: data.shippingAddress.postalCode || "",
-            country: data.shippingAddress.country || "",
-            phone: data.shippingAddress.phone || null,
-          },
-        });
-        shippingAddressId = address.id;
+    if (data.shippingAddress && session?.user?.id) {
+      // Verify user exists in database before creating address
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true }
+      });
+      
+      if (userExists) {
+        try {
+          const address = await prisma.address.create({
+            data: {
+              userId: session.user.id,
+              type: "SHIPPING",
+              firstName: data.shippingAddress.firstName || "",
+              lastName: data.shippingAddress.lastName || "",
+              company: data.shippingAddress.company || null,
+              address1: data.shippingAddress.address1 || "",
+              address2: data.shippingAddress.address2 || null,
+              city: data.shippingAddress.city || "",
+              state: data.shippingAddress.state || "",
+              postalCode: data.shippingAddress.postalCode || "",
+              country: data.shippingAddress.country || "",
+              phone: data.shippingAddress.phone || null,
+            },
+          });
+          shippingAddressId = address.id;
+        } catch (addressError) {
+          console.error("Error creating address:", addressError);
+          // Continue without address if creation fails
+        }
       }
     }
 
@@ -391,11 +422,25 @@ export async function POST(request: NextRequest) {
       autoRenew: item.recurringData?.autoRenew,
     })) : undefined;
 
+    // Validate user ID if user is logged in
+    let validatedUserId: string | undefined = undefined;
+    if (session?.user?.id) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true }
+      });
+      if (userExists) {
+        validatedUserId = session.user.id;
+      } else {
+        console.warn("User session has invalid userId, proceeding as guest checkout");
+      }
+    }
+
     // Create order in database
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId: session?.user?.id,
+        userId: validatedUserId,
         email: data.email,
         phone: data.phone,
         status: "PENDING",
@@ -439,16 +484,22 @@ export async function POST(request: NextRequest) {
 
     // Create payment session based on method
     let paymentData: any = {};
+    
+    console.log("Creating payment session, paymentMethod:", data.paymentMethod);
+    console.log("Stripe configured:", isStripeConfigured());
+    console.log("Razorpay configured:", isRazorpayConfigured());
 
     if (data.paymentMethod === "stripe") {
       // Check if Stripe is configured
       if (!isStripeConfigured()) {
+        console.error("Stripe is not configured. STRIPE_SECRET_KEY is missing.");
         return NextResponse.json(
-          { error: "Stripe is not configured. Please add STRIPE_SECRET_KEY to environment variables." },
+          { error: "Stripe is not configured. Please contact support." },
           { status: 500 }
         );
       }
       
+      console.log("Creating Stripe checkout session...");
       const lineItems = order.items.map((item) => ({
         price_data: {
           currency: "inr",
@@ -484,6 +535,8 @@ export async function POST(request: NextRequest) {
           orderNumber: order.orderNumber,
         },
       });
+      
+      console.log("Stripe checkout session created successfully:", checkoutSession.id);
 
       paymentData = {
         sessionId: checkoutSession.id,
@@ -492,11 +545,14 @@ export async function POST(request: NextRequest) {
     } else if (data.paymentMethod === "razorpay") {
       // Check if Razorpay is configured
       if (!isRazorpayConfigured()) {
+        console.error("Razorpay is not configured. RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing.");
         return NextResponse.json(
-          { error: "Razorpay is not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables." },
+          { error: "Razorpay is not configured. Please contact support." },
           { status: 500 }
         );
       }
+      
+      console.log("Creating Razorpay order...");
       
       const razorpayOrder = await createRazorpayOrder({
         amount: total,
@@ -527,8 +583,13 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error("========== CHECKOUT ERROR ==========");
     console.error("Error creating checkout:", error);
+    console.error("Error type:", typeof error);
+    console.error("Error message:", error instanceof Error ? error.message : String(error));
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+    
+    // Check for specific error types
     if (error instanceof z.ZodError) {
       console.error("Validation errors:", JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
@@ -536,6 +597,25 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Check for Prisma errors
+    if (error instanceof Error && error.message.includes('Prisma')) {
+      console.error("Database error detected:", error.message);
+      return NextResponse.json(
+        { error: "Database error", message: "There was a problem processing your request. Please try again." },
+        { status: 500 }
+      );
+    }
+    
+    // Check for Stripe/Razorpay configuration errors
+    if (error instanceof Error && (error.message.includes('STRIPE') || error.message.includes('Razorpay'))) {
+      console.error("Payment gateway configuration error:", error.message);
+      return NextResponse.json(
+        { error: "Payment gateway not configured", message: error.message },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         error: "Failed to create checkout", 
