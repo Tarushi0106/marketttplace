@@ -628,6 +628,55 @@ export default async function ProductDetailPage({ params }: Props) {
                         );
                       })}
                     </div>
+                  ) : product.configs && product.configs.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">Customize Your Plan</h3>
+                            <p className="text-gray-500 text-sm mt-1">Select configurations that best fit your needs</p>
+                          </div>
+                          <Badge className="bg-[#8B1D1D] text-white">{product.configs.length} Options Available</Badge>
+                        </div>
+                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                          <Link href={`/products/${product.slug}/configure`}>
+                            Configure Now <ArrowRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      </div>
+                      
+                      {/* Show Config Groups */}
+                      {Object.entries(
+                        product.configs.reduce((acc: any, config: any) => {
+                          const group = config.configGroup || 'Other';
+                          if (!acc[group]) acc[group] = [];
+                          acc[group].push(config);
+                          return acc;
+                        }, {})
+                      ).map(([group, configs]: [string, any]) => (
+                        <div key={group} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <h4 className="font-semibold text-gray-900">{group}</h4>
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {configs.map((config: any) => (
+                              <div key={config.id} className="flex items-center justify-between px-4 py-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">{config.name}</p>
+                                  {config.description && <p className="text-sm text-gray-500">{config.description}</p>}
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-[#8B1D1D]">
+                                    {config.basePrice > 0 ? `${config.basePrice}` : 'Included'}
+                                    {config.billingCycle === 'MONTHLY' && <span className="text-sm text-gray-500 font-normal">/mo</span>}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
                       <p className="text-2xl font-semibold text-white mb-2">{formatPrice(startingPrice)}</p>
@@ -639,22 +688,42 @@ export default async function ProductDetailPage({ params }: Props) {
                   )}
 
                   {/* Add-ons */}
-                  {product.addons.length > 0 && (
+                  {(product.addons.length > 0 || product.configs.length > 0) && (
                     <div className="mt-16">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Available Add-ons</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                        {product.addons.length > 0 ? 'Available Add-ons' : 'Available Configurations'}
+                      </h3>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {product.addons.map((addon: any) => (
-                          <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-semibold text-gray-900">{addon.name}</h4>
-                              <Badge variant="outline" className="text-xs">
-                                {addon.pricingType === "ONE_TIME" ? "One-time" : addon.pricingType === "RECURRING_MONTHLY" ? "Monthly" : "Yearly"}
-                              </Badge>
+                        {product.addons.length > 0 ? (
+                          product.addons.map((addon: any) => (
+                            <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-gray-900">{addon.name}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {addon.pricingType === "ONE_TIME" ? "One-time" : addon.pricingType === "RECURRING_MONTHLY" ? "Monthly" : "Yearly"}
+                                </Badge>
+                              </div>
+                              {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
+                              <p className="text-2xl font-bold text-[#8B1D1D]">{formatPrice(Number(addon.price))}</p>
                             </div>
-                            {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
-                            <p className="text-2xl font-bold text-[#8B1D1D]">{formatPrice(Number(addon.price))}</p>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          product.configs.slice(0, 9).map((config: any) => (
+                            <div key={config.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-gray-900">{config.name}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {config.billingCycle === 'ONE_TIME' ? 'One-time' : config.isRecurring ? 'Monthly' : 'N/A'}
+                                </Badge>
+                              </div>
+                              {config.description && <p className="text-sm text-gray-500 mb-3">{config.description}</p>}
+                              <p className="text-2xl font-bold text-[#8B1D1D]">
+                                {config.basePrice > 0 ? formatPrice(Number(config.basePrice)) : 'Included'}
+                                {config.isRecurring && <span className="text-sm font-normal text-gray-500">/mo</span>}
+                              </p>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}

@@ -512,7 +512,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           lowStockThreshold: product.lowStockThreshold?.toString() || "5",
           weight: product.weight?.toString() || "",
           weightUnit: product.weightUnit || "kg",
-          features: product.features || [],
+          features: typeof product.features === 'string' ? JSON.parse(product.features) : (product.features || []),
           specifications: Object.entries(product.specifications || {}).map(
             ([key, value]) => ({ key, value: value as string })
           ),
