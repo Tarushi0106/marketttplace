@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Check, Info, Sparkles } from "lucide-react";
+import { Check, Info, Sparkles, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
+import { useRouter } from "next/navigation";
 
 interface Addon {
   id: string;
@@ -12,6 +14,7 @@ interface Addon {
   description?: string | null;
   price: number;
   unit?: string | null;
+  quantity?: number;
 }
 
 interface BillingPlan {
@@ -23,19 +26,18 @@ interface BillingPlan {
 }
 
 interface TallyCloudConfiguratorProps {
+  productId?: string;
+  productSlug?: string;
   productName?: string;
   productDescription?: string;
   basePrice: number;
   addons: Addon[];
   billingPlans?: BillingPlan[];
-  onAddToCart?: (data: {
-    billingPlan: BillingPlan;
-    selectedAddons: Addon[];
-    totalPrice: number;
-  }) => void;
 }
 
 export function TallyCloudConfigurator({
+  productId,
+  productSlug,
   productName = "Tally Cloud Server",
   productDescription = "Enterprise-grade cloud hosting for Tally Prime with seamless integration",
   basePrice = 4500,
@@ -46,42 +48,81 @@ export function TallyCloudConfigurator({
     { id: "semi-annual", label: "Semi Annual", period: "/6 months", price: 24300, savings: 10 },
     { id: "yearly", label: "Yearly", period: "/year", price: 43200, savings: 20 },
   ],
-  onAddToCart,
 }: TallyCloudConfiguratorProps) {
+  const router = useRouter();
+  const { addItem: addToCart } = useCartStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(billingPlans[0]);
-  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
 
   const toggleAddon = (addonId: string) => {
-    setSelectedAddons((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(addonId)) {
-        newSet.delete(addonId);
+    setAddonQuantities((prev) => {
+      const newQuantities = { ...prev };
+      if (newQuantities[addonId] > 0) {
+        newQuantities[addonId] = 0;
       } else {
-        newSet.add(addonId);
+        newQuantities[addonId] = 1;
       }
-      return newSet;
+      return newQuantities;
+    });
+  };
+
+  const updateQuantity = (addonId: string, delta: number) => {
+    setAddonQuantities((prev) => {
+      const currentQty = prev[addonId] || 0;
+      const newQty = Math.max(0, Math.min(4, currentQty + delta));
+      return { ...prev, [addonId]: newQty };
     });
   };
 
   const selectedAddonObjects = useMemo(() => {
-    return addons.filter((addon) => selectedAddons.has(addon.id));
-  }, [addons, selectedAddons]);
+    return addons
+      .filter((addon) => (addonQuantities[addon.id] || 0) > 0)
+      .map((addon) => ({
+        ...addon,
+        quantity: addonQuantities[addon.id] || 0,
+      }));
+  }, [addons, addonQuantities]);
 
   const addonsTotal = useMemo(() => {
-    return selectedAddonObjects.reduce((sum, addon) => sum + addon.price, 0);
-  }, [selectedAddonObjects]);
+    return addons.reduce((sum, addon) => {
+      const qty = addonQuantities[addon.id] || 0;
+      return sum + (addon.price * qty);
+    }, 0);
+  }, [addons, addonQuantities]);
 
   const totalPrice = selectedPlan.price + addonsTotal;
 
   const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart({
-        billingPlan: selectedPlan,
-        selectedAddons: selectedAddonObjects,
-        totalPrice,
-      });
-    }
+    // Create cart item with the selected configuration
+    const cartItem = {
+      id: `${productId || productSlug || 'product'}-${selectedPlan.id}-${Date.now()}`,
+      product: {
+        id: productId || '',
+        slug: productSlug || '',
+        name: productName,
+      } as any,
+      quantity: 1,
+      selectedAddons: selectedAddonObjects.map((addon) => ({
+        addon: {
+          id: addon.id,
+          name: addon.name,
+          price: addon.price,
+        },
+        quantity: addonQuantities[addon.id] || 1,
+      })),
+      billingCycle: selectedPlan.id.toUpperCase() as any,
+      isRecurring: true,
+      unitPrice: totalPrice,
+      totalPrice: totalPrice,
+      recurringAmount: selectedPlan.price,
+    };
+    
+    // Add to cart store
+    addToCart(cartItem as any);
+    
+    // Navigate to cart
+    router.push("/cart");
   };
 
   const steps = [
@@ -195,41 +236,64 @@ export function TallyCloudConfigurator({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {addons.map((addon) => (
-                    <button
-                      key={addon.id}
-                      onClick={() => toggleAddon(addon.id)}
-                      className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md ${
-                        selectedAddons.has(addon.id)
-                          ? "border-[#C62828] bg-red-50 shadow-sm"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
-                            selectedAddons.has(addon.id)
-                              ? "bg-[#C62828] border-[#C62828]"
-                              : "border-gray-300"
-                          }`}
-                        >
-                          {selectedAddons.has(addon.id) && <Check className="w-4 h-4 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{addon.name}</div>
-                          {addon.description && (
-                            <div className="text-sm text-gray-500 mt-1">{addon.description}</div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            +{formatPrice(addon.price)}
-                            {addon.unit && <span className="text-sm font-normal text-gray-500"> {addon.unit}</span>}
+                  {addons.map((addon) => {
+                    const qty = addonQuantities[addon.id] || 0;
+                    return (
+                      <div
+                        key={addon.id}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
+                          qty > 0
+                            ? "border-[#C62828] bg-red-50 shadow-sm"
+                            : "border-gray-200 bg-white hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => toggleAddon(addon.id)}
+                            className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
+                              qty > 0
+                                ? "bg-[#C62828] border-[#C62828]"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {qty > 0 && <Check className="w-4 h-4 text-white" />}
+                          </button>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{addon.name}</div>
+                            {addon.description && (
+                              <div className="text-sm text-gray-500 mt-1">{addon.description}</div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {/* Quantity Controls */}
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(addon.id, -1); }}
+                                disabled={qty === 0}
+                                className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                −
+                              </button>
+                              <span className="w-8 text-center font-semibold text-gray-900">{qty}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(addon.id, 1); }}
+                                disabled={qty >= 4}
+                                className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <div className="text-right min-w-[80px]">
+                              <div className="font-semibold text-gray-900">
+                                {qty > 0 ? formatPrice(addon.price * qty) : `+${formatPrice(addon.price)}`}
+                                {addon.unit && qty === 0 && <span className="text-sm font-normal text-gray-500"> {addon.unit}</span>}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -258,12 +322,15 @@ export function TallyCloudConfigurator({
                   {selectedAddonObjects.length > 0 && (
                     <div className="pb-4 border-b border-gray-100">
                       <div className="font-medium text-gray-900 mb-3">Add-ons</div>
-                      {selectedAddonObjects.map((addon) => (
-                        <div key={addon.id} className="flex justify-between items-center py-2">
-                          <span className="text-gray-600">{addon.name}</span>
-                          <span className="font-medium text-gray-900">{formatPrice(addon.price)}</span>
-                        </div>
-                      ))}
+                      {selectedAddonObjects.map((addon) => {
+                        const qty = addonQuantities[addon.id] || 0;
+                        return (
+                          <div key={addon.id} className="flex justify-between items-center py-2">
+                            <span className="text-gray-600">{addon.name}{qty > 1 ? ` x${qty}` : ''}</span>
+                            <span className="font-medium text-gray-900">{formatPrice(addon.price * qty)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -294,15 +361,7 @@ export function TallyCloudConfigurator({
               >
                 Continue
               </Button>
-            ) : (
-              <Button
-                onClick={handleAddToCart}
-                className="bg-[#C62828] hover:bg-[#8B1D1D] px-8"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Add to Cart
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -323,18 +382,21 @@ export function TallyCloudConfigurator({
                 </div>
               </div>
 
-              {selectedAddons.size > 0 && (
+              {selectedAddonObjects.length > 0 && (
                 <div>
                   <div className="text-sm font-medium text-gray-500 mb-2">
-                    Add-ons ({selectedAddons.size})
+                    Add-ons ({Object.values(addonQuantities).reduce((a, b) => a + b, 0)})
                   </div>
                   <div className="space-y-1">
-                    {selectedAddonObjects.map((addon) => (
-                      <div key={addon.id} className="flex justify-between text-sm">
-                        <span className="text-gray-600">{addon.name}</span>
-                        <span className="text-gray-900">{formatPrice(addon.price)}</span>
-                      </div>
-                    ))}
+                    {selectedAddonObjects.map((addon) => {
+                      const qty = addonQuantities[addon.id] || 0;
+                      return (
+                        <div key={addon.id} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{addon.name}{qty > 1 ? ` x${qty}` : ''}</span>
+                          <span className="text-gray-900">{formatPrice(addon.price * qty)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -345,6 +407,15 @@ export function TallyCloudConfigurator({
                   <span className="text-xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
                 </div>
               </div>
+
+              {/* Add to Cart Button - at bottom of Order Summary */}
+              <Button
+                onClick={handleAddToCart}
+                className="w-full h-12 text-lg font-semibold bg-[#C62828] hover:bg-[#8B1D1D] shadow-lg shadow-red-200 hover:shadow-xl transition-all duration-300 mt-4"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Add to Cart
+              </Button>
             </CardContent>
           </Card>
         </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, ArrowLeft, Building2, Cloud, Shield, Server, Database, Lock, Globe } from "lucide-react";
 import Image from "next/image";
 import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
+import { TallyCloudConfigurator } from "@/components/storefront/TallyCloudConfigurator";
 
 // Render icon based on icon name
 function renderProductIcon(iconName?: string | null) {
@@ -147,6 +148,33 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
   if (!product) {
     notFound();
   }
+
+  // Show modern configurator for all products with recurring pricing
+  // Transform database addons to the format expected by TallyCloudConfigurator
+  const transformedAddons = product.addons.map(addon => ({
+    id: addon.id,
+    name: addon.name,
+    description: addon.description || undefined,
+    price: Number(addon.price) || 0,
+    unit: addon.unit || undefined,
+    pricingType: addon.pricingType as "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined,
+    source: 'product',
+  }));
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-10">
+        <TallyCloudConfigurator 
+          productId={product.id}
+          productSlug={product.slug}
+          productName={product.name}
+          productDescription={product.shortDescription || product.description || undefined}
+          basePrice={Number(product.basePrice) || 0}
+          addons={transformedAddons}
+        />
+      </div>
+    </div>
+  );
 
   // Get the selected variant from query params
   const selectedVariantId = resolvedSearchParams?.variant || null;
