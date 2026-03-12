@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Check, ShoppingCart } from "lucide-react";
+import { Check, ShoppingCart, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useRouter } from "next/navigation";
+import * as Select from "@radix-ui/react-select";
+
+interface AddonOption {
+  label: string;
+  price: number;
+  unit?: string;
+}
 
 interface Addon {
   id: string;
@@ -15,6 +22,8 @@ interface Addon {
   price: number;
   unit?: string | null;
   quantity?: number;
+  group?: string; // For grouping addons in dropdown
+  options?: AddonOption[]; // For dropdown options (e.g., Cloud Storage - 4 Days, 27 Days, etc.)
 }
 
 interface BillingPlan {
@@ -54,6 +63,46 @@ export function TallyCloudConfigurator({
   const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(billingPlans[0]);
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
 
+  // Group addons by base name (use group field if available, otherwise parse from name)
+  const groupedAddons = useMemo(() => {
+    const groups: Record<string, Addon[]> = {};
+    addons.forEach(addon => {
+      // Use explicit group field if available, otherwise parse from name
+      // Match patterns like "Cloud Storage - 4 Days", "Cloud Storage - 27 Days" -> "Cloud Storage"
+      const groupName = addon.group || addon.name.replace(/\s*-\s+.+$/, '').trim();
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(addon);
+    });
+    // Only return groups with multiple options as dropdowns
+    return Object.entries(groups).filter(([_, items]) => items.length > 1);
+  }, [addons]);
+
+  // Get standalone addons (not part of a group with multiple options)
+  const standaloneAddons = useMemo(() => {
+    const groupNames = new Set(groupedAddons.map(([name]) => name));
+    return addons.filter(addon => {
+      const groupName = (addon as any).group || addon.name.replace(/\s*-\s*\d+.*$/, '').trim();
+      return !groupNames.has(groupName);
+    });
+  }, [addons, groupedAddons]);
+
+  // Track selected dropdown values
+  const [selectedDropdownAddon, setSelectedDropdownAddon] = useState<Record<string, string>>({});
+  
+  // Track selected option index for addons with options
+  const [selectedAddonOption, setSelectedAddonOption] = useState<Record<string, number>>({});
+
+  // Initialize dropdown selections with first option
+  useMemo(() => {
+    groupedAddons.forEach(([baseName, items]) => {
+      if (!selectedDropdownAddon[baseName] && items.length > 0) {
+        setSelectedDropdownAddon(prev => ({ ...prev, [baseName]: items[0].id }));
+      }
+    });
+  }, [groupedAddons]);
+
   const toggleAddon = (addonId: string) => {
     setAddonQuantities((prev) => {
       const newQuantities = { ...prev };
@@ -77,18 +126,44 @@ export function TallyCloudConfigurator({
   const selectedAddonObjects = useMemo(() => {
     return addons
       .filter((addon) => (addonQuantities[addon.id] || 0) > 0)
-      .map((addon) => ({
-        ...addon,
-        quantity: addonQuantities[addon.id] || 0,
-      }));
-  }, [addons, addonQuantities]);
+      .map((addon) => {
+        // Get the actual price (option price if available)
+        let actualPrice = addon.price;
+        let selectedOptionLabel: string | undefined;
+        
+        if (addon.options && addon.options.length > 0) {
+          const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
+          const option = addon.options[selectedOptionIndex];
+          if (option) {
+            actualPrice = option.price;
+            selectedOptionLabel = option.label;
+          }
+        }
+        
+        return {
+          ...addon,
+          price: actualPrice,
+          quantity: addonQuantities[addon.id] || 0,
+          selectedOption: selectedOptionLabel,
+        };
+      });
+  }, [addons, addonQuantities, selectedAddonOption]);
 
   const addonsTotal = useMemo(() => {
     return addons.reduce((sum, addon) => {
       const qty = addonQuantities[addon.id] || 0;
+      if (qty === 0) return sum;
+      
+      // Use option price if addon has options
+      if (addon.options && addon.options.length > 0) {
+        const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
+        const option = addon.options[selectedOptionIndex];
+        return sum + (option ? option.price * qty : addon.price * qty);
+      }
+      
       return sum + (addon.price * qty);
     }, 0);
-  }, [addons, addonQuantities]);
+  }, [addons, addonQuantities, selectedAddonOption]);
 
   const totalPrice = selectedPlan.price + addonsTotal;
 
@@ -140,19 +215,31 @@ export function TallyCloudConfigurator({
             </div>
           ) : (
             <div className="space-y-3">
-              {addons.map((addon) => {
-                const qty = addonQuantities[addon.id] || 0;
+              {/* Grouped Addons as Dropdowns */}
+              {groupedAddons.map(([baseName, items]) => {
+                const selectedId = selectedDropdownAddon[baseName] || items[0]?.id;
+                const selectedAddon = items.find(i => i.id === selectedId);
+                const qty = addonQuantities[selectedId] || 0;
+                
                 return (
                   <div
-                    key={addon.id}
+                    key={baseName}
                     className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-200 cursor-pointer ${
                       qty > 0 
                         ? "border-[#C62828] bg-red-50/40 shadow-sm" 
                         : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                     }`}
-                    onClick={() => toggleAddon(addon.id)}
+                    onClick={() => {
+                      if (selectedId) {
+                        if (qty > 0) {
+                          setAddonQuantities(prev => ({ ...prev, [selectedId]: 0 }));
+                        } else {
+                          setAddonQuantities(prev => ({ ...prev, [selectedId]: 1 }));
+                        }
+                      }
+                    }}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-1">
                       <div
                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
                           qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
@@ -160,11 +247,163 @@ export function TallyCloudConfigurator({
                       >
                         {qty > 0 && <Check className="w-3 h-3 text-white" />}
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{addon.name}</div>
-                        {addon.description && (
-                          <div className="text-sm text-gray-500 mt-0.5">{addon.description}</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{baseName}</div>
+                        <Select.Root
+                          value={selectedId}
+                          onValueChange={(value) => {
+                            setSelectedDropdownAddon(prev => ({ ...prev, [baseName]: value }));
+                            // Reset quantity for new selection
+                            const currentQty = addonQuantities[selectedId] || 0;
+                            setAddonQuantities(prev => ({ ...prev, [value]: currentQty, [selectedId]: 0 }));
+                          }}
+                        >
+                          <Select.Trigger className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-fit">
+                            <Select.Value placeholder="Select option" />
+                            <Select.Icon>
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </Select.Icon>
+                          </Select.Trigger>
+                          <Select.Portal>
+                            <Select.Content className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                              <Select.Viewport className="p-1">
+                                {items.map((item) => (
+                                  <Select.Item
+                                    key={item.id}
+                                    value={item.id}
+                                    className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 outline-none text-sm text-gray-700 data-[highlighted]:bg-gray-100"
+                                  >
+                                    <div className="flex flex-col">
+                                      <Select.ItemText>{item.name}</Select.ItemText>
+                                      {item.description && (
+                                        <span className="text-xs text-gray-400">{item.description}</span>
+                                      )}
+                                    </div>
+                                    <span className="ml-4 font-medium text-gray-900">{formatPrice(item.price)}</span>
+                                  </Select.Item>
+                                ))}
+                              </Select.Viewport>
+                            </Select.Content>
+                          </Select.Portal>
+                        </Select.Root>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      <div 
+                        className="flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center bg-gray-100 rounded-full p-1">
+                          <button
+                            onClick={() => {
+                              const currentQty = addonQuantities[selectedId] || 0;
+                              if (currentQty > 0) {
+                                setAddonQuantities(prev => ({ ...prev, [selectedId]: currentQty - 1 }));
+                              }
+                            }}
+                            disabled={qty === 0}
+                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                          >
+                            −
+                          </button>
+                          <span className="w-8 text-center font-medium text-gray-900 text-sm">{qty}</span>
+                          <button
+                            onClick={() => {
+                              const currentQty = addonQuantities[selectedId] || 0;
+                              if (currentQty < 4) {
+                                setAddonQuantities(prev => ({ ...prev, [selectedId]: currentQty + 1 }));
+                              }
+                            }}
+                            disabled={qty >= 4}
+                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <div className="w-24 text-right">
+                        <div className="font-semibold text-gray-900">
+                          {qty > 0 && selectedAddon ? formatPrice(selectedAddon.price * qty) : `+${formatPrice(selectedAddon?.price || 0)}`}
+                        </div>
+                        {selectedAddon?.unit && qty === 0 && (
+                          <div className="text-xs text-gray-400">{selectedAddon.unit}</div>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Standalone Addons (regular rows) */}
+              {standaloneAddons.map((addon) => {
+                // Check if addon has options for dropdown
+                const hasOptions = addon.options && addon.options.length > 0;
+                const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
+                const selectedOption = hasOptions ? addon.options![selectedOptionIndex] : null;
+                
+                // Use option price if available, otherwise use base price
+                const displayPrice = selectedOption ? selectedOption.price : addon.price;
+                const displayUnit = selectedOption?.unit || addon.unit;
+                
+                const qty = addonQuantities[addon.id] || 0;
+                
+                return (
+                  <div
+                    key={addon.id}
+                    className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-200 ${
+                      hasOptions ? "cursor-default" : "cursor-pointer"
+                    } ${
+                      qty > 0 
+                        ? "border-[#C62828] bg-red-50/40 shadow-sm" 
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                    }`}
+                    onClick={() => !hasOptions && toggleAddon(addon.id)}
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      {!hasOptions && (
+                        <div
+                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                            qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
+                          }`}
+                        >
+                          {qty > 0 && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{addon.name}</div>
+                        {hasOptions ? (
+                          <Select.Root
+                            value={String(selectedOptionIndex)}
+                            onValueChange={(value) => {
+                              setSelectedAddonOption(prev => ({ ...prev, [addon.id]: parseInt(value) }));
+                            }}
+                          >
+                            <Select.Trigger className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-fit">
+                              <Select.Value placeholder="Select option" />
+                              <Select.Icon>
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              </Select.Icon>
+                            </Select.Trigger>
+                            <Select.Portal>
+                              <Select.Content className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                                <Select.Viewport className="p-1">
+                                  {addon.options!.map((option, idx) => (
+                                    <Select.Item
+                                      key={idx}
+                                      value={String(idx)}
+                                      className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 outline-none text-sm text-gray-700 data-[highlighted]:bg-gray-100 min-w-[200px]"
+                                    >
+                                      <Select.ItemText>{option.label}</Select.ItemText>
+                                      <span className="ml-4 font-medium text-gray-900">{formatPrice(option.price)}</span>
+                                    </Select.Item>
+                                  ))}
+                                </Select.Viewport>
+                              </Select.Content>
+                            </Select.Portal>
+                          </Select.Root>
+                        ) : addon.description ? (
+                          <div className="text-sm text-gray-500 mt-0.5">{addon.description}</div>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-5">
@@ -192,10 +431,10 @@ export function TallyCloudConfigurator({
                       </div>
                       <div className="w-24 text-right">
                         <div className="font-semibold text-gray-900">
-                          {qty > 0 ? formatPrice(addon.price * qty) : `+${formatPrice(addon.price)}`}
+                          {qty > 0 ? formatPrice(displayPrice * qty) : `+${formatPrice(displayPrice)}`}
                         </div>
-                        {addon.unit && qty === 0 && (
-                          <div className="text-xs text-gray-400">{addon.unit}</div>
+                        {displayUnit && qty === 0 && (
+                          <div className="text-xs text-gray-400">{displayUnit}</div>
                         )}
                       </div>
                     </div>

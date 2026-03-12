@@ -191,6 +191,8 @@ interface ProductAddon {
   pricingType: "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
   isRequired: boolean;
   isActive: boolean;
+  group?: string;
+  options?: { label: string; price: number; unit?: string }[];
 }
 
 interface Specification {
@@ -1011,6 +1013,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         pricingType: "ONE_TIME",
         isRequired: false,
         isActive: true,
+        group: "",
+        options: [],
       });
     }
     setShowAddonModal(true);
@@ -2694,6 +2698,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead>Group</TableHead>
                         <TableHead>Rate</TableHead>
                         <TableHead>Unit</TableHead>
                         <TableHead>Pricing Type</TableHead>
@@ -2714,6 +2719,13 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                 </p>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {addon.group ? (
+                              <Badge variant="outline">{addon.group}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>Rs {addon.price}</TableCell>
                           <TableCell>
@@ -3703,7 +3715,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
             </DialogDescription>
           </DialogHeader>
           {editingAddon && (
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+              {/* Basic Info */}
               <div className="space-y-2">
                 <Label>Add-on Name *</Label>
                 <Input
@@ -3711,13 +3724,14 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   onChange={(e) =>
                     setEditingAddon({ ...editingAddon, name: e.target.value })
                   }
-                  placeholder="e.g., Premium Support, Installation"
+                  placeholder="e.g., Cloud Storage, Support Plan"
                 />
               </div>
+              
               <div className="space-y-2">
                 <Label>Description</Label>
                 <Textarea
-                  value={editingAddon.description}
+                  value={editingAddon.description || ""}
                   onChange={(e) =>
                     setEditingAddon({
                       ...editingAddon,
@@ -3725,33 +3739,10 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     })
                   }
                   placeholder="Describe what this add-on includes..."
-                  rows={3}
+                  rows={2}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Rate (Rs) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editingAddon.price}
-                    onChange={(e) =>
-                      setEditingAddon({ ...editingAddon, price: e.target.value })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Unit</Label>
-                  <Input
-                    value={editingAddon.unit || ""}
-                    onChange={(e) =>
-                      setEditingAddon({ ...editingAddon, unit: e.target.value })
-                    }
-                    placeholder="e.g., per user, per server, per GB"
-                  />
-                </div>
-              </div>
+
               <div className="space-y-2">
                 <Label>Pricing Type</Label>
                 <Select
@@ -3768,15 +3759,136 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ONE_TIME">One-time</SelectItem>
-                    <SelectItem value="RECURRING_MONTHLY">
-                      Monthly Recurring
-                    </SelectItem>
-                    <SelectItem value="RECURRING_YEARLY">
-                      Yearly Recurring
-                    </SelectItem>
+                    <SelectItem value="RECURRING_MONTHLY">Monthly Recurring</SelectItem>
+                    <SelectItem value="RECURRING_YEARLY">Yearly Recurring</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Options Table */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Dropdown Options</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const currentOptions = editingAddon.options || [];
+                      setEditingAddon({
+                        ...editingAddon,
+                        options: [...currentOptions, { label: "", price: 0, unit: "" }]
+                      });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Option
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Add options if you want this to appear as a dropdown. Leave empty for a checkbox.
+                </p>
+                
+                {(editingAddon.options && editingAddon.options.length > 0) ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Option Name</TableHead>
+                        <TableHead>Price (Rs)</TableHead>
+                        <TableHead>Unit</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {editingAddon.options.map((opt, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            <Input
+                              value={opt.label}
+                              onChange={(e) => {
+                                const newOptions = [...(editingAddon.options || [])];
+                                newOptions[idx] = { ...newOptions[idx], label: e.target.value };
+                                setEditingAddon({ ...editingAddon, options: newOptions });
+                              }}
+                              placeholder="e.g., 4 Days"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={opt.price}
+                              onChange={(e) => {
+                                const newOptions = [...(editingAddon.options || [])];
+                                newOptions[idx] = { ...newOptions[idx], price: parseFloat(e.target.value) || 0 };
+                                setEditingAddon({ ...editingAddon, options: newOptions });
+                              }}
+                              placeholder="0"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={opt.unit || ""}
+                              onChange={(e) => {
+                                const newOptions = [...(editingAddon.options || [])];
+                                newOptions[idx] = { ...newOptions[idx], unit: e.target.value };
+                                setEditingAddon({ ...editingAddon, options: newOptions });
+                              }}
+                              placeholder="per month"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newOptions = (editingAddon.options || []).filter((_, i) => i !== idx);
+                                setEditingAddon({ ...editingAddon, options: newOptions });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground text-sm border border-dashed rounded-lg">
+                    No options added. Click "Add Option" to create dropdown options.
+                  </div>
+                )}
+              </div>
+
+              {/* Toggle for single price vs options */}
+              {(!editingAddon.options || editingAddon.options.length === 0) && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Rate (Rs) *</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editingAddon.price}
+                      onChange={(e) =>
+                        setEditingAddon({ ...editingAddon, price: e.target.value })
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Unit</Label>
+                    <Input
+                      value={editingAddon.unit || ""}
+                      onChange={(e) =>
+                        setEditingAddon({ ...editingAddon, unit: e.target.value })
+                      }
+                      placeholder="e.g., per user, per server"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Switches */}
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Switch

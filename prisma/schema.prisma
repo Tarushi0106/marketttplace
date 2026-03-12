@@ -324,6 +324,8 @@ model ProductAddon {
   pricingType     AddonPricingType @default(ONE_TIME)
   isRequired      Boolean         @default(false)
   isActive        Boolean         @default(true)
+  group           String?         // For grouping addons in dropdown (e.g., "Cloud Storage", "Support Plan")
+  options         Json?           // Array of addon options: [{label: "4 Days", price: 138, unit: "per month"}]
   sortOrder       Int             @default(0)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt

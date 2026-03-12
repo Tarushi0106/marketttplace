@@ -159,6 +159,8 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     unit: addon.unit || undefined,
     pricingType: addon.pricingType as "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined,
     source: 'product',
+    group: addon.group || undefined, // For dropdown grouping
+    options: addon.options as any || undefined, // For dropdown options
   }));
 
   return (
@@ -493,7 +495,7 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             isRequired: addon.isRequired,
             isSelectedByDefault: false,
             maxQuantity: null,
-            addonGroup: null,
+            addonGroup: addon.group || null,
             source: 'product',
             uniqueId: `product-${addon.id}`,
           }))}
@@ -508,7 +510,7 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
             isRequired: addon.isRequired,
             isSelectedByDefault: false,
             maxQuantity: null,
-            addonGroup: null,
+            addonGroup: addon.group || null,
             source: 'category',
             uniqueId: `category-${addon.id}`,
           }))}
