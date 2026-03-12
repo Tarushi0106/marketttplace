@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Check, Info, Sparkles, ShoppingCart } from "lucide-react";
+import { Check, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
@@ -39,7 +39,7 @@ export function TallyCloudConfigurator({
   productId,
   productSlug,
   productName = "Tally Cloud Server",
-  productDescription = "Enterprise-grade cloud hosting for Tally Prime with seamless integration",
+  productDescription = "Enterprise-grade cloud hosting for Tally Prime",
   basePrice = 4500,
   addons = [],
   billingPlans = [
@@ -51,7 +51,6 @@ export function TallyCloudConfigurator({
 }: TallyCloudConfiguratorProps) {
   const router = useRouter();
   const { addItem: addToCart } = useCartStore();
-  const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(billingPlans[0]);
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
 
@@ -94,7 +93,6 @@ export function TallyCloudConfigurator({
   const totalPrice = selectedPlan.price + addonsTotal;
 
   const handleAddToCart = () => {
-    // Create cart item with the selected configuration
     const cartItem = {
       id: `${productId || productSlug || 'product'}-${selectedPlan.id}-${Date.now()}`,
       product: {
@@ -118,302 +116,179 @@ export function TallyCloudConfigurator({
       recurringAmount: selectedPlan.price,
     };
     
-    // Add to cart store
     addToCart(cartItem as any);
-    
-    // Navigate to cart
     router.push("/cart");
   };
 
-  const steps = [
-    { number: 1, title: "Billing Plan" },
-    { number: 2, title: "Add-ons" },
-    { number: 3, title: "Summary" },
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Step Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center gap-2">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  currentStep > step.number
-                    ? "bg-green-500 text-white"
-                    : currentStep === step.number
-                    ? "bg-[#C62828] text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {currentStep > step.number ? <Check className="w-5 h-5" /> : step.number}
-              </div>
-              <span
-                className={`ml-2 text-sm font-medium ${
-                  currentStep >= step.number ? "text-gray-900" : "text-gray-400"
-                } hidden sm:inline`}
-              >
-                {step.title}
-              </span>
-              {index < steps.length - 1 && (
-                <div
-                  className={`w-12 sm:w-24 h-0.5 mx-2 ${
-                    currentStep > step.number ? "bg-green-500" : "bg-gray-200"
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
+    <div className="max-w-5xl mx-auto">
+      {/* Clean Header */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900">{productName}</h2>
+        <p className="text-gray-500 mt-1">{productDescription}</p>
       </div>
 
-      {/* Step Content */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2">
-          {/* Step 1: Billing Plan */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Plan</h2>
-                <p className="text-gray-600">Select a billing cycle that works best for you</p>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {billingPlans.map((plan) => (
-                  <button
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan)}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:shadow-lg ${
-                      selectedPlan.id === plan.id
-                        ? "border-[#C62828] bg-red-50 shadow-md"
+      {/* Two Column Layout */}
+      <div className="grid lg:grid-cols-5 gap-8">
+        {/* Left Column: Add-ons (3 columns) */}
+        <div className="lg:col-span-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-5">Available Add-ons</h3>
+          
+          {addons.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+              <p className="text-gray-500">No add-ons available</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {addons.map((addon) => {
+                const qty = addonQuantities[addon.id] || 0;
+                return (
+                  <div
+                    key={addon.id}
+                    className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                      qty > 0 
+                        ? "border-[#C62828] bg-red-50/40 shadow-sm" 
                         : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                     }`}
+                    onClick={() => toggleAddon(addon.id)}
                   >
-                    {plan.savings && (
-                      <div className="absolute -top-3 right-4">
-                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          Save {plan.savings}%
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold text-gray-900">{plan.label}</span>
-                      {selectedPlan.id === plan.id && (
-                        <div className="w-5 h-5 rounded-full bg-[#C62828] flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {formatPrice(plan.price)}
-                      <span className="text-sm font-normal text-gray-500">{plan.period}</span>
-                    </div>
-                    {plan.savings && (
-                      <div className="mt-2 text-sm text-green-600">
-                        Save {formatPrice(plan.price * (plan.savings / 100) * (plan.id === "quarterly" ? 3 : plan.id === "semi-annual" ? 6 : 12))} per year
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Add-ons */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Enhance Your Plan</h2>
-                <p className="text-gray-600">Choose optional add-ons to enhance your experience</p>
-              </div>
-
-              {addons.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-2xl">
-                  <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No add-ons available for this product</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {addons.map((addon) => {
-                    const qty = addonQuantities[addon.id] || 0;
-                    return (
+                    <div className="flex items-center gap-4">
                       <div
-                        key={addon.id}
-                        className={`p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
-                          qty > 0
-                            ? "border-[#C62828] bg-red-50 shadow-sm"
-                            : "border-gray-200 bg-white hover:border-gray-300"
+                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                          qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        {qty > 0 && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{addon.name}</div>
+                        {addon.description && (
+                          <div className="text-sm text-gray-500 mt-0.5">{addon.description}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      <div 
+                        className="flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center bg-gray-100 rounded-full p-1">
                           <button
-                            onClick={() => toggleAddon(addon.id)}
-                            className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
-                              qty > 0
-                                ? "bg-[#C62828] border-[#C62828]"
-                                : "border-gray-300"
-                            }`}
+                            onClick={() => updateQuantity(addon.id, -1)}
+                            disabled={qty === 0}
+                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
                           >
-                            {qty > 0 && <Check className="w-4 h-4 text-white" />}
+                            −
                           </button>
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{addon.name}</div>
-                            {addon.description && (
-                              <div className="text-sm text-gray-500 mt-1">{addon.description}</div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {/* Quantity Controls */}
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(addon.id, -1); }}
-                                disabled={qty === 0}
-                                className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                              >
-                                −
-                              </button>
-                              <span className="w-8 text-center font-semibold text-gray-900">{qty}</span>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); updateQuantity(addon.id, 1); }}
-                                disabled={qty >= 4}
-                                className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                              >
-                                +
-                              </button>
-                            </div>
-                            <div className="text-right min-w-[80px]">
-                              <div className="font-semibold text-gray-900">
-                                {qty > 0 ? formatPrice(addon.price * qty) : `+${formatPrice(addon.price)}`}
-                                {addon.unit && qty === 0 && <span className="text-sm font-normal text-gray-500"> {addon.unit}</span>}
-                              </div>
-                            </div>
-                          </div>
+                          <span className="w-8 text-center font-medium text-gray-900 text-sm">{qty}</span>
+                          <button
+                            onClick={() => updateQuantity(addon.id, 1)}
+                            disabled={qty >= 4}
+                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                      <div className="w-24 text-right">
+                        <div className="font-semibold text-gray-900">
+                          {qty > 0 ? formatPrice(addon.price * qty) : `+${formatPrice(addon.price)}`}
+                        </div>
+                        {addon.unit && qty === 0 && (
+                          <div className="text-xs text-gray-400">{addon.unit}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-
-          {/* Step 3: Order Summary */}
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Order</h2>
-                <p className="text-gray-600">Confirm your selections before adding to cart</p>
-              </div>
-
-              <Card className="border-gray-200 shadow-sm">
-                <CardContent className="p-6 space-y-4">
-                  {/* Selected Plan */}
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-                    <div>
-                      <div className="font-medium text-gray-900">{selectedPlan.label} Plan</div>
-                      <div className="text-sm text-gray-500">Billed {selectedPlan.period}</div>
-                    </div>
-                    <div className="font-semibold text-gray-900">{formatPrice(selectedPlan.price)}</div>
-                  </div>
-
-                  {/* Selected Add-ons */}
-                  {selectedAddonObjects.length > 0 && (
-                    <div className="pb-4 border-b border-gray-100">
-                      <div className="font-medium text-gray-900 mb-3">Add-ons</div>
-                      {selectedAddonObjects.map((addon) => {
-                        const qty = addonQuantities[addon.id] || 0;
-                        return (
-                          <div key={addon.id} className="flex justify-between items-center py-2">
-                            <span className="text-gray-600">{addon.name}{qty > 1 ? ` x${qty}` : ''}</span>
-                            <span className="font-medium text-gray-900">{formatPrice(addon.price * qty)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Total */}
-                  <div className="flex justify-between items-center pt-2">
-                    <div className="font-semibold text-gray-900">Total</div>
-                    <div className="text-2xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-              disabled={currentStep === 1}
-              className="px-6"
-            >
-              Back
-            </Button>
-            {currentStep < 3 ? (
-              <Button
-                onClick={() => setCurrentStep((prev) => Math.min(3, prev + 1))}
-                className="bg-[#C62828] hover:bg-[#8B1D1D] px-6"
-              >
-                Continue
-              </Button>
-            ) : null}
-          </div>
         </div>
 
-        {/* Sidebar - Always visible summary */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-8 border-gray-200 shadow-lg rounded-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-[#C62828] to-[#8B1D1D] px-6 py-4">
-              <h3 className="font-semibold text-white">{productName}</h3>
-              <p className="text-red-100 text-sm mt-1">{productDescription}</p>
-            </div>
-            <CardContent className="p-6 space-y-4">
-              {/* Current Step Summary */}
-              <div>
-                <div className="text-sm font-medium text-gray-500 mb-2">Selected Plan</div>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">{selectedPlan.label}</span>
-                  <span className="text-gray-900">{formatPrice(selectedPlan.price)}</span>
-                </div>
-              </div>
-
-              {selectedAddonObjects.length > 0 && (
-                <div>
-                  <div className="text-sm font-medium text-gray-500 mb-2">
-                    Add-ons ({Object.values(addonQuantities).reduce((a, b) => a + b, 0)})
+        {/* Right Column: Billing Plans + Order Summary (2 columns) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Billing Plans */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-5">Billing Plan</h3>
+            <div className="space-y-3">
+              {billingPlans.map((plan) => (
+                <button
+                  key={plan.id}
+                  onClick={() => setSelectedPlan(plan)}
+                  className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
+                    selectedPlan.id === plan.id
+                      ? "border-[#C62828] bg-red-50/40 shadow-sm"
+                      : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPlan.id === plan.id 
+                          ? "bg-[#C62828] border-[#C62828]" 
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {selectedPlan.id === plan.id && <Check className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{plan.label}</div>
+                      <div className="text-sm text-gray-500">{plan.period}</div>
+                    </div>
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    {plan.savings && (
+                      <span className="text-xs font-medium bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
+                        Save {plan.savings}%
+                      </span>
+                    )}
+                    <span className="font-semibold text-gray-900">{formatPrice(plan.price)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Order Summary */}
+          <Card className="border-gray-200 shadow-lg rounded-xl overflow-hidden">
+            <CardContent className="p-6 space-y-5">
+              <h3 className="font-semibold text-gray-900 text-lg">Order Summary</h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">{selectedPlan.label}</span>
+                  <span className="font-medium text-gray-900">{formatPrice(selectedPlan.price)}</span>
+                </div>
+
+                {selectedAddonObjects.length > 0 && (
+                  <div className="border-t border-gray-100 pt-3 space-y-2">
                     {selectedAddonObjects.map((addon) => {
                       const qty = addonQuantities[addon.id] || 0;
                       return (
-                        <div key={addon.id} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{addon.name}{qty > 1 ? ` x${qty}` : ''}</span>
-                          <span className="text-gray-900">{formatPrice(addon.price * qty)}</span>
+                        <div key={addon.id} className="flex justify-between items-center">
+                          <span className="text-gray-600 text-sm">
+                            {addon.name}
+                            {qty > 1 && <span className="text-gray-400 ml-1">(x{qty})</span>}
+                          </span>
+                          <span className="font-medium text-gray-900 text-sm">{formatPrice(addon.price * qty)}</span>
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex justify-between items-center">
+                <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Total</span>
-                  <span className="text-xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+                  <span className="text-2xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
                 </div>
               </div>
 
-              {/* Add to Cart Button - at bottom of Order Summary */}
               <Button
                 onClick={handleAddToCart}
-                className="w-full h-12 text-lg font-semibold bg-[#C62828] hover:bg-[#8B1D1D] shadow-lg shadow-red-200 hover:shadow-xl transition-all duration-300 mt-4"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#C62828] to-[#B71C1C] hover:from-[#B71C1C] hover:to-[#8B1D1D] shadow-lg shadow-red-100 hover:shadow-xl transition-all duration-300 rounded-xl"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart
               </Button>
             </CardContent>
