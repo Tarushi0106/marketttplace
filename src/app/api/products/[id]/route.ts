@@ -132,17 +132,18 @@ const imageSchema = z.object({
 
 const variantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1),
-  sku: z.string().optional(),
-  price: z.coerce.number().min(0),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  price: z.coerce.number().min(0).optional(),
   compareAtPrice: z.coerce.number().min(0).optional().nullable(),
   costPrice: z.coerce.number().min(0).optional().nullable(),
-  stockQuantity: z.coerce.number().int().min(0).default(0),
+  stockQuantity: z.coerce.number().int().min(0).optional().default(0),
   attributes: z.record(z.string(), z.string()).optional(),
   specifications: z.record(z.string(), z.any()).optional(),
-  isDefault: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  sortOrder: z.coerce.number().default(0),
+  isDefault: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
+  sortOrder: z.coerce.number().optional().default(0),
+  billingType: z.string().optional(),
 });
 
 const addonSchema = z.object({
@@ -159,10 +160,10 @@ const addonSchema = z.object({
 
 const configOptionSchema = z.object({
   id: z.string().optional(),
-  value: z.string(),
-  label: z.string().optional(),
+  value: z.string().optional(),
+  label: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
-  priceModifier: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+  priceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
     if (val === undefined || val === null || val === "") return 0;
     const num = typeof val === "string" ? parseFloat(val) : val;
     return isNaN(num) ? 0 : num;
@@ -177,40 +178,40 @@ const configOptionSchema = z.object({
     const num = typeof val === "string" ? parseFloat(val) : val;
     return isNaN(num) ? null : num;
   }),
-  isPercentage: z.boolean().default(false),
-  modifierType: z.enum(["ADD", "MULTIPLY", "REPLACE"]).default("ADD"),
-  sortOrder: z.coerce.number().default(0),
-  isAvailable: z.boolean().default(true),
+  isPercentage: z.boolean().optional().default(false),
+  modifierType: z.enum(["ADD", "MULTIPLY", "REPLACE"]).optional().default("ADD"),
+  sortOrder: z.coerce.number().optional().default(0),
+  isAvailable: z.boolean().optional().default(true),
   stockStatus: z.string().optional().nullable(),
 });
 
 const configSchema = z.object({
   id: z.string().optional(),
   configType: z.string().optional(),
-  name: z.string().min(1),
+  name: z.string().min(1).optional(),
   displayName: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   unit: z.string().optional().nullable(),
   unitPlural: z.string().optional().nullable(),
-  inputType: z.enum(["SELECT", "RADIO", "CHECKBOX", "SLIDER", "NUMBER"]).default("SELECT"),
+  inputType: z.enum(["SELECT", "RADIO", "CHECKBOX", "SLIDER", "NUMBER"]).optional().default("SELECT"),
   minValue: z.coerce.number().optional().nullable(),
   maxValue: z.coerce.number().optional().nullable(),
   stepValue: z.coerce.number().optional().nullable(),
   defaultValue: z.string().optional().nullable(),
-  isRequired: z.boolean().default(false),
-  allowCustom: z.boolean().default(false),
-  sortOrder: z.coerce.number().default(0),
-  basePrice: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+  isRequired: z.boolean().optional().default(false),
+  allowCustom: z.boolean().optional().default(false),
+  sortOrder: z.coerce.number().optional().default(0),
+  basePrice: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
     if (val === undefined || val === null || val === "") return null;
     const num = typeof val === "string" ? parseFloat(val) : val;
     return isNaN(num) ? null : num;
   }),
-  pricePerUnit: z.union([z.coerce.number(), z.string()]).optional().transform((val) => {
+  pricePerUnit: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
     if (val === undefined || val === null || val === "") return null;
     const num = typeof val === "string" ? parseFloat(val) : val;
     return isNaN(num) ? null : num;
   }),
-  options: z.array(configOptionSchema),
+  options: z.array(configOptionSchema).optional(),
 });
 
 const seoSchema = z.object({
@@ -243,7 +244,7 @@ const updateProductSchema = z.object({
   // Note: Recurring prices are stored in product_recurring_prices table
   // and should be updated via the /api/products/[id]/recurring-prices endpoint
   
-  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE"]).optional(),
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE", "WITH_ADDONS"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   pricingDisplayFormat: z.enum(["TABLE", "CARD"]).optional(),
   icon: z.string().optional().nullable(),
@@ -281,7 +282,26 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const data = updateProductSchema.parse(body);
+    
+    // Validate the data with better error handling
+    let data;
+    try {
+      data = updateProductSchema.parse(body);
+    } catch (parseError: any) {
+      console.error("Full validation error:", parseError);
+      if (parseError.name === 'ZodError' || parseError.errors) {
+        const errorDetails = parseError.errors || parseError.issues || [];
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: errorDetails,
+          message: parseError.message
+        }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        message: parseError.message || "Unknown error"
+      }, { status: 400 });
+    }
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
@@ -538,32 +558,32 @@ export async function PUT(
               await tx.productVariant.create({
                 data: {
                   productId: id,
-                  name: variant.name,
+                  name: variant.name || "Default Variant",
                   sku: uniqueSku,
-                  price: variant.price,
-                  compareAtPrice: variant.compareAtPrice,
-                  costPrice: variant.costPrice,
-                  stockQuantity: variant.stockQuantity,
+                  price: variant.price ?? 0,
+                  compareAtPrice: variant.compareAtPrice ?? null,
+                  costPrice: variant.costPrice ?? null,
+                  stockQuantity: variant.stockQuantity ?? 0,
                   attributes: mergedAttributes,
-                  isDefault: variant.isDefault,
+                  isDefault: variant.isDefault ?? false,
                   isActive: variant.isActive ?? true,
-                  sortOrder: variant.sortOrder,
+                  sortOrder: variant.sortOrder ?? 0,
                 },
               });
             } else {
               await tx.productVariant.create({
                 data: {
                   productId: id,
-                  name: variant.name,
-                  sku: variant.sku,
-                  price: variant.price,
-                  compareAtPrice: variant.compareAtPrice,
-                  costPrice: variant.costPrice,
-                  stockQuantity: variant.stockQuantity,
+                  name: variant.name || "Default Variant",
+                  sku: variant.sku ?? null,
+                  price: variant.price ?? 0,
+                  compareAtPrice: variant.compareAtPrice ?? null,
+                  costPrice: variant.costPrice ?? null,
+                  stockQuantity: variant.stockQuantity ?? 0,
                   attributes: mergedAttributes,
-                  isDefault: variant.isDefault,
+                  isDefault: variant.isDefault ?? false,
                   isActive: variant.isActive ?? true,
-                  sortOrder: variant.sortOrder,
+                  sortOrder: variant.sortOrder ?? 0,
                 },
               });
             }
@@ -698,8 +718,8 @@ export async function PUT(
                 await tx.productConfigOption.create({
                   data: {
                     configId: config.id,
-                    value: option.value,
-                    label: option.label || option.value,
+                    value: option.value || "default",
+                    label: option.label || option.value || "Default",
                     description: option.description || null,
                     priceModifier: option.priceModifier ? parseFloat(option.priceModifier.toString()) : 0,
                     monthlyPriceModifier: option.monthlyPriceModifier ? parseFloat(option.monthlyPriceModifier.toString()) : null,
@@ -720,7 +740,7 @@ export async function PUT(
               data: {
                 productId: id,
                 configType: config.configType || "STANDARD",
-                name: config.name,
+                name: config.name || "Default Config",
                 displayName: config.displayName || null,
                 description: config.description || null,
                 unit: config.unit || null,

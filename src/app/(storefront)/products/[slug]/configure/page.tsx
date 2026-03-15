@@ -159,8 +159,20 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     unit: addon.unit || undefined,
     pricingType: addon.pricingType as "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined,
     source: 'product',
-    group: addon.group || undefined, // For dropdown grouping
-    options: addon.options as any || undefined, // For dropdown options
+    group: addon.group || undefined,
+    options: addon.options as any || undefined,
+  }));
+
+  // Transform variants for the configurator
+  const transformedVariants = product.variants.map((variant: any) => ({
+    id: variant.id,
+    name: variant.name,
+    price: Number(variant.price) || 0,
+    compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
+    isDefault: variant.isDefault || false,
+    attributes: variant.attributes as Record<string, string> || {},
+    billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
+    setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
   }));
 
   return (
@@ -173,6 +185,7 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
           productDescription={product.shortDescription || product.description || undefined}
           basePrice={Number(product.basePrice) || 0}
           addons={transformedAddons}
+          variants={transformedVariants}
         />
       </div>
     </div>

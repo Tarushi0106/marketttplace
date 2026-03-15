@@ -559,9 +559,11 @@ export default async function ProductDetailPage({ params }: Props) {
                           'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
                         ];
                         const variantAttrs = variant.attributes as Record<string, string> || {};
+                        const billingType = variantAttrs.billingType || 'RECURRING';
+                        const isOneTime = billingType === 'ONE_TIME';
                         const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
 
-                        const monthlyPrice = Number(variant.price);
+                        const monthlyPrice = variant.price ? Number(variant.price) : 0;
 
                         return (
                           <div
@@ -590,7 +592,7 @@ export default async function ProductDetailPage({ params }: Props) {
                                     <div className={`text-3xl font-extrabold ${variant.isDefault ? "text-[#8B1D1D]" : "text-gray-900"}`}>
                                       ₹{monthlyPrice.toLocaleString("en-IN")}
                                     </div>
-                                    <div className="text-sm text-gray-500 font-medium">per month</div>
+                                    <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : 'per month'}</div>
                                   </div>
                                   <Button
                                     size="lg"

@@ -982,7 +982,8 @@ export function ProductConfigurator({
     <div className="grid lg:grid-cols-3 gap-8">
       {/* Configuration Panel */}
       <div className="lg:col-span-2 space-y-6">
-        {/* Recurring Billing Section */}
+        {/* Recurring Billing Section - Hidden for VSaaS products */}
+        {product.slug !== 'connect-cloud' && product.slug !== 'vsaas-on-premise' && (
         <RecurringBillingSection
           productId={product.id}
           variantId={selectedVariant || undefined}
@@ -1011,6 +1012,7 @@ export function ProductConfigurator({
           yearlySavings={recurringPrices?.yearlySavings}
           onRecurringChange={handleRecurringChange}
         />
+        )}
 
         {/* Configurations Section - All configs grouped together */}
         {allConfigs.length > 0 && (

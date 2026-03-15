@@ -1,4 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+Modify my product card component to remove the small product thumbnail image displayed in the top corner.
+I want a clean SaaS-style card layout that shows only:
+
+Product icon (like Cloud, Server, Shield, etc.)
+
+Product name
+
+Short description
+
+Category label
+
+CTA button
+
+Remove the small image preview completely.
+The design should be minimal, professional, and enterprise-style.
+Use a centered icon instead of the image.
+Maintain consistent spacing and modern UI styling.<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
   <!-- Lock Body -->
   <rect x="14" y="26" width="36" height="30" rx="4" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
   <!-- Lock Shackle -->

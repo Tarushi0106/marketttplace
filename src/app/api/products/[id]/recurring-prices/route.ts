@@ -48,10 +48,10 @@ export async function GET(
     }
     
     return NextResponse.json(serialize(recurringPrices));
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching recurring prices:", error);
     return NextResponse.json(
-      { error: "Failed to fetch recurring prices" },
+      { error: "Failed to fetch recurring prices: " + (error?.message || "Unknown error") },
       { status: 500 }
     );
   }

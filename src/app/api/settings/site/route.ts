@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // GET - Fetch site settings (public)
 export async function GET() {
   try {
     // Try to get existing company info
-    let companyInfo = await prisma.companyInfo.findFirst();
-
-    // If no company info exists, create default
-    if (!companyInfo) {
-      companyInfo = await prisma.companyInfo.create({
+    let companyInfo;
+    try {
+      companyInfo = await prisma.companyInfo.findFirst();
+    } catch (dbError) {
+      console.error("Database error fetching company info:", dbError);
+      // Return default values if database is unavailable
+      return NextResponse.json({
         data: {
+          id: "default",
           name: "Shaurrya Teleservices",
           legalName: "Shaurrya Teleservices Pvt. Ltd.",
           email: "support@shaurrya.com",
@@ -21,34 +22,77 @@ export async function GET() {
           address: "Mumbai, India",
           currency: "INR",
           currencySymbol: "₹",
+          siteTitle: "NaaS Marketplace",
+          siteTagline: "Enterprise Solutions",
         },
       });
     }
 
+    // If no company info exists, try to create default
+    if (!companyInfo) {
+      try {
+        companyInfo = await prisma.companyInfo.create({
+          data: {
+            name: "Shaurrya Teleservices",
+            legalName: "Shaurrya Teleservices Pvt. Ltd.",
+            email: "support@shaurrya.com",
+            phone: "+91 (999) 123-4567",
+            address: "Mumbai, India",
+            currency: "INR",
+            currencySymbol: "₹",
+          },
+        });
+      } catch (createError) {
+        console.error("Database error creating company info:", createError);
+        // Return defaults if creation fails
+        return NextResponse.json({
+          data: {
+            id: "default",
+            name: "Shaurrya Teleservices",
+            legalName: "Shaurrya Teleservices Pvt. Ltd.",
+            email: "support@shaurrya.com",
+            phone: "+91 (999) 123-4567",
+            address: "Mumbai, India",
+            currency: "INR",
+            currencySymbol: "₹",
+            siteTitle: "NaaS Marketplace",
+            siteTagline: "Enterprise Solutions",
+          },
+        });
+      }
+    }
+
     // Get additional settings from the settings table
-    const settings = await prisma.setting.findMany({
-      where: {
-        key: {
-          in: [
-            "site_title",
-            "site_tagline",
-            "meta_description",
-            "site_logo",
-            "logo_dark",
-            "logo_light",
-            "site_favicon",
-            "header_logo",
-            "footer_logo",
-            "footer_company_name",
-            "footer_tagline",
-            "footer_address",
-            "footer_phone",
-            "footer_email",
-            "footer_copyright",
-          ],
+    let settings: any[] = [];
+    try {
+      settings = await prisma.setting.findMany({
+        where: {
+          key: {
+            in: [
+              "site_title",
+              "site_tagline",
+              "meta_description",
+              "site_logo",
+              "logo_dark",
+              "logo_light",
+              "site_favicon",
+              "header_logo",
+              "footer_logo",
+              "footer_company_name",
+              "footer_tagline",
+              "footer_address",
+              "footer_phone",
+              "footer_email",
+              "footer_copyright",
+            ],
+          },
         },
-      },
-    });
+      });
+    } catch (settingsError) {
+      console.error("Database error fetching settings:", settingsError);
+      // Continue with empty settings if this query fails
+      settings = [];
+    }
 
     // Convert settings array to object - handle Json type properly
     const settingsMap: Record<string, any> = {};

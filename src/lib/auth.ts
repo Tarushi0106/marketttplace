@@ -1,13 +1,23 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { Adapter } from "next-auth/adapters";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { authConfig } from "./auth.config";
 
+// Create adapter with error handling
+let prismaAdapter: Adapter | undefined;
+try {
+  prismaAdapter = PrismaAdapter(prisma);
+} catch (error) {
+  console.error("Failed to create Prisma adapter:", error);
+  prismaAdapter = undefined;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  adapter: prismaAdapter,
   providers: [
     CredentialsProvider({
       name: "credentials",

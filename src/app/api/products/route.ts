@@ -19,12 +19,19 @@ const productFilterSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  // Try to get session, but don't fail if database is unavailable
+  let isAdmin = false;
+  try {
+    const session = await auth();
+    isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string));
+  } catch (authError) {
+    console.warn("Auth failed, continuing as non-admin:", authError);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
-    const session = await auth();
-    const isAdmin = session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string);
-
+    
     const filters = productFilterSchema.parse(params);
 
     const where: any = {};
@@ -95,30 +102,40 @@ export async function GET(request: NextRequest) {
 
     const skip = (filters.page - 1) * filters.limit;
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy,
-        skip,
-        take: filters.limit,
-        include: {
-          category: true,
-          subCategory: true,
-          images: {
-            orderBy: { sortOrder: "asc" },
-            take: 1,
+    let products: any[] = [];
+    let total = 0;
+    
+    try {
+      [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          orderBy,
+          skip,
+          take: filters.limit,
+          include: {
+            category: true,
+            subCategory: true,
+            images: {
+              orderBy: { sortOrder: "asc" },
+              take: 1,
+            },
+            variants: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            _count: {
+              select: { reviews: true },
+            },
           },
-          variants: {
-            where: { isActive: true },
-            orderBy: { sortOrder: "asc" },
-          },
-          _count: {
-            select: { reviews: true },
-          },
-        },
-      }),
-      prisma.product.count({ where }),
-    ]);
+        }),
+        prisma.product.count({ where }),
+      ]);
+    } catch (dbError) {
+      console.error("Database error fetching products:", dbError);
+      // Return empty array if database is unavailable
+      products = [];
+      total = 0;
+    }
 
     return NextResponse.json({
       data: products,
@@ -155,17 +172,17 @@ const imageSchema = z.object({
 
 const variantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1),
-  sku: z.string().optional(),
-  price: z.coerce.number().min(0),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  price: z.coerce.number().min(0).optional(),
   compareAtPrice: z.coerce.number().min(0).optional().nullable(),
   costPrice: z.coerce.number().min(0).optional().nullable(),
-  stockQuantity: z.coerce.number().int().min(0).default(0),
+  stockQuantity: z.coerce.number().int().min(0).optional().default(0),
   attributes: z.record(z.string(), z.string()).optional(),
   specifications: z.record(z.string(), z.any()).optional(),
-  isDefault: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  sortOrder: z.coerce.number().default(0),
+  isDefault: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
+  sortOrder: z.coerce.number().optional().default(0),
 });
 
 const addonSchema = z.object({
@@ -224,7 +241,7 @@ const createProductSchema = z.object({
   yearlyPrice: z.coerce.number().min(0).optional().nullable(),
   monthlySavings: z.coerce.number().min(0).optional().nullable(),
   yearlySavings: z.coerce.number().min(0).optional().nullable(),
-  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE"]).default("STANDALONE"),
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE", "WITH_ADDONS"]).default("STANDALONE"),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).default("DRAFT"),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),
@@ -255,7 +272,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const data = createProductSchema.parse(body);
+    
+    // Validate the data with better error handling
+    let data;
+    try {
+      data = createProductSchema.parse(body);
+    } catch (parseError: any) {
+      console.error("Full validation error:", parseError);
+      if (parseError.name === 'ZodError' || parseError.errors) {
+        const errorDetails = parseError.errors || parseError.issues || [];
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: errorDetails,
+          message: parseError.message
+        }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        message: parseError.message || "Unknown error"
+      }, { status: 400 });
+    }
 
     // Extract related data
     const { images, variants, addons, configs, seoMetadata, ...productData } = data;
@@ -351,12 +387,12 @@ export async function POST(request: NextRequest) {
             
             return {
               productId: newProduct.id,
-              name: v.name,
-              sku: v.sku,
-              price: v.price,
-              compareAtPrice: v.compareAtPrice,
-              costPrice: v.costPrice,
-              stockQuantity: v.stockQuantity,
+              name: v.name || "Default Variant",
+              sku: v.sku ?? null,
+              price: v.price ?? 0,
+              compareAtPrice: v.compareAtPrice ?? null,
+              costPrice: v.costPrice ?? null,
+              stockQuantity: v.stockQuantity ?? 0,
               attributes: mergedAttributes,
               isDefault: v.isDefault ?? idx === 0,
               isActive: v.isActive ?? true,

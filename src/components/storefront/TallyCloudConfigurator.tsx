@@ -41,6 +41,17 @@ interface TallyCloudConfiguratorProps {
   productDescription?: string;
   basePrice: number;
   addons: Addon[];
+  variants?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice?: number | null;
+    isDefault?: boolean;
+    attributes?: Record<string, string>;
+    billingType?: string;
+    setupFee?: number;
+  }>;
+  selectedVariantId?: string | null;
   billingPlans?: BillingPlan[];
 }
 
@@ -51,6 +62,8 @@ export function TallyCloudConfigurator({
   productDescription = "Enterprise-grade cloud hosting for Tally Prime",
   basePrice = 4500,
   addons = [],
+  variants = [],
+  selectedVariantId = null,
   billingPlans = [
     { id: "monthly", label: "Monthly", period: "/month", price: 4500 },
     { id: "quarterly", label: "Quarterly", period: "/quarter", price: 12900, savings: 6 },
@@ -62,6 +75,14 @@ export function TallyCloudConfigurator({
   const { addItem: addToCart } = useCartStore();
   const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(billingPlans[0]);
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
+  
+  // Initialize selected variant - use first variant as default or use selectedVariantId prop
+  const defaultVariantId = variants && variants.length > 0 
+    ? (selectedVariantId && variants.some(v => v.id === selectedVariantId) 
+        ? selectedVariantId 
+        : variants.find(v => v.isDefault)?.id || variants[0]?.id)
+    : null;
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(defaultVariantId);
 
   // Group addons by base name (use group field if available, otherwise parse from name)
   const groupedAddons = useMemo(() => {
@@ -165,7 +186,12 @@ export function TallyCloudConfigurator({
     }, 0);
   }, [addons, addonQuantities, selectedAddonOption]);
 
-  const totalPrice = selectedPlan.price + addonsTotal;
+  // Get the base price - use variant price if selected, otherwise use selectedPlan price
+  const variantPrice = selectedVariant && variants.length > 0 
+    ? variants.find(v => v.id === selectedVariant)?.price || 0 
+    : 0;
+  const calculatedBasePrice = variants.length > 0 ? variantPrice : selectedPlan.price;
+  const totalPrice = calculatedBasePrice + addonsTotal;
 
   const handleAddToCart = () => {
     const cartItem = {
@@ -188,7 +214,8 @@ export function TallyCloudConfigurator({
       isRecurring: true,
       unitPrice: totalPrice,
       totalPrice: totalPrice,
-      recurringAmount: selectedPlan.price,
+      recurringAmount: calculatedBasePrice,
+      variantId: selectedVariant || undefined,
     };
     
     addToCart(cartItem as any);
@@ -447,7 +474,8 @@ export function TallyCloudConfigurator({
 
         {/* Right Column: Billing Plans + Order Summary (2 columns) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Billing Plans */}
+          {/* Billing Plans - Hidden for all products - using variants instead */}
+          {false && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-5">Billing Plan</h3>
             <div className="space-y-3">
@@ -488,6 +516,48 @@ export function TallyCloudConfigurator({
               ))}
             </div>
           </div>
+          )}
+
+          {/* Variants - Show if variants are provided */}
+          {variants && variants.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-5">Select Plan</h3>
+              <div className="space-y-3">
+                {variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => setSelectedVariant(variant.id)}
+                    className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
+                      selectedVariant === variant.id
+                        ? "border-[#C62828] bg-red-50/40 shadow-sm"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedVariant === variant.id 
+                            ? "bg-[#C62828] border-[#C62828]" 
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {selectedVariant === variant.id && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{variant.name}</div>
+                        {variant.isDefault && (
+                          <div className="text-xs text-[#C62828] font-medium">Recommended</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-900">{formatPrice(variant.price)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Order Summary */}
           <Card className="border-gray-200 shadow-lg rounded-xl overflow-hidden">
@@ -495,10 +565,18 @@ export function TallyCloudConfigurator({
               <h3 className="font-semibold text-gray-900 text-lg">Order Summary</h3>
               
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">{selectedPlan.label}</span>
-                  <span className="font-medium text-gray-900">{formatPrice(selectedPlan.price)}</span>
-                </div>
+                {/* Show variant name if variants are being used, otherwise show billing plan */}
+                {variants && variants.length > 0 && selectedVariant ? (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">{variants.find(v => v.id === selectedVariant)?.name || 'Selected Plan'}</span>
+                    <span className="font-medium text-gray-900">{formatPrice(variantPrice)}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">{selectedPlan.label}</span>
+                    <span className="font-medium text-gray-900">{formatPrice(selectedPlan.price)}</span>
+                  </div>
+                )}
 
                 {selectedAddonObjects.length > 0 && (
                   <div className="border-t border-gray-100 pt-3 space-y-2">
