@@ -386,6 +386,15 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
+              {product.slug === 'vsaas' && (
+              <TabsTrigger
+                value="solutions"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+              >
+                <Cloud className="h-4 w-4 mr-2" />
+                VSAAS Solutions
+              </TabsTrigger>
+              )}
               {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"
@@ -556,6 +565,87 @@ export default async function ProductDetailPage({ params }: Props) {
                   )}
                 </div>
               </TabsContent>
+
+              {/* Solutions Tab - Only for VSAAS */}
+              {product.slug === 'vsaas' && (
+              <TabsContent value="solutions" className="mt-0">
+                <div className="max-w-5xl mx-auto">
+                  <div className="text-center mb-10">
+                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                      <Cloud className="h-4 w-4 mr-1" /> VSAAS Solutions
+                    </Badge>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">VSAAS Solutions</h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">Select the best VSAAS solution for your business needs.</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Cloud Solution */}
+                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-[#8B1D1D]/50 hover:shadow-lg transition-all">
+                      <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                        <Cloud className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS Cloud</h3>
+                      <p className="text-gray-500 mb-6">Host your video surveillance in the cloud. No hardware needed, access from anywhere.</p>
+                      <ul className="space-y-3 mb-8">
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>99.9% Uptime Guarantee</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>Remote Access Anywhere</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>Automatic Backups</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>No Hardware Required</span>
+                        </li>
+                      </ul>
+                      <Link href="/products/connect-cloud">
+                        <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                          View Cloud Plans
+                        </Button>
+                      </Link>
+                    </div>
+
+                    {/* On-Premise Solution */}
+                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-[#8B1D1D]/50 hover:shadow-lg transition-all">
+                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                        <Server className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS On-Premise</h3>
+                      <p className="text-gray-500 mb-6">Host your video surveillance on your own servers. Complete data control.</p>
+                      <ul className="space-y-3 mb-8">
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>Complete Data Control</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>On-Site Storage</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>No Internet Required</span>
+                        </li>
+                        <li className="flex items-center gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span>Custom Integration</span>
+                        </li>
+                      </ul>
+                      <Link href="/products/vsaas-on-premise">
+                        <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                          View On-Premise Plans
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              )}
 
               {/* Pricing Tab */}
               <TabsContent value="pricing" className="mt-0">
