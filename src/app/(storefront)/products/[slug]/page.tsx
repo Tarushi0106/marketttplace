@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
@@ -128,10 +128,6 @@ async function getProduct(slug: string) {
   });
 
   if (product) {
-    // Redirect VSAAS product to the VSAAS configure page
-    if (product.slug === "vsaas") {
-      redirect("/products/vsaas/configure");
-    }
     // Store all recurring prices before filtering (for variant lookup)
     const allRecurringPrices = product.recurringPrices ? [...product.recurringPrices] : [];
     
@@ -351,9 +347,16 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {product.slug !== 'vsaas' && (
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
                     <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                   </Button>
+                  )}
+                  {product.slug === 'vsaas' && (
+                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                    <Link href={`/products/${product.slug}/configure`}><ShoppingBag className="h-4 w-4 mr-2" />Get Started</Link>
+                  </Button>
+                  )}
                   <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
                     <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
                   </Button>
@@ -383,6 +386,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
+              {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -391,6 +395,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <CreditCard className="h-4 w-4 mr-2" />
                 Pricing
               </TabsTrigger>
+              )}
               <TabsTrigger
                 value="reviews"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
