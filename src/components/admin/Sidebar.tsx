@@ -26,6 +26,7 @@ import {
   Sliders,
   Layout,
   RefreshCw,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,6 +64,11 @@ const navigation = [
     name: "Products",
     href: "/admin/products",
     icon: Package,
+  },
+  {
+    name: "Hero Products",
+    href: "/admin/hero-products",
+    icon: Star,
   },
   {
     name: "Bundles",
