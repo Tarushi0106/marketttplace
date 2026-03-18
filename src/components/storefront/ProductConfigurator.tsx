@@ -336,13 +336,43 @@ export function ProductConfigurator({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const variantRecurringPrices = useMemo(() => {
     console.log("[ProductConfigurator] Current variant:", currentVariant);
-    console.log("[ProductConfigurator] Variant recurring prices:", currentVariant?.recurringPrices);
+    console.log("[ProductConfigurator] Variant recurringPricesObj:", currentVariant?.recurringPricesObj);
+    console.log("[ProductConfigurator] Variant recurringPrices (array):", currentVariant?.recurringPrices);
     if (!currentVariant) return null;
+    
+    // First try: Use recurringPricesObj (the transformed object format from API)
+    if (currentVariant.recurringPricesObj) {
+      const obj = currentVariant.recurringPricesObj;
+      const extracted = {
+        monthlyPrice: obj.monthly,
+        biMonthlyPrice: obj.biMonthly || obj.biMonthlyPrice,
+        quarterlyPrice: obj.quarterly,
+        fourMonthlyPrice: obj.fourMonthly || obj.fourMonthlyPrice,
+        semiAnnualPrice: obj.semiAnnual,
+        triAnnualPrice: obj.triAnnual,
+        yearlyPrice: obj.yearly,
+        biennialPrice: obj.biennial,
+        triennialPrice: obj.triennial,
+        monthlySetupFee: obj.monthlySetupFee,
+        biMonthlySetupFee: obj.biMonthlySetupFee,
+        quarterlySetupFee: obj.quarterlySetupFee,
+        fourMonthlySetupFee: obj.fourMonthlySetupFee,
+        semiAnnualSetupFee: obj.semiAnnualSetupFee,
+        triAnnualSetupFee: obj.triAnnualSetupFee,
+        yearlySetupFee: obj.yearlySetupFee,
+        biennialSetupFee: obj.biennialSetupFee,
+        triennialSetupFee: obj.triennialSetupFee,
+      };
+      console.log("[ProductConfigurator] Extracted from recurringPricesObj:", extracted);
+      return extracted;
+    }
+    
+    // Fallback: Use the array format
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = currentVariant.recurringPrices?.find((rp: any) => rp.variantId === currentVariant.id);
-    console.log("[ProductConfigurator] Found recurring price:", rp);
+    console.log("[ProductConfigurator] Found recurring price (array):", rp);
     const extracted = extractRecurringPrices(rp);
-    console.log("[ProductConfigurator] Extracted recurring prices:", extracted);
+    console.log("[ProductConfigurator] Extracted recurring prices (array):", extracted);
     return extracted;
   }, [currentVariant]);
 

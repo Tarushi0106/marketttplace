@@ -368,13 +368,13 @@ export function RecurringBillingSection({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 space-y-6">
-        {/* Billing Frequency Selection */}
+        {/* Billing Frequency Selection - Vertical Style */}
         <div className="space-y-3">
           <Label className="text-base font-medium">Select Billing Frequency</Label>
           <RadioGroup
             value={billingCycle}
             onValueChange={(value) => setBillingCycle(value as BillingCycleType)}
-            className="grid grid-cols-1 md:grid-cols-3 gap-3"
+            className="space-y-2"
           >
             {availableCycles.map((cycle: BillingCycleType) => {
               const cyclePrice = getPriceForCycle(cycle) || 0;
@@ -384,24 +384,32 @@ export function RecurringBillingSection({
               return (
                 <div
                   key={cycle}
-                  className={`flex items-start space-x-2 p-3 rounded-lg border-2 transition-colors ${
+                  onClick={() => setBillingCycle(cycle)}
+                  className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:border-gray-400 ${
                     billingCycle === cycle
                       ? "border-[#8B1D1D] bg-[#8B1D1D]/5"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <RadioGroupItem value={cycle} id={cycle} className="mt-1" />
-                  <Label htmlFor={cycle} className="cursor-pointer flex-1">
-                    <div className="font-medium">{BILLING_CYCLE_LABELS[cycle]}</div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {BILLING_CYCLE_DESCRIPTIONS[cycle]}
-                    </div>
-                    <div className="text-sm font-semibold text-[#8B1D1D] mt-2">
+                  <div className="flex items-center gap-3">
+                    <RadioGroupItem 
+                      value={cycle} 
+                      id={cycle} 
+                      className="w-5 h-5"
+                    />
+                    <Label htmlFor={cycle} className="cursor-pointer">
+                      <span className="font-medium text-base">{BILLING_CYCLE_LABELS[cycle]}</span>
+                    </Label>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-[#8B1D1D]">
                       {formatPrice(cyclePrice)}
+                    </span>
+                    <span className="text-sm text-gray-500 ml-1">
                       {BILLING_CYCLE_PERIODS[cycle]}
-                    </div>
+                    </span>
                     {cycleSavings !== undefined && cycleSavings > 0 && (
-                      <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
+                      <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
                         Save {cycleSavings}%
                       </Badge>
                     )}
@@ -410,7 +418,7 @@ export function RecurringBillingSection({
                         + {formatPrice(cycleSetupFee)} setup fee
                       </div>
                     )}
-                  </Label>
+                  </div>
                 </div>
               );
             })}

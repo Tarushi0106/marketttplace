@@ -30,9 +30,53 @@ function convertDecimalToString(obj: any): any {
   return obj;
 }
 
+// Helper function to transform recurringPrices array to object format
+function transformRecurringPrices(recurringPrices: any[]): any {
+  if (!recurringPrices || recurringPrices.length === 0) return null;
+  
+  const price = recurringPrices[0];
+  return {
+    monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
+    quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
+    biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
+    triennial: price.triennialPrice ? Number(price.triennialPrice) : null,
+  };
+}
+
+// Helper to transform variant with recurring prices
+function transformVariant(variant: any) {
+  // First, preserve the original recurringPrices array before any conversion
+  const originalRecurringPrices = variant.recurringPrices;
+  
+  const converted = convertDecimalToString(variant);
+  
+  // Restore the original array (ensure it's an array, not an object)
+  if (originalRecurringPrices && Array.isArray(originalRecurringPrices)) {
+    converted.recurringPrices = originalRecurringPrices.map((rp: any) => convertDecimalToString(rp));
+  } else {
+    converted.recurringPrices = [];
+  }
+  
+  // Determine billing type based on recurring prices
+  if (converted.recurringPrices && converted.recurringPrices.length > 0) {
+    // Add transformed object for storefront frontend (monthly, quarterly, yearly keys)
+    converted.recurringPricesObj = transformRecurringPrices(converted.recurringPrices);
+    converted.billingType = 'recurring';
+  } else {
+    converted.billingType = 'one_time';
+  }
+  
+  return converted;
+}
+
 // Helper function to serialize a complete product for API response
 function serializeProduct(product: any) {
   const converted = convertDecimalToString(product);
+  // Transform variants to include recurringPrices in the expected format
+  if (converted.variants) {
+    converted.variants = converted.variants.map((variant: any) => transformVariant(variant));
+  }
   return converted;
 }
 

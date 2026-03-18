@@ -1,0 +1,206 @@
+"use client";
+
+import { useState } from "react";
+import { Cloud, Server, ChevronRight } from "lucide-react";
+import { TallyCloudConfigurator } from "./TallyCloudConfigurator";
+
+interface VSAASProduct {
+  id: string;
+  name: string;
+  slug: string;
+  shortDescription?: string | null;
+  description?: string | null;
+  basePrice: number | string | any;
+  variants: any[];
+  addons: any[];
+}
+
+interface VSAASConfiguratorProps {
+  cloudProduct: VSAASProduct;
+  onPremiseProduct: VSAASProduct;
+  initialDeploymentType?: "cloud" | "on-premise" | null;
+}
+
+export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeploymentType = null }: VSAASConfiguratorProps) {
+  const [deploymentType, setDeploymentType] = useState<"cloud" | "on-premise" | null>(initialDeploymentType);
+
+  // Transform addons for TallyCloudConfigurator
+  const transformAddons = (addons: any[]) => {
+    return addons.map(addon => ({
+      id: addon.id,
+      name: addon.name,
+      description: addon.description || undefined,
+      price: Number(addon.price) || 0,
+      unit: addon.unit || undefined,
+      pricingType: addon.pricingType as "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined,
+      source: 'product',
+      group: addon.group || undefined,
+      options: addon.options as any || undefined,
+    }));
+  };
+
+  // Transform variants for TallyCloudConfigurator
+  const transformVariants = (variants: any[]) => {
+    return variants.map(variant => ({
+      id: variant.id,
+      name: variant.name,
+      price: Number(variant.price) || 0,
+      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
+      isDefault: variant.isDefault || false,
+      attributes: variant.attributes as Record<string, string> || {},
+      billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
+      setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
+      // Include recurring prices if available
+      recurringPrices: variant.recurringPrices ? variant.recurringPrices.map((rp: any) => ({
+        id: rp.id,
+        variantId: rp.variantId,
+        monthlyPrice: rp.monthlyPrice ? Number(rp.monthlyPrice) : null,
+        quarterlyPrice: rp.quarterlyPrice ? Number(rp.quarterlyPrice) : null,
+        yearlyPrice: rp.yearlyPrice ? Number(rp.yearlyPrice) : null,
+        biMonthlyPrice: rp.biMonthlyPrice ? Number(rp.biMonthlyPrice) : null,
+        fourMonthlyPrice: rp.fourMonthlyPrice ? Number(rp.fourMonthlyPrice) : null,
+        semiAnnualPrice: rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : null,
+        triAnnualPrice: rp.triAnnualPrice ? Number(rp.triAnnualPrice) : null,
+        biennialPrice: rp.biennialPrice ? Number(rp.biennialPrice) : null,
+        triennialPrice: rp.triennialPrice ? Number(rp.triennialPrice) : null,
+      })) : [],
+    }));
+  };
+
+  const cloudAddons = transformAddons(cloudProduct.addons);
+  const cloudVariants = transformVariants(cloudProduct.variants);
+  const onPremiseAddons = transformAddons(onPremiseProduct.addons);
+  const onPremiseVariants = transformVariants(onPremiseProduct.variants);
+
+  return (
+    <div className="w-full">
+      {/* Deployment Type Selector */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          Choose Your Deployment Type
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          {/* VSAAS Cloud Card */}
+          <button
+            onClick={() => setDeploymentType("cloud")}
+            className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-left group ${
+              deploymentType === "cloud"
+                ? "border-[#C62828] bg-red-50 shadow-lg"
+                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-xl ${deploymentType === "cloud" ? "bg-[#C62828] text-white" : "bg-gray-100 text-gray-600"}`}>
+                <Cloud size={32} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS Cloud</h3>
+                <p className="text-sm text-gray-500">Cloud-based video management system</p>
+                <div className="mt-3 flex items-center text-[#C62828] font-medium">
+                  Select <ChevronRight size={16} className="ml-1" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Selected Indicator */}
+            {deploymentType === "cloud" && (
+              <div className="absolute top-4 right-4 w-6 h-6 bg-[#C62828] rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+          </button>
+
+          {/* VSAAS On-Premise Card */}
+          <button
+            onClick={() => setDeploymentType("on-premise")}
+            className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-left group ${
+              deploymentType === "on-premise"
+                ? "border-[#C62828] bg-red-50 shadow-lg"
+                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-xl ${deploymentType === "on-premise" ? "bg-[#C62828] text-white" : "bg-gray-100 text-gray-600"}`}>
+                <Server size={32} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS On-Premise</h3>
+                <p className="text-sm text-gray-500">Self-hosted video management system</p>
+                <div className="mt-3 flex items-center text-[#C62828] font-medium">
+                  Select <ChevronRight size={16} className="ml-1" />
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Indicator */}
+            {deploymentType === "on-premise" && (
+              <div className="absolute top-4 right-4 w-6 h-6 bg-[#C62828] rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Calculator Section */}
+      <div className="transition-all duration-500">
+        {deploymentType === null && (
+          <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            <p className="text-gray-500 text-lg">
+              Select a deployment type to configure your VSAAS solution.
+            </p>
+          </div>
+        )}
+
+        {deploymentType === "cloud" && (
+          <div className="animate-fadeIn">
+            <TallyCloudConfigurator
+              productId={cloudProduct.id}
+              productSlug={cloudProduct.slug}
+              productName={cloudProduct.name}
+              productDescription={cloudProduct.shortDescription || cloudProduct.description || undefined}
+              basePrice={Number(cloudProduct.basePrice) || 0}
+              addons={cloudAddons}
+              variants={cloudVariants}
+            />
+          </div>
+        )}
+
+        {deploymentType === "on-premise" && (
+          <div className="animate-fadeIn">
+            <TallyCloudConfigurator
+              productId={onPremiseProduct.id}
+              productSlug={onPremiseProduct.slug}
+              productName={onPremiseProduct.name}
+              productDescription={onPremiseProduct.shortDescription || onPremiseProduct.description || undefined}
+              basePrice={Number(onPremiseProduct.basePrice) || 0}
+              addons={onPremiseAddons}
+              variants={onPremiseVariants}
+            />
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}

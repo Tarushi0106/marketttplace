@@ -95,9 +95,12 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
 
   // Get billing type from selected variant (default to RECURRING if not specified)
   // Also check product-level isRecurring setting - if false, treat as ONE_TIME
+  // Check both the new billingType field from API and the old attributes.billingType
   const billingType = product.isRecurring === false 
     ? "ONE_TIME" 
-    : ((selectedVariant?.attributes as any)?.billingType || "RECURRING");
+    : (selectedVariant?.billingType === 'one_time' ? "ONE_TIME" : 
+       selectedVariant?.billingType === 'recurring' ? "RECURRING" :
+       ((selectedVariant?.attributes as any)?.billingType || "RECURRING"));
   
   // Get setup fee from selected variant for ONE_TIME billing
   const oneTimeSetupFee = (selectedVariant?.attributes as any)?.setupFee 
@@ -107,15 +110,67 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
   // Extract recurring prices from product level
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const productRecurringPrices = useMemo(() => {
+    // First try: Use recurringPricesObj (the transformed object format from API)
+    if (product.recurringPricesObj) {
+      const obj = product.recurringPricesObj;
+      return {
+        monthlyPrice: obj.monthly,
+        biMonthlyPrice: obj.biMonthly,
+        quarterlyPrice: obj.quarterly,
+        fourMonthlyPrice: obj.fourMonthly,
+        semiAnnualPrice: obj.semiAnnual,
+        triAnnualPrice: obj.triAnnual,
+        yearlyPrice: obj.yearly,
+        biennialPrice: obj.biennial,
+        triennialPrice: obj.triennial,
+        monthlySetupFee: obj.monthlySetupFee,
+        biMonthlySetupFee: obj.biMonthlySetupFee,
+        quarterlySetupFee: obj.quarterlySetupFee,
+        fourMonthlySetupFee: obj.fourMonthlySetupFee,
+        semiAnnualSetupFee: obj.semiAnnualSetupFee,
+        triAnnualSetupFee: obj.triAnnualSetupFee,
+        yearlySetupFee: obj.yearlySetupFee,
+        biennialSetupFee: obj.biennialSetupFee,
+        triennialSetupFee: obj.triennialSetupFee,
+      };
+    }
+    // Fallback: Use array format
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = product.recurringPrices?.find((rp: any) => !rp.variantId);
     return extractRecurringPrices(rp);
-  }, [product.recurringPrices]);
+  }, [product.recurringPrices, product.recurringPricesObj]);
 
   // Extract recurring prices from selected variant
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const variantRecurringPrices = useMemo(() => {
     if (!selectedVariant) return null;
+    
+    // First try: Use recurringPricesObj (the transformed object format from API)
+    if (selectedVariant.recurringPricesObj) {
+      const obj = selectedVariant.recurringPricesObj;
+      return {
+        monthlyPrice: obj.monthly,
+        biMonthlyPrice: obj.biMonthly,
+        quarterlyPrice: obj.quarterly,
+        fourMonthlyPrice: obj.fourMonthly,
+        semiAnnualPrice: obj.semiAnnual,
+        triAnnualPrice: obj.triAnnual,
+        yearlyPrice: obj.yearly,
+        biennialPrice: obj.biennial,
+        triennialPrice: obj.triennial,
+        monthlySetupFee: obj.monthlySetupFee,
+        biMonthlySetupFee: obj.biMonthlySetupFee,
+        quarterlySetupFee: obj.quarterlySetupFee,
+        fourMonthlySetupFee: obj.fourMonthlySetupFee,
+        semiAnnualSetupFee: obj.semiAnnualSetupFee,
+        triAnnualSetupFee: obj.triAnnualSetupFee,
+        yearlySetupFee: obj.yearlySetupFee,
+        biennialSetupFee: obj.biennialSetupFee,
+        triennialSetupFee: obj.triennialSetupFee,
+      };
+    }
+    
+    // Fallback: Use array format
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = selectedVariant.recurringPrices?.find((rp: any) => rp.variantId === selectedVariant.id);
     return extractRecurringPrices(rp);
@@ -272,32 +327,48 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
 
   return (
     <div className="space-y-6">
-      {/* Billing Cycle Selection (for recurring products only) */}
+      {/* Billing Cycle Selection (for recurring products only) - Vertical Style */}
       {hasMultipleBillingCycles && billingType === "RECURRING" && (
         <div>
           <Label className="text-sm font-medium mb-2 block">Billing Cycle</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="space-y-2">
             {availableBillingCycles.slice(0, 8).map((cycle) => (
-              <button
+              <div
                 key={cycle.cycle}
                 onClick={() => setBillingCycle(cycle.cycle)}
                 className={cn(
-                  "relative rounded-lg border-2 p-3 text-center transition-all",
+                  "flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:border-gray-400",
                   billingCycle === cycle.cycle
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/50"
                 )}
               >
-                {billingCycle === cycle.cycle && (
-                  <div className="absolute top-1 right-1">
-                    <Check className="h-3 w-3 text-primary" />
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                    billingCycle === cycle.cycle
+                      ? "border-primary bg-primary"
+                      : "border-gray-300"
+                  )}>
+                    {billingCycle === cycle.cycle && (
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    )}
                   </div>
-                )}
-                <div className="font-medium text-sm">{cycle.label}</div>
-                <div className="text-xs text-muted-foreground">
-                  {getDisplayPrice(cycle.price)}
+                  <span className="font-medium text-base">{cycle.label}</span>
                 </div>
-              </button>
+                <div className="text-right">
+                  <span className="text-lg font-bold">
+                    {getDisplayPrice(cycle.price)}
+                  </span>
+                  <span className="text-sm text-muted-foreground ml-1">
+                    {cycle.cycle === 'MONTHLY' ? '/mo' : 
+                     cycle.cycle === 'QUARTERLY' ? '/quarter' : 
+                     cycle.cycle === 'YEARLY' ? '/year' : 
+                     cycle.cycle === 'BIENNIAL' ? '/2 years' : 
+                     cycle.cycle === 'TRIENNIAL' ? '/3 years' : '/cycle'}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -349,8 +420,12 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
                 )}
                 <div className="mt-2 font-semibold">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {getDisplayPrice(variant.recurringPrices?.find((rp: any) => rp.variantId === variant.id)?.monthlyPrice || variant.price)}
-                  {isPricingAvailable && "/mo"}
+                  {getDisplayPrice(getPriceForCycle(billingCycle) || variant.price)}
+                  {isPricingAvailable && (billingCycle === 'MONTHLY' ? '/mo' : 
+                    billingCycle === 'QUARTERLY' ? '/quarter' : 
+                    billingCycle === 'YEARLY' ? '/year' : 
+                    billingCycle === 'BIENNIAL' ? '/2 years' : 
+                    billingCycle === 'TRIENNIAL' ? '/3 years' : '/cycle')}
                 </div>
               </button>
             ))}
@@ -473,7 +548,13 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
           </div>
           {billingType === "RECURRING" && recurringTotal > 0 && (
             <div className="text-xs text-muted-foreground mt-1">
-              + {formatPrice(recurringTotal)}/mo recurring
+              + {formatPrice(recurringTotal)}{
+                billingCycle === 'MONTHLY' ? '/mo' : 
+                billingCycle === 'QUARTERLY' ? '/quarter' : 
+                billingCycle === 'YEARLY' ? '/year' : 
+                billingCycle === 'BIENNIAL' ? '/2 years' : 
+                billingCycle === 'TRIENNIAL' ? '/3 years' : '/cycle'
+              } recurring
             </div>
           )}
         </div>

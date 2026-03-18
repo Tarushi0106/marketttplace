@@ -31,6 +31,18 @@ export interface Product {
   subCategory: SubCategory | null;
   seoMetadata: SeoMetadata | null;
   recurringPrices: ProductRecurringPrice[];
+  // Transformed recurring prices object format from API
+  recurringPricesObj?: {
+    monthly?: number | null;
+    biMonthly?: number | null;
+    quarterly?: number | null;
+    fourMonthly?: number | null;
+    semiAnnual?: number | null;
+    triAnnual?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,6 +91,27 @@ export interface ProductVariant {
   yearlySetupFee?: string;
   biennialSetupFee?: string;
   triennialSetupFee?: string;
+  // Transformed recurring prices object format from API
+  recurringPricesObj?: {
+    monthly?: number | null;
+    biMonthly?: number | null;
+    quarterly?: number | null;
+    fourMonthly?: number | null;
+    semiAnnual?: number | null;
+    triAnnual?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    monthlySetupFee?: number | null;
+    biMonthlySetupFee?: number | null;
+    quarterlySetupFee?: number | null;
+    fourMonthlySetupFee?: number | null;
+    semiAnnualSetupFee?: number | null;
+    triAnnualSetupFee?: number | null;
+    yearlySetupFee?: number | null;
+    biennialSetupFee?: number | null;
+    triennialSetupFee?: number | null;
+  } | null;
 }
 
 export interface ProductAddon {

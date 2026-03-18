@@ -25,6 +25,80 @@ import { ProductsGrid } from "@/components/storefront/ProductsGrid";
 import type { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 
+// Helper function to convert Prisma Decimal fields to plain objects
+function convertDecimalToString(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    const constructorName = obj.constructor?.name;
+    if (constructorName === 'Decimal' || 
+        (typeof obj.toNumber === 'function' && typeof obj.equals === 'function') ||
+        (typeof obj.toFixed === 'function' && typeof obj.toString === 'function' && obj.toString !== Object.prototype.toString)) {
+      return obj.toString();
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertDecimalToString(item));
+    }
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertDecimalToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+// Helper function to transform recurringPrices array to object format
+function transformRecurringPrices(recurringPrices: any[]): any {
+  if (!recurringPrices || recurringPrices.length === 0) return null;
+  
+  const price = recurringPrices[0];
+  return {
+    monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
+    quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
+    biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
+    triennial: price.triennialPrice ? Number(price.triennialPrice) : null,
+  };
+}
+
+// Helper to transform variant with recurring prices
+function transformVariant(variant: any) {
+  // First, preserve the original recurringPrices array before any conversion
+  const originalRecurringPrices = variant.recurringPrices;
+  
+  const converted = convertDecimalToString(variant);
+  
+  // Restore the original array (ensure it's an array, not an object)
+  if (originalRecurringPrices && Array.isArray(originalRecurringPrices)) {
+    converted.recurringPrices = originalRecurringPrices.map((rp: any) => convertDecimalToString(rp));
+  } else {
+    converted.recurringPrices = [];
+  }
+  
+  // Determine billing type based on recurring prices
+  if (converted.recurringPrices && converted.recurringPrices.length > 0) {
+    // Add transformed object for storefront frontend (monthly, quarterly, yearly keys)
+    converted.recurringPricesObj = transformRecurringPrices(converted.recurringPrices);
+    converted.billingType = 'recurring';
+  } else {
+    converted.billingType = 'one_time';
+  }
+  
+  return converted;
+}
+
+// Helper to transform product with variants
+function transformProduct(product: any) {
+  const converted = convertDecimalToString(product);
+  // Transform variants to include recurringPrices in the expected format
+  if (converted.variants) {
+    converted.variants = converted.variants.map((variant: any) => transformVariant(variant));
+  }
+  return converted;
+}
+
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
@@ -171,6 +245,9 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
         variants: {
           where: { isActive: true },
           orderBy: { sortOrder: "asc" },
+          include: {
+            recurringPrices: true,
+          },
         },
         _count: {
           select: { reviews: true },
@@ -183,8 +260,11 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     prisma.product.count({ where }),
   ]);
 
-  // Transform products to include correct display price
+  // Transform products to include correct display price and recurring prices
   const productsWithPricing = products.map((product: any) => {
+    // First transform the product to include recurringPrices and billingType
+    const transformedProduct = transformProduct(product);
+    
     // For CONFIGURABLE products, use only variant prices
     if (product.productType === "CONFIGURABLE" && product.variants && product.variants.length > 0) {
       const variantPrices = product.variants
@@ -192,16 +272,16 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
         .map((v: any) => Number(v.price));
       const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
       return {
-        ...product,
+        ...transformedProduct,
         displayPrice: minVariantPrice,
-        variants: product.variants, // Pass variants to the grid component
+        variants: transformedProduct.variants,
       };
     }
     // For other product types (STANDALONE, WITH_ADDONS), use basePrice
     return {
-      ...product,
+      ...transformedProduct,
       displayPrice: Number(product.basePrice),
-      variants: product.variants,
+      variants: transformedProduct.variants,
     };
   });
 

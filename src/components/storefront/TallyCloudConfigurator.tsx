@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Check, ShoppingCart, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,9 +50,32 @@ interface TallyCloudConfiguratorProps {
     attributes?: Record<string, string>;
     billingType?: string;
     setupFee?: number;
+    recurringPricesObj?: {
+      monthly?: number | null;
+      quarterly?: number | null;
+      yearly?: number | null;
+      biennial?: number | null;
+      triennial?: number | null;
+      semiAnnual?: number | null;
+    } | null;
+    recurringPrices?: Array<{
+      id: string;
+      variantId: string | null;
+      monthlyPrice: number | null;
+      quarterlyPrice: number | null;
+      yearlyPrice: number | null;
+      biMonthlyPrice: number | null;
+      fourMonthlyPrice: number | null;
+      semiAnnualPrice: number | null;
+      triAnnualPrice: number | null;
+      biennialPrice: number | null;
+      triennialPrice: number | null;
+    }>;
   }>;
   selectedVariantId?: string | null;
   billingPlans?: BillingPlan[];
+  /** When provided, the variant is locked and cannot be changed. Shows "Selected Plan" display instead of "Select Plan" section */
+  lockedVariantId?: string | null;
 }
 
 export function TallyCloudConfigurator({
@@ -64,6 +87,7 @@ export function TallyCloudConfigurator({
   addons = [],
   variants = [],
   selectedVariantId = null,
+  lockedVariantId = null,
   billingPlans = [
     { id: "monthly", label: "Monthly", period: "/month", price: 4500 },
     { id: "quarterly", label: "Quarterly", period: "/quarter", price: 12900, savings: 6 },
@@ -73,16 +97,118 @@ export function TallyCloudConfigurator({
 }: TallyCloudConfiguratorProps) {
   const router = useRouter();
   const { addItem: addToCart } = useCartStore();
-  const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(billingPlans[0]);
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
   
-  // Initialize selected variant - use first variant as default or use selectedVariantId prop
+  // Determine if variant is locked (configure page) or selectable (pricing page)
+  const isVariantLocked = !!lockedVariantId;
+  
+  // Initialize selected variant - use lockedVariantId if provided, otherwise use selectedVariantId prop
+  // When locked, the variant cannot be changed
   const defaultVariantId = variants && variants.length > 0 
-    ? (selectedVariantId && variants.some(v => v.id === selectedVariantId) 
-        ? selectedVariantId 
-        : variants.find(v => v.isDefault)?.id || variants[0]?.id)
+    ? (lockedVariantId && variants.some(v => v.id === lockedVariantId) 
+        ? lockedVariantId 
+        : (selectedVariantId && variants.some(v => v.id === selectedVariantId) 
+            ? selectedVariantId 
+            : variants.find(v => v.isDefault)?.id || variants[0]?.id))
     : null;
   const [selectedVariant, setSelectedVariant] = useState<string | null>(defaultVariantId);
+
+  // Generate billing plans from the selected variant's recurring prices
+  const generatedBillingPlans = useMemo(() => {
+    console.log("Generating billing plans:", { selectedVariant, variants });
+    
+    if (!selectedVariant || variants.length === 0) {
+      console.log("No selected variant, returning default billing plans");
+      return billingPlans; // Fall back to default billing plans
+    }
+    
+    const variant = variants.find(v => v.id === selectedVariant);
+    console.log("Found variant:", variant?.name, "recurringPrices:", variant?.recurringPrices);
+    
+    // Use recurringPrices array from the database
+    if (variant?.recurringPrices && variant.recurringPrices.length > 0) {
+      const rp = variant.recurringPrices[0]; // Use the first set of recurring prices
+      const plans: BillingPlan[] = [];
+      
+      // Monthly price - use variant.price as base, fallback to rp.monthlyPrice
+      const monthlyPrice = variant.price || (rp.monthlyPrice ? Number(rp.monthlyPrice) : null);
+      if (monthlyPrice) {
+        plans.push({ id: "monthly", label: "Monthly", period: "/month", price: Number(monthlyPrice) });
+      }
+      
+      // Quarterly price
+      if (rp.quarterlyPrice !== null) {
+        const price = Number(rp.quarterlyPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 3 - price) / (monthlyPrice * 3)) * 100) : undefined;
+        plans.push({ id: "quarterly", label: "Quarterly", period: "/quarter", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate quarterly as monthly * 3
+        const price = monthlyPrice * 3;
+        plans.push({ id: "quarterly", label: "Quarterly", period: "/quarter", price });
+      }
+      
+      // Semi-annual price
+      if (rp.semiAnnualPrice !== null) {
+        const price = Number(rp.semiAnnualPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 6 - price) / (monthlyPrice * 6)) * 100) : undefined;
+        plans.push({ id: "semi-annual", label: "Semi Annual", period: "/6 months", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate semi-annual as monthly * 6
+        const price = monthlyPrice * 6;
+        plans.push({ id: "semi-annual", label: "Semi Annual", period: "/6 months", price });
+      }
+      
+      // Yearly price
+      if (rp.yearlyPrice !== null) {
+        const price = Number(rp.yearlyPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 12 - price) / (monthlyPrice * 12)) * 100) : undefined;
+        plans.push({ id: "yearly", label: "Yearly", period: "/year", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate yearly as monthly * 12
+        const price = monthlyPrice * 12;
+        plans.push({ id: "yearly", label: "Yearly", period: "/year", price });
+      }
+      
+      console.log("Generated plans from recurringPrices:", plans);
+      return plans.length > 0 ? plans : billingPlans;
+    }
+    
+    // If no recurring prices, use variant.price as monthly
+    if (variant?.price) {
+      const monthlyPrice = Number(variant.price);
+      return [
+        { id: "monthly", label: "Monthly", period: "/month", price: monthlyPrice },
+        { id: "quarterly", label: "Quarterly", period: "/quarter", price: monthlyPrice * 3 },
+        { id: "semi-annual", label: "Semi Annual", period: "/6 months", price: monthlyPrice * 6 },
+        { id: "yearly", label: "Yearly", period: "/year", price: monthlyPrice * 12 },
+      ];
+    }
+    
+    return billingPlans;
+  }, [selectedVariant, variants, billingPlans]);
+
+  const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(generatedBillingPlans[0]);
+  
+  // Separate billing cycle state for simpler control
+  const [billingCycle, setBillingCycle] = useState<string>("monthly");
+
+  // Sync billingCycle with selectedPlan when plan changes
+  useEffect(() => {
+    console.log("Billing:", billingCycle, "Selected Plan:", selectedPlan?.id);
+    if (selectedPlan && selectedPlan.id) {
+      setBillingCycle(selectedPlan.id);
+    }
+  }, [selectedPlan?.id]);
+
+  // Update selected plan when generated billing plans change (variant changes)
+  useEffect(() => {
+    if (generatedBillingPlans.length > 0) {
+      const currentPlan = generatedBillingPlans.find(p => p.id === selectedPlan.id);
+      if (!currentPlan) {
+        setSelectedPlan(generatedBillingPlans[0]);
+      }
+    }
+  }, [generatedBillingPlans, selectedPlan.id]);
 
   // Group addons by base name (use group field if available, otherwise parse from name)
   const groupedAddons = useMemo(() => {
@@ -186,11 +312,126 @@ export function TallyCloudConfigurator({
     }, 0);
   }, [addons, addonQuantities, selectedAddonOption]);
 
-  // Get the base price - use variant price if selected, otherwise use selectedPlan price
-  const variantPrice = selectedVariant && variants.length > 0 
-    ? variants.find(v => v.id === selectedVariant)?.price || 0 
-    : 0;
-  const calculatedBasePrice = variants.length > 0 ? variantPrice : selectedPlan.price;
+  // Helper function to get price based on billing cycle
+  const getPriceForBillingCycle = (variant: any, cycle: string): number => {
+    console.log("Recurring: variant.recurringPricesObj =", variant?.recurringPricesObj, "cycle =", cycle);
+    
+    // Check billing type first - if one-time, return the one-time price
+    const billingType = variant?.billingType || 'RECURRING';
+    if (billingType === 'ONE_TIME' || billingType === 'one_time') {
+      console.log("Billing type is ONE_TIME, returning one-time price:", variant?.price);
+      return variant?.price || 0;
+    }
+    
+    // First try: Use recurringPricesObj (the transformed object format from API)
+    if (variant?.recurringPricesObj) {
+      const obj = variant.recurringPricesObj;
+      const priceMap: Record<string, number | null | undefined> = {
+        monthly: obj.monthly,
+        quarterly: obj.quarterly,
+        "semi-annual": obj.semiAnnual,
+        yearly: obj.yearly,
+      };
+      console.log("Using recurringPricesObj: priceMap =", priceMap, "selected cycle price =", priceMap[cycle]);
+      return priceMap[cycle] ?? priceMap.monthly ?? variant.price ?? 0;
+    }
+    
+    // Fallback: Use array format
+    if (!variant || !variant.recurringPrices || variant.recurringPrices.length === 0) {
+      return variant?.price || 0;
+    }
+    const rp = variant.recurringPrices[0];
+    const priceMap: Record<string, number | null> = {
+      monthly: rp.monthlyPrice,
+      quarterly: rp.quarterlyPrice,
+      "semi-annual": rp.semiAnnualPrice,
+      yearly: rp.yearlyPrice,
+    };
+    console.log("Using array format: priceMap =", priceMap, "selected cycle price =", priceMap[cycle]);
+    
+    // Fallback to monthly if the selected cycle is not available
+    return priceMap[cycle] ?? priceMap.monthly ?? variant.price ?? 0;
+  };
+
+  // Get the billing cycle suffix
+  const getBillingSuffix = (cycle: string): string => {
+    const suffixMap: Record<string, string> = {
+      monthly: "/month",
+      quarterly: "/quarter", 
+      "semi-annual": "/6 months",
+      yearly: "/year",
+    };
+    return suffixMap[cycle] || "";
+  };
+
+  // Get billing cycle label
+  const getBillingLabel = (cycle: string): string => {
+    const labelMap: Record<string, string> = {
+      monthly: "Monthly Plan",
+      quarterly: "Quarterly Plan",
+      "semi-annual": "Semi Annual Plan",
+      yearly: "Yearly Plan",
+    };
+    return labelMap[cycle] || cycle;
+  };
+
+  // Get the base price - use variant.price as the single source of truth, with recurring prices for billing cycles
+  const variantPrice = useMemo(() => {
+    console.log("variantPrice recalculating:", { selectedVariant, billingCycle, variants });
+    
+    if (!selectedVariant || variants.length === 0) {
+      return selectedPlan?.price || 0;
+    }
+    
+    const variant = variants.find(v => v.id === selectedVariant);
+    if (!variant) {
+      return selectedPlan?.price || 0;
+    }
+    
+    // Use variant.price as the base unit price (monthly)
+    const unitPrice = variant.price || 0;
+    console.log("Base unit price (variant.price):", unitPrice);
+    
+    // If there are recurring prices in the database, use them
+    if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+      const rp = variant.recurringPrices[0];
+      
+      // Return price based on billing cycle
+      switch (billingCycle) {
+        case "monthly":
+          // Use variant.price as monthly, fallback to rp.monthlyPrice
+          return unitPrice || (rp.monthlyPrice ? Number(rp.monthlyPrice) : 0);
+        case "quarterly":
+          return rp.quarterlyPrice ? Number(rp.quarterlyPrice) : (unitPrice * 3);
+        case "semi-annual":
+          return rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : (unitPrice * 6);
+        case "yearly":
+          return rp.yearlyPrice ? Number(rp.yearlyPrice) : (unitPrice * 12);
+        default:
+          return unitPrice;
+      }
+    }
+    
+    // If no recurring prices, calculate from variant.price
+    switch (billingCycle) {
+      case "monthly":
+        return unitPrice;
+      case "quarterly":
+        return unitPrice * 3;
+      case "semi-annual":
+        return unitPrice * 6;
+      case "yearly":
+        return unitPrice * 12;
+      default:
+        return unitPrice;
+    }
+  }, [selectedVariant, variants, selectedPlan, billingCycle]);
+  
+  // Product quantity state
+  const [quantity, setQuantity] = useState(1);
+
+  // Calculate total price: unit price × quantity + addons
+  const calculatedBasePrice = variants.length > 0 ? variantPrice * quantity : selectedPlan.price;
   const totalPrice = calculatedBasePrice + addonsTotal;
 
   const handleAddToCart = () => {
@@ -201,7 +442,7 @@ export function TallyCloudConfigurator({
         slug: productSlug || '',
         name: productName,
       } as any,
-      quantity: 1,
+      quantity: quantity,
       selectedAddons: selectedAddonObjects.map((addon) => ({
         addon: {
           id: addon.id,
@@ -212,7 +453,7 @@ export function TallyCloudConfigurator({
       })),
       billingCycle: selectedPlan.id.toUpperCase() as any,
       isRecurring: true,
-      unitPrice: totalPrice,
+      unitPrice: variantPrice,
       totalPrice: totalPrice,
       recurringAmount: calculatedBasePrice,
       variantId: selectedVariant || undefined,
@@ -224,10 +465,32 @@ export function TallyCloudConfigurator({
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Clean Header */}
+      {/* Clean Header - Show selected plan info when variant is locked */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900">{productName}</h2>
-        <p className="text-gray-500 mt-1">{productDescription}</p>
+        {isVariantLocked && selectedVariant ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-gray-500 mb-1">Selected Plan</div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {variants.find(v => v.id === selectedVariant)?.name || productName}
+              </h2>
+              <p className="text-gray-500 mt-1">{productDescription}</p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-[#C62828]">
+                {formatPrice(variantPrice)}
+              </div>
+              <div className="text-sm text-gray-500">
+                {getBillingSuffix(billingCycle)}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold text-gray-900">{productName}</h2>
+            <p className="text-gray-500 mt-1">{productDescription}</p>
+          </>
+        )}
       </div>
 
       {/* Two Column Layout */}
@@ -474,43 +737,48 @@ export function TallyCloudConfigurator({
 
         {/* Right Column: Billing Plans + Order Summary (2 columns) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Billing Plans - Hidden for all products - using variants instead */}
-          {false && (
+          {/* Billing Plans - Vertical Layout - Show when there are recurring prices */}
+          {generatedBillingPlans.length > 1 && (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-5">Billing Plan</h3>
-            <div className="space-y-3">
-              {billingPlans.map((plan) => (
+            <h3 className="text-lg font-semibold text-gray-900 mb-5">Billing Cycle</h3>
+            <div className="space-y-2">
+              {generatedBillingPlans.map((plan) => (
                 <button
                   key={plan.id}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
-                    selectedPlan.id === plan.id
-                      ? "border-[#C62828] bg-red-50/40 shadow-sm"
-                      : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                  onClick={() => {
+                    setBillingCycle(plan.id);
+                    setSelectedPlan(plan);
+                  }}
+                  className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
+                    billingCycle === plan.id
+                      ? "border-[#C62828] bg-red-50 text-[#C62828] shadow-sm"
+                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-md"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedPlan.id === plan.id 
-                          ? "bg-[#C62828] border-[#C62828]" 
-                          : "border-gray-300"
-                      }`}
-                    >
-                      {selectedPlan.id === plan.id && <Check className="w-2.5 h-2.5 text-white" />}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      billingCycle === plan.id
+                        ? "border-[#C62828] bg-[#C62828]"
+                        : "border-gray-300"
+                    }`}>
+                      {billingCycle === plan.id && (
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      )}
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{plan.label}</div>
-                      <div className="text-sm text-gray-500">{plan.period}</div>
-                    </div>
+                    <span className="font-medium text-base">{plan.label}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {plan.savings && (
-                      <span className="text-xs font-medium bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
+                  <div className="text-right">
+                    <span className="text-lg font-bold">
+                      {formatPrice(plan.price)}
+                    </span>
+                    <span className="text-sm text-gray-500 ml-1">
+                      {plan.period}
+                    </span>
+                    {plan.savings !== undefined && plan.savings > 0 && (
+                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                         Save {plan.savings}%
                       </span>
                     )}
-                    <span className="font-semibold text-gray-900">{formatPrice(plan.price)}</span>
                   </div>
                 </button>
               ))}
@@ -518,43 +786,68 @@ export function TallyCloudConfigurator({
           </div>
           )}
 
-          {/* Variants - Show if variants are provided */}
-          {variants && variants.length > 0 && (
+          {/* Variants - Show if variants are provided AND not locked (i.e., on pricing page, not configure page) */}
+          {variants && variants.length > 0 && !isVariantLocked && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-5">Select Plan</h3>
               <div className="space-y-3">
-                {variants.map((variant) => (
-                  <button
-                    key={variant.id}
-                    onClick={() => setSelectedVariant(variant.id)}
-                    className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
-                      selectedVariant === variant.id
-                        ? "border-[#C62828] bg-red-50/40 shadow-sm"
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedVariant === variant.id 
-                            ? "bg-[#C62828] border-[#C62828]" 
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selectedVariant === variant.id && <Check className="w-2.5 h-2.5 text-white" />}
+                {variants.map((variant) => {
+                  // Use test recurring prices if real ones aren't available
+                  const testRecurringPrices = variant.recurringPrices && variant.recurringPrices.length > 0 
+                    ? variant.recurringPrices 
+                    : [{
+                        id: "test-rp-1",
+                        variantId: variant.id,
+                        monthlyPrice: 3680,
+                        quarterlyPrice: 11040,
+                        yearlyPrice: 44160,
+                        semiAnnualPrice: 21600,
+                        biMonthlyPrice: null,
+                        fourMonthlyPrice: null,
+                        triAnnualPrice: null,
+                        biennialPrice: null,
+                        triennialPrice: null
+                      }];
+                  const isRecurring = testRecurringPrices && testRecurringPrices.length > 0;
+                  const displayPrice = isRecurring ? getPriceForBillingCycle({...variant, recurringPrices: testRecurringPrices}, billingCycle) : variant.price;
+                  const priceSuffix = isRecurring ? getBillingSuffix(billingCycle) : "";
+                  
+                  return (
+                    <button
+                      key={variant.id}
+                      onClick={() => setSelectedVariant(variant.id)}
+                      className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
+                        selectedVariant === variant.id
+                          ? "border-[#C62828] bg-red-50/40 shadow-sm"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedVariant === variant.id 
+                              ? "bg-[#C62828] border-[#C62828]" 
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {selectedVariant === variant.id && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{variant.name}</div>
+                          {variant.isDefault && (
+                            <div className="text-xs text-[#C62828] font-medium">Recommended</div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{variant.name}</div>
-                        {variant.isDefault && (
-                          <div className="text-xs text-[#C62828] font-medium">Recommended</div>
-                        )}
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-gray-900">
+                          {formatPrice(displayPrice)}
+                          {priceSuffix && <span className="text-sm font-normal text-gray-500">{priceSuffix}</span>}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-900">{formatPrice(variant.price)}</span>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -567,10 +860,42 @@ export function TallyCloudConfigurator({
               <div className="space-y-3">
                 {/* Show variant name if variants are being used, otherwise show billing plan */}
                 {variants && variants.length > 0 && selectedVariant ? (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">{variants.find(v => v.id === selectedVariant)?.name || 'Selected Plan'}</span>
-                    <span className="font-medium text-gray-900">{formatPrice(variantPrice)}</span>
-                  </div>
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">
+                        {variants.find(v => v.id === selectedVariant)?.name || 'Selected Plan'}
+                      </span>
+                      <span className="font-medium text-gray-900">{formatPrice(variantPrice)}</span>
+                    </div>
+                    {/* Quantity controls for main product */}
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Quantity</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center font-medium">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(Math.min(100, quantity + 1))}
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    {/* Unit price × quantity */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">
+                        {formatPrice(variantPrice)} × {quantity}
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {formatPrice(variantPrice * quantity)}
+                      </span>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">{selectedPlan.label}</span>

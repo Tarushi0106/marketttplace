@@ -39,6 +39,80 @@ import { Badge } from "@/components/ui/badge";
 import { ProductFilters, ProductSortSelect } from "@/components/storefront/ProductFilters";
 import type { Prisma } from "@prisma/client";
 
+// Helper function to convert Prisma Decimal fields to plain objects
+function convertDecimalToString(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    const constructorName = obj.constructor?.name;
+    if (constructorName === 'Decimal' || 
+        (typeof obj.toNumber === 'function' && typeof obj.equals === 'function') ||
+        (typeof obj.toFixed === 'function' && typeof obj.toString === 'function' && obj.toString !== Object.prototype.toString)) {
+      return obj.toString();
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertDecimalToString(item));
+    }
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertDecimalToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+// Helper function to transform recurringPrices array to object format
+function transformRecurringPrices(recurringPrices: any[]): any {
+  if (!recurringPrices || recurringPrices.length === 0) return null;
+  
+  const price = recurringPrices[0];
+  return {
+    monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
+    quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
+    biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
+    triennial: price.triennialPrice ? Number(price.triennialPrice) : null,
+  };
+}
+
+// Helper to transform variant with recurring prices
+function transformVariant(variant: any) {
+  // First, preserve the original recurringPrices array before any conversion
+  const originalRecurringPrices = variant.recurringPrices;
+  
+  const converted = convertDecimalToString(variant);
+  
+  // Restore the original array (ensure it's an array, not an object)
+  if (originalRecurringPrices && Array.isArray(originalRecurringPrices)) {
+    converted.recurringPrices = originalRecurringPrices.map((rp: any) => convertDecimalToString(rp));
+  } else {
+    converted.recurringPrices = [];
+  }
+  
+  // Determine billing type based on recurring prices
+  if (converted.recurringPrices && converted.recurringPrices.length > 0) {
+    // Add transformed object for storefront frontend (monthly, quarterly, yearly keys)
+    converted.recurringPricesObj = transformRecurringPrices(converted.recurringPrices);
+    converted.billingType = 'recurring';
+  } else {
+    converted.billingType = 'one_time';
+  }
+  
+  return converted;
+}
+
+// Helper to transform product with variants
+function transformProduct(product: any) {
+  const converted = convertDecimalToString(product);
+  // Transform variants to include recurringPrices in the expected format
+  if (converted.variants) {
+    converted.variants = converted.variants.map((variant: any) => transformVariant(variant));
+  }
+  return converted;
+}
+
 // Icon mapping for subcategories
 const iconComponents: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   cloud: Cloud, server: Server, database: Database, shield: Shield, zap: Zap,
@@ -194,6 +268,13 @@ async function getProducts(
           orderBy: { sortOrder: "asc" },
           take: 2,
         },
+        variants: {
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+          include: {
+            recurringPrices: true,
+          },
+        },
         _count: { select: { reviews: true } },
       },
       orderBy,
@@ -204,7 +285,7 @@ async function getProducts(
   ]);
 
   return {
-    products,
+    products: products.map((product: any) => transformProduct(product)),
     pagination: {
       page,
       limit,
@@ -216,7 +297,10 @@ async function getProducts(
 
 async function getPriceRange(subCategoryId: string) {
   const result = await prisma.product.aggregate({
-    where: { status: "ACTIVE", subCategoryId },
+    where: { 
+      status: "ACTIVE", 
+      subCategoryId,
+    },
     _min: { basePrice: true },
     _max: { basePrice: true },
   });
@@ -230,7 +314,10 @@ async function getPriceRange(subCategoryId: string) {
 async function getProductTypeCounts(subCategoryId: string) {
   const counts = await prisma.product.groupBy({
     by: ["productType"],
-    where: { status: "ACTIVE", subCategoryId },
+    where: { 
+      status: "ACTIVE", 
+      subCategoryId,
+    },
     _count: true,
   });
 

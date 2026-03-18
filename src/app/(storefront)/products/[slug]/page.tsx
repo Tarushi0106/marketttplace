@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
@@ -128,6 +128,10 @@ async function getProduct(slug: string) {
   });
 
   if (product) {
+    // Redirect VSAAS product to the VSAAS configure page
+    if (product.slug === "vsaas") {
+      redirect("/products/vsaas/configure");
+    }
     // Store all recurring prices before filtering (for variant lookup)
     const allRecurringPrices = product.recurringPrices ? [...product.recurringPrices] : [];
     
@@ -148,12 +152,31 @@ async function getProduct(slug: string) {
         if (variantSpecificPrices.length > 0) {
           // Use variant-specific recurring prices
           variant.recurringPrices = variantSpecificPrices;
+          // Add transformed object for storefront frontend
+          variant.recurringPricesObj = {
+            monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
+            quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
+            yearly: variantSpecificPrices[0]?.yearlyPrice ? Number(variantSpecificPrices[0].yearlyPrice) : null,
+            biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
+            triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
+          };
+          variant.billingType = 'recurring';
         } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
           // Variant already has recurring prices (included in query)
           // Keep as is
+          variant.recurringPricesObj = {
+            monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
+            quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
+            yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
+            biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
+            triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
+          };
+          variant.billingType = 'recurring';
         } else {
           // No variant-specific prices - clear to avoid stale data
           variant.recurringPrices = [];
+          variant.recurringPricesObj = null;
+          variant.billingType = 'one_time';
         }
         return variant;
       });
@@ -563,7 +586,12 @@ export default async function ProductDetailPage({ params }: Props) {
                         const isOneTime = billingType === 'ONE_TIME';
                         const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
 
-                        const monthlyPrice = variant.price ? Number(variant.price) : 0;
+                        // Get the correct price based on billing type
+                        // If recurring, use monthly price from recurringPricesObj
+                        // If one-time, use variant.price
+                        const displayPrice = isOneTime 
+                          ? (variant.price ? Number(variant.price) : 0)
+                          : (variant.recurringPricesObj?.monthly || variant.price ? Number(variant.price) : 0);
 
                         return (
                           <div
@@ -590,9 +618,9 @@ export default async function ProductDetailPage({ params }: Props) {
                                 <div className="flex items-center gap-6">
                                   <div className="text-right">
                                     <div className={`text-3xl font-extrabold ${variant.isDefault ? "text-[#8B1D1D]" : "text-gray-900"}`}>
-                                      ₹{monthlyPrice.toLocaleString("en-IN")}
+                                      ₹{displayPrice.toLocaleString("en-IN")}
                                     </div>
-                                    <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : 'per month'}</div>
+                                    <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : '/month'}</div>
                                   </div>
                                   <Button
                                     size="lg"

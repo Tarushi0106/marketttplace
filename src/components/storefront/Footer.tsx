@@ -154,7 +154,7 @@ export function Footer() {
               <Zap className="h-4 w-4" />
               <span>Start your journey today</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white max-w-3xl mx-auto leading-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-white max-w-3xl mx-auto leading-tight">
               Let's build something amazing together
             </h2>
             <p className="mt-6 text-lg text-white/60 max-w-xl mx-auto">
