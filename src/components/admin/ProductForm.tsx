@@ -2750,12 +2750,12 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                               {variant.name && typeof variant.name === 'string' ? variant.name : 'Unnamed Variant'}
                               {variant.type === "cloud" && (
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  ?? Cloud
+                                  Cloud
                                 </Badge>
                               )}
                               {variant.type === "onprem" && (
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                                  ??? On-Premise
+                                  On-Premise
                                 </Badge>
                               )}
                             </div>
@@ -3182,8 +3182,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="cloud">?? Cloud</SelectItem>
-                      <SelectItem value="onprem">??? On-Premise</SelectItem>
+                      <SelectItem value="cloud">Cloud</SelectItem>
+                      <SelectItem value="onprem">On-Premise</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -3943,12 +3943,12 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <div className="space-y-2">
                 <Label>Solution Type</Label>
                 <Select
-                  value={editingAddon.group?.startsWith('??') ? 'cloud' : editingAddon.group?.startsWith('???') ? 'onprem' : 'none'}
+                  value={editingAddon.group?.startsWith('Cloud') ? 'cloud' : editingAddon.group?.startsWith('On-Premise') ? 'onprem' : 'none'}
                   onValueChange={(value: "none" | "cloud" | "onprem") => {
                     // Get the category part without any existing prefix
                     let category = editingAddon.group || '';
-                    if (category.startsWith('?? ') || category.startsWith('??? ')) {
-                      category = category.substring(2); // Remove emoji and space
+                    if (category.startsWith('Cloud ') || category.startsWith('On-Premise ')) {
+                      category = category.substring(2); // Remove prefix and space
                     }
                     if (category.startsWith('Cloud - ') || category.startsWith('On-Premise - ')) {
                       category = category.substring(category.indexOf('-') + 2); // Remove "Cloud - " or "On-Premise - "
@@ -3956,9 +3956,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     // Add new prefix based on selection
                     let newGroup = category;
                     if (value === 'cloud' && category) {
-                      newGroup = '?? Cloud - ' + category;
+                      newGroup = 'Cloud - ' + category;
                     } else if (value === 'onprem' && category) {
-                      newGroup = '??? On-Premise - ' + category;
+                      newGroup = 'On-Premise - ' + category;
                     } else {
                       newGroup = category;
                     }
@@ -3973,8 +3973,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="cloud">?? Cloud</SelectItem>
-                    <SelectItem value="onprem">??? On-Premise</SelectItem>
+                    <SelectItem value="cloud">Cloud</SelectItem>
+                    <SelectItem value="onprem">On-Premise</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

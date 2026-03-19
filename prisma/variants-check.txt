@@ -1,0 +1,10 @@
+Total variants: 8
+
+cmmxvua8000097lvsnjsx4mdq | AI Licenses | type: onprem | attrs.type: onprem
+cmmxvu9ze00077lvs3y64ggbx | AI-Box | type: onprem | attrs.type: onprem
+cmmxv4a6r000512gwnb6m3jvz | Cloud Gateway | type: null | attrs.type: cloud
+cmmxv49dn000112gwhe4pgmac | Connect Cloud - Platform Fee | type: null | attrs.type: cloud
+cmmxvuagf000b7lvsfo70zuzv | Cyber+ Pack (Stream OS) - Annual | type: onprem | attrs.type: onprem
+cmmxvu9r800057lvs512igwqf | Stream OS - 128 Channel | type: onprem | attrs.type: onprem
+cmmxvu91e00017lvsmude22vz | Stream OS - 32 Channel | type: onprem | attrs.type: onprem
+cmmxvu9ib00037lvstbpngee5 | Stream OS - 64 Channel | type: onprem | attrs.type: onprem
