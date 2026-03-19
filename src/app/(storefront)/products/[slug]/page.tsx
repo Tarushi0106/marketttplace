@@ -353,19 +353,14 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {product.slug !== 'vsaas' && (
+                  {(product.slug !== 'vsaas' && product.slug !== 'connect-cloud') && (
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
                     <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                   </Button>
                   )}
-                  {product.slug === 'vsaas' && (
+                  {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
                     <Link href={`#solutions`}><ShoppingBag className="h-4 w-4 mr-2" />View Solutions</Link>
-                  </Button>
-                  )}
-                  {product.slug === 'connect-cloud' && (
-                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                    <Link href={`/products/${product.slug}/configure`}><ShoppingBag className="h-4 w-4 mr-2" />Get Started</Link>
                   </Button>
                   )}
                   <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
@@ -397,7 +392,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
-              {product.slug === 'vsaas' && (
+              {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
               <TabsTrigger
                 value="solutions"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -406,7 +401,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 Solutions
               </TabsTrigger>
               )}
-              {product.slug !== 'vsaas' && (
+              {(product.slug !== 'vsaas' && product.slug !== 'connect-cloud') && (
               <TabsTrigger
                 value="pricing"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -578,7 +573,7 @@ export default async function ProductDetailPage({ params }: Props) {
               </TabsContent>
 
               {/* Solutions Tab - Only for VSAAS */}
-              {product.slug === 'vsaas' && (
+              {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
               <TabsContent value="solutions" className="mt-0">
                 <div className="max-w-5xl mx-auto">
                   <div className="grid md:grid-cols-2 gap-6">
