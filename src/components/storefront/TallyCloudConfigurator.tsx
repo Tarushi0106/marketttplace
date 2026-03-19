@@ -542,10 +542,20 @@ export function TallyCloudConfigurator({
                         <Select.Root
                           value={selectedId}
                           onValueChange={(value) => {
+                            // First, clear ALL items in this group (set their quantities to 0)
+                            const groupItems = items.map(i => i.id);
+                            setAddonQuantities(prev => {
+                              const updated = { ...prev };
+                              // Set all items in group to 0 first
+                              groupItems.forEach(id => {
+                                updated[id] = 0;
+                              });
+                              // Then set the new selection to 1 (selected by default)
+                              updated[value] = 1;
+                              return updated;
+                            });
+                            // Update the dropdown selection
                             setSelectedDropdownAddon(prev => ({ ...prev, [baseName]: value }));
-                            // Reset quantity for new selection
-                            const currentQty = addonQuantities[selectedId] || 0;
-                            setAddonQuantities(prev => ({ ...prev, [value]: currentQty, [selectedId]: 0 }));
                           }}
                         >
                           <Select.Trigger className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-fit">
