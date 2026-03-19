@@ -1036,7 +1036,7 @@ export function TallyCloudConfigurator({
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : '1 unit (auto-added with cameras)'}
+                          {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : 'Connects 8 channels in local network'}
                         </div>
                       </div>
                     )}

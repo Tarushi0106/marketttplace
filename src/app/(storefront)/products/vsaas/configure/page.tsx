@@ -159,30 +159,6 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
         </div>
       </div>
 
-      {/* Header */}
-      <div className="bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8">
-          <div className="flex items-start gap-6">
-            {/* Product Icon */}
-            <div className="flex-shrink-0 w-16 h-16 md:w-16 md:h-16 bg-[#FDECEC] rounded-xl flex items-center justify-center">
-              {renderProductIcon("Cloud")}
-            </div>
-
-            {/* Product Info */}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Configure Your VSAAS Solution
-                </h1>
-              </div>
-              <p className="text-gray-600 mb-4 max-w-2xl">
-                Choose your deployment type and customize your video surveillance solution
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* VSAAS Configurator with Deployment Type Selector */}
       {vsaasProduct && cloudVariants.length > 0 && onPremiseVariants.length > 0 ? (
         <VSAASConfigurator 

@@ -100,7 +100,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
       {/* Deployment Type Selector */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          {deploymentType ? `Selected Solution: ${deploymentType === 'cloud' ? 'Cloud' : 'On-Premise'}` : 'Choose Your VSAAS Solution Type'}
+          {deploymentType ? `Selected Solution: ${deploymentType === 'cloud' ? 'Cloud' : 'On-Premise'}` : 'Select Your Solution Type'}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
@@ -118,8 +118,8 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
                 <Cloud size={32} />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS Cloud</h3>
-                <p className="text-sm text-gray-500">Cloud-based video management system</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">Cloud Solution</h3>
+                <p className="text-sm text-gray-500">Cloud-based video surveillance system</p>
                 <div className="mt-3 flex items-center text-[#C62828] font-medium">
                   Add Cloud Solution <ChevronRight size={16} className="ml-1" />
                 </div>
@@ -150,8 +150,8 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
                 <Server size={32} />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS On-Premise</h3>
-                <p className="text-sm text-gray-500">Self-hosted video management system</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">On-Premise Solution</h3>
+                <p className="text-sm text-gray-500">Self-hosted video surveillance system</p>
                 <div className="mt-3 flex items-center text-[#C62828] font-medium">
                   Add On-Premise Solution <ChevronRight size={16} className="ml-1" />
                 </div>
