@@ -8,6 +8,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Disable SSL verification for Amplify (self-signed certs)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Your production URL
 const PRODUCTION_URL = 'https://developer.d28fa2102uro78.amplifyapp.com';
 
