@@ -22,7 +22,7 @@ frontend:
         - echo "=== BUILD PHASE DEBUG ==="
         - pwd
         - export DATABASE_URL="postgresql://neondb_owner:npg_CPbtog2S4hVN@ep-proud-fire-ai5rehvt-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
-        - echo "DATABASE_URL set: $DATABASE_URL"
+        - echo "DATABASE_URL set"
         - echo "=== Checking Razorpay env vars ==="
         - 'if [ -n "$RAZORPAY_KEY_ID" ]; then echo "RAZORPAY_KEY_ID is set"; else echo "RAZORPAY_KEY_ID is NOT set"; fi'
         - 'if [ -n "$RAZORPAY_KEY_SECRET" ]; then echo "RAZORPAY_KEY_SECRET is set"; else echo "RAZORPAY_KEY_SECRET is NOT set"; fi'
