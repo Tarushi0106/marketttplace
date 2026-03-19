@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Check, ShoppingCart, ChevronDown } from "lucide-react";
+import { Check, ShoppingCart, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useRouter } from "next/navigation";
 import * as Select from "@radix-ui/react-select";
+import * as Popover from "@radix-ui/react-popover";
+import { MultiSelectDropdown } from "./MultiSelectDropdown";
 
 interface AddonOption {
   label: string;
@@ -235,9 +238,40 @@ export function TallyCloudConfigurator({
     });
   }, [addons, groupedAddons]);
 
-  // Track selected dropdown values
+  // Track selected dropdown values (for single-select)
   const [selectedDropdownAddon, setSelectedDropdownAddon] = useState<Record<string, string>>({});
-  
+
+  // Track MULTI-SELECT for dropdown groups (checkbox behavior)
+  const [multiSelectedAddons, setMultiSelectedAddons] = useState<Record<string, string[]>>({});
+
+  // Handler for multi-select addon changes
+  const handleMultiAddonChange = (groupName: string, selectedIds: string[]) => {
+    setMultiSelectedAddons(prev => ({
+      ...prev,
+      [groupName]: selectedIds
+    }));
+    
+    // Update addonQuantities to reflect selection
+    setAddonQuantities(prev => {
+      const updated = { ...prev };
+      const group = groupedAddons.find(([name]) => name === groupName);
+      if (!group) return prev;
+      const [_, items] = group;
+      
+      // Clear all items in this group first
+      items.forEach(item => {
+        updated[item.id] = 0;
+      });
+      
+      // Set selected items to quantity 1 (allows multiple)
+      selectedIds.forEach(id => {
+        updated[id] = 1;
+      });
+      
+      return updated;
+    });
+  };
+   
   // Track selected option index for addons with options
   const [selectedAddonOption, setSelectedAddonOption] = useState<Record<string, number>>({});
 
@@ -539,53 +573,18 @@ export function TallyCloudConfigurator({
                       </div>
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{baseName}</div>
-                        <Select.Root
-                          value={selectedId}
-                          onValueChange={(value) => {
-                            // First, clear ALL items in this group (set their quantities to 0)
-                            const groupItems = items.map(i => i.id);
-                            setAddonQuantities(prev => {
-                              const updated = { ...prev };
-                              // Set all items in group to 0 first
-                              groupItems.forEach(id => {
-                                updated[id] = 0;
-                              });
-                              // Then set the new selection to 1 (selected by default)
-                              updated[value] = 1;
-                              return updated;
-                            });
-                            // Update the dropdown selection
-                            setSelectedDropdownAddon(prev => ({ ...prev, [baseName]: value }));
-                          }}
-                        >
-                          <Select.Trigger className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-fit">
-                            <Select.Value placeholder="Select option" />
-                            <Select.Icon>
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
-                            </Select.Icon>
-                          </Select.Trigger>
-                          <Select.Portal>
-                            <Select.Content className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
-                              <Select.Viewport className="p-1">
-                                {items.map((item) => (
-                                  <Select.Item
-                                    key={item.id}
-                                    value={item.id}
-                                    className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 outline-none text-sm text-gray-700 data-[highlighted]:bg-gray-100"
-                                  >
-                                    <div className="flex flex-col">
-                                      <Select.ItemText>{item.name}</Select.ItemText>
-                                      {item.description && (
-                                        <span className="text-xs text-gray-400">{item.description}</span>
-                                      )}
-                                    </div>
-                                    <span className="ml-4 font-medium text-gray-900">{formatPrice(item.price)}</span>
-                                  </Select.Item>
-                                ))}
-                              </Select.Viewport>
-                            </Select.Content>
-                          </Select.Portal>
-                        </Select.Root>
+                        <MultiSelectDropdown
+                          label={baseName}
+                          options={items.map(item => ({
+                            id: item.id,
+                            name: item.name,
+                            price: item.price,
+                            description: item.description || undefined
+                          }))}
+                          selectedIds={multiSelectedAddons[baseName] || []}
+                          onSelectionChange={(ids) => handleMultiAddonChange(baseName, ids)}
+                          formatPrice={formatPrice}
+                        />
                       </div>
                     </div>
                     <div className="flex items-center gap-5">
