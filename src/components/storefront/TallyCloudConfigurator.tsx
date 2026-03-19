@@ -622,34 +622,6 @@ export function TallyCloudConfigurator({
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Clean Header - Show selected plan info when variant is locked */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
-        {isVariantLocked && selectedVariant ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-500 mb-1">Selected Plan</div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {variants.find(v => v.id === selectedVariant)?.name || productName}
-              </h2>
-              {productDescription && <p className="text-gray-500 mt-1">{productDescription}</p>}
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-[#C62828]">
-                {formatPrice(variantPrice)}
-              </div>
-              <div className="text-sm text-gray-500">
-                {getBillingSuffix(billingCycle)}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <h2 className="text-xl font-semibold text-gray-900">{productName}</h2>
-            <p className="text-gray-500 mt-1">{productDescription}</p>
-          </>
-        )}
-      </div>
-
       {/* Two Column Layout */}
       <div className="grid lg:grid-cols-5 gap-8">
         {/* Left Column: Add-ons (3 columns) */}
