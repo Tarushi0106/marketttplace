@@ -135,8 +135,11 @@ export function FeaturedProducts() {
       try {
         const response = await fetch("/api/products?isFeatured=true&limit=10");
         const data = await response.json();
+        console.log("API Response:", JSON.stringify(data));
         if (data.data && data.data.length > 0) {
           setProducts(data.data);
+        } else {
+          console.log("No products found, will use fallback. Response:", data);
         }
         // Don't set fallback products here - we'll use sampleProducts as fallback in rendering
       } catch (error) {
