@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-03-19T10:35:52.535Z",
+  "exportedAt": "2026-03-19T13:07:34.965Z",
   "categories": [
     {
       "id": "cmmwd8aqb0000vuoflisd7w2o",
@@ -6647,14 +6647,14 @@
       "lowStockThreshold": 5,
       "weightUnit": "kg",
       "sortOrder": 0,
-      "viewCount": 26,
+      "viewCount": 28,
       "salesCount": 0,
       "reviewCount": 0,
       "pricingDisplayFormat": "TABLE",
       "icon": null,
       "solutionsContent": null,
       "createdAt": "2026-03-18T21:23:45.814Z",
-      "updatedAt": "2026-03-19T09:28:07.172Z",
+      "updatedAt": "2026-03-19T11:20:34.612Z",
       "category": {
         "id": "cmmwd8i2e00003njpb1nimdh4",
         "name": "VSaaS Cloud",
