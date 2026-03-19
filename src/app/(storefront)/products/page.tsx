@@ -376,9 +376,8 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     prisma.product.count({ where }),
   ]);
 
-  // Transform products to include correct display price and recurring prices
-  // Use sample products if database returns empty
-  const productsToTransform = products.length > 0 ? products : sampleProducts;
+  // Don't use fallback products - show empty state if no products
+  const productsToTransform = products;
   const productsWithPricing = productsToTransform.map((product: any) => {
     // First transform the product to include recurringPrices and billingType
     const transformedProduct = transformProduct(product);
@@ -408,23 +407,19 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     pagination: {
       page,
       limit,
-      total: products.length > 0 ? total : sampleProducts.length,
-      totalPages: Math.ceil((products.length > 0 ? total : sampleProducts.length) / limit),
+      total,
+      totalPages: Math.ceil(total / limit),
     },
   };
   } catch (error) {
     console.error('Database error in getProducts:', error);
     return {
-      products: sampleProducts.map((product: any) => ({
-        ...product,
-        displayPrice: Number(product.basePrice),
-        variants: [],
-      })),
+      products: [],
       pagination: {
         page: 1,
         limit: 12,
-        total: sampleProducts.length,
-        totalPages: 1,
+        total: 0,
+        totalPages: 0,
       },
     };
   }

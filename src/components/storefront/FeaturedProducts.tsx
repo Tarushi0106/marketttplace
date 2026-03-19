@@ -148,8 +148,8 @@ export function FeaturedProducts() {
     fetchProducts();
   }, []);
 
-  // Use sample products if database is empty
-  const displayProducts = products.length > 0 ? products : sampleProducts;
+  // Remove hardcoded fallback - show empty state when no products
+  const displayProducts = products;
 
   const scrollLeft = () => {
     if (scrollRef.current) {
