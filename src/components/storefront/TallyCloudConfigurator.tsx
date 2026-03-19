@@ -468,6 +468,7 @@ export function TallyCloudConfigurator({
   }, [selectedVariant, variants, selectedPlan, billingCycle]);
   
   // Product quantity state
+  // TODO: Once migration runs, use: selectedPlan?.minQuantity || selectedVariant?.minQuantity || 1
   const [quantity, setQuantity] = useState(1);
 
   // Calculate total price: unit price × quantity + addons
@@ -887,8 +888,13 @@ export function TallyCloudConfigurator({
                       <span className="text-gray-600">Quantity</span>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                          onClick={() => setQuantity(q => Math.max(2, q - 1))}
+                          disabled={quantity <= 2}
+                          className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
+                            quantity <= 2
+                              ? 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed'
+                              : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                          }`}
                         >
                           -
                         </button>
