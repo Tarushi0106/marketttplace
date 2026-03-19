@@ -241,17 +241,23 @@ export function TallyCloudConfigurator({
   // Track selected dropdown values (for single-select)
   const [selectedDropdownAddon, setSelectedDropdownAddon] = useState<Record<string, string>>({});
 
-  // Track MULTI-SELECT for dropdown groups (checkbox behavior)
-  const [multiSelectedAddons, setMultiSelectedAddons] = useState<Record<string, string[]>>({});
+  // Track MULTI-SELECT for dropdown groups with quantities
+  interface SelectedAddonOption {
+    id: string;
+    name: string;
+    price: number;
+    qty: number;
+  }
+  const [multiSelectedAddons, setMultiSelectedAddons] = useState<Record<string, SelectedAddonOption[]>>({});
 
-  // Handler for multi-select addon changes
-  const handleMultiAddonChange = (groupName: string, selectedIds: string[]) => {
+  // Handler for multi-select addon changes with quantities
+  const handleMultiAddonChange = (groupName: string, selectedOptions: SelectedAddonOption[]) => {
     setMultiSelectedAddons(prev => ({
       ...prev,
-      [groupName]: selectedIds
+      [groupName]: selectedOptions
     }));
     
-    // Update addonQuantities to reflect selection
+    // Update addonQuantities to reflect selection with quantities
     setAddonQuantities(prev => {
       const updated = { ...prev };
       const group = groupedAddons.find(([name]) => name === groupName);
@@ -263,9 +269,9 @@ export function TallyCloudConfigurator({
         updated[item.id] = 0;
       });
       
-      // Set selected items to quantity 1 (allows multiple)
-      selectedIds.forEach(id => {
-        updated[id] = 1;
+      // Set selected items with their quantities
+      selectedOptions.forEach(opt => {
+        updated[opt.id] = opt.qty;
       });
       
       return updated;
@@ -581,8 +587,8 @@ export function TallyCloudConfigurator({
                             price: item.price,
                             description: item.description || undefined
                           }))}
-                          selectedIds={multiSelectedAddons[baseName] || []}
-                          onSelectionChange={(ids) => handleMultiAddonChange(baseName, ids)}
+                          selectedIds={(multiSelectedAddons[baseName] || []).map(o => o.id)}
+                          onSelectionChange={(selected) => handleMultiAddonChange(baseName, selected)}
                           formatPrice={formatPrice}
                         />
                       </div>
