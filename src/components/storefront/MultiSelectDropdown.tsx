@@ -2,7 +2,7 @@
 
 import * as Popover from '@radix-ui/react-popover';
 import { Check, ChevronDown, Minus, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Option {
   id: string;
@@ -34,15 +34,44 @@ export function MultiSelectDropdown({
   formatPrice,
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false);
+  
+  // Internal state to track quantities - initialized from selectedIds
+  const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
 
-  // Convert selectedIds to SelectedOption array with quantities
+  // Sync internal state when selectedIds changes from parent
+  useEffect(() => {
+    // Set default qty=1 for all selected IDs that don't have a quantity yet
+    const newQuantities = { ...selectedQuantities };
+    let changed = false;
+    
+    selectedIds.forEach(id => {
+      if (!newQuantities[id]) {
+        newQuantities[id] = 1;
+        changed = true;
+      }
+    });
+    
+    // Remove quantities for IDs that are no longer selected
+    Object.keys(newQuantities).forEach(id => {
+      if (!selectedIds.includes(id)) {
+        delete newQuantities[id];
+        changed = true;
+      }
+    });
+    
+    if (changed) {
+      setSelectedQuantities(newQuantities);
+    }
+  }, [selectedIds]);
+
+  // Build selectedOptions from selectedIds + quantities
   const selectedOptions: SelectedOption[] = selectedIds.map(id => {
     const option = options.find(o => o.id === id);
     return {
       id,
       name: option?.name || '',
       price: option?.price || 0,
-      qty: 1 // Default quantity
+      qty: selectedQuantities[id] || 1
     };
   });
 
@@ -54,56 +83,96 @@ export function MultiSelectDropdown({
     const isSelected = selectedIds.includes(optionId);
     
     if (isSelected) {
-      // Remove from selection
-      const newSelection = selectedIds.filter(id => id !== optionId);
-      updateSelectedOptions(newSelection);
+      // Remove from selection - also remove from quantities
+      const newIds = selectedIds.filter(id => id !== optionId);
+      const newQuantities = { ...selectedQuantities };
+      delete newQuantities[optionId];
+      setSelectedQuantities(newQuantities);
+      
+      // Build and notify parent
+      const newSelection = newIds.map(id => ({
+        id,
+        name: options.find(o => o.id === id)?.name || '',
+        price: options.find(o => o.id === id)?.price || 0,
+        qty: newQuantities[id] || 1
+      }));
+      onSelectionChange(newSelection);
     } else {
       // Add to selection with default qty=1
-      const newSelection = [...selectedIds, optionId];
-      updateSelectedOptions(newSelection);
+      const newIds = [...selectedIds, optionId];
+      setSelectedQuantities(prev => ({ ...prev, [optionId]: 1 }));
+      
+      // Build and notify parent
+      const newSelection = newIds.map(id => ({
+        id,
+        name: options.find(o => o.id === id)?.name || '',
+        price: options.find(o => o.id === id)?.price || 0,
+        qty: selectedQuantities[id] || 1
+      }));
+      onSelectionChange(newSelection);
     }
   };
 
-  // Update selected options with quantities
-  const updateSelectedOptions = (ids: string[]) => {
-    const newSelected: SelectedOption[] = ids.map(id => {
-      const option = options.find(o => o.id === id);
-      // Preserve existing quantity if already selected
-      const existing = selectedOptions.find(s => s.id === id);
-      return {
-        id,
-        name: option?.name || '',
-        price: option?.price || 0,
-        qty: existing?.qty || 1
-      };
-    });
-    onSelectionChange(newSelected);
-  };
-
-  // Increase quantity for specific option
+  // Increase quantity for specific option - IMMUTABLE update
   const increaseQty = (optionId: string) => {
-    const newSelected = selectedOptions.map(opt => 
-      opt.id === optionId ? { ...opt, qty: opt.qty + 1 } : opt
-    );
-    onSelectionChange(newSelected);
+    setSelectedQuantities(prev => {
+      const newQty = (prev[optionId] || 1) + 1;
+      const updated = { ...prev, [optionId]: newQty };
+      
+      // Notify parent of change
+      const newSelection = selectedIds.map(id => ({
+        id,
+        name: options.find(o => o.id === id)?.name || '',
+        price: options.find(o => o.id === id)?.price || 0,
+        qty: updated[id] || 1
+      }));
+      onSelectionChange(newSelection);
+      
+      return updated;
+    });
   };
 
-  // Decrease quantity for specific option (min 1)
+  // Decrease quantity for specific option (min 1) - IMMUTABLE update
   const decreaseQty = (optionId: string) => {
-    const newSelected = selectedOptions.map(opt => 
-      opt.id === optionId && opt.qty > 1 ? { ...opt, qty: opt.qty - 1 } : opt
-    );
-    onSelectionChange(newSelected);
+    setSelectedQuantities(prev => {
+      const currentQty = prev[optionId] || 1;
+      if (currentQty <= 1) return prev;
+      
+      const newQty = currentQty - 1;
+      const updated = { ...prev, [optionId]: newQty };
+      
+      // Notify parent of change
+      const newSelection = selectedIds.map(id => ({
+        id,
+        name: options.find(o => o.id === id)?.name || '',
+        price: options.find(o => o.id === id)?.price || 0,
+        qty: updated[id] || 1
+      }));
+      onSelectionChange(newSelection);
+      
+      return updated;
+    });
   };
 
   // Remove option entirely
   const removeOption = (optionId: string) => {
-    const newSelection = selectedIds.filter(id => id !== optionId);
-    updateSelectedOptions(newSelection);
+    const newIds = selectedIds.filter(id => id !== optionId);
+    const newQuantities = { ...selectedQuantities };
+    delete newQuantities[optionId];
+    setSelectedQuantities(newQuantities);
+    
+    const newSelection = newIds.map(id => ({
+      id,
+      name: options.find(o => o.id === id)?.name || '',
+      price: options.find(o => o.id === id)?.price || 0,
+      qty: newQuantities[id] || 1
+    }));
+    onSelectionChange(newSelection);
   };
 
   // Clear all selections
   const clearAll = () => {
+    setSelectedQuantities({});
     onSelectionChange([]);
   };
 
@@ -137,8 +206,7 @@ export function MultiSelectDropdown({
           <div className="p-1 max-h-[250px] overflow-y-auto">
             {options.map((option) => {
               const isSelected = selectedIds.includes(option.id);
-              const selectedOpt = selectedOptions.find(s => s.id === option.id);
-              const qty = selectedOpt?.qty || 1;
+              const qty = selectedQuantities[option.id] || 1;
               
               return (
                 <div
@@ -147,6 +215,7 @@ export function MultiSelectDropdown({
                 >
                   {/* Checkbox row */}
                   <button
+                    type="button"
                     onClick={() => handleToggle(option.id)}
                     className={`w-full flex items-center justify-between px-3 py-2 cursor-pointer outline-none transition-all ${
                       isSelected ? 'text-[#C62828]' : 'text-gray-700'
@@ -180,6 +249,7 @@ export function MultiSelectDropdown({
                         <span className="text-xs text-gray-500">Quantity:</span>
                         <div className="flex items-center bg-white rounded-full border border-gray-200">
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               decreaseQty(option.id);
@@ -193,6 +263,7 @@ export function MultiSelectDropdown({
                             {qty}
                           </span>
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               increaseQty(option.id);
@@ -208,6 +279,7 @@ export function MultiSelectDropdown({
                           {formatPrice(option.price * qty)}
                         </span>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeOption(option.id);
@@ -234,6 +306,7 @@ export function MultiSelectDropdown({
                 </span>
               </div>
               <button
+                type="button"
                 onClick={clearAll}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-200 transition-all"
               >
