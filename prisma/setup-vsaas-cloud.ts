@@ -13,9 +13,9 @@ async function main() {
   if (!category) {
     category = await prisma.category.create({
       data: {
-        name: 'VSAAS - Video Surveillance as a Service',
+        name: 'VSAAS',
         slug: 'vsaas',
-        description: 'Cloud-based Video Surveillance Solutions'
+        description: 'Video Surveillance Solutions'
       }
     })
     console.log('Created VSAAS category:', category.id)
@@ -34,7 +34,7 @@ async function main() {
       data: {
         name: 'VSAAS Cloud',
         slug: 'vsaas-cloud',
-        shortDescription: 'Cloud-based Video Surveillance as a Service',
+        shortDescription: 'Cloud video surveillance solution',
         description: 'Complete cloud video surveillance solution with AI features. Connect Cloud Platform + Cloud Gateway + AI Addons.',
         categoryId: category.id,
         basePrice: 248.40,
@@ -49,7 +49,7 @@ async function main() {
       data: {
         basePrice: 248.40,
         status: 'ACTIVE',
-        shortDescription: 'Cloud-based Video Surveillance as a Service',
+        shortDescription: 'Cloud video surveillance solution',
         description: 'Complete cloud video surveillance solution with AI features. Connect Cloud Platform + Cloud Gateway + AI Addons.'
       }
     })

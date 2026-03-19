@@ -403,7 +403,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <Cloud className="h-4 w-4 mr-2" />
-                VSAAS Solutions
+                Solutions
               </TabsTrigger>
               )}
               {product.slug !== 'vsaas' && (
@@ -581,21 +581,13 @@ export default async function ProductDetailPage({ params }: Props) {
               {product.slug === 'vsaas' && (
               <TabsContent value="solutions" className="mt-0">
                 <div className="max-w-5xl mx-auto">
-                  <div className="text-center mb-10">
-                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
-                      <Cloud className="h-4 w-4 mr-1" /> VSAAS Solutions
-                    </Badge>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose Your VSAAS Solution Type</h2>
-                    <p className="text-gray-500 max-w-xl mx-auto">Select the best VSAAS deployment option for your business needs.</p>
-                  </div>
-
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* VSAAS Cloud - Single Card */}
                     <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg transition-all">
                       <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
                         <Cloud className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS Cloud</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">Cloud Solution</h3>
                       <p className="text-gray-500 mb-6">
                         Host your video surveillance in the cloud. No hardware needed, access from anywhere.
                       </p>
@@ -618,13 +610,13 @@ export default async function ProductDetailPage({ params }: Props) {
                       {product.variants?.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')) ? (
                         <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')).id}`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Add Cloud Solution
+                            Configure
                           </Button>
                         </Link>
                       ) : (
                         <Link href={`/products/${product.slug}/configure`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Add Cloud Solution
+                            Configure
                           </Button>
                         </Link>
                       )}
@@ -635,7 +627,7 @@ export default async function ProductDetailPage({ params }: Props) {
                       <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
                         <Server className="h-8 w-8 text-purple-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS On-Premise</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">On-Premise Solution</h3>
                       <p className="text-gray-500 mb-6">
                         Host your video surveillance on your own servers. Complete data control.
                       </p>
@@ -658,13 +650,13 @@ export default async function ProductDetailPage({ params }: Props) {
                       {product.variants?.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')) ? (
                         <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')).id}`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Add On-Premise Solution
+                            Configure
                           </Button>
                         </Link>
                       ) : (
                         <Link href={`/products/${product.slug}/configure`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Add On-Premise Solution
+                            Configure
                           </Button>
                         </Link>
                       )}

@@ -120,9 +120,6 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">Cloud Solution</h3>
                 <p className="text-sm text-gray-500">Cloud-based video surveillance system</p>
-                <div className="mt-3 flex items-center text-[#C62828] font-medium">
-                  Add Cloud Solution <ChevronRight size={16} className="ml-1" />
-                </div>
               </div>
             </div>
             
@@ -152,9 +149,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">On-Premise Solution</h3>
                 <p className="text-sm text-gray-500">Self-hosted video surveillance system</p>
-                <div className="mt-3 flex items-center text-[#C62828] font-medium">
-                  Add On-Premise Solution <ChevronRight size={16} className="ml-1" />
-                </div>
+
               </div>
             </div>
 

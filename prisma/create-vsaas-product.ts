@@ -11,6 +11,16 @@ async function createVSAASProduct() {
 
     if (existingProduct) {
       console.log("VSAAS product already exists with ID:", existingProduct.id);
+      // Update the existing product
+      await prisma.product.update({
+        where: { id: existingProduct.id },
+        data: {
+          name: "VSAAS",
+          shortDescription: "Choose between Cloud or On-Premise deployment",
+          description: "VSAAS provides comprehensive video management solutions. Choose our cloud-based deployment for easy scalability or on-premise for complete data control."
+        }
+      });
+      console.log("VSAAS product updated!");
       return;
     }
 
@@ -26,7 +36,7 @@ async function createVSAASProduct() {
       data: {
         name: "VSAAS",
         slug: "vsaas",
-        shortDescription: "Video Surveillance as a Service - Choose between Cloud or On-Premise deployment",
+        shortDescription: "Choose between Cloud or On-Premise deployment",
         description: "VSAAS (Video Surveillance as a Service) provides comprehensive video management solutions. Choose our cloud-based deployment for easy scalability or on-premise for complete data control.",
         basePrice: 0,
         status: "ACTIVE",

@@ -87,7 +87,7 @@ export function TallyCloudConfigurator({
   productId,
   productSlug,
   productName = "Tally Cloud Server",
-  productDescription = "Enterprise-grade cloud hosting for Tally Prime",
+  productDescription = "",
   basePrice = 4500,
   addons = [],
   variants = [],
@@ -631,7 +631,7 @@ export function TallyCloudConfigurator({
               <h2 className="text-xl font-semibold text-gray-900">
                 {variants.find(v => v.id === selectedVariant)?.name || productName}
               </h2>
-              <p className="text-gray-500 mt-1">{productDescription}</p>
+              {productDescription && <p className="text-gray-500 mt-1">{productDescription}</p>}
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-[#C62828]">

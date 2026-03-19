@@ -37,8 +37,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
-    title: "VSAAS - Configure Your Solution | Shaurrya Teleservices",
-    description: "Configure your Video Surveillance as a Service solution. Choose between cloud or on-premise deployment.",
+    title: "Configure Your Solution | Shaurrya Teleservices",
+    description: "Configure your video surveillance solution. Choose between cloud or on-premise deployment.",
   };
 }
 
