@@ -35,6 +35,80 @@ interface Product {
   };
 }
 
+// Sample fallback products when database is empty
+const sampleProducts: Product[] = [
+  {
+    id: "1",
+    name: "Cloud Server Basic",
+    slug: "cloud-server-basic",
+    shortDescription: "Entry-level cloud server with essential features",
+    basePrice: 29.99,
+    compareAtPrice: 39.99,
+    averageRating: 4.5,
+    salesCount: 10,
+    productType: "STANDALONE",
+    category: { id: "1", name: "Cloud Services", slug: "cloud-services" },
+    images: [],
+    _count: { reviews: 5 },
+  },
+  {
+    id: "2",
+    name: "Enterprise Security Suite",
+    slug: "enterprise-security",
+    shortDescription: "Complete security solution for enterprise",
+    basePrice: 199.99,
+    compareAtPrice: 299.99,
+    averageRating: 4.8,
+    salesCount: 25,
+    productType: "STANDALONE",
+    category: { id: "2", name: "Security", slug: "security" },
+    images: [],
+    _count: { reviews: 12 },
+  },
+  {
+    id: "3",
+    name: "SD-WAN Solution",
+    slug: "sdwan-solution",
+    shortDescription: "Software-defined wide area networking",
+    basePrice: 349.99,
+    compareAtPrice: 449.99,
+    averageRating: 4.3,
+    salesCount: 8,
+    productType: "STANDALONE",
+    category: { id: "3", name: "Network Solutions", slug: "network-solutions" },
+    images: [],
+    _count: { reviews: 3 },
+  },
+  {
+    id: "4",
+    name: "Microsoft 365 Business",
+    slug: "microsoft-365-business",
+    shortDescription: "Complete office productivity suite",
+    basePrice: 12.99,
+    compareAtPrice: 15.99,
+    averageRating: 4.7,
+    salesCount: 50,
+    productType: "STANDALONE",
+    category: { id: "4", name: "Software", slug: "software" },
+    images: [],
+    _count: { reviews: 20 },
+  },
+  {
+    id: "5",
+    name: "Tally on Cloud",
+    slug: "tally-on-cloud",
+    shortDescription: "Accounting software hosted on cloud",
+    basePrice: 49.99,
+    compareAtPrice: 79.99,
+    averageRating: 4.6,
+    salesCount: 30,
+    productType: "STANDALONE",
+    category: { id: "5", name: "Business Applications", slug: "business-applications" },
+    images: [],
+    _count: { reviews: 15 },
+  },
+];
+
 // Function to get icon based on product name
 const getProductIcon = (productName: string) => {
   const name = productName.toLowerCase();
@@ -63,12 +137,8 @@ export function FeaturedProducts() {
         const data = await response.json();
         if (data.data && data.data.length > 0) {
           setProducts(data.data);
-        } else {
-          // Fallback: fetch any active products if no featured ones
-          const fallbackResponse = await fetch("/api/products?limit=10");
-          const fallbackData = await fallbackResponse.json();
-          setProducts(fallbackData.data || []);
         }
+        // Don't set fallback products here - we'll use sampleProducts as fallback in rendering
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -77,6 +147,9 @@ export function FeaturedProducts() {
     }
     fetchProducts();
   }, []);
+
+  // Use sample products if database is empty
+  const displayProducts = products.length > 0 ? products : sampleProducts;
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -104,8 +177,6 @@ export function FeaturedProducts() {
     e.preventDefault();
     e.stopPropagation();
     
-    // For STANDALONE products: use basePrice
-    // For CONFIGURABLE/BUNDLE products: use minimum variant price
     const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
     
     let displayPrice: number;
@@ -159,10 +230,6 @@ export function FeaturedProducts() {
     );
   }
 
-  if (products.length === 0) {
-    return null;
-  }
-
   return (
     <section className="py-16 md:py-20 bg-white">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
@@ -207,11 +274,9 @@ export function FeaturedProducts() {
             ref={scrollRef}
             className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory items-start"
           >
-            {products.map((product) => {
+            {displayProducts.map((product) => {
               const hasSales = product.salesCount > 0;
               
-              // For STANDALONE products: use basePrice
-              // For CONFIGURABLE/BUNDLE products: use minimum variant price
               const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
               
               let displayPrice: number;

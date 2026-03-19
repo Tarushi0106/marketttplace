@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, Cloud, Shield, Wifi, Database, Settings, Share2, Server, Monitor, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
+import { HeroProducts } from "@/components/storefront/HeroProducts";
 import { Testimonials } from "@/components/storefront/Testimonials";
 import { CompanyLogos } from "@/components/storefront/CompanyLogos";
 import { prisma } from "@/lib/prisma";
@@ -280,6 +281,9 @@ export default async function HomePage() {
 
       {/* Solutions Carousel */}
       {solutions?.enabled && <SolutionsCarousel categories={categories} />}
+
+      {/* Hero Products */}
+      <HeroProducts />
 
       {/* Featured Products */}
       {featuredProducts?.enabled && <FeaturedProducts />}

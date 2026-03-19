@@ -149,6 +149,7 @@ async function getProduct(slug: string) {
           // Use variant-specific recurring prices
           variant.recurringPrices = variantSpecificPrices;
           // Add transformed object for storefront frontend
+          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = {
             monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
             quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
@@ -156,10 +157,12 @@ async function getProduct(slug: string) {
             biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
             triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
           };
+          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'recurring';
         } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
           // Variant already has recurring prices (included in query)
           // Keep as is
+          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = {
             monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
             quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
@@ -167,11 +170,14 @@ async function getProduct(slug: string) {
             biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
             triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
           };
+          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'recurring';
         } else {
           // No variant-specific prices - clear to avoid stale data
           variant.recurringPrices = [];
+          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = null;
+          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'one_time';
         }
         return variant;
@@ -353,6 +359,11 @@ export default async function ProductDetailPage({ params }: Props) {
                   </Button>
                   )}
                   {product.slug === 'vsaas' && (
+                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                    <Link href={`#solutions`}><ShoppingBag className="h-4 w-4 mr-2" />View Solutions</Link>
+                  </Button>
+                  )}
+                  {product.slug === 'connect-cloud' && (
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
                     <Link href={`/products/${product.slug}/configure`}><ShoppingBag className="h-4 w-4 mr-2" />Get Started</Link>
                   </Button>
@@ -574,73 +585,89 @@ export default async function ProductDetailPage({ params }: Props) {
                     <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
                       <Cloud className="h-4 w-4 mr-1" /> VSAAS Solutions
                     </Badge>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">VSAAS Solutions</h2>
-                    <p className="text-gray-500 max-w-xl mx-auto">Select the best VSAAS solution for your business needs.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose Your VSAAS Solution Type</h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">Select the best VSAAS deployment option for your business needs.</p>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
-                    {/* Cloud Solution */}
-                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-[#8B1D1D]/50 hover:shadow-lg transition-all">
+                    {/* VSAAS Cloud - Single Card */}
+                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg transition-all">
                       <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
                         <Cloud className="h-8 w-8 text-blue-600" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS Cloud</h3>
-                      <p className="text-gray-500 mb-6">Host your video surveillance in the cloud. No hardware needed, access from anywhere.</p>
+                      <p className="text-gray-500 mb-6">
+                        Host your video surveillance in the cloud. No hardware needed, access from anywhere.
+                      </p>
+                      
                       <ul className="space-y-3 mb-8">
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>99.9% Uptime Guarantee</span>
+                          <span>Professional Support</span>
                         </li>
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>Remote Access Anywhere</span>
+                          <span>Easy Setup</span>
                         </li>
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>Automatic Backups</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>No Hardware Required</span>
+                          <span>24/7 Monitoring</span>
                         </li>
                       </ul>
-                      <Link href="/products/connect-cloud">
-                        <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                          View Cloud Plans
-                        </Button>
-                      </Link>
+                      {/* Find a cloud variant to link to */}
+                      {product.variants?.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')) ? (
+                        <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')).id}`}>
+                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                            Add Cloud Solution
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href={`/products/${product.slug}/configure`}>
+                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                            Add Cloud Solution
+                          </Button>
+                        </Link>
+                      )}
                     </div>
 
-                    {/* On-Premise Solution */}
-                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-[#8B1D1D]/50 hover:shadow-lg transition-all">
+                    {/* VSAAS On-Premise - Single Card */}
+                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg transition-all">
                       <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
                         <Server className="h-8 w-8 text-purple-600" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-3">VSAAS On-Premise</h3>
-                      <p className="text-gray-500 mb-6">Host your video surveillance on your own servers. Complete data control.</p>
+                      <p className="text-gray-500 mb-6">
+                        Host your video surveillance on your own servers. Complete data control.
+                      </p>
+                      
                       <ul className="space-y-3 mb-8">
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>Complete Data Control</span>
+                          <span>Professional Support</span>
                         </li>
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>On-Site Storage</span>
+                          <span>Easy Setup</span>
                         </li>
                         <li className="flex items-center gap-3 text-gray-700">
                           <Check className="h-5 w-5 text-green-500" />
-                          <span>No Internet Required</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>Custom Integration</span>
+                          <span>24/7 Monitoring</span>
                         </li>
                       </ul>
-                      <Link href="/products/vsaas-on-premise">
-                        <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                          View On-Premise Plans
-                        </Button>
-                      </Link>
+                      {/* Find an on-premise variant to link to */}
+                      {product.variants?.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')) ? (
+                        <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')).id}`}>
+                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                            Add On-Premise Solution
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href={`/products/${product.slug}/configure`}>
+                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
+                            Add On-Premise Solution
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

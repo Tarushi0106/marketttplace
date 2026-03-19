@@ -36,6 +36,12 @@ export async function POST(request: NextRequest) {
       heroCtaLink,
       heroImage,
       isActive,
+      // Full product fields
+      description,
+      features,
+      overview,
+      solutions,
+      pricing,
     } = body;
 
     // Get existing hero products
@@ -63,6 +69,11 @@ export async function POST(request: NextRequest) {
               heroCtaLink,
               heroImage,
               isActive,
+              description,
+              features,
+              overview,
+              solutions,
+              pricing,
             }
           : p
       );
@@ -78,6 +89,11 @@ export async function POST(request: NextRequest) {
         heroCtaLink,
         heroImage,
         isActive,
+        description,
+        features,
+        overview,
+        solutions,
+        pricing,
       });
     }
 

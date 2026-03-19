@@ -660,7 +660,7 @@ export function TallyCloudConfigurator({
                         </div>
                       )}
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">{addon.name}</div>
+                        <div className="font-medium text-gray-900">{addon.name && typeof addon.name === 'string' ? addon.name : 'Unnamed Addon'}</div>
                         {hasOptions ? (
                           <Select.Root
                             value={String(selectedOptionIndex)}
@@ -789,7 +789,7 @@ export function TallyCloudConfigurator({
           {/* Variants - Show if variants are provided AND not locked (i.e., on pricing page, not configure page) */}
           {variants && variants.length > 0 && !isVariantLocked && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-5">Select Plan</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-5">Add Cloud Solution</h3>
               <div className="space-y-3">
                 {variants.map((variant) => {
                   // Use test recurring prices if real ones aren't available
@@ -910,7 +910,7 @@ export function TallyCloudConfigurator({
                       return (
                         <div key={addon.id} className="flex justify-between items-center">
                           <span className="text-gray-600 text-sm">
-                            {addon.name}
+                            {addon.name && typeof addon.name === 'string' ? addon.name : 'Unnamed Addon'}
                             {qty > 1 && <span className="text-gray-400 ml-1">(x{qty})</span>}
                           </span>
                           <span className="font-medium text-gray-900 text-sm">{formatPrice(addon.price * qty)}</span>

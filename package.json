@@ -12,7 +12,16 @@
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:export": "npx tsx prisma/export-data.ts",
-    "db:import": "npx tsx prisma/import-data.ts"
+    "db:import": "npx tsx prisma/import-data.ts",
+    "import:microsoft365": "npx tsx prisma/import-microsoft365.ts",
+    "import:vsaas-cloud": "npx tsx prisma/import-vsaas-cloud.ts",
+    "import:vsaas-on-premise": "npx tsx prisma/import-vsaas-on-premise.ts",
+    "import:tally": "npx tsx prisma/import-tally-calculator.ts",
+    "import:acronis": "npx tsx prisma/import-acronis-backup.ts",
+    "import:acronis-advanced": "npx tsx prisma/import-acronis-backup-advanced.ts",
+    "import:acronis-protect": "npx tsx prisma/import-acronis-protect-cloud.ts",
+    "import:backup": "npx tsx prisma/import-backup.ts",
+    "import:cloud-gateway": "npx tsx prisma/import-cloud-gateway.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

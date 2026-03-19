@@ -64,27 +64,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: menus });
   } catch (error) {
     console.error("Error fetching menus:", error);
+    // Return empty data instead of 500 if no menus exist
+    if (error instanceof Error && error.message.includes('findUnique')) {
+      return NextResponse.json({ data: [] });
+    }
     return NextResponse.json(
-      { error: "Failed to fetch menus" },
+      { error: "Failed to fetch menus", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
 }
 
-const menuItemSchema = z.object({
-  id: z.string().optional(),
-  parentId: z.string().nullable().optional(),
-  label: z.string().min(1),
-  href: z.string().optional().nullable(),
-  icon: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  badge: z.string().optional().nullable(),
-  badgeColor: z.string().optional().nullable(),
-  target: z.string().optional().default("_self"),
-  isActive: z.boolean().optional().default(true),
-  sortOrder: z.number().int().optional().default(0),
-  children: z.array(z.lazy(() => menuItemSchema)).optional(),
-});
+// Forward declaration for recursive schema
+const menuItemSchema: z.ZodType<any> = z.lazy(() =>
+  z.object({
+    id: z.string().optional(),
+    parentId: z.string().nullable().optional(),
+    label: z.string().min(1),
+    href: z.string().optional().nullable(),
+    icon: z.string().optional().nullable(),
+    description: z.string().optional().nullable(),
+    badge: z.string().optional().nullable(),
+    badgeColor: z.string().optional().nullable(),
+    target: z.string().optional().default("_self"),
+    isActive: z.boolean().optional().default(true),
+    sortOrder: z.number().int().optional().default(0),
+    children: z.array(menuItemSchema).optional(),
+  })
+);
 
 const createMenuSchema = z.object({
   name: z.string().min(1),

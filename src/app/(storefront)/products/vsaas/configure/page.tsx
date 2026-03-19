@@ -32,7 +32,7 @@ export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ variant?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -46,10 +46,10 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
-  // Fetch both VSAAS products
-  const cloudProduct = await prisma.product.findFirst({
+  // Fetch main VSAAS product with variants
+  const vsaasProduct = await prisma.product.findUnique({
     where: {
-      slug: "connect-cloud",
+      slug: "vsaas",
       status: "ACTIVE",
     },
     include: {
@@ -70,30 +70,7 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
     },
   });
 
-  const onPremiseProduct = await prisma.product.findFirst({
-    where: {
-      slug: "vsaas-on-premise",
-      status: "ACTIVE",
-    },
-    include: {
-      category: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        include: {
-          recurringPrices: true,
-        },
-      },
-      addons: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-      },
-      recurringPrices: true,
-    },
-  });
-
-  // Transform addons
+  // Transform for configurator
   const transformAddons = (addons: any[]) => {
     return addons.map(addon => ({
       id: addon.id,
@@ -122,10 +99,46 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
     }));
   };
 
-  const cloudAddons = cloudProduct ? transformAddons(cloudProduct.addons) : [];
-  const cloudVariants = cloudProduct ? transformVariants(cloudProduct.variants) : [];
-  const onPremiseAddons = onPremiseProduct ? transformAddons(onPremiseProduct.addons) : [];
-  const onPremiseVariants = onPremiseProduct ? transformVariants(onPremiseProduct.variants) : [];
+  // Filter variants by type field (with fallback to name for backwards compatibility)
+  const cloudVariants = vsaasProduct ? transformVariants(
+    vsaasProduct.variants.filter((v: any) => 
+      v.type === 'cloud' || 
+      v.attributes?.type === 'cloud' || 
+      v.name.toLowerCase().includes('cloud') || 
+      v.sku?.toLowerCase().includes('cloud') ||
+      v.name.startsWith('☁️')
+    )
+  ) : [];
+  const onPremiseVariants = vsaasProduct ? transformVariants(
+    vsaasProduct.variants.filter((v: any) => 
+      v.type === 'onprem' || 
+      v.attributes?.type === 'onprem' || 
+      v.name.toLowerCase().includes('on premise') || 
+      v.name.toLowerCase().includes('on-prem') ||
+      v.name.toLowerCase().includes('stream os') ||
+      v.sku?.toLowerCase().includes('onprem') ||
+      v.sku?.toLowerCase().includes('on-premise') ||
+      v.name.startsWith('🖥️')
+    )
+  ) : [];
+
+  // Filter addons by group prefix (Cloud vs On-Premise)
+  const cloudAddons = vsaasProduct ? transformAddons(
+    vsaasProduct.addons.filter((a: any) => 
+      a.group?.toLowerCase().includes('cloud') || 
+      a.group?.startsWith('☁️') ||
+      (!a.group && (a.name.toLowerCase().includes('cloud') || a.name.startsWith('Cloud - ')))
+    )
+  ) : [];
+  const onPremiseAddons = vsaasProduct ? transformAddons(
+    vsaasProduct.addons.filter((a: any) => 
+      a.group?.toLowerCase().includes('on-premise') || 
+      a.group?.toLowerCase().includes('on premise') || 
+      a.group?.toLowerCase().includes('onprem') ||
+      a.group?.startsWith('🖥️') ||
+      (!a.group && (a.name.toLowerCase().includes('on premise') || a.name.startsWith('On-Premise - ')))
+    )
+  ) : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -171,10 +184,19 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
       </div>
 
       {/* VSAAS Configurator with Deployment Type Selector */}
-      {cloudProduct && onPremiseProduct ? (
+      {vsaasProduct && cloudVariants.length > 0 && onPremiseVariants.length > 0 ? (
         <VSAASConfigurator 
-          cloudProduct={cloudProduct}
-          onPremiseProduct={onPremiseProduct}
+          cloudProduct={{
+            ...vsaasProduct,
+            variants: cloudVariants,
+            addons: cloudAddons
+          }}
+          onPremiseProduct={{
+            ...vsaasProduct,
+            variants: onPremiseVariants,
+            addons: onPremiseAddons
+          }}
+          selectedVariantId={resolvedSearchParams.variant}
         />
       ) : (
         <div className="container mx-auto px-4 py-10 text-center">

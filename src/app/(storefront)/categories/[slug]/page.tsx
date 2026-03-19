@@ -156,7 +156,9 @@ async function getCategory(slug: string) {
         },
       },
       products: {
-        where: { status: "ACTIVE" },
+        where: { 
+          status: "ACTIVE",
+        },
         orderBy: [{ isFeatured: "desc" }, { salesCount: "desc" }],
         take: 8,
         include: {

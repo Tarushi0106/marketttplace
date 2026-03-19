@@ -30,6 +30,8 @@ import {
   Check,
   LayoutGrid,
   Table2,
+  Cloud,
+  Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,6 +146,8 @@ interface ProductVariant {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
+  // Solution type: cloud or onprem (for VSAAS products)
+  type?: "cloud" | "onprem";
 }
 
 interface ProductConfigOption {
@@ -209,6 +213,20 @@ interface SEOMetadata {
   ogImage: string;
 }
 
+// Solutions Content Type for VSAAS Products
+interface SolutionItem {
+  title: string;
+  description: string;
+  features: string[];
+  buttonText: string;
+  link: string;
+}
+
+interface SolutionsContent {
+  cloud: SolutionItem;
+  onPremise: SolutionItem;
+}
+
 interface ProductFormData {
   name: string;
   slug: string;
@@ -259,7 +277,13 @@ interface ProductFormData {
   pricingDisplayFormat: "TABLE" | "CARD";
   icon: string;
   isFeatured: boolean;
+  isChild: boolean;  // For parent-child product model
   isDigital: boolean;
+  // VSAAS Variant pricing
+  vsaasCloudMonthly?: string;
+  vsaasCloudYearly?: string;
+  vsaasOnPremisePrice?: string;
+  vsaasOnPremiseSetup?: string;
   requiresShipping: boolean;
   trackInventory: boolean;
   allowBackorder: boolean;
@@ -269,6 +293,7 @@ interface ProductFormData {
   weightUnit: string;
   features: string[];
   specifications: Specification[];
+  solutionsContent: SolutionsContent | null;
 }
 
 interface ProductFormProps {
@@ -337,7 +362,13 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     pricingDisplayFormat: "TABLE",
     icon: "",
     isFeatured: false,
+    isChild: false,
     isDigital: true,
+    // VSAAS Variant pricing
+    vsaasCloudMonthly: "",
+    vsaasCloudYearly: "",
+    vsaasOnPremisePrice: "",
+    vsaasOnPremiseSetup: "",
     requiresShipping: false,
     trackInventory: true,
     allowBackorder: false,
@@ -347,6 +378,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
     weightUnit: "kg",
     features: [],
     specifications: [],
+    solutionsContent: null,
   });
 
   // Related data
@@ -354,6 +386,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [configs, setConfigs] = useState<ProductConfig[]>([]);
   const [addons, setAddons] = useState<ProductAddon[]>([]);
+  const [childProducts, setChildProducts] = useState<any[]>([]);
   const [seoMetadata, setSeoMetadata] = useState<SEOMetadata>({
     metaTitle: "",
     metaDescription: "",
@@ -372,9 +405,11 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showAddonModal, setShowAddonModal] = useState(false);
+  const [showChildProductModal, setShowChildProductModal] = useState(false);
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
   const [editingConfig, setEditingConfig] = useState<ProductConfig | null>(null);
   const [editingAddon, setEditingAddon] = useState<ProductAddon | null>(null);
+  const [editingChildProduct, setEditingChildProduct] = useState<any>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [displayFormat, setDisplayFormat] = useState<"card" | "table">("card");
   const [savingDisplayFormat, setSavingDisplayFormat] = useState(false);
@@ -506,6 +541,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           pricingDisplayFormat: product.pricingDisplayFormat || "TABLE",
           icon: product.icon || "",
           isFeatured: product.isFeatured || false,
+          isChild: (product as any).isChild || false,
           isDigital: product.isDigital ?? true,
           requiresShipping: product.requiresShipping ?? false,
           trackInventory: product.trackInventory ?? true,
@@ -518,6 +554,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           specifications: Object.entries(product.specifications || {}).map(
             ([key, value]) => ({ key, value: value as string })
           ),
+          solutionsContent: product.solutionsContent || null,
         });
 
         // Set images
@@ -611,6 +648,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                 isDefault: v.isDefault || false,
                 isActive: v.isActive ?? true,
                 sortOrder: v.sortOrder || 0,
+                // Solution type: cloud or onprem
+                type: v.type || undefined,
               };
             })
           );
@@ -891,6 +930,8 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
   async function saveVariant() {
     if (!editingVariant || !editingVariant.name) return;
 
+    // Allow multiple Cloud and On-Premise variants for VSAAS products
+
     // For RECURRING billing, set the price field from monthlyPrice (for storefront display)
     let updatedVariant = { ...editingVariant };
     if (editingVariant.billingType === "RECURRING" && editingVariant.monthlyPrice) {
@@ -950,6 +991,66 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
 
   function removeVariant(index: number) {
     setVariants((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  // Child Product management
+  function openChildProductModal(child?: any) {
+    if (child) {
+      setEditingChildProduct(child);
+    } else {
+      setEditingChildProduct({
+        name: "",
+        slug: "",
+        shortDescription: "",
+        description: "",
+        billingType: "RECURRING",
+        // Recurring pricing
+        monthlyPrice: "",
+        quarterlyPrice: "",
+        yearlyPrice: "",
+        semiAnnualPrice: "",
+        // One-time pricing
+        oneTimePrice: "",
+        setupFee: "",
+        // Legacy fields for compatibility
+        price: "",
+        compareAtPrice: "",
+        isActive: true,
+        sortOrder: childProducts.length,
+      });
+    }
+    setShowChildProductModal(true);
+  }
+
+  function saveChildProduct() {
+    if (!editingChildProduct || !editingChildProduct.name) return;
+
+    // Generate slug from name if not provided
+    let updatedChild = { ...editingChildProduct };
+    if (!updatedChild.slug) {
+      updatedChild.slug = updatedChild.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+
+    // Use monthlyPrice as the main price for display
+    if (updatedChild.billingType === "RECURRING" && updatedChild.monthlyPrice) {
+      updatedChild.price = updatedChild.monthlyPrice;
+    } else if (updatedChild.billingType === "ONE_TIME" && updatedChild.oneTimePrice) {
+      updatedChild.price = updatedChild.oneTimePrice;
+    }
+
+    if (updatedChild.id) {
+      setChildProducts((prev) =>
+        prev.map((c) => (c.id === updatedChild.id ? updatedChild : c))
+      );
+    } else {
+      setChildProducts((prev) => [...prev, updatedChild]);
+    }
+    setShowChildProductModal(false);
+    setEditingChildProduct(null);
+  }
+
+  function removeChildProduct(index: number) {
+    setChildProducts((prev) => prev.filter((_, i) => i !== index));
   }
 
   // Config management
@@ -1065,6 +1166,9 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
         // Icon
         icon: formData.icon || null,
         
+        // Solutions Content (VSAAS)
+        solutionsContent: formData.solutionsContent,
+        
         // Per-Billing-Cycle Setup Fees (only for recurring products - using quarterly as default)
         setupFee: formData.quarterlySetupFee ? parseFloat(formData.quarterlySetupFee) : null,
         
@@ -1137,6 +1241,29 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           ...a,
           price: parseFloat(a.price) || 0,
           sortOrder: idx,
+        })),
+        // Child products
+        childProducts: childProducts.map((child, idx) => ({
+          name: child.name,
+          slug: child.slug,
+          shortDescription: child.shortDescription || `${child.name} - Part of ${formData.name}`,
+          description: child.description || `${child.name} for ${formData.name}`,
+          basePrice: child.price ? parseFloat(child.price) : 0,
+          compareAtPrice: child.compareAtPrice ? parseFloat(child.compareAtPrice) : null,
+          billingType: child.billingType,
+          // Recurring pricing
+          monthlyPrice: child.monthlyPrice ? parseFloat(child.monthlyPrice) : null,
+          quarterlyPrice: child.quarterlyPrice ? parseFloat(child.quarterlyPrice) : null,
+          semiAnnualPrice: child.semiAnnualPrice ? parseFloat(child.semiAnnualPrice) : null,
+          yearlyPrice: child.yearlyPrice ? parseFloat(child.yearlyPrice) : null,
+          // One-time pricing
+          oneTimePrice: child.oneTimePrice ? parseFloat(child.oneTimePrice) : null,
+          setupFee: child.setupFee ? parseFloat(child.setupFee) : null,
+          isActive: child.isActive,
+          sortOrder: idx,
+          // Mark as child product
+          isChild: true,
+          parentId: isEdit ? productId : null, // Will be set after parent is created
         })),
         seoMetadata,
       };
@@ -1439,6 +1566,14 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               <LayoutGrid className="h-4 w-4" />
               <span className="hidden lg:inline">Display Settings</span>
             </TabsTrigger>
+            <TabsTrigger value="vsaas-solutions" className="gap-2">
+              <Cloud className="h-4 w-4" />
+              <span className="hidden lg:inline">VSAAS Solutions</span>
+            </TabsTrigger>
+            <TabsTrigger value="child-products" className="gap-2">
+              <Layers className="h-4 w-4" />
+              <span className="hidden lg:inline">Child Products</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* BASIC INFO TAB */}
@@ -1673,6 +1808,21 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                         checked={formData.isFeatured}
                         onCheckedChange={(checked) =>
                           setFormData({ ...formData, isFeatured: checked })
+                        }
+                      />
+                    </div>
+                    {/* Child Product */}
+                    <div className="flex items-center justify-between py-3 border-t">
+                      <div className="space-y-0.5">
+                        <Label>Child Product</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Hide from public listings (used as variant of parent)
+                        </p>
+                      </div>
+                      <Switch
+                        checked={formData.isChild}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, isChild: checked })
                         }
                       />
                     </div>
@@ -2604,7 +2754,19 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       {variants.map((variant, index) => (
                         <TableRow key={variant.id || index}>
                           <TableCell className="font-medium">
-                            {variant.name}
+                            <div className="flex items-center gap-2">
+                              {variant.name && typeof variant.name === 'string' ? variant.name : 'Unnamed Variant'}
+                              {variant.type === "cloud" && (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  ☁️ Cloud
+                                </Badge>
+                              )}
+                              {variant.type === "onprem" && (
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                  🖥️ On-Premise
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="font-mono text-sm">
                             {variant.sku || "-"}
@@ -2721,7 +2883,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {addon.group ? (
+                            {addon.group && typeof addon.group === 'string' ? (
                               <Badge variant="outline">{addon.group}</Badge>
                             ) : (
                               <span className="text-muted-foreground">-</span>
@@ -2735,7 +2897,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">
-                              {addon.pricingType.replace("_", " ")}
+                              {addon.pricingType && typeof addon.pricingType === 'string' ? addon.pricingType.replace("_", " ") : 'N/A'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -2988,6 +3150,353 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* VSAAS SOLUTIONS TAB */}
+          <TabsContent value="vsaas-solutions" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cloud className="h-5 w-5" />
+                  VSAAS Solutions Content
+                </CardTitle>
+                <CardDescription>
+                  Configure the VSAAS Solutions tab content displayed on the product page. This content appears in the Solutions tab for VSAAS products.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Cloud Solution */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <Cloud className="h-5 w-5 text-blue-600" />
+                    Cloud Solution
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input
+                        value={formData.solutionsContent?.cloud?.title || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          solutionsContent: {
+                            cloud: { ...formData.solutionsContent?.cloud, title: e.target.value } as any,
+                            onPremise: formData.solutionsContent?.onPremise || { title: "", description: "", features: [], buttonText: "", link: "" }
+                          }
+                        })}
+                        placeholder="VSAAS Cloud"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Button Text</Label>
+                      <Input
+                        value={formData.solutionsContent?.cloud?.buttonText || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          solutionsContent: {
+                            cloud: { ...formData.solutionsContent?.cloud, buttonText: e.target.value } as any,
+                            onPremise: formData.solutionsContent?.onPremise || { title: "", description: "", features: [], buttonText: "", link: "" }
+                          }
+                        })}
+                        placeholder="View Cloud Plans"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.solutionsContent?.cloud?.description || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: { ...formData.solutionsContent?.cloud, description: e.target.value } as any,
+                          onPremise: formData.solutionsContent?.onPremise || { title: "", description: "", features: [], buttonText: "", link: "" }
+                        }
+                      })}
+                      placeholder="Host your video surveillance in the cloud..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Features (one per line)</Label>
+                    <Textarea
+                      value={formData.solutionsContent?.cloud?.features?.join("\n") || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: { ...formData.solutionsContent?.cloud, features: e.target.value.split("\n").filter(f => f.trim()) } as any,
+                          onPremise: formData.solutionsContent?.onPremise || { title: "", description: "", features: [], buttonText: "", link: "" }
+                        }
+                      })}
+                      placeholder="99.9% Uptime Guarantee&#10;Remote Access Anywhere&#10;Automatic Backups"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Link</Label>
+                    <Input
+                      value={formData.solutionsContent?.cloud?.link || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: { ...formData.solutionsContent?.cloud, link: e.target.value } as any,
+                          onPremise: formData.solutionsContent?.onPremise || { title: "", description: "", features: [], buttonText: "", link: "" }
+                        }
+                      })}
+                      placeholder="/products/connect-cloud"
+                    />
+                  </div>
+                </div>
+
+                {/* On-Premise Solution */}
+                <div className="border rounded-lg p-4 space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <Server className="h-5 w-5 text-purple-600" />
+                    On-Premise Solution
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input
+                        value={formData.solutionsContent?.onPremise?.title || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          solutionsContent: {
+                            cloud: formData.solutionsContent?.cloud || { title: "", description: "", features: [], buttonText: "", link: "" },
+                            onPremise: { ...formData.solutionsContent?.onPremise, title: e.target.value } as any
+                          }
+                        })}
+                        placeholder="VSAAS On-Premise"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Button Text</Label>
+                      <Input
+                        value={formData.solutionsContent?.onPremise?.buttonText || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          solutionsContent: {
+                            cloud: formData.solutionsContent?.cloud || { title: "", description: "", features: [], buttonText: "", link: "" },
+                            onPremise: { ...formData.solutionsContent?.onPremise, buttonText: e.target.value } as any
+                          }
+                        })}
+                        placeholder="View On-Premise Plans"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.solutionsContent?.onPremise?.description || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: formData.solutionsContent?.cloud || { title: "", description: "", features: [], buttonText: "", link: "" },
+                          onPremise: { ...formData.solutionsContent?.onPremise, description: e.target.value } as any
+                        }
+                      })}
+                      placeholder="Host your video surveillance on your own servers..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Features (one per line)</Label>
+                    <Textarea
+                      value={formData.solutionsContent?.onPremise?.features?.join("\n") || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: formData.solutionsContent?.cloud || { title: "", description: "", features: [], buttonText: "", link: "" },
+                          onPremise: { ...formData.solutionsContent?.onPremise, features: e.target.value.split("\n").filter(f => f.trim()) } as any
+                        }
+                      })}
+                      placeholder="Complete Data Control&#10;On-Site Storage&#10;No Internet Required"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Link</Label>
+                    <Input
+                      value={formData.solutionsContent?.onPremise?.link || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        solutionsContent: {
+                          cloud: formData.solutionsContent?.cloud || { title: "", description: "", features: [], buttonText: "", link: "" },
+                          onPremise: { ...formData.solutionsContent?.onPremise, link: e.target.value } as any
+                        }
+                      })}
+                      placeholder="/products/vsaas-on-premise"
+                    />
+                  </div>
+                </div>
+
+                {/* VSAAS Variants Section - For Cloud and On-Premise Pricing */}
+                <div className="mt-6 pt-6 border-t">
+                  <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Server className="h-5 w-5" />
+                    VSAAS Variants (Pricing)
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add VSAAS Cloud and On-Premise as product variants with pricing. These will appear in the product page for selection.
+                  </p>
+
+                  {/* Cloud Variant */}
+                  <div className="border rounded-lg p-4 mb-4 bg-blue-50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Cloud className="h-5 w-5 text-blue-600" />
+                      <h5 className="font-medium">VSAAS Cloud Variant</h5>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Monthly Price (₹)</Label>
+                        <Input
+                          type="number"
+                          placeholder="999"
+                          value={(formData as any).vsaasCloudMonthly || ""}
+                          onChange={(e) => setFormData({ ...formData, vsaasCloudMonthly: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Yearly Price (₹)</Label>
+                        <Input
+                          type="number"
+                          placeholder="9999"
+                          value={(formData as any).vsaasCloudYearly || ""}
+                          onChange={(e) => setFormData({ ...formData, vsaasCloudYearly: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* On-Premise Variant */}
+                  <div className="border rounded-lg p-4 bg-purple-50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Server className="h-5 w-5 text-purple-600" />
+                      <h5 className="font-medium">VSAAS On-Premise Variant</h5>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>One-Time Price (₹)</Label>
+                        <Input
+                          type="number"
+                          placeholder="49999"
+                          value={(formData as any).vsaasOnPremisePrice || ""}
+                          onChange={(e) => setFormData({ ...formData, vsaasOnPremisePrice: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Setup Fee (₹)</Label>
+                        <Input
+                          type="number"
+                          placeholder="9999"
+                          value={(formData as any).vsaasOnPremiseSetup || ""}
+                          onChange={(e) => setFormData({ ...formData, vsaasOnPremiseSetup: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 w-full"
+                    onClick={() => {
+                      // This will create/update variants when saving
+                      alert('VSAAS Variants will be created when you save the product. Make sure to use the Variants tab to manage them.');
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Manage Variants (Opens Variants Tab)
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* CHILD PRODUCTS TAB */}
+          <TabsContent value="child-products" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Child Products</CardTitle>
+                    <CardDescription>
+                      Add child products (e.g., VSAAS Cloud, VSAAS On-Premise) that appear as separate products but are linked to this parent
+                    </CardDescription>
+                  </div>
+                  <Button type="button" onClick={() => openChildProductModal()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Child Product
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {childProducts.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No child products added yet</p>
+                    <p className="text-sm">
+                      Child products appear as separate products but are linked to this parent
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {childProducts.map((child, index) => (
+                      <div key={child.id || index} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Cloud className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{child.name}</h4>
+                              <p className="text-sm text-muted-foreground">Slug: {child.slug}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => openChildProductModal(child)}>
+                              <Settings className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeChildProduct(index)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {/* Show pricing summary */}
+                        <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {child.monthlyPrice && (
+                              <div>
+                                <span className="text-muted-foreground">Monthly:</span>
+                                <span className="ml-2 font-medium">₹{parseFloat(child.monthlyPrice).toLocaleString()}</span>
+                              </div>
+                            )}
+                            {child.yearlyPrice && (
+                              <div>
+                                <span className="text-muted-foreground">Yearly:</span>
+                                <span className="ml-2 font-medium">₹{parseFloat(child.yearlyPrice).toLocaleString()}</span>
+                              </div>
+                            )}
+                            {child.quarterlyPrice && (
+                              <div>
+                                <span className="text-muted-foreground">Quarterly:</span>
+                                <span className="ml-2 font-medium">₹{parseFloat(child.quarterlyPrice).toLocaleString()}</span>
+                              </div>
+                            )}
+                            {child.oneTimePrice && (
+                              <div>
+                                <span className="text-muted-foreground">One-Time:</span>
+                                <span className="ml-2 font-medium">₹{parseFloat(child.oneTimePrice).toLocaleString()}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </form>
 
@@ -3004,15 +3513,35 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
           </DialogHeader>
           {editingVariant && (
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Variant Name *</Label>
-                <Input
-                  value={editingVariant.name}
-                  onChange={(e) =>
-                    setEditingVariant({ ...editingVariant, name: e.target.value })
-                  }
-                  placeholder="e.g., Basic, Pro, Enterprise"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Variant Name *</Label>
+                  <Input
+                    value={editingVariant.name}
+                    onChange={(e) =>
+                      setEditingVariant({ ...editingVariant, name: e.target.value })
+                    }
+                    placeholder="e.g., Basic, Pro, Enterprise"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Solution Type</Label>
+                  <Select
+                    value={editingVariant.type || "none"}
+                    onValueChange={(value: "none" | "cloud" | "onprem") =>
+                      setEditingVariant({ ...editingVariant, type: value === "none" ? undefined : value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="cloud">☁️ Cloud</SelectItem>
+                      <SelectItem value="onprem">🖥️ On-Premise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -3628,7 +4157,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       .map(([key, value]) => (
                         <div key={key} className="flex items-center gap-2 bg-muted p-3 rounded-lg">
                           <span className="font-medium flex-1">{key}</span>
-                          <span className="text-muted-foreground flex-1">{value}</span>
+                          <span className="text-muted-foreground flex-1">{typeof value === 'string' ? value : JSON.stringify(value)}</span>
                           <Button
                             type="button"
                             variant="ghost"
@@ -3761,6 +4290,46 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                     <SelectItem value="ONE_TIME">One-time</SelectItem>
                     <SelectItem value="RECURRING_MONTHLY">Monthly Recurring</SelectItem>
                     <SelectItem value="RECURRING_YEARLY">Yearly Recurring</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Solution Type - for VSAAS products */}
+              <div className="space-y-2">
+                <Label>Solution Type</Label>
+                <Select
+                  value={editingAddon.group?.startsWith('☁️') ? 'cloud' : editingAddon.group?.startsWith('🖥️') ? 'onprem' : 'none'}
+                  onValueChange={(value: "none" | "cloud" | "onprem") => {
+                    // Get the category part without any existing prefix
+                    let category = editingAddon.group || '';
+                    if (category.startsWith('☁️ ') || category.startsWith('🖥️ ')) {
+                      category = category.substring(2); // Remove emoji and space
+                    }
+                    if (category.startsWith('Cloud - ') || category.startsWith('On-Premise - ')) {
+                      category = category.substring(category.indexOf('-') + 2); // Remove "Cloud - " or "On-Premise - "
+                    }
+                    // Add new prefix based on selection
+                    let newGroup = category;
+                    if (value === 'cloud' && category) {
+                      newGroup = '☁️ Cloud - ' + category;
+                    } else if (value === 'onprem' && category) {
+                      newGroup = '🖥️ On-Premise - ' + category;
+                    } else {
+                      newGroup = category;
+                    }
+                    setEditingAddon({
+                      ...editingAddon,
+                      group: newGroup,
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select solution type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="cloud">☁️ Cloud</SelectItem>
+                    <SelectItem value="onprem">🖥️ On-Premise</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -4134,6 +4703,183 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
               Cancel
             </Button>
             <Button onClick={saveConfig}>Save Variable</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Child Product Modal */}
+      <Dialog open={showChildProductModal} onOpenChange={setShowChildProductModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingChildProduct?.id ? "Edit Child Product" : "Add Child Product"}
+            </DialogTitle>
+            <DialogDescription>
+              Add a child product (e.g., VSAAS Cloud, VSAAS On-Premise) with its own pricing
+            </DialogDescription>
+          </DialogHeader>
+          {editingChildProduct && (
+            <div className="space-y-4 py-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Product Name *</Label>
+                  <Input
+                    value={editingChildProduct.name}
+                    onChange={(e) =>
+                      setEditingChildProduct({ ...editingChildProduct, name: e.target.value })
+                    }
+                    placeholder="e.g., VSAAS Cloud"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Slug</Label>
+                  <Input
+                    value={editingChildProduct.slug}
+                    onChange={(e) =>
+                      setEditingChildProduct({ ...editingChildProduct, slug: e.target.value })
+                    }
+                    placeholder="vsaas-cloud (auto-generated if empty)"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Short Description</Label>
+                <Input
+                  value={editingChildProduct.shortDescription}
+                  onChange={(e) =>
+                    setEditingChildProduct({ ...editingChildProduct, shortDescription: e.target.value })
+                  }
+                  placeholder="Brief description of this child product"
+                />
+              </div>
+
+              {/* Billing Type */}
+              <div className="space-y-2">
+                <Label>Billing Type</Label>
+                <Select
+                  value={editingChildProduct.billingType}
+                  onValueChange={(value) =>
+                    setEditingChildProduct({ ...editingChildProduct, billingType: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select billing type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RECURRING">Recurring (Monthly/Yearly)</SelectItem>
+                    <SelectItem value="ONE_TIME">One-Time Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Recurring Pricing */}
+              {editingChildProduct.billingType === "RECURRING" && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-lg">Recurring Pricing</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Monthly Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.monthlyPrice}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, monthlyPrice: e.target.value })
+                        }
+                        placeholder="999"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Quarterly Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.quarterlyPrice}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, quarterlyPrice: e.target.value })
+                        }
+                        placeholder="2499"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Semi-Annual Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.semiAnnualPrice}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, semiAnnualPrice: e.target.value })
+                        }
+                        placeholder="4999"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Yearly Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.yearlyPrice}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, yearlyPrice: e.target.value })
+                        }
+                        placeholder="9999"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* One-Time Pricing */}
+              {editingChildProduct.billingType === "ONE_TIME" && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-lg">One-Time Pricing</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>One-Time Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.oneTimePrice}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, oneTimePrice: e.target.value })
+                        }
+                        placeholder="49999"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Setup Fee (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingChildProduct.setupFee}
+                        onChange={(e) =>
+                          setEditingChildProduct({ ...editingChildProduct, setupFee: e.target.value })
+                        }
+                        placeholder="9999 (optional)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editingChildProduct.isActive}
+                  onCheckedChange={(checked) =>
+                    setEditingChildProduct({ ...editingChildProduct, isActive: checked })
+                  }
+                />
+                <Label>Active</Label>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowChildProductModal(false);
+                setEditingChildProduct(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={saveChildProduct}>Save Child Product</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

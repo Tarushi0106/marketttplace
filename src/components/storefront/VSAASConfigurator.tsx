@@ -19,10 +19,28 @@ interface VSAASConfiguratorProps {
   cloudProduct: VSAASProduct;
   onPremiseProduct: VSAASProduct;
   initialDeploymentType?: "cloud" | "on-premise" | null;
+  selectedVariantId?: string | null;
 }
 
-export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeploymentType = null }: VSAASConfiguratorProps) {
-  const [deploymentType, setDeploymentType] = useState<"cloud" | "on-premise" | null>(initialDeploymentType);
+export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeploymentType = null, selectedVariantId = null }: VSAASConfiguratorProps) {
+  // Determine initial deployment type based on selected variant
+  const getInitialType = (): "cloud" | "on-premise" | null => {
+    if (initialDeploymentType) return initialDeploymentType;
+    if (selectedVariantId) {
+      const allVariants = [...cloudProduct.variants, ...onPremiseProduct.variants];
+      const variant = allVariants.find((v: any) => v.id === selectedVariantId);
+      if (variant) {
+        // Use type field first, fallback to name
+        if (variant.type === 'cloud') return "cloud";
+        if (variant.type === 'onprem') return "on-premise";
+        // Fallback to name-based detection
+        return variant.name?.toLowerCase().includes('cloud') ? "cloud" : "on-premise";
+      }
+    }
+    return null;
+  };
+
+  const [deploymentType, setDeploymentType] = useState<"cloud" | "on-premise" | null>(getInitialType());
 
   // Transform addons for TallyCloudConfigurator
   const transformAddons = (addons: any[]) => {
@@ -47,6 +65,8 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
       price: Number(variant.price) || 0,
       compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
       isDefault: variant.isDefault || false,
+      // Include the type field (cloud or onprem)
+      type: variant.type || undefined,
       attributes: variant.attributes as Record<string, string> || {},
       billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
       setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
@@ -77,7 +97,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
       {/* Deployment Type Selector */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Choose Your Deployment Type
+          {deploymentType ? `Selected Solution: ${deploymentType === 'cloud' ? 'Cloud' : 'On-Premise'}` : 'Choose Your VSAAS Solution Type'}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
@@ -98,7 +118,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
                 <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS Cloud</h3>
                 <p className="text-sm text-gray-500">Cloud-based video management system</p>
                 <div className="mt-3 flex items-center text-[#C62828] font-medium">
-                  Select <ChevronRight size={16} className="ml-1" />
+                  Add Cloud Solution <ChevronRight size={16} className="ml-1" />
                 </div>
               </div>
             </div>
@@ -130,7 +150,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
                 <h3 className="text-xl font-bold text-gray-900 mb-1">VSAAS On-Premise</h3>
                 <p className="text-sm text-gray-500">Self-hosted video management system</p>
                 <div className="mt-3 flex items-center text-[#C62828] font-medium">
-                  Select <ChevronRight size={16} className="ml-1" />
+                  Add On-Premise Solution <ChevronRight size={16} className="ml-1" />
                 </div>
               </div>
             </div>
