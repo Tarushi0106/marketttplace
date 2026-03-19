@@ -248,17 +248,6 @@ model Product {
   pricingDisplayFormat PricingDisplayFormat? @default(TABLE)  // Card or Table format for pricing display
   icon            String?       // Custom icon name (lucide-react icon name) for product listing
   solutionsContent Json?       // VSAAS Solutions tab content (Cloud and On-Premise)
-  
-  // Quantity Rules
-  minQuantity     Int           @default(1)      // Minimum order quantity
-  maxQuantity     Int?                              // Maximum order quantity (null = unlimited)
-  quantityStep    Int           @default(1)      // Step for quantity increments
-  
-  // Dependency Rules (for related products like camera -> gateway)
-  dependencyType   String?                        // e.g., "camera_to_hardware"
-  dependencyValue   Int?                          // e.g., 8 (cameras per hardware)
-  dependencyProductId String?                     // ID of the dependent product
-  
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
