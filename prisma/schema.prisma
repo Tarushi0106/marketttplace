@@ -238,6 +238,8 @@ model Product {
   allowBackorder  Boolean       @default(false)
   stockQuantity   Int           @default(0)
   lowStockThreshold Int         @default(5)
+  minQuantity     Int           @default(1)  // Minimum order quantity
+  maxQuantity     Int?          // Maximum order quantity (optional)
   weight          Decimal?      @db.Decimal(10, 2)
   weightUnit      String?       @default("kg")
   sortOrder       Int           @default(0)
@@ -299,6 +301,8 @@ model ProductVariant {
   compareAtPrice Decimal? @db.Decimal(10, 2)
   costPrice     Decimal? @db.Decimal(10, 2)
   stockQuantity Int      @default(0)
+  minQuantity   Int      @default(1)  // Minimum order quantity for this variant
+  maxQuantity   Int?     // Maximum order quantity for this variant (optional)
   attributes    Json?    // { "size": "L", "tier": "pro" }
   isDefault     Boolean  @default(false)
   isActive      Boolean  @default(true)

@@ -53,6 +53,8 @@ interface TallyCloudConfiguratorProps {
     attributes?: Record<string, string>;
     billingType?: string;
     setupFee?: number;
+    minQuantity?: number;
+    maxQuantity?: number | null;
     recurringPricesObj?: {
       monthly?: number | null;
       quarterly?: number | null;
@@ -468,14 +470,97 @@ export function TallyCloudConfigurator({
   }, [selectedVariant, variants, selectedPlan, billingCycle]);
   
   // Product quantity state
-  // TODO: Once migration runs, use: selectedPlan?.minQuantity || selectedVariant?.minQuantity || 1
-  const [quantity, setQuantity] = useState(1);
+  // For VSAAS products: use minimum 2 as default (Connect Cloud requirement)
+  // Use minQuantity from variant if available, otherwise check product's minQuantity
+  const getInitialQuantity = () => {
+    // First try to get from selected variant
+    if (selectedVariant) {
+      const variant = variants.find(v => v.id === selectedVariant);
+      if (variant?.minQuantity && variant.minQuantity > 1) {
+        return variant.minQuantity;
+      }
+    }
+    // For VSAAS products with multiple variants, ensure minimum of 2
+    if (variants && variants.length > 0) {
+      const minVariantQty = Math.min(...variants.map(v => v.minQuantity || 1));
+      return Math.max(minVariantQty, 2); // Ensure at least 2 for VSAAS
+    }
+    return 2; // Default to 2 for VSAAS products
+  };
+  const [quantity, setQuantity] = useState(getInitialQuantity());
 
-  // Calculate total price: unit price × quantity + addons
+  // Find Cloud Gateway variant from the variants list
+  const cloudGatewayVariant = variants?.find((v: any) => 
+    v.name?.toLowerCase().includes('cloud gateway')
+  );
+  
+  // Calculate Cloud Gateway quantity based on Connect Cloud quantity
+  // Rule: If Connect Cloud >= 8, Cloud Gateway = 2, else Cloud Gateway = 1
+  const getGatewayQuantity = (cameraQty: number) => {
+    if (cameraQty >= 8) return 2;
+    return 1;
+  };
+
+  // Calculate Cloud Gateway price based on billing cycle
+  const gatewayPrice = useMemo(() => {
+    if (!cloudGatewayVariant) return 0;
+    
+    const unitPrice = Number(cloudGatewayVariant.price) || 0;
+    
+    // Use recurring prices if available
+    if (cloudGatewayVariant.recurringPrices && cloudGatewayVariant.recurringPrices.length > 0) {
+      const rp = cloudGatewayVariant.recurringPrices[0];
+      
+      switch (billingCycle) {
+        case "monthly":
+          return unitPrice || (rp.monthlyPrice ? Number(rp.monthlyPrice) : 0);
+        case "quarterly":
+          return rp.quarterlyPrice ? Number(rp.quarterlyPrice) : (unitPrice * 3);
+        case "semi-annual":
+          return rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : (unitPrice * 6);
+        case "yearly":
+          return rp.yearlyPrice ? Number(rp.yearlyPrice) : (unitPrice * 12);
+        default:
+          return unitPrice;
+      }
+    }
+    
+    // If no recurring prices, calculate from variant.price
+    switch (billingCycle) {
+      case "monthly":
+        return unitPrice;
+      case "quarterly":
+        return unitPrice * 3;
+      case "semi-annual":
+        return unitPrice * 6;
+      case "yearly":
+        return unitPrice * 12;
+      default:
+        return unitPrice;
+    }
+  }, [cloudGatewayVariant, billingCycle]);
+  
+  const gatewayQty = getGatewayQuantity(quantity);
+  const gatewayTotal = cloudGatewayVariant ? gatewayPrice * gatewayQty : 0;
+  
+  // Calculate total price: unit price × quantity + addons + Cloud Gateway
   const calculatedBasePrice = variants.length > 0 ? variantPrice * quantity : selectedPlan.price;
-  const totalPrice = calculatedBasePrice + addonsTotal;
+  const totalPrice = calculatedBasePrice + addonsTotal + gatewayTotal;
 
   const handleAddToCart = () => {
+    // Debug logging
+    console.log('=== Add to Cart Debug ===');
+    console.log('selectedVariant:', selectedVariant);
+    console.log('variants:', variants?.map((v: any) => v.name));
+    
+    // Check if selected variant is Connect Cloud
+    const selectedVariantName = variants?.find((v: any) => v.id === selectedVariant)?.name || '';
+    console.log('selectedVariantName:', selectedVariantName);
+    const isConnectCloud = selectedVariantName.toLowerCase().includes('connect cloud');
+    console.log('isConnectCloud:', isConnectCloud);
+    console.log('cloudGatewayVariant:', cloudGatewayVariant);
+    
+    // Add the main item (Connect Cloud)
     const cartItem = {
       id: `${productId || productSlug || 'product'}-${selectedPlan.id}-${Date.now()}`,
       product: {
@@ -501,6 +586,37 @@ export function TallyCloudConfigurator({
     };
     
     addToCart(cartItem as any);
+    
+    // Always automatically add Cloud Gateway if available in variants (for VSAAS products)
+    if (cloudGatewayVariant) {
+      const gatewayQty = getGatewayQuantity(quantity);
+      const gatewayPrice = Number(cloudGatewayVariant.price) || 0;
+      
+      const gatewayCartItem = {
+        id: `${productId || productSlug || 'product'}-${cloudGatewayVariant.id}-${Date.now()}`,
+        product: {
+          id: productId || '',
+          slug: productSlug || '',
+          name: productName,
+        } as any,
+        quantity: gatewayQty,
+        selectedAddons: [],
+        billingCycle: selectedPlan.id.toUpperCase() as any,
+        isRecurring: true,
+        unitPrice: gatewayPrice,
+        totalPrice: gatewayPrice * gatewayQty,
+        recurringAmount: gatewayPrice * gatewayQty,
+        variantId: cloudGatewayVariant.id,
+        isDependentItem: true, // Flag to identify as dependent item
+        parentItemId: cartItem.id,
+      };
+      
+      addToCart(gatewayCartItem as any);
+      console.log('Added Cloud Gateway to cart with quantity:', gatewayQty);
+    } else {
+      console.log('Cloud Gateway NOT found in variants');
+    }
+    
     router.push("/cart");
   };
 
@@ -907,6 +1023,24 @@ export function TallyCloudConfigurator({
                         </button>
                       </div>
                     </div>
+
+                    {/* Cloud Gateway Auto-add Display */}
+                    {cloudGatewayVariant && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700 font-medium">
+                            Cloud Gateway
+                          </span>
+                          <span className="font-bold text-blue-700">
+                            Qty: {quantity >= 8 ? 2 : 1}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : '1 unit (auto-added with cameras)'}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Unit price × quantity */}
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-500">
@@ -916,6 +1050,18 @@ export function TallyCloudConfigurator({
                         {formatPrice(variantPrice * quantity)}
                       </span>
                     </div>
+
+                    {/* Cloud Gateway price (auto-added) */}
+                    {cloudGatewayVariant && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">
+                          Cloud Gateway × {gatewayQty}
+                        </span>
+                        <span className="font-medium text-gray-900">
+                          {formatPrice(gatewayTotal)}
+                        </span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="flex justify-between items-center">

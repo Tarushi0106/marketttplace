@@ -70,6 +70,9 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
       attributes: variant.attributes as Record<string, string> || {},
       billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
       setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
+      // Include minQuantity and maxQuantity for quantity constraints
+      minQuantity: variant.minQuantity || 1,
+      maxQuantity: variant.maxQuantity || null,
       // Include recurring prices if available
       recurringPrices: variant.recurringPrices ? variant.recurringPrices.map((rp: any) => ({
         id: rp.id,
