@@ -1,226 +1,55 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Shield, Eye, Brain, Bell, Users, Car, Zap, Clock, Award, Camera, Check, Menu, X } from 'lucide-react';
+import { ArrowRight, Shield, Eye, Brain, Bell, Users, Car, Activity, Zap, Check, Building2, ShoppingBag, Truck, Lock, EyeOff, Clock, BarChart3 } from 'lucide-react';
 
-// Color theme
-// Primary: #0B1220 (dark navy)
-// Accent: #E11D48 (red)
-// Background: white/gray-50
-
-const features = [
-  { icon: Shield, title: 'Anomaly Detection', desc: 'AI identifies unusual patterns in real-time' },
-  { icon: Users, title: 'Crowd Monitoring', desc: 'Track density and flow patterns' },
-  { icon: Eye, title: 'Object Detection', desc: 'Recognize vehicles and objects' },
-  { icon: Bell, title: 'Real-time Alerts', desc: 'Instant notifications via SMS or email' },
-  { icon: Brain, title: 'Face Recognition', desc: 'Identify faces with high accuracy' },
-  { icon: Car, title: 'Vehicle Tracking', desc: 'ANPR for license plate recognition' },
-];
-
-const stats = [
-  { value: '10,000+', label: 'Cameras' },
-  { value: '99.9%', label: 'Uptime' },
-  { value: '<1s', label: 'Alert Latency' },
-  { value: '24/7', label: 'Monitoring' },
-];
-
-const whyVsSaas = [
-  { icon: Zap, title: 'Fast Deployment', desc: 'Get started in minutes, not weeks' },
-  { icon: Shield, title: 'Enterprise Security', desc: 'Bank-grade encryption and compliance' },
-  { icon: Brain, title: 'High Accuracy AI', desc: '99.8% detection accuracy' },
-];
-
-const useCaseTabs = [
-  { 
-    name: 'Retail', 
-    points: ['Footfall analytics', 'Theft detection', 'Queue management', 'Heat mapping'] 
-  },
-  { 
-    name: 'Manufacturing', 
-    points: ['Worker safety', 'PPE compliance', 'Area monitoring', 'Intrusion detection'] 
-  },
-  { 
-    name: 'Logistics', 
-    points: ['Vehicle tracking', 'Yard monitoring', 'ANPR', 'Perimeter security'] 
-  },
-];
-
+// ==================== HERO SECTION ====================
 function HeroSection() {
   return (
-    <section className="pt-32 pb-16 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+    <section className="min-h-[70vh] flex items-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <div className="max-w-[1400px] mx-auto px-6 py-20 w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B1220] leading-tight mb-4">
-              AI-Powered Video Surveillance Platform
+          <div className="max-w-xl">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-sm font-medium mb-8">
+              <Activity className="w-4 h-4" />
+              AI Powered Video Analytics (VSaaS)
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 leading-tight mb-6">
+              Turn existing CCTV cameras into{' '}
+              <span className="text-red-600">
+                real-time AI insights
+              </span>{' '}
+              with enterprise-grade analytics.
             </h1>
-            <p className="text-base sm:text-lg text-gray-600 mb-8 max-w-lg">
-              Turn existing CCTV into real-time intelligence with AI-driven insights.
+
+            {/* Subtext */}
+            <p className="text-lg text-slate-600 mb-10 max-w-lg">
+              Enterprise-grade video analytics powered by AI. Detect, analyze and act in real-time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
-                href="/products/vsaas" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#E11D48] text-white font-semibold rounded-lg hover:bg-[#BE123C] transition-colors"
-              >
-                Start Free Trial
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link 
-                href="#" 
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#0B1220] text-white font-semibold rounded-lg hover:bg-[#1E293B] transition-colors"
-              >
-                Book Demo
-              </Link>
-            </div>
-          </div>
 
-          {/* Right - Dashboard Mockup */}
-          <div className="relative">
-            <div className="bg-[#0B1220] rounded-xl p-4 shadow-xl">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                </div>
-                <div className="px-3 py-1 bg-green-500/20 rounded-full flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-green-400 text-xs">Online</span>
-                </div>
-              </div>
-              {/* Stats */}
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                {[
-                  { label: 'Cameras', value: '156' },
-                  { label: 'Alerts', value: '23' },
-                  { label: 'Events', value: '1,247' },
-                  { label: 'Uptime', value: '99.9%' },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-gray-800/50 rounded-lg p-2">
-                    <div className="text-lg font-bold text-white">{stat.value}</div>
-                    <div className="text-xs text-gray-500">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-              {/* Chart */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-2 bg-gray-800/30 rounded-lg p-2">
-                  <div className="text-white text-xs font-medium mb-2">Activity</div>
-                  <div className="flex items-end gap-1 h-12">
-                    {[65, 45, 78, 52, 90, 68, 85, 72, 95, 58, 82, 70].map((h, i) => (
-                      <div 
-                        key={i} 
-                        className="flex-1 bg-gradient-to-t from-[#E11D48] to-[#BE123C] rounded-t" 
-                        style={{ height: `${h}%`, opacity: 0.5 + (i % 3) * 0.15 }} 
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="bg-gray-800/30 rounded-lg p-2">
-                  <div className="text-white text-xs font-medium mb-2">Alerts</div>
-                  <div className="space-y-1">
-                    {['Intrusion', 'Crowd', 'Vehicle'].map((alert, i) => (
-                      <div key={i} className="flex items-center gap-1 p-1 bg-gray-800/50 rounded">
-                        <Shield className="w-3 h-3 text-red-400" />
-                        <span className="text-white text-[10px]">{alert}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StatsStrip() {
-  return (
-    <section className="py-8 bg-[#0B1220]">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</div>
-              <div className="text-sm text-gray-400">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeaturesSection() {
-  return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[#0B1220] mb-2">AI Capabilities</h2>
-          <p className="text-gray-600 text-sm">Advanced video analytics powered by machine learning</p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <div 
-                key={feature.title} 
-                className="bg-white rounded-lg border border-gray-200 p-4 hover:border-[#E11D48]/30 hover:shadow-md transition-all"
-              >
-                <Icon className="w-5 h-5 text-[#E11D48] mb-3" />
-                <h3 className="font-semibold text-[#0B1220] mb-1">{feature.title}</h3>
-                <p className="text-sm text-gray-500">{feature.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function UseCasesSection() {
-  const [activeTab, setActiveTab] = useState(0);
-
-  return (
-    <section className="py-16 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[#0B1220] mb-2">Use Cases</h2>
-          <p className="text-gray-600 text-sm">Solutions tailored for your industry</p>
-        </div>
-        
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8">
-          {useCaseTabs.map((tab, i) => (
-            <button
-              key={tab.name}
-              onClick={() => setActiveTab(i)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === i 
-                  ? 'bg-[#0B1220] text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+            {/* CTA Button */}
+            <Link 
+              href="/products/vsaas"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
             >
-              {tab.name}
-            </button>
-          ))}
-        </div>
+              View Products
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
 
-        {/* Tab Content */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {useCaseTabs[activeTab].points.map((point) => (
-              <div key={point} className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm text-gray-700">{point}</span>
-              </div>
-            ))}
+          {/* Right Image - VSaaS Banner */}
+          <div className="hidden lg:block">
+            <div className="relative aspect-video max-w-2xl mx-auto">
+              <img 
+                src="https://www.videonetics.com/media/images/blogpost/image/vsaas-banner-1726844830.jpeg" 
+                alt="VSaaS Video Analytics Platform" 
+                className="w-full h-full object-contain rounded-2xl shadow-xl"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -228,25 +57,53 @@ function UseCasesSection() {
   );
 }
 
-function WhyVsSaasSection() {
+// ==================== AI CAPABILITIES SECTION ====================
+function AICapabilitiesSection() {
+  const capabilities = [
+    { icon: Shield, title: 'Anomaly Detection', desc: 'AI identifies unusual patterns and behaviors in real-time, flagging potential security threats instantly.' },
+    { icon: Users, title: 'Crowd Monitoring', desc: 'Track crowd density, flow patterns, and generate insights for better space management.' },
+    { icon: Eye, title: 'Object Detection', desc: 'Recognize vehicles, weapons, bags, and other objects with high accuracy.' },
+    { icon: Bell, title: 'Real-time Alerts', desc: 'Instant notifications via SMS, email, or push alerts when anomalies are detected.' },
+  ];
+
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[#0B1220] mb-2">Why VSaaS</h2>
-          <p className="text-gray-600 text-sm">Enterprise-grade video surveillance made simple</p>
+    <section className="py-16 bg-gradient-to-b from-white to-red-50 relative overflow-hidden" id="capabilities">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02]">
+        <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+      </div>
+      
+      <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+        {/* Section Header */}
+        <div className="text-center mb-12 max-w-4xl mx-auto">
+          <p className="text-sm font-semibold text-red-600 tracking-wider uppercase mb-4">Enterprise Solutions</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+            AI Video Analytics Capabilities
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-rose-600 mx-auto mb-8" />
+          <p className="text-xl text-slate-500 leading-relaxed">
+            Transform legacy surveillance infrastructure into intelligent AI-powered security ecosystems with real-time threat detection and operational intelligence.
+          </p>
         </div>
-        <div className="grid sm:grid-cols-3 gap-4">
-          {whyVsSaas.map((item) => {
-            const Icon = item.icon;
+
+        {/* 4-Column Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {capabilities.map((cap, idx) => {
+            const Icon = cap.icon;
             return (
               <div 
-                key={item.title} 
-                className="bg-white rounded-lg border border-gray-200 p-5"
+                key={cap.title}
+                className="relative group bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300"
+                style={{ animationDelay: `${idx * 100}ms` }}
               >
-                <Icon className="w-6 h-6 text-[#E11D48] mb-3" />
-                <h3 className="font-semibold text-[#0B1220] mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-500">{item.desc}</p>
+                {/* Colored top bar */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-t-xl" />
+                
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 mb-2">{cap.title}</h3>
+                <p className="text-sm text-slate-600">{cap.desc}</p>
               </div>
             );
           })}
@@ -256,42 +113,188 @@ function WhyVsSaasSection() {
   );
 }
 
-function CTASection() {
+// ==================== AI USE CASES GRID ====================
+function AIUseCasesSection() {
+  const useCases = [
+    { title: 'Security', desc: 'Intrusion detection, perimeter monitoring, face recognition' },
+    { title: 'Operations', desc: 'People counting, queue management, heat mapping' },
+    { title: 'Safety', desc: 'PPE detection, smoke & fire detection, anomaly alerts' },
+    { title: 'Investigation', desc: 'ANPR, object tracking, forensic search' },
+  ];
+
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 text-center">
-        <h2 className="text-2xl font-bold text-[#0B1220] mb-3">
-          Start monitoring smarter today
-        </h2>
-        <p className="text-gray-600 mb-6">Join thousands of enterprises already using VSaaS</p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link 
-            href="/products/vsaas" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#E11D48] text-white font-semibold rounded-lg hover:bg-[#BE123C] transition-colors"
-          >
-            Start Free Trial
-          </Link>
-          <Link 
-            href="#" 
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Talk to Sales
-          </Link>
+    <section className="py-16 bg-gradient-to-b from-slate-50 to-red-50" id="use-cases">
+      <div className="max-w-[1400px] mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-12 max-w-4xl mx-auto">
+          <p className="text-sm font-semibold text-red-600 tracking-wider uppercase mb-4">Applications</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+            AI Use Cases
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-rose-600 mx-auto mb-8" />
+          <p className="text-xl text-slate-600 leading-relaxed">
+            Comprehensive solutions across security, operations, safety, and investigation
+          </p>
+        </div>
+
+        {/* Simple Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {useCases.map((useCase) => (
+            <div 
+              key={useCase.title}
+              className="bg-white rounded-xl p-6 border border-slate-200 hover:border-red-300 hover:shadow-md transition-all duration-300"
+            >
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{useCase.title}</h3>
+              <p className="text-sm text-slate-600">{useCase.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
+// ==================== PLATFORM ARCHITECTURE ====================
+function PlatformArchitectureSection() {
+  const steps = [
+    { icon: Eye, label: 'Camera', desc: 'Existing CCTV' },
+    { icon: Zap, label: 'Edge/Cloud', desc: 'Processing' },
+    { icon: Brain, label: 'AI Analytics', desc: 'Intelligence' },
+    { icon: BarChart3, label: 'Dashboard', desc: 'Monitoring' },
+  ];
+
+  return (
+    <section className="py-16 bg-gradient-to-b from-red-50 via-white to-slate-50 relative overflow-hidden">
+      
+      <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+        {/* Section Header */}
+        <div className="text-center mb-12 max-w-4xl mx-auto">
+          <p className="text-sm font-semibold text-red-600 tracking-wider uppercase mb-4">Workflow</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+            How VSaaS Works
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-rose-600 mx-auto mb-8" />
+          <p className="text-xl text-slate-600 leading-relaxed">
+            Simple flow from camera to actionable intelligence
+          </p>
+        </div>
+
+        {/* Simple 4-Step Flow */}
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="text-center">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center mb-3 shadow-md">
+                  <Icon className="w-8 h-8 text-white" />
+                </div>
+                <div className="font-bold text-slate-900">{step.label}</div>
+                <div className="text-sm text-slate-600">{step.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Features below */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+            <Cloud className="w-8 h-8 text-red-600 mb-3" />
+            <h3 className="font-bold text-slate-900 mb-2">Cloud Storage</h3>
+            <p className="text-sm text-slate-600">Secure, scalable video storage</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+            <Bell className="w-8 h-8 text-red-600 mb-3" />
+            <h3 className="font-bold text-slate-900 mb-2">Real-time Alerts</h3>
+            <p className="text-sm text-slate-600">Instant notifications</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+            <Building2 className="w-8 h-8 text-red-600 mb-3" />
+            <h3 className="font-bold text-slate-900 mb-2">Multi-location</h3>
+            <p className="text-sm text-slate-600">Single dashboard</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Helper component for Cloud icon
+function Cloud({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+    </svg>
+  );
+}
+
+// ==================== INDUSTRY APPLICATIONS ====================
+function IndustryApplicationsSection() {
+  const industries = [
+    { 
+      icon: Building2, 
+      title: 'Manufacturing', 
+      items: ['Worker safety monitoring', 'PPE compliance detection'],
+      description: 'Ensure workplace safety with AI-powered monitoring'
+    },
+    { 
+      icon: ShoppingBag, 
+      title: 'Retail', 
+      items: ['Footfall analytics', 'Theft detection'],
+      description: 'Optimize store operations and prevent losses'
+    },
+    { 
+      icon: Truck, 
+      title: 'Logistics', 
+      items: ['Vehicle tracking', 'Yard monitoring'],
+      description: 'Streamline logistics with intelligent video analytics'
+    },
+  ];
+
+  return (
+    <section className="py-16 -mt-2 bg-white">
+      <div className="max-w-[1200px] mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            Industry Applications
+          </h2>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Tailored solutions for various industry verticals
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="grid sm:grid-cols-3 gap-6">
+          {industries.map((industry) => {
+            const Icon = industry.icon;
+            return (
+              <div 
+                key={industry.title}
+                className="bg-white rounded-xl p-6 border border-slate-200"
+              >
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-slate-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-1">{industry.title}</h3>
+                <p className="text-sm text-slate-600">{industry.description}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ==================== MAIN PAGE ====================
 export default function HeroPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div>
       <HeroSection />
-      <StatsStrip />
-      <FeaturesSection />
-      <UseCasesSection />
-      <WhyVsSaasSection />
-      <CTASection />
+      <AICapabilitiesSection />
+      <AIUseCasesSection />
+      <PlatformArchitectureSection />
+      <IndustryApplicationsSection />
     </div>
   );
 }

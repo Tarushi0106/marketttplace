@@ -56,21 +56,10 @@ export function HeroSection() {
           <Button 
             asChild 
             size="lg" 
-            variant="outline" 
-            className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300"
+            className="bg-red-600 text-white hover:bg-red-700 px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
           >
-            <Link href="/contact">
-              Book Demo
-            </Link>
-          </Button>
-
-          <Button 
-            asChild 
-            size="lg" 
-            className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
-          >
-            <Link href="/products/vsaas/configure?variant=cloud">
-              Start Free Trial
+            <Link href="/products">
+              View Products
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
           </Button>
