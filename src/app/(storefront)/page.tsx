@@ -104,53 +104,48 @@ async function getCategories() {
   });
 }
 
-async function getStats() {
-  const [productCount, categoryCount, reviewCount] = await Promise.all([
-    prisma.product.count({ where: { status: "ACTIVE" } }),
-    prisma.category.count({ where: { isActive: true } }),
-    prisma.review.count({ where: { isApproved: true } }),
-  ]);
-
-  return { productCount, categoryCount, reviewCount };
-}
-
 export default async function HomePage() {
-  const [categories, stats] = await Promise.all([
-    getCategories(),
-    getStats(),
-  ]);
+  const categories = await getCategories();
 
   return (
     <div className="bg-white">
       {/* Hero Banner Section */}
       <section className="relative">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
-          <div className="relative h-[500px] md:h-[550px] rounded-2xl overflow-hidden">
-            {/* Background Image */}
+          <div className="relative h-[500px] md:h-[600px] rounded-2xl overflow-hidden">
+            {/* Background Image - Earth from space */}
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
+                backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')`,
               }}
             />
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/50" />
+            {/* Dark Overlay with gradient for readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-transparent" />
 
-            {/* Content */}
-            <div className="relative h-full flex items-end pb-12 md:pb-16 px-8 md:px-12 lg:px-16">
+            {/* Content - Left aligned */}
+            <div className="relative h-full flex items-center pb-12 md:pb-16 px-8 md:px-12 lg:px-16">
               <div className="max-w-2xl">
+                {/* Pill label */}
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-6">
+                  Choose. Click. Launch.
+                </div>
+                
+                {/* Headline */}
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Powering Enterprise
-                  <br />
-                  Digital Transformation
+                  Enterprise Solutions for Growing Business
                 </h1>
-                <p className="mt-6 text-base md:text-lg text-gray-200 leading-relaxed max-w-xl">
-                  Accelerate your business growth with our comprehensive suite of enterprise-grade connectivity, cloud infrastructure, and SaaS solutions. Trusted by leading organizations worldwide.
+                
+                {/* Subheading */}
+                <p className="mt-6 text-base md:text-lg text-gray-300 leading-relaxed max-w-xl">
+                  Get started with our cloud hosting solutions
                 </p>
+                
+                {/* Buttons */}
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"
-                    className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg h-12 px-8"
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-12 px-8"
                     asChild
                   >
                     <Link href="/products">
@@ -161,10 +156,13 @@ export default async function HomePage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8"
+                    className="border-white/30 bg-black/30 backdrop-blur-sm text-white hover:bg-white/10 rounded-lg h-12 px-8"
                     asChild
                   >
-                    <Link href="/solutions">View Solutions</Link>
+                    <Link href="/solutions">
+                      View Solutions
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -187,61 +185,6 @@ export default async function HomePage() {
 
       {/* What our Clients Say Section - From Backend */}
       <Testimonials />
-
-      {/* Stats Section */}
-      <section className="py-16 md:py-20 bg-[#8B1D1D]">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-white">99.99%</div>
-              <div className="mt-2 text-white/80">Uptime SLA</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-white">{stats.productCount}+</div>
-              <div className="mt-2 text-white/80">Products</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-white">{stats.categoryCount}+</div>
-              <div className="mt-2 text-white/80">Categories</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-white">24/7</div>
-              <div className="mt-2 text-white/80">Support</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="bg-gray-900 rounded-2xl p-8 md:p-12 lg:p-16 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Ready to Scale Your Infrastructure?
-            </h2>
-            <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
-              Join thousands of businesses that trust Shaurrya Teleservices for their network infrastructure needs.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg h-12 px-8"
-                asChild
-              >
-                <Link href="/register">Get Started Free</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8"
-                asChild
-              >
-                <Link href="/solutions">View Solutions</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
