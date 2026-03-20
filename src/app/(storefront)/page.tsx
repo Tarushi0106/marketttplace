@@ -154,17 +154,17 @@ export default async function HomePage() {
                     asChild
                   >
                     <Link href="/products">
-                      Explore Solutions
+                      Explore Marketplace
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white text-white hover:bg-white/10 rounded-lg h-12 px-8"
+                    className="border-white bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8"
                     asChild
                   >
-                    <Link href="/contact">Contact Sales</Link>
+                    <Link href="/solutions">View Solutions</Link>
                   </Button>
                 </div>
               </div>
@@ -233,10 +233,10 @@ export default async function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-gray-600 text-white hover:bg-white/10 rounded-lg h-12 px-8"
+                className="border-white bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8"
                 asChild
               >
-                <Link href="/contact">Contact Sales</Link>
+                <Link href="/solutions">View Solutions</Link>
               </Button>
             </div>
           </div>
