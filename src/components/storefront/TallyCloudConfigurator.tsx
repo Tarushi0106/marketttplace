@@ -103,6 +103,67 @@ export function TallyCloudConfigurator({
   const router = useRouter();
   const { addItem: addToCart } = useCartStore();
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
+
+  // ============================================
+  // BILLING CYCLE PRICING LOGIC
+  // ============================================
+  
+  // Multipliers for each billing cycle (how many months)
+  const billingMultipliers: Record<string, number> = {
+    monthly: 1,
+    quarterly: 3,
+    'semi-annual': 6,
+    yearly: 12,
+  };
+
+  // Discounts for each billing cycle
+  const billingDiscounts: Record<string, number> = {
+    monthly: 0,
+    quarterly: 0.05,  // 5% discount
+    'semi-annual': 0.10, // 10% discount
+    yearly: 0.20,    // 20% discount
+  };
+
+  // Calculate addon price based on billing cycle
+  const calculateAddonPrice = (basePrice: number, quantity: number, cycle: string): number => {
+    console.log("calculateAddonPrice called:", { basePrice, quantity, cycle, multiplier: billingMultipliers[cycle], discount: billingDiscounts[cycle] });
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    const finalPrice = total - (total * discount);
+    console.log("calculateAddonPrice result:", { total, finalPrice });
+    return finalPrice;
+  };
+
+  // Get display price per billing period
+  const getDisplayAddonPrice = (basePrice: number, quantity: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    const finalPrice = total - (total * discount);
+    return finalPrice;
+  };
+
+  // Get savings amount for display
+  const getAddonSavings = (basePrice: number, quantity: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    return total * discount;
+  };
+
+  // Get billing suffix for display
+  const getBillingSuffix = (cycle: string): string => {
+    switch (cycle) {
+      case 'monthly': return '/mo';
+      case 'quarterly': return '/quarter';
+      case 'semi-annual': return '/6 months';
+      case 'yearly': return '/year';
+      default: return '/period';
+    }
+  };
+
+  // ============================================
   
   // Determine if variant is locked (configure page) or selectable (pricing page)
   const isVariantLocked = !!lockedVariantId;
@@ -347,12 +408,13 @@ export function TallyCloudConfigurator({
       if (addon.options && addon.options.length > 0) {
         const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
         const option = addon.options[selectedOptionIndex];
-        return sum + (option ? option.price * qty : addon.price * qty);
+        const basePrice = option ? option.price : addon.price;
+        return sum + calculateAddonPrice(basePrice, qty, billingCycle);
       }
       
-      return sum + (addon.price * qty);
+      return sum + calculateAddonPrice(addon.price, qty, billingCycle);
     }, 0);
-  }, [addons, addonQuantities, selectedAddonOption]);
+  }, [addons, addonQuantities, selectedAddonOption, billingCycle]);
 
   // Helper function to get price based on billing cycle
   const getPriceForBillingCycle = (variant: any, cycle: string): number => {
@@ -393,17 +455,6 @@ export function TallyCloudConfigurator({
     
     // Fallback to monthly if the selected cycle is not available
     return priceMap[cycle] ?? priceMap.monthly ?? variant.price ?? 0;
-  };
-
-  // Get the billing cycle suffix
-  const getBillingSuffix = (cycle: string): string => {
-    const suffixMap: Record<string, string> = {
-      monthly: "/month",
-      quarterly: "/quarter", 
-      "semi-annual": "/6 months",
-      yearly: "/year",
-    };
-    return suffixMap[cycle] || "";
   };
 
   // Get billing cycle label
@@ -823,9 +874,12 @@ export function TallyCloudConfigurator({
                           </button>
                         </div>
                       </div>
-                      <div className="w-24 text-right">
+                      <div className="w-28 text-right">
                         <div className="font-semibold text-gray-900">
-                          {qty > 0 ? formatPrice(displayPrice * qty) : `+${formatPrice(displayPrice)}`}
+                          {qty > 0 
+                            ? <>{formatPrice(getDisplayAddonPrice(displayPrice, qty, billingCycle))}<span className="text-xs font-normal text-gray-500">{getBillingSuffix(billingCycle)}</span></>
+                            : `+${formatPrice(getDisplayAddonPrice(displayPrice, 1, billingCycle))}`
+                          }
                         </div>
                         {displayUnit && qty === 0 && (
                           <div className="text-xs text-gray-400">{displayUnit}</div>
@@ -1052,7 +1106,10 @@ export function TallyCloudConfigurator({
                             {addon.name && typeof addon.name === 'string' ? addon.name : 'Unnamed Addon'}
                             {qty > 1 && <span className="text-gray-400 ml-1">(x{qty})</span>}
                           </span>
-                          <span className="font-medium text-gray-900 text-sm">{formatPrice(addon.price * qty)}</span>
+                          <span className="font-medium text-gray-900 text-sm">
+                                    {formatPrice(getDisplayAddonPrice(addon.price, qty, billingCycle))}
+                                    <span className="text-xs font-normal text-gray-500 ml-1">{getBillingSuffix(billingCycle)}</span>
+                                  </span>
                         </div>
                       );
                     })}
@@ -1061,7 +1118,10 @@ export function TallyCloudConfigurator({
 
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Total</span>
-                  <span className="text-2xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+                    <span className="text-sm font-normal text-gray-500 ml-1">{getBillingSuffix(billingCycle)}</span>
+                  </div>
                 </div>
               </div>
 
