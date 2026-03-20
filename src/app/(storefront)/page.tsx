@@ -7,7 +7,6 @@ import { Testimonials } from "@/components/storefront/Testimonials";
 import { CompanyLogos } from "@/components/storefront/CompanyLogos";
 import { prisma } from "@/lib/prisma";
 import { SolutionsCarousel } from "@/components/storefront/SolutionsCarousel";
-import { BundlesSection } from "@/components/storefront/BundlesSection";
 
 // Icon mapping for categories
 const iconMap: Record<string, React.ReactNode> = {
@@ -105,37 +104,6 @@ async function getCategories() {
   });
 }
 
-async function getFeaturedBundles() {
-  const bundles = await prisma.bundle.findMany({
-    where: {
-      status: "ACTIVE",
-      isFeatured: true,
-    },
-    take: 2,
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: {
-        include: {
-          product: {
-            select: { name: true },
-          },
-        },
-        take: 4,
-      },
-    },
-  });
-
-  return bundles.map((bundle) => ({
-    id: bundle.id,
-    name: bundle.name,
-    slug: bundle.slug,
-    description: bundle.shortDescription || bundle.description,
-    price: Number(bundle.price),
-    originalPrice: bundle.compareAtPrice ? Number(bundle.compareAtPrice) : null,
-    items: bundle.items.map((item) => item.product.name),
-  }));
-}
-
 async function getStats() {
   const [productCount, categoryCount, reviewCount] = await Promise.all([
     prisma.product.count({ where: { status: "ACTIVE" } }),
@@ -147,9 +115,8 @@ async function getStats() {
 }
 
 export default async function HomePage() {
-  const [categories, featuredBundles, stats] = await Promise.all([
+  const [categories, stats] = await Promise.all([
     getCategories(),
-    getFeaturedBundles(),
     getStats(),
   ]);
 
@@ -220,9 +187,6 @@ export default async function HomePage() {
 
       {/* What our Clients Say Section - From Backend */}
       <Testimonials />
-
-      {/* Bundles Section - From Database */}
-      <BundlesSection bundles={featuredBundles} />
 
       {/* Stats Section */}
       <section className="py-16 md:py-20 bg-[#8B1D1D]">
