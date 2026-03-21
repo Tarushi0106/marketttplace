@@ -1,18 +1,31 @@
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "postgresql://neondb_owner:npg_CPbtog2S4hVN@ep-proud-fire-ai5rehvt-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
+    }
+  }
+});
 
 async function main() {
-  const product = await prisma.product.findFirst({
-    where: { slug: 'connect-cloud' },
-    include: { addons: true }
-  })
-  
-  if (product) {
-    console.log('Product:', product.name)
-    console.log('Addons:', JSON.stringify(product.addons.map(a => ({ name: a.name, group: a.group, price: a.price })), null, 2))
-  } else {
-    console.log('Product not found')
+  try {
+    const product = await prisma.product.findFirst({
+      where: { slug: 'vsaas' }
+    });
+    
+    const addons = await prisma.productAddon.findMany({
+      where: { productId: product.id },
+      orderBy: { sortOrder: 'asc' }
+    });
+    
+    console.log('All addons with prices:');
+    addons.forEach(a => console.log(`${a.name} | Price: ${a.price} | Type: ${a.pricingType} | Group: ${a.group}`));
+    
+  } catch (e) {
+    console.error('Error:', e.message);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
-main().finally(() => prisma.$disconnect())
+main();

@@ -156,7 +156,7 @@ export default async function HeroProductPage({ params }: Props) {
                   <div className="flex items-center gap-3 mb-4">
                     <Cloud className="h-8 w-8 text-blue-600" />
                     <h3 className="text-2xl font-bold">
-                      {product.solutions.cloud?.title || "Cloud Solution"}
+                      {product.solutions.cloud?.title || "VSaaS on Cloud"}
                     </h3>
                   </div>
                   <p className="text-gray-600 mb-6">

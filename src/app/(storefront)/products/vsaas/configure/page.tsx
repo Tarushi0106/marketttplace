@@ -47,7 +47,7 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
   const resolvedSearchParams = await searchParams;
 
   // Fetch main VSAAS product with variants
-  const vsaasProduct = await prisma.product.findUnique({
+  const vsaasProductRaw = await prisma.product.findUnique({
     where: {
       slug: "vsaas",
       status: "ACTIVE",
@@ -69,6 +69,53 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
       recurringPrices: true,
     },
   });
+
+  // Transform product to add recurringPricesObj for each variant
+  let vsaasProduct = vsaasProductRaw;
+  if (vsaasProductRaw) {
+    const allRecurringPrices = vsaasProductRaw.recurringPrices ? [...vsaasProductRaw.recurringPrices] : [];
+    
+    if (vsaasProductRaw.variants) {
+      vsaasProduct = {
+        ...vsaasProductRaw,
+        variants: vsaasProductRaw.variants.map((variant) => {
+          const variantSpecificPrices = allRecurringPrices.filter((rp) => rp.variantId === variant.id);
+          
+          if (variantSpecificPrices.length > 0) {
+            return {
+              ...variant,
+              recurringPrices: variantSpecificPrices,
+              recurringPricesObj: {
+                monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
+                quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
+                yearly: variantSpecificPrices[0]?.yearlyPrice ? Number(variantSpecificPrices[0].yearlyPrice) : null,
+                biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
+                triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
+                semiAnnual: variantSpecificPrices[0]?.semiAnnualPrice ? Number(variantSpecificPrices[0].semiAnnualPrice) : null,
+              },
+            };
+          } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+            return {
+              ...variant,
+              recurringPricesObj: {
+                monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
+                quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
+                yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
+                biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
+                triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
+                semiAnnual: variant.recurringPrices[0]?.semiAnnualPrice ? Number(variant.recurringPrices[0].semiAnnualPrice) : null,
+              },
+            };
+          }
+          return {
+            ...variant,
+            recurringPrices: [],
+            recurringPricesObj: null,
+          };
+        }),
+      };
+    }
+  }
 
   // Transform for configurator
   const transformAddons = (addons: any[]) => {

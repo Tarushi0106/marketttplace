@@ -38,6 +38,7 @@ function transformRecurringPrices(recurringPrices: any[]): any {
   return {
     monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
     quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    'semi-annual': price.semiAnnualPrice ? Number(price.semiAnnualPrice) : null,
     yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
     biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
     triennial: price.triennialPrice ? Number(price.triennialPrice) : null,

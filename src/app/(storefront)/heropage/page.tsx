@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Shield, Eye, Brain, Bell, Users, Car, Activity, Zap, Check, Building2, ShoppingBag, Truck, Lock, EyeOff, Clock, BarChart3 } from 'lucide-react';
+import { ArrowRight, Shield, Eye, Brain, Bell, Users, Car, Activity, Zap, Check, Building2, ShoppingBag, Truck, Lock, EyeOff, Clock, BarChart3, Box, Cloud as CloudIcon } from 'lucide-react';
 
 // ==================== HERO SECTION ====================
 function HeroSection() {
@@ -60,10 +60,11 @@ function HeroSection() {
 // ==================== AI CAPABILITIES SECTION ====================
 function AICapabilitiesSection() {
   const capabilities = [
-    { icon: Shield, title: 'Anomaly Detection', desc: 'AI identifies unusual patterns and behaviors in real-time, flagging potential security threats instantly.' },
-    { icon: Users, title: 'Crowd Monitoring', desc: 'Track crowd density, flow patterns, and generate insights for better space management.' },
-    { icon: Eye, title: 'Object Detection', desc: 'Recognize vehicles, weapons, bags, and other objects with high accuracy.' },
     { icon: Bell, title: 'Real-time Alerts', desc: 'Instant notifications via SMS, email, or push alerts when anomalies are detected.' },
+    { icon: Users, title: 'Crowd Monitoring', desc: 'Track crowd density, flow patterns, and generate insights for better space management.' },
+    { icon: Shield, title: 'Anomaly Detection', desc: 'AI identifies unusual patterns and suspicious behavior in real time.' },
+    { icon: Eye, title: 'Object Detection', desc: 'Detect and recognize objects like vehicles, weapons, and people.' },
+    { icon: CloudIcon, title: 'Cloud Storage', desc: 'Secure, scalable video storage' },
   ];
 
   return (
@@ -86,10 +87,10 @@ function AICapabilitiesSection() {
           </p>
         </div>
 
-        {/* 4-Column Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 5-Column Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
           {capabilities.map((cap, idx) => {
-            const Icon = cap.icon;
+            const Icon = cap.icon!;
             return (
               <div 
                 key={cap.title}
@@ -129,7 +130,7 @@ function AIUseCasesSection() {
         <div className="text-center mb-12 max-w-4xl mx-auto">
           <p className="text-sm font-semibold text-red-600 tracking-wider uppercase mb-4">Applications</p>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
-            AI Use Cases
+            AI Features
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-rose-600 mx-auto mb-8" />
           <p className="text-xl text-slate-600 leading-relaxed">
@@ -194,25 +195,6 @@ function PlatformArchitectureSection() {
             );
           })}
         </div>
-
-        {/* Features below */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-            <Cloud className="w-8 h-8 text-red-600 mb-3" />
-            <h3 className="font-bold text-slate-900 mb-2">Cloud Storage</h3>
-            <p className="text-sm text-slate-600">Secure, scalable video storage</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-            <Bell className="w-8 h-8 text-red-600 mb-3" />
-            <h3 className="font-bold text-slate-900 mb-2">Real-time Alerts</h3>
-            <p className="text-sm text-slate-600">Instant notifications</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-            <Building2 className="w-8 h-8 text-red-600 mb-3" />
-            <h3 className="font-bold text-slate-900 mb-2">Multi-location</h3>
-            <p className="text-sm text-slate-600">Single dashboard</p>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -229,57 +211,64 @@ function Cloud({ className }: { className?: string }) {
 
 // ==================== INDUSTRY APPLICATIONS ====================
 function IndustryApplicationsSection() {
-  const industries = [
+  const applications = [
     { 
-      icon: Building2, 
-      title: 'Manufacturing', 
-      items: ['Worker safety monitoring', 'PPE compliance detection'],
-      description: 'Ensure workplace safety with AI-powered monitoring'
+      image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&h=340&fit=crop',
+      title: 'Anomaly Detection', 
+      description: 'AI identifies unusual patterns and behaviors in real-time, flagging potential security threats instantly'
     },
     { 
-      icon: ShoppingBag, 
-      title: 'Retail', 
-      items: ['Footfall analytics', 'Theft detection'],
-      description: 'Optimize store operations and prevent losses'
+      image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&h=340&fit=crop',
+      title: 'Object Detection', 
+      description: 'Recognize vehicles, weapons, bags, and other objects with high accuracy'
     },
     { 
-      icon: Truck, 
-      title: 'Logistics', 
-      items: ['Vehicle tracking', 'Yard monitoring'],
-      description: 'Streamline logistics with intelligent video analytics'
+      image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=340&fit=crop',
+      title: 'Violence Detection', 
+      description: 'Detect suspicious fights or aggressive activity in real time for rapid intervention'
+    },
+    { 
+      image: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=340&fit=crop',
+      title: 'Smoke & Fire Detection', 
+      description: 'Identify smoke and early fire indicators quickly through AI-powered visual monitoring'
     },
   ];
 
   return (
-    <section className="py-16 -mt-2 bg-white">
-      <div className="max-w-[1200px] mx-auto px-6">
+    <section className="py-20 -mt-2 bg-slate-50">
+      <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Industry Applications
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Tailored solutions for various industry verticals
+            AI-powered VSaaS solutions tailored for different industries
           </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid sm:grid-cols-3 gap-6">
-          {industries.map((industry) => {
-            const Icon = industry.icon;
-            return (
-              <div 
-                key={industry.title}
-                className="bg-white rounded-xl p-6 border border-slate-200"
-              >
-                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-slate-700" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">{industry.title}</h3>
-                <p className="text-sm text-slate-600">{industry.description}</p>
+        {/* Cards with Pictures */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {applications.map((app) => (
+            <div 
+              key={app.title}
+              className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
+            >
+              <div className="h-[200px] overflow-hidden relative" style={{ height: '200px' }}>
+                <img 
+                  src={app.image} 
+                  alt={app.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  style={{ height: '200px', objectFit: 'cover' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
-            );
-          })}
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 text-center">{app.title}</h3>
+                <p className="text-sm text-slate-600 text-center leading-relaxed">{app.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

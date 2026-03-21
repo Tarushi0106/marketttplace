@@ -16,6 +16,14 @@ interface AddonOption {
   label: string;
   price: number;
   unit?: string;
+  recurringPricesObj?: {
+    monthly?: number | null;
+    quarterly?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    semiAnnual?: number | null;
+  } | null;
 }
 
 interface Addon {
@@ -27,6 +35,14 @@ interface Addon {
   quantity?: number;
   group?: string; // For grouping addons in dropdown
   options?: AddonOption[]; // For dropdown options (e.g., Cloud Storage - 4 Days, 27 Days, etc.)
+  recurringPricesObj?: {
+    monthly?: number | null;
+    quarterly?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    semiAnnual?: number | null;
+  } | null;
 }
 
 interface BillingPlan {
@@ -105,7 +121,7 @@ export function TallyCloudConfigurator({
   const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
 
   // ============================================
-  // BILLING CYCLE PRICING LOGIC
+  // BILLING CYCLE PRICING LOGIC - SINGLE SOURCE OF TRUTH
   // ============================================
   
   // Multipliers for each billing cycle (how many months)
@@ -114,6 +130,41 @@ export function TallyCloudConfigurator({
     quarterly: 3,
     'semi-annual': 6,
     yearly: 12,
+  };
+
+  // Labels for each billing cycle
+  const billingLabels: Record<string, string> = {
+    monthly: "month",
+    quarterly: "quarter",
+    'semi-annual': "6 months",
+    yearly: "year",
+  };
+
+  // SINGLE FUNCTION: Get final price based on billing cycle
+  // Uses monthly base price and applies multiplier
+  const getFinalPrice = (basePrice: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    return basePrice * multiplier;
+  };
+
+  // Helper function to get price based on billing cycle
+  // First checks if option has recurringPricesObj, otherwise uses base price with multiplier
+  const getDynamicPrice = (basePrice: number, cycle: string, recurringPricesObj?: any): number => {
+    // If option has recurringPricesObj, use the specific price for the billing cycle
+    if (recurringPricesObj) {
+      const priceKeyMap: Record<string, string> = {
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        'semi-annual': 'semiAnnual',
+        yearly: 'yearly'
+      };
+      const priceKey = priceKeyMap[cycle];
+      if (priceKey && recurringPricesObj[priceKey] !== undefined && recurringPricesObj[priceKey] !== null) {
+        return recurringPricesObj[priceKey];
+      }
+    }
+    // Fallback: use base price with multiplier
+    return getFinalPrice(basePrice, cycle);
   };
 
   // Discounts for each billing cycle
@@ -257,6 +308,12 @@ export function TallyCloudConfigurator({
   
   // Separate billing cycle state for simpler control
   const [billingCycle, setBillingCycle] = useState<string>("monthly");
+  
+  // Debug: Log billing cycle changes
+  const handleBillingCycleChange = (newCycle: string) => {
+    console.log('Billing cycle changed:', { from: billingCycle, to: newCycle });
+    setBillingCycle(newCycle);
+  };
 
   // Sync billingCycle with selectedPlan when plan changes
   useEffect(() => {
@@ -282,22 +339,42 @@ export function TallyCloudConfigurator({
     addons.forEach(addon => {
       // Use explicit group field if available, otherwise parse from name
       // Match patterns like "Cloud Storage - 4 Days", "Cloud Storage - 27 Days" -> "Cloud Storage"
-      const groupName = addon.group || addon.name.replace(/\s*-\s+.+$/, '').trim();
+      let groupName = addon.group || addon.name.replace(/\s*-\s+.+$/, '').trim();
+      
+      // Special handling for Cloud Storage
+      if (addon.name && addon.name.includes('Cloud - Storage')) {
+        groupName = 'Cloud - Storage';
+      }
+      
+      console.log('Grouping addon:', addon.name, '-> group:', groupName);
       if (!groups[groupName]) {
         groups[groupName] = [];
       }
       groups[groupName].push(addon);
     });
-    // Only return groups with multiple options as dropdowns
-    return Object.entries(groups).filter(([_, items]) => items.length > 1);
+    // Return groups with multiple options, but also include Cloud Storage groups regardless of item count
+    return Object.entries(groups).filter(([name, items]) => {
+      console.log('Group:', name, 'has', items.length, 'items');
+      const isCloudStorageGroup = name === 'Cloud Storage' || 
+        name === 'Cloud - Storage' || 
+        name === 'Cloud' ||
+        name.toLowerCase().includes('cloud storage');
+      return items.length > 1 || isCloudStorageGroup;
+    });
   }, [addons]);
 
   // Get standalone addons (not part of a group with multiple options)
+  // But exclude Cloud Storage since it's handled specially
   const standaloneAddons = useMemo(() => {
     const groupNames = new Set(groupedAddons.map(([name]) => name));
     return addons.filter(addon => {
       const groupName = (addon as any).group || addon.name.replace(/\s*-\s*\d+.*$/, '').trim();
-      return !groupNames.has(groupName);
+      const isCloudStorage = groupName === 'Cloud Storage' || 
+        groupName === 'Cloud - Storage' || 
+        groupName === 'Cloud' ||
+        groupName.toLowerCase().includes('cloud storage');
+      // Exclude Cloud Storage from standalone addons (it's handled in groupedAddons)
+      return !groupNames.has(groupName) && !isCloudStorage;
     });
   }, [addons, groupedAddons]);
 
@@ -399,6 +476,30 @@ export function TallyCloudConfigurator({
       });
   }, [addons, addonQuantities, selectedAddonOption]);
 
+  // Helper function to get addon price based on billing cycle
+  // Uses getFinalPrice which multiplies base price by billing cycle multiplier
+  const getAddonPriceForCycle = (addon: any, cycle: string): number => {
+    // First check if addon has recurringPricesObj
+    if (addon.recurringPricesObj) {
+      const priceMap: Record<string, number | null | undefined> = {
+        monthly: addon.recurringPricesObj.monthly,
+        quarterly: addon.recurringPricesObj.quarterly,
+        'semi-annual': addon.recurringPricesObj.semiAnnual,
+        yearly: addon.recurringPricesObj.yearly,
+      };
+      const price = priceMap[cycle];
+      if (price !== null && price !== undefined) {
+        return price;
+      }
+      // Fallback to monthly
+      if (priceMap.monthly !== null && priceMap.monthly !== undefined) {
+        return priceMap.monthly;
+      }
+    }
+    // Fallback: use getFinalPrice with base price (monthly price)
+    return getFinalPrice(addon.price || 0, cycle);
+  };
+
   const addonsTotal = useMemo(() => {
     return addons.reduce((sum, addon) => {
       const qty = addonQuantities[addon.id] || 0;
@@ -409,52 +510,40 @@ export function TallyCloudConfigurator({
         const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
         const option = addon.options[selectedOptionIndex];
         const basePrice = option ? option.price : addon.price;
-        return sum + calculateAddonPrice(basePrice, qty, billingCycle);
+        // Use getFinalPrice for dynamic billing cycle pricing
+        return sum + (getFinalPrice(basePrice, billingCycle) * qty);
       }
       
-      return sum + calculateAddonPrice(addon.price, qty, billingCycle);
+      // Use getFinalPrice for dynamic billing cycle pricing
+      const addonPrice = getAddonPriceForCycle(addon, billingCycle);
+      return sum + (addonPrice * qty);
     }, 0);
   }, [addons, addonQuantities, selectedAddonOption, billingCycle]);
 
   // Helper function to get price based on billing cycle
+  // First checks if variant has specific prices in recurringPricesObj, otherwise uses base price with multiplier
   const getPriceForBillingCycle = (variant: any, cycle: string): number => {
-    console.log("Recurring: variant.recurringPricesObj =", variant?.recurringPricesObj, "cycle =", cycle);
+    console.log("getPriceForBillingCycle: variant.price =", variant?.price, "cycle =", cycle, "recurringPricesObj =", variant?.recurringPricesObj);
     
-    // Check billing type first - if one-time, return the one-time price
-    const billingType = variant?.billingType || 'RECURRING';
-    if (billingType === 'ONE_TIME' || billingType === 'one_time') {
-      console.log("Billing type is ONE_TIME, returning one-time price:", variant?.price);
-      return variant?.price || 0;
-    }
-    
-    // First try: Use recurringPricesObj (the transformed object format from API)
+    // First check if recurringPricesObj has a specific price for this billing cycle
     if (variant?.recurringPricesObj) {
-      const obj = variant.recurringPricesObj;
-      const priceMap: Record<string, number | null | undefined> = {
-        monthly: obj.monthly,
-        quarterly: obj.quarterly,
-        "semi-annual": obj.semiAnnual,
-        yearly: obj.yearly,
+      // Map cycle names to recurringPricesObj keys
+      const priceKeyMap: Record<string, string> = {
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        'semi-annual': 'semiAnnual',
+        yearly: 'yearly'
       };
-      console.log("Using recurringPricesObj: priceMap =", priceMap, "selected cycle price =", priceMap[cycle]);
-      return priceMap[cycle] ?? priceMap.monthly ?? variant.price ?? 0;
+      const priceKey = priceKeyMap[cycle];
+      if (priceKey && variant.recurringPricesObj[priceKey] !== undefined && variant.recurringPricesObj[priceKey] !== null) {
+        console.log("Using recurringPricesObj price:", variant.recurringPricesObj[priceKey]);
+        return variant.recurringPricesObj[priceKey];
+      }
     }
     
-    // Fallback: Use array format
-    if (!variant || !variant.recurringPrices || variant.recurringPrices.length === 0) {
-      return variant?.price || 0;
-    }
-    const rp = variant.recurringPrices[0];
-    const priceMap: Record<string, number | null> = {
-      monthly: rp.monthlyPrice,
-      quarterly: rp.quarterlyPrice,
-      "semi-annual": rp.semiAnnualPrice,
-      yearly: rp.yearlyPrice,
-    };
-    console.log("Using array format: priceMap =", priceMap, "selected cycle price =", priceMap[cycle]);
-    
-    // Fallback to monthly if the selected cycle is not available
-    return priceMap[cycle] ?? priceMap.monthly ?? variant.price ?? 0;
+    // Fallback: Use getFinalPrice with base price (monthly price) - applies multiplier for billing cycle
+    const basePrice = variant?.price || 0;
+    return getFinalPrice(basePrice, cycle);
   };
 
   // Get billing cycle label
@@ -468,10 +557,8 @@ export function TallyCloudConfigurator({
     return labelMap[cycle] || cycle;
   };
 
-  // Get the base price - use variant.price as the single source of truth, with recurring prices for billing cycles
+  // Get the base price - use variant.price as the single source of truth
   const variantPrice = useMemo(() => {
-    console.log("variantPrice recalculating:", { selectedVariant, billingCycle, variants });
-    
     if (!selectedVariant || variants.length === 0) {
       return selectedPlan?.price || 0;
     }
@@ -481,43 +568,8 @@ export function TallyCloudConfigurator({
       return selectedPlan?.price || 0;
     }
     
-    // Use variant.price as the base unit price (monthly)
-    const unitPrice = variant.price || 0;
-    console.log("Base unit price (variant.price):", unitPrice);
-    
-    // If there are recurring prices in the database, use them
-    if (variant.recurringPrices && variant.recurringPrices.length > 0) {
-      const rp = variant.recurringPrices[0];
-      
-      // Return price based on billing cycle
-      switch (billingCycle) {
-        case "monthly":
-          // Use variant.price as monthly, fallback to rp.monthlyPrice
-          return unitPrice || (rp.monthlyPrice ? Number(rp.monthlyPrice) : 0);
-        case "quarterly":
-          return rp.quarterlyPrice ? Number(rp.quarterlyPrice) : (unitPrice * 3);
-        case "semi-annual":
-          return rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : (unitPrice * 6);
-        case "yearly":
-          return rp.yearlyPrice ? Number(rp.yearlyPrice) : (unitPrice * 12);
-        default:
-          return unitPrice;
-      }
-    }
-    
-    // If no recurring prices, calculate from variant.price
-    switch (billingCycle) {
-      case "monthly":
-        return unitPrice;
-      case "quarterly":
-        return unitPrice * 3;
-      case "semi-annual":
-        return unitPrice * 6;
-      case "yearly":
-        return unitPrice * 12;
-      default:
-        return unitPrice;
-    }
+    // Use getPriceForBillingCycle to get the correct recurring price based on billing cycle
+    return getPriceForBillingCycle(variant, billingCycle);
   }, [selectedVariant, variants, selectedPlan, billingCycle]);
   
   // Product quantity state
@@ -554,41 +606,10 @@ export function TallyCloudConfigurator({
 
   // Calculate Cloud Gateway price based on billing cycle
   const gatewayPrice = useMemo(() => {
+    console.log('gatewayPrice recalculating:', { billingCycle, variant: cloudGatewayVariant?.price, recurringPricesObj: cloudGatewayVariant?.recurringPricesObj });
     if (!cloudGatewayVariant) return 0;
-    
-    const unitPrice = Number(cloudGatewayVariant.price) || 0;
-    
-    // Use recurring prices if available
-    if (cloudGatewayVariant.recurringPrices && cloudGatewayVariant.recurringPrices.length > 0) {
-      const rp = cloudGatewayVariant.recurringPrices[0];
-      
-      switch (billingCycle) {
-        case "monthly":
-          return unitPrice || (rp.monthlyPrice ? Number(rp.monthlyPrice) : 0);
-        case "quarterly":
-          return rp.quarterlyPrice ? Number(rp.quarterlyPrice) : (unitPrice * 3);
-        case "semi-annual":
-          return rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : (unitPrice * 6);
-        case "yearly":
-          return rp.yearlyPrice ? Number(rp.yearlyPrice) : (unitPrice * 12);
-        default:
-          return unitPrice;
-      }
-    }
-    
-    // If no recurring prices, calculate from variant.price
-    switch (billingCycle) {
-      case "monthly":
-        return unitPrice;
-      case "quarterly":
-        return unitPrice * 3;
-      case "semi-annual":
-        return unitPrice * 6;
-      case "yearly":
-        return unitPrice * 12;
-      default:
-        return unitPrice;
-    }
+    // Use getPriceForBillingCycle to properly get the recurring price for the selected cycle
+    return getPriceForBillingCycle(cloudGatewayVariant, billingCycle);
   }, [cloudGatewayVariant, billingCycle]);
   
   const gatewayQty = getGatewayQuantity(quantity);
@@ -641,7 +662,8 @@ export function TallyCloudConfigurator({
     // Always automatically add Cloud Gateway if available in variants (for VSAAS products)
     if (cloudGatewayVariant) {
       const gatewayQty = getGatewayQuantity(quantity);
-      const gatewayPrice = Number(cloudGatewayVariant.price) || 0;
+      // Use getPriceForBillingCycle to properly get the recurring price for the selected cycle
+      const gatewayPrice = getPriceForBillingCycle(cloudGatewayVariant, billingCycle);
       
       const gatewayCartItem = {
         id: `${productId || productSlug || 'product'}-${cloudGatewayVariant.id}-${Date.now()}`,
@@ -677,6 +699,29 @@ export function TallyCloudConfigurator({
       <div className="grid lg:grid-cols-5 gap-8">
         {/* Left Column: Add-ons (3 columns) */}
         <div className="lg:col-span-3">
+          {/* Cloud Gateway - Primary Dependency - Shown at top as header */}
+          {cloudGatewayVariant && (
+            <div className="mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md border-2 border-red-500 bg-red-500 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="text-red-800 font-medium text-sm">Cloud Gateway</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-bold text-red-700 text-sm">Qty: {quantity >= 8 ? 2 : 1}</span>
+                </div>
+              </div>
+              <div className="text-red-600 text-xs mt-1 ml-6">
+                {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : 'Connects up to 8 cameras in local network'}
+              </div>
+              <div className="text-red-800 font-semibold text-sm mt-1 ml-6">
+                {formatPrice(gatewayTotal)}{getBillingSuffix(billingCycle)}
+              </div>
+            </div>
+          )}
+          
           <h3 className="text-lg font-semibold text-gray-900 mb-5">Available Add-ons</h3>
           
           {addons.length === 0 ? (
@@ -690,6 +735,55 @@ export function TallyCloudConfigurator({
                 const selectedId = selectedDropdownAddon[baseName] || items[0]?.id;
                 const selectedAddon = items.find(i => i.id === selectedId);
                 const qty = addonQuantities[selectedId] || 0;
+                
+                // Special handling for Cloud Storage - horizontal cards with checkboxes (NOT dropdown)
+                // Handle various possible group names for Cloud Storage
+                const isCloudStorageGroup = baseName === 'Cloud Storage' || 
+                  baseName === 'Cloud - Storage' || 
+                  baseName === 'Cloud' ||
+                  baseName.toLowerCase().includes('cloud storage');
+                
+                if (isCloudStorageGroup) {
+                  const currentStorageSelection = multiSelectedAddons[baseName]?.[0];
+                  
+                  return (
+                    <div key={baseName} className="p-4 rounded-xl border border-gray-200 bg-white">
+                      <div className="font-medium text-gray-900 mb-4">Cloud Storage</div>
+                      {/* Horizontal cards layout - NOT dropdown */}
+                      <div className="flex flex-wrap gap-2">
+                        {items.map((item) => {
+                          const isSelected = currentStorageSelection?.id === item.id;
+                          const storageLabel = item.name?.replace(/^Cloud Storage - /, '').replace(/^Cloud - Storage - /, '').replace(/^Cloud Storage /, '') || '';
+                          
+                          return (
+                            <div
+                              key={item.id}
+                              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                                isSelected 
+                                  ? "border-[#C62828] bg-red-50" 
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => {
+                                handleMultiAddonChange(baseName, [{ id: item.id, name: item.name, price: item.price, qty: 1 }]);
+                              }}
+                            >
+                              {/* Checkbox */}
+                              <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center mb-1 transition-all ${
+                                isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
+                              }`}>
+                                {isSelected && <Check className="w-2 h-2 text-white" />}
+                              </div>
+                              <div className="text-gray-900 font-medium text-xs text-center">{storageLabel}</div>
+                              <div className="font-bold text-gray-900 text-xs">
+                                {formatPrice(getDynamicPrice(item.price, billingCycle, item.recurringPricesObj))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
                 
                 return (
                   <div
@@ -768,7 +862,7 @@ export function TallyCloudConfigurator({
                       </div>
                       <div className="w-24 text-right">
                         <div className="font-semibold text-gray-900">
-                          {qty > 0 && selectedAddon ? formatPrice(selectedAddon.price * qty) : `+${formatPrice(selectedAddon?.price || 0)}`}
+                          {qty > 0 && selectedAddon ? formatPrice(getFinalPrice(selectedAddon.price, billingCycle)) : formatPrice(getFinalPrice(selectedAddon?.price || 0, billingCycle))}
                         </div>
                         {selectedAddon?.unit && qty === 0 && (
                           <div className="text-xs text-gray-400">{selectedAddon.unit}</div>
@@ -785,6 +879,63 @@ export function TallyCloudConfigurator({
                 const hasOptions = addon.options && addon.options.length > 0;
                 const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
                 const selectedOption = hasOptions ? addon.options![selectedOptionIndex] : null;
+                
+                // Check if this is Cloud Storage (handle various naming conventions)
+                const isCloudStorage = addon.name === 'Cloud Storage' || 
+                  addon.name === 'Cloud - Storage' ||
+                  addon.name === 'Cloud' ||
+                  addon.name.toLowerCase().includes('cloud storage');
+                
+                console.log('Checking standalone addon:', addon.name, 'isCloudStorage:', isCloudStorage, 'hasOptions:', hasOptions, 'options:', addon.options?.length);
+                
+                // Special handling for Cloud Storage - horizontal cards with checkboxes (NOT dropdown)
+                // Check by addon name or if the name contains storage-related keywords
+                const isStorageAddon = addon.name?.toLowerCase().includes('storage') || 
+                  addon.name?.toLowerCase().includes('cloud');
+                
+                // For storage addons with options, render as horizontal cards
+                if (isStorageAddon && hasOptions) {
+                  const currentSelection = multiSelectedAddons[addon.name]?.[0];
+                  
+                  return (
+                    <div key={addon.id} className="p-4 rounded-xl border border-gray-200 bg-white">
+                      <div className="font-medium text-gray-900 mb-4">Cloud Storage</div>
+                      {/* Horizontal cards layout - NOT dropdown */}
+                      <div className="flex flex-wrap gap-2">
+                        {addon.options!.map((option: any, idx: number) => {
+                          const isSelected = currentSelection?.id === option.id || selectedOptionIndex === idx;
+                          const optionLabel = option.label?.replace(/^Cloud Storage - /, '').replace(/^Cloud - Storage - /, '').replace(/^Cloud Storage /, '') || '';
+                          
+                          return (
+                            <div
+                              key={idx}
+                              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
+                                isSelected 
+                                  ? "border-[#C62828] bg-red-50" 
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                              onClick={() => {
+                                setSelectedAddonOption(prev => ({ ...prev, [addon.id]: idx }));
+                                handleMultiAddonChange(addon.name, [{ id: option.id || String(idx), name: option.label, price: option.price, qty: 1 }]);
+                              }}
+                            >
+                              {/* Checkbox */}
+                              <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center mb-1 transition-all ${
+                                isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
+                              }`}>
+                                {isSelected && <Check className="w-2 h-2 text-white" />}
+                              </div>
+                              <div className="text-gray-900 font-medium text-xs text-center">{optionLabel}</div>
+                              <div className="font-bold text-gray-900 text-xs">
+                                {formatPrice(getDynamicPrice(option.price, billingCycle, option.recurringPricesObj))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
                 
                 // Use option price if available, otherwise use base price
                 const displayPrice = selectedOption ? selectedOption.price : addon.price;
@@ -877,8 +1028,8 @@ export function TallyCloudConfigurator({
                       <div className="w-28 text-right">
                         <div className="font-semibold text-gray-900">
                           {qty > 0 
-                            ? <>{formatPrice(getDisplayAddonPrice(displayPrice, qty, billingCycle))}<span className="text-xs font-normal text-gray-500">{getBillingSuffix(billingCycle)}</span></>
-                            : `+${formatPrice(getDisplayAddonPrice(displayPrice, 1, billingCycle))}`
+                            ? <>{formatPrice(getFinalPrice(displayPrice * qty, billingCycle))}<span className="text-xs font-normal text-gray-500">{getBillingSuffix(billingCycle)}</span></>
+                            : formatPrice(getFinalPrice(displayPrice, billingCycle))
                           }
                         </div>
                         {displayUnit && qty === 0 && (
@@ -904,7 +1055,7 @@ export function TallyCloudConfigurator({
                 <button
                   key={plan.id}
                   onClick={() => {
-                    setBillingCycle(plan.id);
+                    handleBillingCycleChange(plan.id);
                     setSelectedPlan(plan);
                   }}
                   className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
@@ -947,27 +1098,29 @@ export function TallyCloudConfigurator({
           {/* Variants - Show if variants are provided AND not locked (i.e., on pricing page, not configure page) */}
           {variants && variants.length > 0 && !isVariantLocked && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-5">Add Cloud Solution</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-5">Add VSaaS on Cloud</h3>
               <div className="space-y-3">
                 {variants.map((variant) => {
-                  // Use test recurring prices if real ones aren't available
-                  const testRecurringPrices = variant.recurringPrices && variant.recurringPrices.length > 0 
-                    ? variant.recurringPrices 
-                    : [{
-                        id: "test-rp-1",
-                        variantId: variant.id,
-                        monthlyPrice: 3680,
-                        quarterlyPrice: 11040,
-                        yearlyPrice: 44160,
-                        semiAnnualPrice: 21600,
-                        biMonthlyPrice: null,
-                        fourMonthlyPrice: null,
-                        triAnnualPrice: null,
-                        biennialPrice: null,
-                        triennialPrice: null
-                      }];
-                  const isRecurring = testRecurringPrices && testRecurringPrices.length > 0;
-                  const displayPrice = isRecurring ? getPriceForBillingCycle({...variant, recurringPrices: testRecurringPrices}, billingCycle) : variant.price;
+                  // Use variant's own recurring prices - check both recurringPricesObj and recurringPrices
+                  const hasRecurringPricesObj = variant.recurringPricesObj && (
+                    variant.recurringPricesObj.monthly !== null ||
+                    variant.recurringPricesObj.quarterly !== null ||
+                    variant.recurringPricesObj.semiAnnual !== null ||
+                    variant.recurringPricesObj.yearly !== null
+                  );
+                  const hasRecurringPricesArray = variant.recurringPrices && variant.recurringPrices.length > 0;
+                  const isRecurring = hasRecurringPricesObj || hasRecurringPricesArray;
+                  
+                  // Build variant object with correct recurring prices
+                  const variantWithPrices = {
+                    ...variant,
+                    // Use recurringPricesObj if available, otherwise use recurringPrices array
+                    ...(hasRecurringPricesObj && { recurringPricesObj: variant.recurringPricesObj }),
+                    // Also include recurringPrices array as fallback
+                    ...(hasRecurringPricesArray && { recurringPrices: variant.recurringPrices }),
+                  };
+                  
+                  const displayPrice = isRecurring ? getPriceForBillingCycle(variantWithPrices, billingCycle) : variant.price;
                   const priceSuffix = isRecurring ? getBillingSuffix(billingCycle) : "";
                   
                   return (
@@ -1023,7 +1176,7 @@ export function TallyCloudConfigurator({
                       <span className="text-gray-600">
                         {variants.find(v => v.id === selectedVariant)?.name || 'Selected Plan'}
                       </span>
-                      <span className="font-medium text-gray-900">{formatPrice(variantPrice)}</span>
+                      <span className="font-medium text-gray-900">{formatPrice(variantPrice)}{getBillingSuffix(billingCycle)}</span>
                     </div>
                     {/* Quantity controls for main product */}
                     <div className="flex justify-between items-center">
@@ -1050,30 +1203,13 @@ export function TallyCloudConfigurator({
                       </div>
                     </div>
 
-                    {/* Cloud Gateway Auto-add Display */}
-                    {cloudGatewayVariant && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-700 font-medium">
-                            Cloud Gateway
-                          </span>
-                          <span className="font-bold text-blue-700">
-                            Qty: {quantity >= 8 ? 2 : 1}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : 'Connects 8 channels in local network'}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Unit price × quantity */}
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-500">
                         {formatPrice(variantPrice)} × {quantity}
                       </span>
                       <span className="font-medium text-gray-900">
-                        {formatPrice(variantPrice * quantity)}
+                        {formatPrice(variantPrice * quantity)}{getBillingSuffix(billingCycle)}
                       </span>
                     </div>
 
@@ -1081,10 +1217,10 @@ export function TallyCloudConfigurator({
                     {cloudGatewayVariant && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-500">
-                          Cloud Gateway × {gatewayQty}
+                          Cloud Gateway (x{gatewayQty})
                         </span>
                         <span className="font-medium text-gray-900">
-                          {formatPrice(gatewayTotal)}
+                          {formatPrice(gatewayTotal)}{getBillingSuffix(billingCycle)}
                         </span>
                       </div>
                     )}

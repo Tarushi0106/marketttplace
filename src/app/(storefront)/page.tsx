@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, ChevronRight, ChevronLeft, Cloud, Shield, Wifi, Database, Settings, Share2, Server, Monitor, Lock, Brain } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, ChevronLeft, Cloud, Shield, Wifi, Database, Settings, Share2, Server, Monitor, Lock, Brain, Sparkles, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
 import { TrendingProducts } from "@/components/storefront/TrendingProducts";
@@ -176,6 +176,70 @@ export default async function HomePage() {
 
       {/* Browse Top Solutions Section - From Database */}
       <SolutionsCarousel categories={categories} iconMap={iconMap} />
+
+      {/* Hero Product Section */}
+      <section className="py-16 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="text-white max-w-2xl">
+              <div className="inline-flex items-center px-4 py-1.5 bg-red-600 rounded-full text-sm font-medium mb-6">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI-Powered Video Surveillance
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                Transform Your Security with <span className="text-red-500">VSaaS</span>
+              </h2>
+              <p className="text-slate-300 text-lg mb-8 leading-relaxed">
+                Experience next-generation AI video surveillance that sees, thinks, and acts. 
+                From real-time threat detection to crowd analytics — secure your premises with 
+                intelligent monitoring that works 24/7.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a 
+                  href="/heropage" 
+                  className="inline-flex items-center px-8 py-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all hover:shadow-lg hover:shadow-red-600/25"
+                >
+                  Explore VSaaS
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </a>
+                <a 
+                  href="/products/vsaas" 
+                  className="inline-flex items-center px-8 py-4 border-2 border-slate-600 text-white font-semibold rounded-lg hover:bg-slate-800 transition-all"
+                >
+                  View Solutions
+                </a>
+              </div>
+              <div className="flex items-center gap-8 mt-10 text-slate-400 text-sm">
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>99.9% Uptime</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>AI-Powered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>24/7 Support</span>
+                </div>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <div className="relative">
+                <div className="w-80 h-80 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30">
+                  <Shield className="w-40 h-40 text-white" />
+                </div>
+                <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700">
+                  <Brain className="w-12 h-12 text-red-500" />
+                </div>
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700">
+                  <Video className="w-12 h-12 text-red-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Featured Products Section - From Backend */}
       <FeaturedProducts />

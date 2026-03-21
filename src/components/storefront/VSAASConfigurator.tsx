@@ -53,7 +53,29 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
       pricingType: addon.pricingType as "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined,
       source: 'product',
       group: addon.group || undefined,
-      options: addon.options as any || undefined,
+      // Transform options with recurring prices
+      options: addon.options ? addon.options.map((opt: any) => ({
+        label: opt.label,
+        price: Number(opt.price) || 0,
+        unit: opt.unit || undefined,
+        recurringPricesObj: opt.recurringPricesObj ? {
+          monthly: opt.recurringPricesObj.monthly,
+          quarterly: opt.recurringPricesObj.quarterly,
+          yearly: opt.recurringPricesObj.yearly,
+          semiAnnual: opt.recurringPricesObj.semiAnnual,
+          biennial: opt.recurringPricesObj.biennial,
+          triennial: opt.recurringPricesObj.triennial,
+        } : null,
+      })) : undefined,
+      // Include recurringPricesObj for addon pricing based on billing cycle
+      recurringPricesObj: addon.recurringPricesObj ? {
+        monthly: addon.recurringPricesObj.monthly,
+        quarterly: addon.recurringPricesObj.quarterly,
+        yearly: addon.recurringPricesObj.yearly,
+        semiAnnual: addon.recurringPricesObj.semiAnnual,
+        biennial: addon.recurringPricesObj.biennial,
+        triennial: addon.recurringPricesObj.triennial,
+      } : null,
     }));
   };
 
@@ -87,6 +109,16 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
         biennialPrice: rp.biennialPrice ? Number(rp.biennialPrice) : null,
         triennialPrice: rp.triennialPrice ? Number(rp.triennialPrice) : null,
       })) : [],
+      // Include recurringPricesObj for easier price lookup by billing cycle
+      // Build from the first recurring price entry if available
+      recurringPricesObj: variant.recurringPrices && variant.recurringPrices.length > 0 ? {
+        monthly: variant.recurringPrices[0].monthlyPrice,
+        quarterly: variant.recurringPrices[0].quarterlyPrice,
+        yearly: variant.recurringPrices[0].yearlyPrice,
+        semiAnnual: variant.recurringPrices[0].semiAnnualPrice,
+        biennial: variant.recurringPrices[0].biennialPrice,
+        triennial: variant.recurringPrices[0].triennialPrice,
+      } : null,
     }));
   };
 
@@ -118,7 +150,7 @@ export function VSAASConfigurator({ cloudProduct, onPremiseProduct, initialDeplo
                 <Cloud size={32} />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Cloud Solution</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">VSaaS on Cloud</h3>
                 <p className="text-sm text-gray-500">Cloud-based video surveillance system</p>
               </div>
             </div>

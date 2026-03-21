@@ -119,6 +119,52 @@ async function getProduct(slug: string) {
         return rp;
       });
     }
+
+    // Ensure variant recurringPrices are properly associated
+    if (product.variants) {
+      product.variants = product.variants.map((variant) => {
+        // Find recurring prices specifically for this variant from the original array
+        const variantSpecificPrices = allRecurringPrices.filter((rp) => rp.variantId === variant.id);
+        
+        if (variantSpecificPrices.length > 0) {
+          // Use variant-specific recurring prices
+          variant.recurringPrices = variantSpecificPrices;
+          // Add transformed object for storefront frontend
+          // @ts-ignore - Adding dynamic properties
+          variant.recurringPricesObj = {
+            monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
+            quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
+            yearly: variantSpecificPrices[0]?.yearlyPrice ? Number(variantSpecificPrices[0].yearlyPrice) : null,
+            biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
+            triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
+            semiAnnual: variantSpecificPrices[0]?.semiAnnualPrice ? Number(variantSpecificPrices[0].semiAnnualPrice) : null,
+          };
+          // @ts-ignore - Adding dynamic properties
+          variant.billingType = 'recurring';
+        } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+          // Variant already has recurring prices (included in query)
+          // @ts-ignore - Adding dynamic properties
+          variant.recurringPricesObj = {
+            monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
+            quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
+            yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
+            biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
+            triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
+            semiAnnual: variant.recurringPrices[0]?.semiAnnualPrice ? Number(variant.recurringPrices[0].semiAnnualPrice) : null,
+          };
+          // @ts-ignore - Adding dynamic properties
+          variant.billingType = 'recurring';
+        } else {
+          // No variant-specific prices - clear to avoid stale data
+          variant.recurringPrices = [];
+          // @ts-ignore - Adding dynamic properties
+          variant.recurringPricesObj = null;
+          // @ts-ignore - Adding dynamic properties
+          variant.billingType = 'one_time';
+        }
+        return variant;
+      });
+    }
   }
 
   return product;
@@ -190,6 +236,15 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
       biennialPrice: rp.biennialPrice ? Number(rp.biennialPrice) : null,
       triennialPrice: rp.triennialPrice ? Number(rp.triennialPrice) : null,
     })) : [],
+    // Include recurringPricesObj for easier price lookup by billing cycle
+    recurringPricesObj: variant.recurringPricesObj ? {
+      monthly: variant.recurringPricesObj.monthly,
+      quarterly: variant.recurringPricesObj.quarterly,
+      yearly: variant.recurringPricesObj.yearly,
+      semiAnnual: variant.recurringPricesObj.semiAnnual,
+      biennial: variant.recurringPricesObj.biennial,
+      triennial: variant.recurringPricesObj.triennial,
+    } : null,
   }));
 
   return (
