@@ -222,7 +222,7 @@ export default function ComparisonPage() {
             Ready to Switch?
           </h2>
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Try NetNxt risk-free with our 30-day money-back guarantee.
+            Try NetNxt risk-free with our enterprise-grade support.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>

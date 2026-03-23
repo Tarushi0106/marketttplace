@@ -186,11 +186,11 @@ export function Header() {
 
   const DefaultLogo = () => (
     <Image
-      src="/uploads/branding/iconf.png"
-      alt="iconf"
+      src="/uploads/branding/1769779880137-5cft1s.svg"
+      alt="Shaurrya Teleservices"
       width={200}
       height={64}
-      className="h-16 w-auto object-contain"
+      className="h-14 w-auto object-contain"
     />
   );
 
@@ -202,17 +202,11 @@ export function Header() {
           <div className="flex h-[70px] items-center justify-between gap-8">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 hover:opacity-90 transition-opacity">
-              {settings.headerLogo || settings.logoDark || settings.siteLogo ? (
-                <Image
-                  src={settings.headerLogo || settings.logoDark || settings.siteLogo || ""}
-                  alt={settings.name}
-                  width={200}
-                  height={64}
-                  className="h-16 w-auto object-contain"
-                />
-              ) : (
-                <DefaultLogo />
-              )}
+              <img 
+                src="/uploads/branding/1769779880137-5cft1s.svg"
+                alt="Shaurrya Teleservices"
+                className="h-14 w-auto object-contain"
+              />
             </Link>
 
             {/* Search Bar */}

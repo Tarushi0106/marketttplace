@@ -1582,10 +1582,6 @@ export function ProductConfigurator({
                                         <Check className="h-4 w-4 text-green-500" />
                                         Instant Setup
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <Check className="h-4 w-4 text-green-500" />
-                                        30-Day Refund
-                                      </div>
                                     </div>
                                   </CardContent>
                                 </Card>

@@ -355,12 +355,12 @@ function PlatformArchitectureSection() {
 function IndustryApplicationsSection() {
   const applications = [
     { 
-      image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&h=400&fit=crop',
+      image: '/uploads/branding/anamoly detection .jpg',
       title: 'Anomaly Detection', 
       description: 'AI identifies unusual patterns and behaviors in real-time, flagging potential security threats instantly'
     },
     { 
-      image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&h=400&fit=crop',
+      image: '/uploads/branding/AI-Powered Computer Vision in Action.jpg',
       title: 'Object Detection', 
       description: 'Recognize vehicles, weapons, bags, and other objects with high accuracy'
     },
@@ -370,7 +370,7 @@ function IndustryApplicationsSection() {
       description: 'Detect suspicious fights or aggressive activity in real time for rapid intervention'
     },
     { 
-      image: 'https://images.unsplash.com/photo-1516912481808-3406841bd33c?w=600&h=400&fit=crop',
+      image: '/uploads/branding/AI Fire & Smoke Detection System _ Marwiz Vision.jpg',
       title: 'Smoke & Fire Detection', 
       description: 'Identify smoke and early fire indicators quickly through AI-powered visual monitoring'
     },

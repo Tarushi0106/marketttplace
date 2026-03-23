@@ -135,7 +135,7 @@ export function Footer() {
     <img
       src="/uploads/shaurrya_logo_dark.svg"
       alt="Shaurrya Teleservices Logo"
-      className="h-16 w-auto object-contain"
+      className="h-14 w-auto object-contain"
     />
   );
 
@@ -182,13 +182,13 @@ export function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
             {/* Brand */}
             <div className="col-span-2 md:col-span-4 lg:col-span-2">
-              <Link href="/">
-                <img 
-                  src="/uploads/shaurrya_logo_dark.svg"
-                  alt="Shaurrya Teleservices Logo"
-                  className="h-16 w-auto object-contain"
-                />
-              </Link>
+            <Link href="/">
+              <img 
+                src="/uploads/shaurrya_logo_dark.svg"
+                alt="Shaurray Teleservices Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
               <p className="mt-6 text-white/50 text-sm leading-relaxed max-w-xs">
                 {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
               </p>

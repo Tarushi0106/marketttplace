@@ -460,15 +460,6 @@ export default async function ProductDetailPage({ params }: Props) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <Award className="h-6 w-6 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">30-Day Refund</p>
-                      <p className="text-sm text-gray-500">Money back guarantee</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                       <Headphones className="h-6 w-6 text-purple-600" />
                     </div>
@@ -985,7 +976,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         <AccordionItem value="refund" className="border rounded-2xl px-5">
                           <AccordionTrigger className="hover:no-underline">Refund Policy</AccordionTrigger>
                           <AccordionContent className="text-gray-500">
-                            We offer a 30-day money-back guarantee on all products. If you&apos;re not satisfied, contact our support team for a full refund.
+                            Our refund policy ensures customer satisfaction. Contact our support team for assistance.
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="privacy" className="border rounded-2xl px-5">
