@@ -132,11 +132,9 @@ export function Footer() {
   }, []);
 
   const DefaultLogo = () => (
-    <Image
-      src="/uploads/branding/iconf.png"
-      alt="iconf"
-      width={200}
-      height={64}
+    <img
+      src="/uploads/shaurrya_logo_dark.svg"
+      alt="Shaurrya Teleservices Logo"
       className="h-16 w-auto object-contain"
     />
   );
@@ -185,17 +183,11 @@ export function Footer() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-4 lg:col-span-2">
               <Link href="/">
-                {settings.footerLogo || settings.logoLight || settings.siteLogo ? (
-                  <Image
-                    src={settings.footerLogo || settings.logoLight || settings.siteLogo || ""}
-                    alt={settings.name}
-                    width={200}
-                    height={64}
-                    className="h-16 w-auto object-contain"
-                  />
-                ) : (
-                  <DefaultLogo />
-                )}
+                <img 
+                  src="/uploads/shaurrya_logo_dark.svg"
+                  alt="Shaurrya Teleservices Logo"
+                  className="h-16 w-auto object-contain"
+                />
               </Link>
               <p className="mt-6 text-white/50 text-sm leading-relaxed max-w-xs">
                 {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}

@@ -3,9 +3,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // First, fix Cloud Gateway
-  console.log('🔍 Looking for Cloud Gateway variant...');
+  console.log('🔧 Fixing Cloud Gateway billingType from one_time to recurring...');
 
+  // First, fix Cloud Gateway - update billingType from 'one_time' to 'recurring'
   const cloudGatewayVariant = await prisma.productVariant.findFirst({
     where: {
       name: 'Cloud Gateway',
@@ -25,8 +25,24 @@ async function main() {
 
   console.log(`✅ Found Cloud Gateway variant: ${cloudGatewayVariant.id}`);
   console.log(`   Current price: ₹${cloudGatewayVariant.price}`);
+  
+  // Get current attributes as object
+  const currentAttrs = (cloudGatewayVariant.attributes as Record<string, any>) || {};
+  console.log(`   Current billingType: ${currentAttrs.billingType || 'not set'}`);
 
-  // Delete existing recurring prices first
+  // Update billingType to 'recurring' so the configurator uses recurring prices
+  await prisma.productVariant.update({
+    where: { id: cloudGatewayVariant.id },
+    data: {
+      attributes: {
+        ...currentAttrs,
+        billingType: 'recurring'
+      }
+    }
+  });
+  console.log('   ✅ Updated billingType to: recurring');
+
+  // Delete existing recurring prices first (in case they exist but are wrong)
   await prisma.productRecurringPrice.deleteMany({
     where: { variantId: cloudGatewayVariant.id }
   });
@@ -49,9 +65,9 @@ async function main() {
   console.log('   Added semiAnnualPrice: ₹2898');
   console.log('   Added yearlyPrice: ₹5796');
 
-  console.log('✅ Successfully added recurring prices to Cloud Gateway!');
+  console.log('✅ Successfully updated Cloud Gateway to use recurring pricing!');
 
-  // Now fix Cloud Connect - Platform Fee (missing semi-annual)
+  // Now fix Cloud Connect - Platform Fee (ensure semi-annual is present)
   console.log('\n🔍 Looking for Cloud Connect - Platform Fee variant...');
 
   const platformFeeVariant = await prisma.productVariant.findFirst({
@@ -73,6 +89,21 @@ async function main() {
 
   console.log(`✅ Found Cloud Connect - Platform Fee variant: ${platformFeeVariant.id}`);
   console.log(`   Current price: ₹${platformFeeVariant.price}`);
+
+  // Get current attributes as object
+  const platformFeeAttrs = (platformFeeVariant.attributes as Record<string, any>) || {};
+
+  // Update billingType to 'recurring'
+  await prisma.productVariant.update({
+    where: { id: platformFeeVariant.id },
+    data: {
+      attributes: {
+        ...platformFeeAttrs,
+        billingType: 'recurring'
+      }
+    }
+  });
+  console.log('   ✅ Updated billingType to: recurring');
 
   // Delete existing recurring prices first
   await prisma.productRecurringPrice.deleteMany({
@@ -97,7 +128,7 @@ async function main() {
   console.log('   Added semiAnnualPrice: ₹1490.40');
   console.log('   Added yearlyPrice: ₹2980.80');
 
-  console.log('✅ Successfully added recurring prices to Cloud Connect - Platform Fee!');
+  console.log('✅ Successfully updated Cloud Connect - Platform Fee!');
 }
 
 main()

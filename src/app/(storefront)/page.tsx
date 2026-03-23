@@ -226,12 +226,19 @@ export default async function HomePage() {
             </div>
             <div className="hidden md:block">
               <div className="relative">
-                <div className="w-80 h-80 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30">
-                  <Shield className="w-40 h-40 text-white" />
+                {/* Main Image Container */}
+                <div className="w-80 h-80 rounded-2xl overflow-hidden shadow-2xl shadow-red-600/30">
+                  <img 
+                    src="/uploads/vsaas pic1.jpeg" 
+                    alt="AI Video Surveillance" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                {/* Floating Brain Icon */}
                 <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700">
                   <Brain className="w-12 h-12 text-red-500" />
                 </div>
+                {/* Floating Video Icon */}
                 <div className="absolute -top-4 -right-4 w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700">
                   <Video className="w-12 h-12 text-red-500" />
                 </div>
