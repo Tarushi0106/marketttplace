@@ -48,6 +48,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
 import { formatPrice } from "@/lib/utils";
 
 // Render icon based on icon name
@@ -568,81 +569,97 @@ export default async function ProductDetailPage({ params }: Props) {
               <TabsContent value="solutions" className="mt-0">
                 <div className="max-w-5xl mx-auto">
                   <div className="grid md:grid-cols-2 gap-6">
-                    {/* VSAAS Cloud - Single Card */}
-                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg transition-all">
+                    {/* VSAAS Cloud - Cloud Video Surveillance */}
+                    <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg transition-all">
                       <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
                         <Cloud className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">VSaaS on Cloud</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">Cloud Video Surveillance (VSaaS)</h3>
                       <p className="text-gray-500 mb-6">
-                        Host your video surveillance in the cloud. No hardware needed, access from anywhere.
+                        Move your surveillance system to the cloud and eliminate the need for on-site hardware. Monitor live feeds, access recordings, and manage security from anywhere with a secure and scalable platform.
                       </p>
                       
                       <ul className="space-y-3 mb-8">
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>Professional Support</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Reliable 24/7 Remote Monitoring</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>Easy Setup</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Quick and Hassle-Free Deployment</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>24/7 Monitoring</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Secure Cloud Storage with Backup</span>
+                        </li>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>AI-Based Alerts and Insights</span>
+                        </li>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Scalable for Multiple Locations</span>
                         </li>
                       </ul>
-                      {/* Find a cloud variant to link to */}
+                      
                       {product.variants?.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')) ? (
                         <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')).id}`}>
-                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Configure Cloud Setup
                           </Button>
                         </Link>
                       ) : (
                         <Link href={`/products/${product.slug}/configure`}>
-                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                            Configure Cloud Setup
                           </Button>
                         </Link>
                       )}
                     </div>
 
-                    {/* VSAAS On-Premise - Single Card */}
-                    <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-purple-500 hover:shadow-lg transition-all">
-                      <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                        <Server className="h-8 w-8 text-purple-600" />
+                    {/* VSAAS On-Premise - On-Premise Video Surveillance */}
+                    <div className="bg-white border-2 border-red-200 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg transition-all">
+                      <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                        <Server className="h-8 w-8 text-red-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">On-Premise Solution</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">On-Premise Video Surveillance</h3>
                       <p className="text-gray-500 mb-6">
-                        Host your video surveillance on your own servers. Complete data control.
+                        Deploy and manage your surveillance system on local infrastructure with complete control over data, security, and performance. Ideal for organizations requiring strict compliance and internal data management.
                       </p>
                       
                       <ul className="space-y-3 mb-8">
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>Professional Support</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>Complete Data Ownership and Privacy</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>Easy Setup</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>Dedicated On-Site Infrastructure</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span>24/7 Monitoring</span>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>High Performance on Local Network</span>
+                        </li>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>Flexible Customization and Integration</span>
+                        </li>
+                        <li className="flex items-start gap-3 text-gray-700">
+                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>Reliable Enterprise-Grade Support</span>
                         </li>
                       </ul>
-                      {/* Find an on-premise variant to link to */}
+                      
                       {product.variants?.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')) ? (
                         <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')).id}`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure
+                            Configure On-Prem Setup
                           </Button>
                         </Link>
                       ) : (
                         <Link href={`/products/${product.slug}/configure`}>
                           <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure
+                            Configure On-Prem Setup
                           </Button>
                         </Link>
                       )}
