@@ -50,6 +50,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  product: {
+    name: string;
+    slug: string;
+    category: {
+      name: string;
+    } | null;
+  };
+}
+
 interface Order {
   id: string;
   orderNumber: string;
@@ -59,6 +72,7 @@ interface Order {
   total: number;
   createdAt: string;
   user?: { name: string; email: string } | null;
+  items: OrderItem[];
   _count: { items: number };
 }
 
@@ -223,6 +237,7 @@ export default function OrdersPage() {
               <TableRow>
                 <TableHead>Order</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Product</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
@@ -247,6 +262,19 @@ export default function OrdersPage() {
                       <p className="font-medium">{order.user?.name || "Guest"}</p>
                       <p className="text-xs text-muted-foreground">{order.email}</p>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {order.items && order.items.length > 0 ? (
+                      <div className="text-sm">
+                        {order.items.map((item, idx) => (
+                          <div key={item.id || idx}>
+                            {item.product?.name || "-"}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
                   </TableCell>
                   <TableCell>{order._count.items}</TableCell>
                   <TableCell className="font-medium">

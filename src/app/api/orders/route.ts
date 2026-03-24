@@ -45,6 +45,11 @@ export async function GET(request: NextRequest) {
                   select: {
                     name: true,
                     slug: true,
+                    category: {
+                      select: {
+                        name: true,
+                      },
+                    },
                   },
                 },
               },
