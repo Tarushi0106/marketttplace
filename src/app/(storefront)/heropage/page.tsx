@@ -17,7 +17,7 @@ function HeroSection() {
       <div className="absolute top-1/4 -left-20 w-72 h-72 bg-red-100 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-20 w-72 h-72 bg-blue-50 rounded-full blur-3xl" />
 
-      <div className="max-w-[1400px] mx-auto px-6 py-20 w-full relative z-10">
+      <div className="max-w-[1400px] mx-auto px-6 py-12 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
           <div className="max-w-xl">
@@ -50,26 +50,6 @@ function HeroSection() {
                 View Products
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link 
-                href="#capabilities"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-all"
-              >
-                Learn More
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="flex flex-wrap gap-8 mt-12 pt-8 border-t border-slate-200">
-              {[
-                { value: '99.9%', label: 'Accuracy' },
-                { value: '10K+', label: 'Cameras' },
-                { value: '24/7', label: 'Monitoring' },
-              ].map((stat, idx) => (
-                <div key={idx}>
-                  <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
-                  <div className="text-sm text-slate-500">{stat.label}</div>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -165,13 +145,13 @@ function AICapabilitiesSection() {
   ];
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden" id="capabilities">
+    <section className="py-16 bg-white relative overflow-hidden" id="capabilities">
       {/* Background Accent */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.03),transparent_70%)]" />
       
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-16 max-w-3xl mx-auto">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-100 text-red-600 text-sm font-medium mb-6">
             <Activity className="w-4 h-4" />
             Enterprise Solutions
@@ -243,10 +223,10 @@ function AIUseCasesSection() {
   ];
 
   return (
-    <section className="py-24 bg-slate-50" id="use-cases">
+    <section className="py-16 bg-slate-50" id="use-cases">
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
-        <div className="text-center mb-16 max-w-3xl mx-auto">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-medium mb-6">
             <Target className="w-4 h-4" />
             Applications
@@ -295,13 +275,13 @@ function PlatformArchitectureSection() {
   ];
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-16 bg-white relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(59,130,246,0.05),transparent_50%)]" />
       
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-16 max-w-3xl mx-auto">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 text-sm font-medium mb-6">
             <Zap className="w-4 h-4" />
             Workflow
@@ -320,7 +300,7 @@ function PlatformArchitectureSection() {
           {/* Connection Line */}
           <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-slate-200 via-red-300 to-slate-200 -translate-y-1/2" />
           
-          <div className="grid md:grid-cols-4 gap-8 relative">
+          <div className="grid md:grid-cols-4 gap-6 relative">
             {steps.map((step, idx) => {
               const Icon = step.icon;
               return (
@@ -355,38 +335,46 @@ function PlatformArchitectureSection() {
 function IndustryApplicationsSection() {
   const applications = [
     { 
-      image: '/uploads/branding/anamoly detection .jpg',
-      title: 'Anomaly Detection', 
-      description: 'AI identifies unusual patterns and behaviors in real-time, flagging potential security threats instantly'
+      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop',
+      title: 'Manufacturing', 
+      subtitle: 'Worker Safety',
+      description: 'VSaaS is a cloud-based security solution that enables manufacturers to monitor production, people, assets & facilities in real time with centralized control, AI analytics & remote access.',
+      points: ['Worker Safety & Compliance Monitoring', 'Production Line Monitoring', 'Asset & Inventory Protection']
     },
     { 
-      image: '/uploads/branding/AI-Powered Computer Vision in Action.jpg',
-      title: 'Object Detection', 
-      description: 'Recognize vehicles, weapons, bags, and other objects with high accuracy'
+      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=400&fit=crop',
+      title: 'Hospital', 
+      subtitle: 'Healthcare Security',
+      description: 'VSaaS is a cloud-based video monitoring solution that helps hospitals enhance patient safety, staff security, asset protection & operational efficiency through real-time & recorded surveillance.',
+      points: ['Patient Safety & Monitoring', 'Staff Safety & Workplace Security', 'Access Control & Restricted Areas']
     },
     { 
-      image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop',
-      title: 'Violence Detection', 
-      description: 'Detect suspicious fights or aggressive activity in real time for rapid intervention'
+      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&h=400&fit=crop',
+      title: 'Education', 
+      subtitle: 'Campus Safety',
+      description: 'VSaaS is a cloud-based video monitoring solution that helps educational institutions ensure campus safety, student security & operational transparency through real-time & recorded surveillance.',
+      points: ['Campus Security & Intrusion Prevention', 'Student Safety & Behavior Monitoring', 'Classroom & Examination Monitoring']
     },
     { 
-      image: '/uploads/branding/AI Fire & Smoke Detection System _ Marwiz Vision.jpg',
-      title: 'Smoke & Fire Detection', 
-      description: 'Identify smoke and early fire indicators quickly through AI-powered visual monitoring'
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop',
+      title: 'Retail', 
+      subtitle: 'Store Security',
+      description: 'VSaaS is a cloud-based security solution that helps retailers monitor stores, staff, inventory & customer activity in real time, improving security, operational efficiency & customer experience.',
+      points: ['Provides irrefutable evidence for claims', 'Reduces liability & legal costs', 'Supports transparent collaboration']
     },
   ];
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-16 bg-slate-50">
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-600 text-sm font-medium mb-6">
             <Building2 className="w-4 h-4" />
             Industries
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Industry Applications
+            Industry Video Surveillance-as-a-Service Use Cases
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             AI-powered VSaaS solutions tailored for different industries
@@ -394,31 +382,34 @@ function IndustryApplicationsSection() {
         </div>
 
         {/* Cards with Pictures */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {applications.map((app) => (
             <div 
               key={app.title}
               className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
             >
               {/* Image Container */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-40 overflow-hidden">
                 <img 
                   src={app.image} 
                   alt={app.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
-                
-                {/* Overlay Icon */}
-                <div className="absolute bottom-3 right-3 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-white" />
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
               </div>
               
               {/* Content */}
-              <div className="p-6">
+              <div className="p-5">
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{app.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{app.description}</p>
+                <p className="text-xs text-slate-600 leading-relaxed mb-3">{app.description}</p>
+                <ul className="space-y-1">
+                  {app.points.map((point, idx) => (
+                    <li key={idx} className="text-xs text-slate-700 flex items-start gap-1.5">
+                      <Check className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           ))}
