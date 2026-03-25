@@ -61,14 +61,12 @@ function HeroSection() {
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-red-100/20 z-10" />
                 
-                {/* Split Scene Illustration */}
-                <div className="w-full h-[450px] rounded-xl overflow-hidden shadow-2xl border border-slate-200">
-                  <img 
-                    src="/uploads/split-surveillance-illustration.svg" 
-                    alt="Cloud vs On-Premise Surveillance Comparison" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+                {/* Main Image */}
+                <img 
+                  src="/uploads/WhatsApp Image 2026-03-23 at 5.03.20 PM.jpeg" 
+                  alt="VSaaS Video Analytics Platform" 
+                  className="w-full h-[400px] object-cover"
+                />
                 
                 {/* Corner Accents */}
                 <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-red-500/50 rounded-tl-lg" />
