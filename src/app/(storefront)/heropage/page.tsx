@@ -260,6 +260,60 @@ function AIUseCasesSection() {
             );
           })}
         </div>
+
+        {/* Plans Section */}
+        <div className="mt-12 flex justify-center">
+          <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-center w-full max-w-2xl">
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-medium mb-4">
+                <Zap className="w-3 h-3" />
+                Special Launch Offer
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Starting at Just ₹199/month
+              </h3>
+              <p className="text-red-100 text-sm mb-5">
+                Full-featured AI video analytics. No setup fees, cancel anytime.
+              </p>
+              
+              {/* Features */}
+              <div className="flex flex-wrap justify-center gap-4 mb-5">
+                <div className="flex items-center gap-1 text-white/90 text-xs">
+                  <Check className="w-3 h-3 text-green-400" />
+                  AI Detection
+                </div>
+                <div className="flex items-center gap-1 text-white/90 text-xs">
+                  <Check className="w-3 h-3 text-green-400" />
+                  Cloud Storage
+                </div>
+                <div className="flex items-center gap-1 text-white/90 text-xs">
+                  <Check className="w-3 h-3 text-green-400" />
+                  Mobile App
+                </div>
+                <div className="flex items-center gap-1 text-white/90 text-xs">
+                  <Check className="w-3 h-3 text-green-400" />
+                  24/7 Support
+                </div>
+              </div>
+
+              {/* Price Card */}
+              <div className="bg-white rounded-lg p-5 max-w-xs mx-auto shadow-lg">
+                <p className="text-xs text-slate-500 mb-1">Starting Plan</p>
+                <div className="flex items-baseline justify-center gap-1 mb-2">
+                  <span className="text-3xl font-bold text-slate-900">₹199</span>
+                  <span className="text-slate-500 text-sm">/month</span>
+                </div>
+                <a 
+                  href="/products/vsaas/configure" 
+                  className="inline-flex items-center justify-center gap-1 w-full px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                >
+                  View Plans
+                  <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

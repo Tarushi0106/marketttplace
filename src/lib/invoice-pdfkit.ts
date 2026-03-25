@@ -231,7 +231,7 @@ function createInvoiceData(order: Order) {
 }
 
 /**
- * Generate professional PDF invoice using pdf-lib
+ * Generate professional PDF invoice using pdf-lib - Modern Clean Grid Layout
  */
 export async function generateInvoicePDF(order: Order): Promise<Buffer> {
   try {
@@ -247,24 +247,31 @@ export async function generateInvoicePDF(order: Order): Promise<Buffer> {
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
-    // Colors
-    const BLACK = rgb(0, 0, 0);
-    const DARK_GRAY = rgb(0.2, 0.2, 0.2);
-    const GRAY = rgb(0.4, 0.4, 0.4);
-    const LIGHT_GRAY = rgb(0.8, 0.8, 0.8);
+    // Colors - Clean palette
+    const PRIMARY = rgb(0.1, 0.1, 0.15);
+    const SECONDARY = rgb(0.3, 0.3, 0.35);
+    const ACCENT = rgb(0.15, 0.25, 0.45);
+    const LIGHT_GRAY = rgb(0.96, 0.96, 0.97);
+    const BORDER = rgb(0.9, 0.9, 0.9);
+    const SUCCESS = rgb(0.1, 0.6, 0.2);
+    const TEXT_MUTED = rgb(0.55, 0.55, 0.6);
     const WHITE = rgb(1, 1, 1);
-    const GREEN = rgb(0, 0.5, 0);
-    const AMBER = rgb(0.92, 0.68, 0.04);
+    
+    // Layout constants - 2 column grid
+    const LEFT_MARGIN = 50;
+    const RIGHT_MARGIN = 50;
+    const CONTENT_WIDTH = width - LEFT_MARGIN - RIGHT_MARGIN;
+    const COL_WIDTH = CONTENT_WIDTH / 2;
+    const RIGHT_COL_START = LEFT_MARGIN + COL_WIDTH;
     
     // Helper function to draw text
     const drawText = (text: string, x: number, y: number, options?: { font?: any; size?: number; color?: any; align?: 'left' | 'center' | 'right'; width?: number }) => {
       const font = options?.font || helvetica;
       const size = options?.size || 10;
-      const color = options?.color || BLACK;
+      const color = options?.color || PRIMARY;
       const align = options?.align || 'left';
       const maxWidth = options?.width || 200;
       
-      // Truncate text if too long
       let displayText = text;
       let textWidth = font.widthOfTextAtSize(text, size);
       while (textWidth > maxWidth && displayText.length > 3) {
@@ -273,7 +280,6 @@ export async function generateInvoicePDF(order: Order): Promise<Buffer> {
       }
       
       let xPos = x;
-      
       if (align === 'center') {
         xPos = x + (maxWidth - textWidth) / 2;
       } else if (align === 'right') {
@@ -283,232 +289,220 @@ export async function generateInvoicePDF(order: Order): Promise<Buffer> {
       page.drawText(displayText, { x: xPos, y, size, font, color });
     };
     
+    // White background
+    page.drawRectangle({ x: 0, y: 0, width: width, height: height, color: WHITE });
+    
+    // =====================
+    // HEADER - 2 Column Grid
+    // =====================
     let yPos = height - 50;
     
-    // =====================
-    // HEADER SECTION
-    // =====================
-    
-    // Company name
-    drawText(invoice.company.name, 50, yPos, { font: helveticaBold, size: 22 });
-    yPos -= 25;
-    
-    // Company address
-    drawText(invoice.company.address, 50, yPos, { font: helvetica, size: 9, color: DARK_GRAY });
-    yPos -= 14;
-    drawText(invoice.company.city, 50, yPos, { font: helvetica, size: 9, color: DARK_GRAY });
-    yPos -= 14;
-    
-    // GST/PAN info
-    drawText(`PAN: ${invoice.company.pan} | GST: ${invoice.company.gst}`, 50, yPos, { font: helvetica, size: 8, color: GRAY });
+    // LEFT: Company info
+    drawText(invoice.company.name, LEFT_MARGIN, yPos, { font: helveticaBold, size: 22, color: PRIMARY });
     yPos -= 20;
+    drawText(invoice.company.address, LEFT_MARGIN, yPos, { font: helvetica, size: 9, color: SECONDARY });
+    yPos -= 12;
+    drawText(invoice.company.city, LEFT_MARGIN, yPos, { font: helvetica, size: 9, color: SECONDARY });
+    yPos -= 12;
+    drawText(`GST: ${invoice.company.gst}`, LEFT_MARGIN, yPos, { font: helvetica, size: 8, color: TEXT_MUTED });
     
-    // TAX INVOICE title on right
-    drawText('TAX INVOICE', width - 145, height - 50, { font: helveticaBold, size: 16, align: 'right', width: 100 });
+    // RIGHT: Invoice info - align to right column start
+    const rightX = RIGHT_COL_START;
+    const rightColWidth = COL_WIDTH - 20;
     
-    // Invoice details box on right
-    const rightX = width - 145;
-    drawText(`Invoice #: ${invoice.invoiceNumber}`, rightX, height - 73, { font: helvetica, size: 10, align: 'right', width: 100 });
-    drawText(`Date: ${invoice.date}`, rightX, height - 88, { font: helvetica, size: 10, align: 'right', width: 100 });
+    drawText('INVOICE', rightX, height - 50, { font: helveticaBold, size: 26, color: ACCENT, width: rightColWidth });
+    drawText(`# ${invoice.invoiceNumber}`, rightX, height - 75, { font: helveticaBold, size: 10, color: PRIMARY, width: rightColWidth });
+    drawText(`Date: ${invoice.date}`, rightX, height - 90, { font: helvetica, size: 10, color: SECONDARY, width: rightColWidth });
     
-    // Payment status
+    // Status badge
     if (invoice.paymentStatus === 'PAID') {
-      drawText('PAID', rightX, height - 103, { font: helveticaBold, size: 10, color: GREEN, align: 'right', width: 100 });
+      page.drawRectangle({ x: rightX, y: height - 115, width: 55, height: 18, color: rgb(0.95, 0.98, 0.95), borderColor: SUCCESS, borderWidth: 1 });
+      drawText('PAID', rightX + 12, height - 110, { font: helveticaBold, size: 8, color: SUCCESS, width: 40 });
+    } else {
+      page.drawRectangle({ x: rightX, y: height - 115, width: 65, height: 18, color: rgb(0.98, 0.96, 0.92), borderColor: rgb(0.75, 0.55, 0.1), borderWidth: 1 });
+      drawText('PENDING', rightX + 10, height - 110, { font: helveticaBold, size: 8, color: rgb(0.7, 0.5, 0.1), width: 50 });
     }
     
-    // Horizontal line
-    page.drawLine({ start: { x: 50, y: height - 125 }, end: { x: width - 50, y: height - 125 }, color: LIGHT_GRAY, thickness: 1 });
+    // Track header bottom yPos
+    const headerBottom = height - 140;
     
-    yPos = height - 145;
+    // Header divider
+    page.drawLine({ start: { x: LEFT_MARGIN, y: headerBottom }, end: { x: width - RIGHT_MARGIN, y: headerBottom }, color: BORDER, thickness: 1 });
     
     // =====================
-    // BILL TO SECTION (Single box)
+    // BILL TO & ORDER DETAILS - 2 Column Grid
     // =====================
-    const boxWidth = 245;
-    const boxHeight = 90;
-    page.drawRectangle({ x: 50, y: yPos - boxHeight + 15, width: boxWidth, height: boxHeight, borderColor: LIGHT_GRAY, borderWidth: 1 });
-    drawText('BILL TO / SHIP TO', 60, yPos - 55, { font: helveticaBold, size: 9, color: GRAY });
+    yPos = headerBottom - 25;
     
-    const addrY = yPos - 40;
-    let addrYPos = addrY;
+    // LEFT: Bill To
+    drawText('BILL TO', LEFT_MARGIN, yPos, { font: helveticaBold, size: 9, color: TEXT_MUTED });
+    yPos -= 14;
     
-    // Customer name (company or individual)
     if (invoice.customer.name) {
-      drawText(invoice.customer.name, 60, addrYPos, { font: helveticaBold, size: 10 });
-      addrYPos -= 14;
+      drawText(invoice.customer.name, LEFT_MARGIN, yPos, { font: helveticaBold, size: 10, color: PRIMARY });
+      yPos -= 12;
     }
     
-    // Customer address
     if (invoice.customer.address) {
-      // Split address into multiple lines if too long
       const addressParts = invoice.customer.address.split(', ');
-      addressParts.forEach((part) => {
-        if (addrYPos > yPos - boxHeight + 20) {
-          drawText(part, 60, addrYPos, { font: helvetica, size: 10 });
-          addrYPos -= 14;
+      addressParts.slice(0, 3).forEach((part) => {
+        if (part.trim()) {
+          drawText(part, LEFT_MARGIN, yPos, { font: helvetica, size: 9, color: SECONDARY });
+          yPos -= 11;
         }
       });
     }
     
-    // Phone
+    if (invoice.customer.email) {
+      drawText(invoice.customer.email, LEFT_MARGIN, yPos, { font: helvetica, size: 8, color: TEXT_MUTED });
+      yPos -= 10;
+    }
     if (invoice.customer.phone) {
-      drawText(`Ph: ${invoice.customer.phone}`, 60, addrYPos, { font: helvetica, size: 10 });
+      drawText(invoice.customer.phone, LEFT_MARGIN, yPos, { font: helvetica, size: 8, color: TEXT_MUTED });
     }
     
-    yPos -= 110;
-    
-    // =====================
-    // ORDER DETAILS SECTION
-    // =====================
-    drawText('Order Details', 50, yPos, { font: helveticaBold, size: 9, color: GRAY });
-    yPos -= 15;
+    // RIGHT: Order Details
+    let rightY = headerBottom - 25;
+    drawText('ORDER DETAILS', rightX, rightY, { font: helveticaBold, size: 9, color: TEXT_MUTED, width: rightColWidth });
+    rightY -= 14;
     
     if (invoice.orderNumber) {
-      drawText(`Order #: ${invoice.orderNumber}`, 50, yPos, { font: helvetica, size: 10, color: DARK_GRAY });
-      yPos -= 14;
+      drawText(`Order #: ${invoice.orderNumber}`, rightX, rightY, { font: helvetica, size: 10, color: SECONDARY, width: rightColWidth });
+      rightY -= 12;
     }
-    drawText(`Payment: ${invoice.paymentMethod}`, 50, yPos, { font: helvetica, size: 10, color: DARK_GRAY });
-    yPos -= 14;
-    drawText(`Status: ${invoice.status}`, 50, yPos, { font: helvetica, size: 10, color: DARK_GRAY });
     
-    yPos -= 15;
+    drawText(`Payment: ${invoice.paymentMethod || 'N/A'}`, rightX, rightY, { font: helvetica, size: 10, color: SECONDARY, width: rightColWidth });
+    rightY -= 12;
     
-    // Horizontal line
-    page.drawLine({ start: { x: 50, y: yPos }, end: { x: width - 50, y: yPos }, color: LIGHT_GRAY, thickness: 1 });
+    const statusColor = invoice.status === 'COMPLETED' || invoice.status === 'DELIVERED' ? SUCCESS : SECONDARY;
+    drawText(`Status: ${invoice.status || 'N/A'}`, rightX, rightY, { font: helvetica, size: 10, color: statusColor, width: rightColWidth });
     
-    yPos -= 20;
+    // Determine the lower of the two columns
+    const detailsBottom = Math.min(yPos, rightY) - 15;
+    
+    // Divider after details
+    page.drawLine({ start: { x: LEFT_MARGIN, y: detailsBottom }, end: { x: width - RIGHT_MARGIN, y: detailsBottom }, color: BORDER, thickness: 1 });
     
     // =====================
-    // LINE ITEMS TABLE
+    // FULL WIDTH TABLE
     // =====================
-    const tableTop = yPos;
-    const headers = ['Item', 'Description', 'Qty', 'Rate', 'Amount'];
-    const colPositions = [50, 160, 365, 420, 490];
-    const colWidths = [110, 205, 55, 70, 95];
+    yPos = detailsBottom - 20;
     
-    // Table header background
-    page.drawRectangle({ x: 50, y: tableTop - 5, width: 495, height: 20, color: rgb(0.96, 0.96, 0.96) });
+    // Table header
+    page.drawRectangle({ x: LEFT_MARGIN, y: yPos - 4, width: CONTENT_WIDTH, height: 24, color: LIGHT_GRAY });
     
-    headers.forEach((header, i) => {
-      const x = colPositions[i];
-      const align = i >= 3 ? 'right' : 'left';
-      drawText(header, x, tableTop, { font: helveticaBold, size: 9, color: DARK_GRAY, align, width: colWidths[i] });
+    const tableCols = [
+      { name: 'Item', x: LEFT_MARGIN + 10, w: 260 },
+      { name: 'Qty', x: LEFT_MARGIN + 320, w: 50, align: 'right' as const },
+      { name: 'Rate', x: LEFT_MARGIN + 380, w: 80, align: 'right' as const },
+      { name: 'Amount', x: LEFT_MARGIN + 470, w: 70, align: 'right' as const }
+    ];
+    
+    tableCols.forEach(col => {
+      drawText(col.name, col.x, yPos, { font: helveticaBold, size: 9, color: SECONDARY, align: col.align || 'left', width: col.w });
     });
     
-    yPos = tableTop + 20;
+    yPos += 24;
     
     // Table rows
-    let rowIndex = 0;
-    
-    invoice.items.forEach((item) => {
-      const rowTop = yPos;
-      const rowHeight = 36; // Increased height for multiline descriptions
+    invoice.items.forEach((item, idx) => {
+      const rowHeight = 28;
       
-      // Alternating row colors
-      if (rowIndex % 2 === 1) {
-        page.drawRectangle({ x: 50, y: rowTop, width: 495, height: rowHeight, color: rgb(0.98, 0.98, 0.98) });
+      // Alternating background
+      if (idx % 2 === 0) {
+        page.drawRectangle({ x: LEFT_MARGIN, y: yPos, width: CONTENT_WIDTH, height: rowHeight, color: WHITE });
       }
+      
+      // Bottom border
+      page.drawLine({ start: { x: LEFT_MARGIN, y: yPos + rowHeight }, end: { x: width - RIGHT_MARGIN, y: yPos + rowHeight }, color: BORDER, thickness: 0.5 });
       
       // Item name
-      drawText(item.name, colPositions[0], rowTop + 12, { font: helvetica, size: 9, width: colWidths[0] });
+      drawText(item.name || 'Item', tableCols[0].x, yPos + 8, { font: helvetica, size: 9, color: PRIMARY, width: tableCols[0].w });
       
-      // Description (handle multiline)
-      const descLines = [];
-      let descStr = item.description;
-      while (descStr.length > 30) {
-        descLines.push(descStr.slice(0, 30));
-        descStr = descStr.slice(30);
+      // Description if exists
+      if (item.description) {
+        drawText(item.description.substring(0, 50), tableCols[0].x, yPos - 2, { font: helvetica, size: 7, color: TEXT_MUTED, width: tableCols[0].w });
       }
-      descLines.push(descStr);
       
-      descLines.slice(0, 2).forEach((line, idx) => {
-        drawText(line, colPositions[1], rowTop + 12 - (idx * 12), { font: helvetica, size: 8, color: GRAY, width: colWidths[1] });
-      });
+      // Quantity, Rate, Amount
+      drawText(String(item.quantity || 1), tableCols[1].x, yPos + 8, { font: helvetica, size: 9, color: SECONDARY, align: 'right', width: tableCols[1].w });
+      drawText(formatCurrency(item.rate), tableCols[2].x, yPos + 8, { font: helvetica, size: 9, color: SECONDARY, align: 'right', width: tableCols[2].w });
+      drawText(formatCurrency(item.amount), tableCols[3].x, yPos + 8, { font: helveticaBold, size: 9, color: PRIMARY, align: 'right', width: tableCols[3].w });
       
-      // Quantity
-      drawText(String(item.quantity), colPositions[2], rowTop + 12, { font: helvetica, size: 9, align: 'center', width: colWidths[2] });
-      
-      // Rate
-      drawText(formatCurrency(item.rate), colPositions[3], rowTop + 12, { font: helvetica, size: 9, align: 'right', width: colWidths[3] });
-      
-      // Amount
-      drawText(formatCurrency(item.amount), colPositions[4], rowTop + 12, { font: helveticaBold, size: 9, align: 'right', width: colWidths[4] });
-      
-      yPos = rowTop + rowHeight;
-      rowIndex++;
+      yPos += rowHeight;
     });
     
     yPos += 10;
     
-    // Horizontal line after table
-    page.drawLine({ start: { x: 50, y: yPos }, end: { x: width - 50, y: yPos }, color: LIGHT_GRAY, thickness: 1 });
+    // Table bottom border
+    page.drawLine({ start: { x: LEFT_MARGIN, y: yPos }, end: { x: width - RIGHT_MARGIN, y: yPos }, color: BORDER, thickness: 1 });
     
     yPos += 15;
     
     // =====================
-    // TOTALS SECTION
+    // TOTALS - Right aligned
     // =====================
-    const totalsLeft = 370;
-    const totalsRight = width - 55;
+    const totalsWidth = 180;
+    const totalsX = width - RIGHT_MARGIN - totalsWidth;
     
-    // Subtotal
-    drawText('Subtotal:', totalsLeft, yPos, { font: helvetica, size: 10, color: DARK_GRAY, align: 'right', width: 115 });
-    drawText(formatCurrency(invoice.totals.subtotal), totalsRight, yPos, { font: helveticaBold, size: 10, align: 'right', width: 95 });
-    yPos += 12;
+    // Subtotal row
+    drawText('Subtotal', totalsX, yPos, { font: helvetica, size: 10, color: SECONDARY });
+    drawText(formatCurrency(invoice.totals.subtotal), totalsX + totalsWidth, yPos, { font: helvetica, size: 10, color: PRIMARY, align: 'right', width: totalsWidth });
+    yPos -= 14;
     
-    // Tax
+    // Tax row
     if (invoice.totals.taxAmount > 0) {
-      drawText('Tax (GST):', totalsLeft, yPos, { font: helvetica, size: 10, color: DARK_GRAY, align: 'right', width: 115 });
-      drawText(formatCurrency(invoice.totals.taxAmount), totalsRight, yPos, { font: helveticaBold, size: 10, align: 'right', width: 95 });
-      yPos += 12;
+      drawText('Tax', totalsX, yPos, { font: helvetica, size: 10, color: SECONDARY });
+      drawText(formatCurrency(invoice.totals.taxAmount), totalsX + totalsWidth, yPos, { font: helvetica, size: 10, color: PRIMARY, align: 'right', width: totalsWidth });
+      yPos -= 14;
     }
     
-    // Discount
+    // Discount row
     if (invoice.totals.discountAmount > 0) {
-      drawText('Discount:', totalsLeft, yPos, { font: helvetica, size: 10, color: GRAY, align: 'right', width: 115 });
-      drawText(`-${formatCurrency(invoice.totals.discountAmount)}`, totalsRight, yPos, { font: helveticaBold, size: 10, color: GREEN, align: 'right', width: 95 });
-      yPos += 12;
+      drawText('Discount', totalsX, yPos, { font: helvetica, size: 10, color: SUCCESS });
+      drawText(`-${formatCurrency(invoice.totals.discountAmount)}`, totalsX + totalsWidth, yPos, { font: helvetica, size: 10, color: SUCCESS, align: 'right', width: totalsWidth });
+      yPos -= 14;
     }
     
     // Total line
-    page.drawLine({ start: { x: totalsLeft, y: yPos + 5 }, end: { x: width - 50, y: yPos + 5 }, color: BLACK, thickness: 1 });
-    
-    yPos += 15;
+    page.drawLine({ start: { x: totalsX, y: yPos + 2 }, end: { x: width - RIGHT_MARGIN, y: yPos + 2 }, color: BORDER, thickness: 1 });
+    yPos -= 4;
     
     // Total
-    drawText('TOTAL:', totalsLeft, yPos, { font: helveticaBold, size: 12 });
-    drawText(formatCurrency(invoice.totals.total), totalsRight, yPos, { font: helveticaBold, size: 14, align: 'right', width: 95 });
+    drawText('Total', totalsX, yPos, { font: helveticaBold, size: 11, color: PRIMARY });
+    drawText(formatCurrency(invoice.totals.total), totalsX + totalsWidth, yPos, { font: helveticaBold, size: 13, color: ACCENT, align: 'right', width: totalsWidth });
     
-    yPos += 35;
+    yPos -= 20;
     
     // =====================
-    // RECURRING BILLING INFO
+    // RECURRING INFO - Inline text (no colored bar)
     // =====================
     if (invoice.recurringInfo && invoice.recurringInfo.hasRecurring) {
-      // Draw a nice box for recurring info
-      page.drawRectangle({ x: 50, y: yPos - 30, width: 495, height: 35, color: rgb(1, 0.98, 0.9) });
-      
-      const recurringText = invoice.recurringInfo.items.map(item => 
-        `${item.name}: ${formatCurrency(item.amount)} every 1 ${item.period}`
+      const recurringInfo = invoice.recurringInfo.items.map(item => 
+        `${item.name}: Rs. ${item.amount.toLocaleString('en-IN')}/${item.period}`
       ).join(' | ');
       
-      drawText('Recurring Billing:', 60, yPos, { font: helveticaBold, size: 10, color: rgb(0.55, 0.35, 0.05) });
+      drawText(`Recurring: ${recurringInfo}`, LEFT_MARGIN, yPos, { font: helvetica, size: 9, color: SECONDARY, width: CONTENT_WIDTH });
       yPos -= 15;
-      drawText(recurringText, 60, yPos, { font: helvetica, size: 9, color: rgb(0.55, 0.35, 0.05), width: 475 });
-      
-      yPos += 5;
     }
     
-    yPos -= 30;
+    // =====================
+    // FOOTER
+    // =====================
+    // Calculate footer position based on content
+    const minFooterY = 90;
+    if (yPos < minFooterY) {
+      yPos = minFooterY;
+    }
     
-    // =====================
-    // FOOTER SECTION
-    // =====================
-    drawText('Thank you for your business!', width / 2, yPos, { font: helvetica, size: 10, color: GRAY, align: 'center', width: width - 100 });
-    yPos -= 18;
-    drawText(`${invoice.company.name} | ${invoice.company.address}`, width / 2, yPos, { font: helvetica, size: 8, color: DARK_GRAY, align: 'center', width: width - 100 });
-    yPos -= 14;
-    drawText(`Email: ${invoice.company.email} | Phone: ${invoice.company.phone}`, width / 2, yPos, { font: helvetica, size: 8, color: DARK_GRAY, align: 'center', width: width - 100 });
+    page.drawLine({ start: { x: LEFT_MARGIN, y: yPos }, end: { x: width - RIGHT_MARGIN, y: yPos }, color: BORDER, thickness: 1 });
+    yPos -= 15;
+    
+    drawText('Thank you for your business!', width / 2, yPos, { font: helvetica, size: 10, color: SECONDARY, align: 'center', width: CONTENT_WIDTH });
+    yPos -= 12;
+    drawText(`${invoice.company.name} | ${invoice.company.email} | ${invoice.company.phone}`, width / 2, yPos, { font: helvetica, size: 8, color: TEXT_MUTED, align: 'center', width: CONTENT_WIDTH });
+    yPos -= 10;
+    drawText('Computer-generated invoice. No signature required.', width / 2, yPos, { font: helvetica, size: 7, color: TEXT_MUTED, align: 'center', width: CONTENT_WIDTH });
     
     // Serialize the PDF
     const pdfBytes = await pdfDoc.save();

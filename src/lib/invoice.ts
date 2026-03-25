@@ -113,7 +113,7 @@ function formatDate(date: Date | string | null | undefined): string {
  * Generate professional invoice PDF buffer
  */
 export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Array> {
-  // Create new PDF document (A4 size)
+  // Create new PDF document (A4 size) - MODERN CLEAN DESIGN
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();

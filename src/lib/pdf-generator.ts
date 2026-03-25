@@ -149,16 +149,10 @@ function generateHTML(order: Order): string {
     return sum + ((basePrice + setupFee) * quantity);
   }, 0);
   
-  // Calculate recurring total
-  const recurringTotal = items.reduce((sum, item) => {
-    const recurring = Number(item.recurringAmount) || 0;
-    const quantity = Number(item.quantity) || 1;
-    return sum + (recurring * quantity);
-  }, 0);
   const discountAmount = Number(order.discountAmount) || 0;
   const taxAmount = Number(order.taxAmount) || 0;
   const shippingAmount = Number(order.shippingAmount) || 0;
-  const subtotal = todayTotal; // Use calculated todayTotal as subtotal
+  const subtotal = todayTotal;
   const total = Number(order.total) || subtotal - discountAmount + taxAmount + shippingAmount;
   const setupFeeTotal = items.reduce((sum, item) => sum + (Number(item.setupFee) || 0), 0);
   const recurringItem = items.find(item => item.isRecurring);
@@ -178,139 +172,110 @@ function generateHTML(order: Order): string {
       margin: 0;
     }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
   </style>
 </head>
 <body class="bg-white m-0 p-0">
-  <div class="max-w-[210mm] mx-auto bg-white shadow-lg" style="min-height: 297mm">
+  <div class="max-w-[210mm] mx-auto bg-white" style="min-height: 297mm">
     <!-- Header -->
-    <div class="border-b-2 border-gray-900 p-8">
+    <div class="px-8 pt-8 pb-6">
       <div class="flex justify-between items-start">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">SHAURRYA TELESERVICES</h1>
-          <p class="text-sm text-gray-600 mt-1">
-            Laxmi Plaza, 213, Off New Link Rd<br>
-            Laxmi Industrial Estate, Andheri West<br>
-            Mumbai, Maharashtra 400053
+          <h1 class="text-xl font-semibold text-gray-900">SHAURRYA TELESERVICES</h1>
+          <p class="text-sm text-gray-500 mt-1">
+            Laxmi Plaza, 213, Off New Link Rd, Laxmi Industrial Estate<br>
+            Andheri West, Mumbai, Maharashtra 400053
           </p>
-          <p class="text-xs text-gray-500 mt-2">
+          <p class="text-xs text-gray-400 mt-1">
             PAN: ABCCS1234A | GST: 27ABCCS1234A1Z9
           </p>
         </div>
         <div class="text-right">
-          <div class="inline-block bg-gray-100 px-4 py-2 border border-gray-300">
-            <h2 class="text-lg font-bold text-gray-900">TAX INVOICE</h2>
-          </div>
-          <p class="text-sm text-gray-600 mt-2">
-            Invoice #: <span class="font-medium">${invoiceNumber}</span>
-          </p>
-          <p class="text-sm text-gray-600">
-            Date: <span class="font-medium">${formatInvoiceDate()}</span>
-          </p>
+          <h2 class="text-lg font-medium text-gray-700">INVOICE</h2>
+          <p class="text-sm text-gray-500 mt-2">${invoiceNumber}</p>
+          <p class="text-sm text-gray-500">${formatInvoiceDate()}</p>
           ${order.paymentStatus === "PAID" ? `
-          <div class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded text-sm font-medium mt-2">
+          <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded mt-2">
             PAID
-          </div>
+          </span>
           ` : ''}
         </div>
       </div>
     </div>
 
     <!-- Bill To & Ship To -->
-    <div class="border-b border-gray-200 p-8">
-      <div class="grid grid-cols-3 gap-8">
+    <div class="px-8 pb-6">
+      <div class="grid grid-cols-2 gap-12">
         <!-- Bill To -->
         <div>
-          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Bill To</h3>
-          ${billingAddr?.company ? `<p class="font-medium text-gray-900">${billingAddr.company}</p>` : ''}
-          <p class="text-sm text-gray-700">
+          <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Bill To</h3>
+          ${billingAddr?.company ? `<p class="text-sm font-medium text-gray-900">${billingAddr.company}</p>` : ''}
+          <p class="text-sm text-gray-600">
             ${billingAddr?.firstName || ''} ${billingAddr?.lastName || ''}
           </p>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-gray-500">
             ${billingAddr?.address1 || ''}
-            ${billingAddr?.address2 ? `<br>${billingAddr.address2}` : ''}
+            ${billingAddr?.address2 ? `, ${billingAddr.address2}` : ''}
           </p>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-gray-500">
             ${billingAddr?.city || ''}${billingAddr?.city && billingAddr?.state ? ', ' : ''}${billingAddr?.state || ''} ${billingAddr?.postalCode || ''}
           </p>
-          ${billingAddr?.phone ? `<p class="text-sm text-gray-600 mt-1">Ph: ${billingAddr.phone}</p>` : ''}
-          ${billingAddr?.gstin ? `<p class="text-sm text-gray-600 mt-1">GSTIN: ${billingAddr.gstin}</p>` : ''}
-          <p class="text-sm text-gray-600 mt-1">Email: ${order.email || ''}</p>
+          ${billingAddr?.phone ? `<p class="text-sm text-gray-500 mt-1">${billingAddr.phone}</p>` : ''}
+          ${billingAddr?.gstin ? `<p class="text-sm text-gray-500 mt-1">GSTIN: ${billingAddr.gstin}</p>` : ''}
+          <p class="text-sm text-gray-500 mt-1">${order.email || ''}</p>
         </div>
 
-        <!-- Ship To -->
+        <!-- Ship To / Order Details -->
         <div>
-          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Ship To</h3>
-          ${shippingAddr?.company ? `<p class="font-medium text-gray-900">${shippingAddr.company}</p>` : ''}
-          <p class="text-sm text-gray-700">
-            ${shippingAddr?.firstName || ''} ${shippingAddr?.lastName || ''}
+          <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Order Details</h3>
+          <p class="text-sm text-gray-600">
+            <span class="text-gray-500">Order:</span> ${order.orderNumber || ''}
           </p>
           <p class="text-sm text-gray-600">
-            ${shippingAddr?.address1 || ''}
-            ${shippingAddr?.address2 ? `<br>${shippingAddr.address2}` : ''}
+            <span class="text-gray-500">Payment:</span> ${(order.paymentMethod || '').toUpperCase() || 'N/A'}
           </p>
           <p class="text-sm text-gray-600">
-            ${shippingAddr?.city || ''}${shippingAddr?.city && shippingAddr?.state ? ', ' : ''}${shippingAddr?.state || ''} ${shippingAddr?.postalCode || ''}
-          </p>
-          ${shippingAddr?.phone ? `<p class="text-sm text-gray-600 mt-1">Ph: ${shippingAddr.phone}</p>` : ''}
-        </div>
-
-        <!-- Order Details -->
-        <div>
-          <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Order Details</h3>
-          <p class="text-sm text-gray-700">
-            Order #: <span class="font-medium">${order.orderNumber || ''}</span>
-          </p>
-          <p class="text-sm text-gray-700">
-            Payment: <span class="font-medium">${(order.paymentMethod || '').toUpperCase() || 'N/A'}</span>
-          </p>
-          <p class="text-sm text-gray-700">
-            Status: <span class="font-medium text-green-600">${order.paymentStatus || order.status || 'Pending'}</span>
-          </p>
-          <p class="text-sm text-gray-700 mt-2">
-            Place of Supply: <span class="font-medium">Maharashtra (27)</span>
+            <span class="text-gray-500">Status:</span> ${order.paymentStatus || order.status || 'Pending'}
           </p>
         </div>
       </div>
     </div>
 
     <!-- Items Table -->
-    <div class="p-8">
+    <div class="px-8">
       <table class="w-full">
         <thead>
-          <tr class="border-b-2 border-gray-900">
-            <th class="text-left py-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-12">#</th>
-            <th class="text-left py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Item & Description</th>
-            <th class="text-left py-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-20">HSN/SAC</th>
-            <th class="text-center py-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-16">Qty</th>
-            <th class="text-right py-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-24">Rate</th>
-            <th class="text-right py-3 text-xs font-bold text-gray-500 uppercase tracking-wide w-28">Amount</th>
+          <tr class="border-b border-gray-200">
+            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-10">#</th>
+            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+            <th class="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Qty</th>
+            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rate</th>
+            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Amount</th>
           </tr>
         </thead>
         <tbody>
           ${items.map((item, index) => `
           <tr class="border-b border-gray-100">
-            <td class="py-3 text-sm text-gray-600">${index + 1}</td>
+            <td class="py-3 text-sm text-gray-500">${index + 1}</td>
             <td class="py-3">
-              <p class="text-sm font-medium text-gray-900">${item.name || ''}</p>
+              <p class="text-sm text-gray-900">${item.name || ''}</p>
               ${item.variant && typeof item.variant === 'object' ? `<p class="text-xs text-gray-500">${(item.variant as any).name || ''}</p>` : ''}
               ${item.isRecurring ? `
-              <p class="text-xs text-blue-600 mt-1">
+              <p class="text-xs text-gray-500 mt-1">
                 Recurring: ${getBillingCycleLabel(item.billingCycle)}
                 ${item.recurringPrice ? ` (${formatCurrency(Number(item.recurringPrice))}/cycle)` : ''}
               </p>
               ` : ''}
               ${item.setupFee && item.setupFee > 0 ? `
-              <p class="text-xs text-amber-600 mt-1">+ Setup Fee: ${formatCurrency(Number(item.setupFee))}</p>
+              <p class="text-xs text-gray-500 mt-1">Setup Fee: ${formatCurrency(Number(item.setupFee))}</p>
               ` : ''}
             </td>
-            <td class="py-3 text-sm text-gray-600">${item.hsnCode || '9983'}</td>
             <td class="py-3 text-sm text-gray-600 text-center">${item.quantity || 1}</td>
             <td class="py-3 text-sm text-gray-600 text-right">${formatCurrency(Number(item.unitPrice) || 0)}</td>
-            <td class="py-3 text-sm font-medium text-gray-900 text-right">
+            <td class="py-3 text-sm text-gray-900 text-right font-medium">
               ${formatCurrency(Number(item.totalPrice) || 0)}
             </td>
           </tr>
@@ -320,81 +285,65 @@ function generateHTML(order: Order): string {
     </div>
 
     <!-- Totals -->
-    <div class="px-8 pb-8">
+    <div class="px-8 py-6">
       <div class="flex justify-end">
-        <div class="w-64">
+        <div class="w-56">
           <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-600">Subtotal</span>
-            <span class="text-gray-900 font-medium">${formatCurrency(subtotal)}</span>
+            <span class="text-gray-500">Subtotal</span>
+            <span class="text-gray-900">${formatCurrency(subtotal)}</span>
           </div>
           ${discountAmount > 0 ? `
           <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-600">Discount</span>
-            <span class="text-green-600 font-medium">-${formatCurrency(discountAmount)}</span>
+            <span class="text-gray-500">Discount</span>
+            <span class="text-green-600">-${formatCurrency(discountAmount)}</span>
           </div>
           ` : ''}
-          ${setupFeeTotal > 0 ? `
+          ${taxAmount > 0 ? `
           <div class="flex justify-between py-2 text-sm">
-            <span class="text-amber-600">Setup Fees</span>
-            <span class="text-amber-600 font-medium">${formatCurrency(setupFeeTotal)}</span>
+            <span class="text-gray-500">Tax</span>
+            <span class="text-gray-900">${formatCurrency(taxAmount)}</span>
           </div>
           ` : ''}
-          <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-600">Tax (18% GST)</span>
-            <span class="text-gray-900 font-medium">${formatCurrency(taxAmount)}</span>
-          </div>
           ${shippingAmount > 0 ? `
           <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-600">Shipping</span>
-            <span class="text-gray-900 font-medium">${formatCurrency(shippingAmount)}</span>
+            <span class="text-gray-500">Shipping</span>
+            <span class="text-gray-900">${formatCurrency(shippingAmount)}</span>
           </div>
           ` : ''}
-          <div class="flex justify-between py-3 border-t-2 border-gray-900 mt-2">
-            <span class="text-base font-bold text-gray-900">Total</span>
-            <span class="text-base font-bold text-gray-900">${formatCurrency(total)}</span>
+          <div class="flex justify-between py-3 border-t border-gray-200 mt-2">
+            <span class="text-sm font-medium text-gray-900">Total</span>
+            <span class="text-sm font-medium text-gray-900">${formatCurrency(total)}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Recurring Plan Section -->
+    <!-- Recurring Info (inline, no colored bar) -->
     ${hasRecurring ? `
-    <div class="px-8 pb-8">
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 class="text-sm font-bold text-blue-800 mb-2">Recurring Billing Information</h4>
-        <p class="text-sm text-blue-700">
-          You will be charged according to your selected recurring plan: <span class="font-medium">${getBillingCycleLabel(recurringItem?.billingCycle)}</span>
-          ${recurringItem?.recurringPrice ? ` (₹${Number(recurringItem.recurringPrice).toLocaleString("en-IN")}${getBillingCycleLabel(recurringItem?.billingCycle)?.toLowerCase().includes("one") ? "" : "/" + (recurringItem?.billingCycle?.toLowerCase().replace("_", "-") || "")})` : ''}
-        </p>
-        ${setupFeeTotal > 0 ? `
-        <p class="text-sm text-blue-700 mt-1">
-          A one-time setup fee of ${formatCurrency(setupFeeTotal)} has been charged today.
-        </p>
-        ` : ''}
-      </div>
+    <div class="px-8 py-4">
+      <p class="text-sm text-gray-600">
+        <span class="font-medium">Recurring:</span> ${getBillingCycleLabel(recurringItem?.billingCycle)}
+        ${recurringItem?.recurringPrice ? ` (${formatCurrency(Number(recurringItem.recurringPrice))}/cycle)` : ''}
+        ${setupFeeTotal > 0 ? ` | Setup Fee: ${formatCurrency(setupFeeTotal)}` : ''}
+      </p>
     </div>
     ` : ''}
 
     <!-- Footer -->
-    <div class="border-t border-gray-200 p-8 bg-gray-50">
-      <div class="grid grid-cols-2 gap-8">
+    <div class="px-8 py-6 border-t border-gray-100 mt-auto">
+      <div class="flex justify-between items-end">
         <div>
-          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Bank Details</h4>
-          <p class="text-sm text-gray-700">Bank Name: HDFC Bank</p>
-          <p class="text-sm text-gray-700">Account Number: 123456789012</p>
-          <p class="text-sm text-gray-700">IFSC Code: HDFC0001234</p>
-          <p class="text-sm text-gray-700">Branch: Andheri West, Mumbai</p>
+          <h4 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Bank Details</h4>
+          <p class="text-xs text-gray-500">HDFC Bank | A/C: 123456789012 | IFSC: HDFC0001234</p>
+          <p class="text-xs text-gray-400 mt-1">Andheri West, Mumbai</p>
         </div>
         <div class="text-right">
-          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Authorized Signatory</h4>
-          <div class="mt-8">
-            <p class="text-sm font-medium text-gray-900">For Shaurrya Teleservices</p>
-            <p class="text-xs text-gray-500 mt-6">Authorised Signatory</p>
-          </div>
+          <p class="text-xs font-medium text-gray-600">For Shaurrya Teleservices</p>
+          <p class="text-xs text-gray-400 mt-4">Authorized Signatory</p>
         </div>
       </div>
-      <p class="text-xs text-gray-400 text-center mt-8">
-        This is a computer-generated invoice. No signature is required.
+      <p class="text-xs text-gray-300 text-center mt-6">
+        Computer-generated invoice. No signature required.
       </p>
     </div>
   </div>

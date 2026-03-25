@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateInvoiceNumber, generateInvoicePDF } from "@/lib/invoice-pdfkit";
+import { generateInvoiceNumber, generateInvoicePDF, transformOrderToInvoiceData } from "@/lib/invoice-pdfmake";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import path from "path";
 import type { Order, OrderItem, Address, AddressType } from "@/types";
@@ -186,11 +186,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate PDF using PDFKit
+    // Generate PDF using pdfmake
     let pdfBuffer: Buffer;
     try {
-      console.log("Starting PDF generation with PDFKit...");
-      pdfBuffer = await generateInvoicePDF(orderForPdf);
+      console.log("Starting PDF generation with pdfmake...");
+      const invoiceData = transformOrderToInvoiceData(orderForPdf);
+      pdfBuffer = await generateInvoicePDF(invoiceData);
       console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
@@ -413,7 +414,8 @@ export async function GET(request: NextRequest) {
       let pdfBase64: string | null = null;
       try {
         const orderForPdf = transformOrderForPDF(invoice.order);
-        const pdfBuffer = await generateInvoicePDF(orderForPdf);
+        const invoiceData = transformOrderToInvoiceData(orderForPdf);
+        const pdfBuffer = await generateInvoicePDF(invoiceData);
         pdfBase64 = pdfBuffer.toString('base64');
         console.log("PDF regenerated for existing invoice, size:", pdfBuffer.length);
       } catch (pdfError) {
