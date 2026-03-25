@@ -61,12 +61,14 @@ function HeroSection() {
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-red-100/20 z-10" />
                 
-                {/* Main Image */}
-                <img 
-                  src="/uploads/WhatsApp Image 2026-03-23 at 5.03.20 PM.jpeg" 
-                  alt="VSaaS Video Analytics Platform" 
-                  className="w-full h-[400px] object-cover"
-                />
+                {/* Split Scene Illustration */}
+                <div className="w-full h-[450px] rounded-xl overflow-hidden shadow-2xl border border-slate-200">
+                  <img 
+                    src="/uploads/split-surveillance-illustration.svg" 
+                    alt="Cloud vs On-Premise Surveillance Comparison" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 
                 {/* Corner Accents */}
                 <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-red-500/50 rounded-tl-lg" />
@@ -172,18 +174,302 @@ function AICapabilitiesSection() {
             return (
               <div 
                 key={cap.title}
-                className="group relative bg-white rounded-2xl p-6 border border-slate-200 hover:border-red-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+                className="group relative bg-white rounded-2xl p-6 border border-slate-200 hover:border-red-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
               >
                 {/* Hover Glow */}
                 <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
                 
+                {/* Animated Background Elements */}
+                {idx === 0 && (
+                  <div className="absolute top-2 right-2 w-8 h-8 bg-red-100 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+                )}
+                {idx === 1 && (
+                  <div className="absolute top-4 right-4 flex gap-1">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  </div>
+                )}
+                {idx === 2 && (
+                  <div className="absolute top-3 right-3 w-10 h-10 border-2 border-red-300 rounded-full animate-pulse" />
+                )}
+                {idx === 3 && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-6 h-6 border-2 border-blue-400 rounded animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
+                )}
+                
                 {/* Icon */}
-                <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-rose-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-rose-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform relative">
                   <Icon className="w-7 h-7 text-white" />
+                  {/* Notification dot for alerts */}
+                  {idx === 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  )}
                 </div>
                 
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{cap.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">{cap.desc}</p>
+                
+                {/* Progress bar animation for certain cards */}
+                {idx < 4 && (
+                  <div className="mt-4 h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-red-500 to-rose-500 rounded-full animate-pulse" 
+                      style={{ width: `${60 + idx * 10}%` }} 
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+
+      </div>
+    </section>
+  );
+}
+
+// ==================== AI FEATURES DEMO SECTION ====================
+function AIFeaturesDemo() {
+  const demos = [
+    {
+      title: 'Real-time Alerts',
+      bg: 'from-red-900/20 to-red-950/30',
+      border: 'border-red-500/30',
+      icon: Bell,
+      animation: (
+        <div className="relative w-32 h-24 bg-slate-900/80 rounded-lg overflow-hidden border border-red-500/30">
+          {/* Sliding notification panel */}
+          <div className="absolute top-0 left-0 right-0 h-6 bg-red-600 flex items-center justify-center">
+            <span className="text-white text-[8px] font-bold">⚠ SECURITY ALERT</span>
+          </div>
+          {/* Bell ringing animation */}
+          <div className="absolute top-10 left-1/2 -translate-x-1/2">
+            <div className="w-8 h-10 relative">
+              <div className="w-8 h-8 bg-red-500 rounded-full absolute top-0 animate-[bellRing_0.5s_ease-in-out_infinite]" style={{ transformOrigin: 'top center' }} />
+              <div className="w-1 h-3 bg-red-500 absolute top-7 left-1/2 -translate-x-1/2" />
+              <div className="w-3 h-3 bg-red-500 rounded-full absolute top-9 left-1/2 -translate-x-1/2 animate-ping" />
+            </div>
+          </div>
+          {/* Scrolling alert list */}
+          <div className="absolute bottom-2 left-1 right-1 h-8 overflow-hidden">
+            <div className="flex flex-col gap-1 animate-[scrollUp_3s_linear_infinite]">
+              <div className="bg-red-900/60 text-red-200 text-[7px] px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />Motion detected
+              </div>
+              <div className="bg-red-900/60 text-red-200 text-[7px] px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />Face recognized
+              </div>
+              <div className="bg-red-900/60 text-red-200 text-[7px] px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />Zone breach
+              </div>
+            </div>
+          </div>
+          <style jsx>{`
+            @keyframes bellRing {
+              0%, 100% { transform: rotate(0deg); }
+              25% { transform: rotate(15deg); }
+              75% { transform: rotate(-15deg); }
+            }
+            @keyframes scrollUp {
+              0% { transform: translateY(100%); }
+              100% { transform: translateY(-100%); }
+            }
+          `}</style>
+        </div>
+      )
+    },
+    {
+      title: 'Crowd Monitoring',
+      bg: 'from-blue-900/20 to-blue-950/30',
+      border: 'border-blue-500/30',
+      icon: Users,
+      animation: (
+        <div className="relative w-32 h-24 bg-slate-900/80 rounded-lg overflow-hidden border border-blue-500/30">
+          {/* Wave pattern background */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-blue-600/30 to-transparent">
+              <svg className="w-full h-full animate-[wave_2s_ease-in-out_infinite]" viewBox="0 0 100 20" preserveAspectRatio="none">
+                <path d="0 20 Q 25 5, 50 20 T 100 20 L 100 20 L 0 20" fill="rgba(59,130,246,0.3)" />
+              </svg>
+            </div>
+            <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-cyan-600/20 to-transparent" style={{ animationDelay: '0.5s' }}>
+              <svg className="w-full h-full animate-[wave_2.5s_ease-in-out_infinite]" viewBox="0 0 100 20" preserveAspectRatio="none">
+                <path d="0 20 Q 25 10, 50 20 T 100 20 L 100 20 L 0 20" fill="rgba(6,182,212,0.2)" />
+              </svg>
+            </div>
+          </div>
+          {/* Counter with rolling numbers */}
+          <div className="absolute top-2 left-2">
+            <div className="bg-blue-600/80 rounded px-2 py-1">
+              <span className="text-white font-bold text-lg">24</span>
+              <span className="text-blue-200 text-[8px] ml-1">people</span>
+            </div>
+          </div>
+          {/* Density heat zones */}
+          <div className="absolute top-2 right-2 flex gap-0.5">
+            <div className="w-2 h-4 bg-gradient-to-t from-green-500 to-green-300 rounded-sm animate-[pulse_1s_ease-in-out_infinite]" />
+            <div className="w-2 h-4 bg-gradient-to-t from-yellow-500 to-yellow-300 rounded-sm animate-[pulse_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
+            <div className="w-2 h-4 bg-gradient-to-t from-orange-500 to-orange-300 rounded-sm animate-[pulse_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }} />
+            <div className="w-2 h-4 bg-gradient-to-t from-red-500 to-red-300 rounded-sm animate-[pulse_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }} />
+          </div>
+          {/* Animated stick figures */}
+          <div className="absolute inset-0 flex items-end justify-around pb-2">
+            <div className="w-2 h-4 bg-blue-400 rounded-full animate-[bounce_1s_ease-in-out_infinite]" />
+            <div className="w-2 h-5 bg-cyan-400 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }} />
+            <div className="w-2 h-4 bg-blue-400 rounded-full animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }} />
+          </div>
+          <style jsx>{`
+            @keyframes wave {
+              0%, 100% { transform: translateX(0); }
+              50% { transform: translateX(-20px); }
+            }
+          `}</style>
+        </div>
+      )
+    },
+    {
+      title: 'Anomaly Detection',
+      bg: 'from-purple-900/20 to-purple-950/30',
+      border: 'border-purple-500/30',
+      icon: Shield,
+      animation: (
+        <div className="relative w-32 h-24 bg-slate-900/80 rounded-lg overflow-hidden border border-purple-500/30">
+          {/* Grid scanning effect */}
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-px bg-slate-800/50">
+            {[...Array(16)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`bg-slate-700/30 ${[0,3,5,6,9,10,12,15].includes(i) ? 'animate-[flash_1.5s_ease-in-out_infinite]' : ''}`}
+                style={{ animationDelay: `${i * 0.1}s` }}
+              />
+            ))}
+          </div>
+          {/* Center eye/scan */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 relative">
+              <div className="absolute inset-0 border-2 border-purple-500 rounded-full animate-[spin_4s_linear_infinite]" />
+              <div className="absolute inset-2 border border-purple-400 rounded-full animate-[spin_3s_linear_infinite]" style={{ animationDirection: 'reverse' }} />
+              <div className="absolute inset-4 bg-purple-500/50 rounded-full animate-[pulse_1s_ease-in-out_infinite]" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-3 bg-purple-400 rounded-full animate-[scan_2s_ease-in-out_infinite]" />
+            </div>
+          </div>
+          {/* Status indicator */}
+          <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+            <div className="bg-green-600/80 text-white text-[8px] px-3 py-1 rounded-full flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              ALL NORMAL
+            </div>
+          </div>
+          <style jsx>{`
+            @keyframes flash {
+              0%, 100% { opacity: 0.3; }
+              50% { opacity: 1; background-color: rgba(168,85,247,0.5); }
+            }
+            @keyframes scan {
+              0%, 100% { top: 0; }
+              50% { top: 100%; }
+            }
+          `}</style>
+        </div>
+      )
+    },
+    {
+      title: 'Object Detection',
+      bg: 'from-cyan-900/20 to-cyan-950/30',
+      border: 'border-cyan-500/30',
+      icon: Eye,
+      animation: (
+        <div className="relative w-32 h-24 bg-slate-900/80 rounded-lg overflow-hidden border border-cyan-500/30">
+          {/* Crosshair overlay */}
+          <div className="absolute inset-0">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-cyan-500/30" />
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-cyan-500/30" />
+            {/* Corner brackets */}
+            <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-cyan-400" />
+            <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-cyan-400" />
+            <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-cyan-400" />
+            <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-cyan-400" />
+          </div>
+          {/* Moving/identified objects */}
+          <div className="absolute top-4 left-4">
+            <div className="relative">
+              {/* Car with trail */}
+              <div className="w-10 h-5 bg-gradient-to-r from-transparent via-cyan-500/50 to-cyan-500 rounded flex items-center justify-start px-1">
+                <div className="w-2 h-2 bg-cyan-300 rounded-sm" />
+              </div>
+              {/* Motion trail */}
+              <div className="absolute -left-4 top-1 w-4 h-3 flex gap-0.5">
+                <span className="w-1 h-1 bg-cyan-400/50 rounded-full animate-ping" />
+                <span className="w-1 h-1 bg-cyan-400/30 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
+              </div>
+            </div>
+          </div>
+          <div className="absolute bottom-6 right-4">
+            <div className="relative">
+              {/* Person */}
+              <div className="w-4 h-8 flex flex-col items-center">
+                <div className="w-3 h-3 bg-cyan-400 rounded-full" />
+                <div className="w-3 h-5 bg-cyan-500/70 rounded-b" />
+              </div>
+            </div>
+          </div>
+          {/* Detection frame */}
+          <div className="absolute top-3 left-3 w-12 h-7 border-2 border-cyan-400 rounded animate-[tracking_2s_ease-in-out_infinite]" />
+          <div className="absolute bottom-5 right-3 w-6 h-10 border-2 border-cyan-400 rounded animate-[tracking_2.5s_ease-in-out_infinite]" style={{ animationDelay: '0.5s' }} />
+          {/* Object labels */}
+          <div className="absolute top-1 right-1 text-[6px]">
+            <div className="bg-cyan-600 text-white px-1 rounded mb-0.5">CAR 98%</div>
+            <div className="bg-cyan-600 text-white px-1 rounded">PERSON 95%</div>
+          </div>
+          <style jsx>{`
+            @keyframes tracking {
+              0%, 100% { opacity: 0.5; transform: scale(1); }
+              50% { opacity: 1; transform: scale(1.05); }
+            }
+          `}</style>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <section className="py-16 bg-slate-50 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-30">
+        <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+      </div>
+      
+      <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            See AI in Action
+          </h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">
+            Watch how our AI features detect, analyze, and alert in real-time
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {demos.map((demo, idx) => {
+            const Icon = demo.icon;
+            return (
+              <div 
+                key={demo.title}
+                className={`bg-gradient-to-br ${demo.bg} rounded-2xl p-1 border ${demo.border} hover:shadow-xl transition-all duration-300 hover:scale-105`}
+              >
+                <div className="bg-slate-900/90 rounded-xl p-4 h-full">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-rose-600 rounded-lg flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-white font-semibold text-sm">{demo.title}</span>
+                  </div>
+                  <div className="flex justify-center">
+                    {demo.animation}
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -479,6 +765,7 @@ export default function HeroPage() {
     <div className="bg-white">
       <HeroSection />
       <AICapabilitiesSection />
+      <AIFeaturesDemo />
       <AIUseCasesSection />
       <PlatformArchitectureSection />
       <IndustryApplicationsSection />
