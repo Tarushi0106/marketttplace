@@ -229,92 +229,24 @@ export function SolutionsCarousel({ categories }: SolutionsCarouselProps) {
           </div>
         </div>
 
-        {/* Scrollable Container */}
+        {/* Scrollable Container - Simple Names Only */}
         <div
           ref={solutionsScrollRef}
-          className="flex gap-0 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] justify-center"
         >
-          {/* Main Container Box */}
-          <div className="flex rounded-2xl border border-gray-200 bg-white">
-            {categories.map((category, index) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.slug}`}
-                className="flex-shrink-0 snap-start group w-[300px] md:w-[320px]"
-              >
-                <div
-                  className="h-[220px] flex flex-col justify-between py-6 px-5 transition-all duration-300 group-hover:bg-gray-50 relative"
-                >
-                  {/* Top Row: Icon Left, Text Right */}
-                  <div className="flex items-start gap-4">
-                    {/* Red Icon on Left */}
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center flex-shrink-0 shadow-sm">
-                      {getIcon(category.icon, "w-6 h-6 text-white", category.name)}
-                    </div>
-                    
-                    {/* Text Content on Right */}
-                    <div className="flex-1 min-w-0 pt-1">
-                      <h3 className="text-lg font-medium text-gray-900 leading-tight truncate">
-                        {category.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm mt-1.5 line-clamp-2">
-                        {category.description || `${category.productCount} products available`}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Bottom: Explore Button */}
-                  <div className="mt-auto">
-                    <button className="px-4 py-1.5 bg-gray-100 hover:bg-red-600 hover:text-white text-gray-600 text-sm font-medium rounded-md transition-all duration-300 flex items-center gap-2">
-                      Explore Marketplace
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Separator line between cards (not for last item, with padding) */}
-                  {index < categories.length - 1 && (
-                    <div className="absolute right-0 top-6 bottom-6 w-px bg-gray-200" />
-                  )}
-                </div>
-              </Link>
-            ))}
-
-            {/* View All Card */}
+          {categories.map((category) => (
             <Link
-              href="/categories"
-              className="flex-shrink-0 snap-start group w-[300px] md:w-[320px]"
+              key={category.id}
+              href={`/categories/${category.slug}`}
+              className="flex-shrink-0 snap-start"
             >
-              <div
-                className="h-[220px] flex flex-col justify-between py-6 px-5 transition-all duration-300 group-hover:bg-gray-50 relative"
-              >
-                {/* Top Row: Icon Left, Text Right */}
-                <div className="flex items-start gap-4">
-                  {/* Red Icon on Left */}
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <ArrowRight className="w-6 h-6 text-white" />
-                  </div>
-                  
-                  {/* Text Content on Right */}
-                  <div className="flex-1 min-w-0 pt-1">
-                    <h3 className="text-lg font-medium text-gray-900 leading-tight">
-                      View All
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-1.5">
-                      Browse complete catalog
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom: Browse Button */}
-                <div className="mt-auto">
-                  <button className="px-4 py-1.5 bg-gray-100 hover:bg-red-600 hover:text-white text-gray-600 text-sm font-medium rounded-md transition-all duration-300 flex items-center gap-2">
-                    Browse All
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="px-8 py-4 bg-white border border-gray-200 rounded-xl hover:border-red-400 hover:shadow-md transition-all duration-300">
+                <span className="text-lg font-medium text-gray-900 whitespace-nowrap">
+                  {category.name}
+                </span>
               </div>
             </Link>
-          </div>
+          ))}
         </div>
       </div>
     </section>

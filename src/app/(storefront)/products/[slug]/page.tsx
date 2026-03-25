@@ -483,23 +483,6 @@ export default async function ProductDetailPage({ params }: Props) {
                       )}
                     </div>
 
-                    {/* Quick Features */}
-                    {features.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Key Features</h3>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          {features.slice(0, 6).map((feature, index) => (
-                            <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {features.length > 6 && (
-                          <p className="mt-3 text-sm text-[#8B1D1D] font-medium">+{features.length - 6} more features in Features tab</p>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Sidebar */}
