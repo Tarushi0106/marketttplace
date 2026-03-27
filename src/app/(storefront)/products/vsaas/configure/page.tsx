@@ -134,16 +134,47 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
 
   // Transform variants
   const transformVariants = (variants: any[]) => {
-    return variants.map(variant => ({
-      id: variant.id,
-      name: variant.name,
-      price: Number(variant.price) || 0,
-      compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
-      isDefault: variant.isDefault || false,
-      attributes: variant.attributes as Record<string, string> || {},
-      billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
-      setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
-    }));
+    return variants.map(variant => {
+      // Build recurringPricesObj from the first recurring price entry if available
+      const recurringPricesObj = variant.recurringPrices && variant.recurringPrices.length > 0 ? {
+        monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
+        quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
+        yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
+        semiAnnual: variant.recurringPrices[0]?.semiAnnualPrice ? Number(variant.recurringPrices[0].semiAnnualPrice) : null,
+        biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
+        triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
+      } : null;
+      
+      return {
+        id: variant.id,
+        name: variant.name,
+        price: Number(variant.price) || 0,
+        compareAtPrice: variant.compareAtPrice ? Number(variant.compareAtPrice) : null,
+        isDefault: variant.isDefault || false,
+        type: variant.type || undefined,
+        attributes: variant.attributes as Record<string, string> || {},
+        billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
+        setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
+        minQuantity: variant.minQuantity || 1,
+        maxQuantity: variant.maxQuantity || null,
+        // Include recurring prices if available
+        recurringPrices: variant.recurringPrices ? variant.recurringPrices.map((rp: any) => ({
+          id: rp.id,
+          variantId: rp.variantId,
+          monthlyPrice: rp.monthlyPrice ? Number(rp.monthlyPrice) : null,
+          quarterlyPrice: rp.quarterlyPrice ? Number(rp.quarterlyPrice) : null,
+          yearlyPrice: rp.yearlyPrice ? Number(rp.yearlyPrice) : null,
+          biMonthlyPrice: rp.biMonthlyPrice ? Number(rp.biMonthlyPrice) : null,
+          fourMonthlyPrice: rp.fourMonthlyPrice ? Number(rp.fourMonthlyPrice) : null,
+          semiAnnualPrice: rp.semiAnnualPrice ? Number(rp.semiAnnualPrice) : null,
+          triAnnualPrice: rp.triAnnualPrice ? Number(rp.triAnnualPrice) : null,
+          biennialPrice: rp.biennialPrice ? Number(rp.biennialPrice) : null,
+          triennialPrice: rp.triennialPrice ? Number(rp.triennialPrice) : null,
+        })) : [],
+        // Include recurringPricesObj for easier price lookup by billing cycle
+        recurringPricesObj,
+      };
+    });
   };
 
   // Filter variants by type field (with fallback to name for backwards compatibility)
@@ -169,6 +200,17 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
     )
   ) : [];
 
+  // Filter for AI variants
+  const aiVariants = vsaasProduct ? transformVariants(
+    vsaasProduct.variants.filter((v: any) => 
+      v.type === 'ai' || 
+      v.attributes?.type === 'ai' || 
+      v.name.toLowerCase().includes('ai') ||
+      v.sku?.toLowerCase().includes('ai') ||
+      v.name.startsWith('🤖')
+    )
+  ) : [];
+
   // Filter addons by group prefix (Cloud vs On-Premise)
   const cloudAddons = vsaasProduct ? transformAddons(
     vsaasProduct.addons.filter((a: any) => 
@@ -184,6 +226,15 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
       a.group?.toLowerCase().includes('onprem') ||
       a.group?.startsWith('🖥️') ||
       (!a.group && (a.name.toLowerCase().includes('on premise') || a.name.startsWith('On-Premise - ')))
+    )
+  ) : [];
+
+  // Filter for AI products
+  const aiAddons = vsaasProduct ? transformAddons(
+    vsaasProduct.addons.filter((a: any) => 
+      a.group?.toLowerCase().includes('ai') || 
+      a.group?.startsWith('🤖') ||
+      (!a.group && a.name.toLowerCase().includes('ai'))
     )
   ) : [];
 
@@ -212,14 +263,22 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
           cloudProduct={{
             ...vsaasProduct,
             variants: cloudVariants,
-            addons: cloudAddons
-          }}
+            addons: cloudAddons,
+            images: vsaasProduct.images || [],
+          } as any}
           onPremiseProduct={{
             ...vsaasProduct,
             variants: onPremiseVariants,
-            addons: onPremiseAddons
-          }}
-          selectedVariantId={resolvedSearchParams.variant}
+            addons: onPremiseAddons,
+            images: vsaasProduct.images || [],
+          } as any}
+          aiProduct={{
+            ...vsaasProduct,
+            variants: aiVariants,
+            addons: aiAddons,
+            images: vsaasProduct.images || [],
+          } as any}
+          selectedVariantId={resolvedSearchParams.variant || undefined}
         />
       ) : (
         <div className="container mx-auto px-4 py-10 text-center">

@@ -1,0 +1,179 @@
+add-onprem-variant.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+add-onprem-variant.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+add-onprem-variant.ts(4,16): error TS2393: Duplicate function implementation.
+check-all-vsaas.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+check-all-vsaas.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+check-all-vsaas.ts(4,16): error TS2393: Duplicate function implementation.
+check-all-vsaas.ts(15,70): error TS7006: Parameter 'v' implicitly has an 'any' type.
+check-configs.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+check-configs.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+check-configs.ts(4,16): error TS2393: Duplicate function implementation.
+check-types.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+check-types.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+check-types.ts(4,16): error TS2393: Duplicate function implementation.
+check-variant.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+check-variant.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+check-variant.ts(4,16): error TS2393: Duplicate function implementation.
+check-vsaas.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+check-vsaas.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+check-vsaas.ts(4,16): error TS2393: Duplicate function implementation.
+check-vsaas.ts(17,51): error TS7006: Parameter 'v' implicitly has an 'any' type.
+check-vsaas.ts(18,47): error TS7006: Parameter 'a' implicitly has an 'any' type.
+delete-old-vsaas.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+delete-old-vsaas.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+delete-old-vsaas.ts(4,16): error TS2393: Duplicate function implementation.
+fix-vsaas.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+fix-vsaas.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+fix-vsaas.ts(4,16): error TS2393: Duplicate function implementation.
+get-variant-ids.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+get-variant-ids.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+get-variant-ids.ts(4,16): error TS2393: Duplicate function implementation.
+list-products.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+list-products.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+list-products.ts(4,16): error TS2393: Duplicate function implementation.
+prisma/add-vsaas-recurring-prices.ts(114,30): error TS2304: Cannot find name 'cloudWithPrices'.
+prisma/add-vsaas-recurring-prices.ts(117,30): error TS2304: Cannot find name 'onPremiseWithPrices'.
+prisma/check-variant.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/check-variant.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/check-variant.ts(4,16): error TS2393: Duplicate function implementation.
+prisma/import-acronis-backup-advanced.ts(8,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-acronis-backup-advanced.ts(9,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-acronis-backup-advanced.ts(12,7): error TS2451: Cannot redeclare block-scoped variable 'acronisVariants'.
+prisma/import-acronis-backup-advanced.ts(232,7): error TS2451: Cannot redeclare block-scoped variable 'addons'.
+prisma/import-acronis-backup-advanced.ts(297,16): error TS2393: Duplicate function implementation.
+prisma/import-acronis-backup.ts(8,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-acronis-backup.ts(9,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-acronis-backup.ts(12,7): error TS2451: Cannot redeclare block-scoped variable 'acronisVariants'.
+prisma/import-acronis-backup.ts(142,16): error TS2393: Duplicate function implementation.
+prisma/import-acronis-protect-cloud.ts(8,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-acronis-protect-cloud.ts(9,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-acronis-protect-cloud.ts(12,7): error TS2451: Cannot redeclare block-scoped variable 'acronisVariants'.
+prisma/import-acronis-protect-cloud.ts(119,7): error TS2451: Cannot redeclare block-scoped variable 'addons'.
+prisma/import-acronis-protect-cloud.ts(128,16): error TS2393: Duplicate function implementation.
+prisma/import-acronis-protect-cloud.ts(259,35): error TS2339: Property 'specifications' does not exist on type '{ name: string; sku: string; shortDesc: string; description: string; price: number; unit: string; sortOrder: number; setupFee?: undefined; } | { name: string; sku: string; shortDesc: string; description: string; price: number; unit: string; setupFee: number; sortOrder: number; }'.
+  Property 'specifications' does not exist on type '{ name: string; sku: string; shortDesc: string; description: string; price: number; unit: string; sortOrder: number; setupFee?: undefined; }'.
+prisma/import-software-license-addons.ts(173,7): error TS2322: Type '{ name: string; slug: string; sku: string; shortDescription: string; description: string; productType: "CONFIGURABLE"; status: "ACTIVE"; categoryId: string; }' is not assignable to type '(Without<ProductCreateInput, ProductUncheckedCreateInput> & ProductUncheckedCreateInput) | (Without<...> & ProductCreateInput)'.
+  Type '{ name: string; slug: string; sku: string; shortDescription: string; description: string; productType: "CONFIGURABLE"; status: "ACTIVE"; categoryId: string; }' is not assignable to type 'Without<ProductCreateInput, ProductUncheckedCreateInput> & ProductUncheckedCreateInput'.
+    Property 'basePrice' is missing in type '{ name: string; slug: string; sku: string; shortDescription: string; description: string; productType: "CONFIGURABLE"; status: "ACTIVE"; categoryId: string; }' but required in type 'ProductUncheckedCreateInput'.
+prisma/import-tally-calculator.ts(11,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-tally-calculator.ts(12,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-tally-calculator.ts(172,7): error TS2451: Cannot redeclare block-scoped variable 'addons'.
+prisma/import-tally-calculator.ts(186,16): error TS2393: Duplicate function implementation.
+prisma/import-tally-calculator.ts(431,28): error TS2339: Property 'desc' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; } | { name: string; description: string; price: number; unit: string; setupFee?: undefined; }'.
+  Property 'desc' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; }'.
+prisma/import-tally-calculator.ts(432,22): error TS2339: Property 'rate' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; } | { name: string; description: string; price: number; unit: string; setupFee?: undefined; }'.
+  Property 'rate' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; }'.
+prisma/import-tally-calculator.ts(433,28): error TS2339: Property 'pricingType' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; } | { name: string; description: string; price: number; unit: string; setupFee?: undefined; }'.
+  Property 'pricingType' does not exist on type '{ name: string; description: string; price: number; setupFee: number; unit: string; }'.
+prisma/import-vsaas-cloud.ts(11,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-vsaas-cloud.ts(12,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-vsaas-cloud.ts(311,16): error TS2393: Duplicate function implementation.
+prisma/import-vsaas-cloud.ts(459,28): error TS2339: Property 'credits' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; } | { name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+  Property 'credits' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; }'.
+prisma/import-vsaas-cloud.ts(462,30): error TS2339: Property 'shortDesc' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; } | { name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+  Property 'shortDesc' does not exist on type '{ name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+prisma/import-vsaas-cloud.ts(464,29): error TS2339: Property 'features' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; } | { name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+  Property 'features' does not exist on type '{ name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+prisma/import-vsaas-cloud.ts(475,38): error TS2339: Property 'credits' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; } | { name: string; slug: string; category: string; unit: string; priceUSD: number; priceINR: number; credits: number; }'.
+  Property 'credits' does not exist on type '{ name: string; slug: string; shortDesc: string; category: string; unit: string; priceUSD: number; priceINR: number; features: string[]; }'.
+prisma/import-vsaas-on-premise.ts(8,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/import-vsaas-on-premise.ts(9,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/import-vsaas-on-premise.ts(161,16): error TS2393: Duplicate function implementation.
+prisma/setup-vsaas-cloud-addons.ts(79,9): error TS2322: Type '"MONTHLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud-addons.ts(105,9): error TS2322: Type '"MONTHLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud-addons.ts(134,9): error TS2322: Type '"MONTHLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud-addons.ts(165,9): error TS2322: Type '"MONTHLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud-addons.ts(194,9): error TS2322: Type '"MONTHLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud-addons.ts(299,9): error TS2322: Type '"YEARLY"' is not assignable to type 'AddonPricingType | undefined'.
+prisma/setup-vsaas-cloud.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/setup-vsaas-cloud.ts(3,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/verify-vsaas-import.ts(5,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+prisma/verify-vsaas-import.ts(6,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+prisma/verify-vsaas-import.ts(8,16): error TS2393: Duplicate function implementation.
+remove-emoji.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+remove-emoji.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+remove-emoji.ts(4,16): error TS2393: Duplicate function implementation.
+rename-vsaas.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+rename-vsaas.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+rename-vsaas.ts(4,16): error TS2393: Duplicate function implementation.
+setup-final.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+setup-final.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+setup-final.ts(4,16): error TS2393: Duplicate function implementation.
+setup-onprem.ts(1,9): error TS2451: Cannot redeclare block-scoped variable 'PrismaClient'.
+setup-onprem.ts(2,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+setup-onprem.ts(4,16): error TS2393: Duplicate function implementation.
+src/app/(auth)/login/page.tsx(17,23): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(storefront)/cart/page.tsx(176,36): error TS2339: Property 'icon' does not exist on type 'Product'.
+src/app/(storefront)/cart/page.tsx(177,51): error TS2339: Property 'icon' does not exist on type 'Product'.
+src/app/(storefront)/checkout/success/page.tsx(154,19): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(storefront)/checkout/success/page.tsx(155,21): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(storefront)/invoice/[id]/page.tsx(155,53): error TS18047: 'params' is possibly 'null'.
+src/app/(storefront)/invoice/[id]/page.tsx(168,9): error TS18047: 'params' is possibly 'null'.
+src/app/(storefront)/invoice/[id]/page.tsx(171,7): error TS18047: 'params' is possibly 'null'.
+src/app/(storefront)/products/[slug]/page.tsx(606,84): error TS2532: Object is possibly 'undefined'.
+src/app/(storefront)/products/[slug]/page.tsx(654,84): error TS2532: Object is possibly 'undefined'.
+src/app/admin/bundles/[id]/edit/page.tsx(59,14): error TS18047: 'params' is possibly 'null'.
+src/app/admin/categories/[id]/page.tsx(130,14): error TS18047: 'params' is possibly 'null'.
+src/app/admin/categories/[id]/subcategories/page.tsx(112,22): error TS18047: 'params' is possibly 'null'.
+src/app/admin/discounts/[id]/edit/page.tsx(31,14): error TS18047: 'params' is possibly 'null'.
+src/app/admin/orders/[id]/page.tsx(231,9): error TS18047: 'params' is possibly 'null'.
+src/app/admin/orders/[id]/page.tsx(234,7): error TS18047: 'params' is possibly 'null'.
+src/app/admin/orders/[id]/page.tsx(238,51): error TS18047: 'params' is possibly 'null'.
+src/app/admin/orders/[id]/page.tsx(248,72): error TS18047: 'params' is possibly 'null'.
+src/app/admin/pages/[id]/edit/page.tsx(58,14): error TS18047: 'params' is possibly 'null'.
+src/app/admin/products/[id]/edit/page.tsx(8,14): error TS18047: 'params' is possibly 'null'.
+src/app/api/categories/[id]/addons/route.ts(103,9): error TS2353: Object literal may only specify known properties, and 'billingCycle' does not exist in type 'Without<CategoryAddonCreateInput, CategoryAddonUncheckedCreateInput> & CategoryAddonUncheckedCreateInput'.
+src/app/api/checkout/verify/route.ts(105,44): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(106,43): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(107,42): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(108,43): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(109,43): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(110,39): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(111,40): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(112,45): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(113,42): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(114,40): error TS2339: Property 'shippingAddress' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'shippingAddress' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(116,11): error TS2322: Type 'JsonValue' is not assignable to type 'Record<string, any> | null | undefined'.
+  Type 'string' is not assignable to type 'Record<string, any>'.
+src/app/api/checkout/verify/route.ts(154,38): error TS2339: Property 'customerName' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'customerName' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(167,50): error TS2339: Property 'setupFee' does not exist on type 'string | number | boolean | JsonObject | JsonArray'.
+  Property 'setupFee' does not exist on type 'string'.
+src/app/api/checkout/verify/route.ts(181,44): error TS2345: Argument of type '{ orderNumber: string; customerName: string; customerEmail: string; items: { name: any; quantity: any; price: number; configs: { name: string; value: string; price: number; }[]; }[]; subtotal: number; setupFee: number; ... 5 more ...; companyInfo: { ...; }; }' is not assignable to parameter of type 'OrderDetails'.
+  The types of 'companyInfo.email' are incompatible between these types.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/app/api/invoices/[id]/resend/route.ts(65,36): error TS2339: Property 'instances' does not exist on type 'JsonObject | JsonArray'.
+  Property 'instances' does not exist on type 'JsonArray'.
+src/app/api/invoices/[id]/resend/route.ts(65,82): error TS2339: Property 'instances' does not exist on type 'JsonObject | JsonArray'.
+  Property 'instances' does not exist on type 'JsonArray'.
+src/app/api/invoices/[id]/resend/route.ts(66,34): error TS2339: Property 'instances' does not exist on type 'JsonObject | JsonArray'.
+  Property 'instances' does not exist on type 'JsonArray'.
+src/components/storefront/Header.tsx(147,54): error TS18048: 'item.quantity' is possibly 'undefined'.
+src/components/storefront/ProductConfigurator.tsx(284,40): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductConfigurator.tsx(339,86): error TS2551: Property 'recurringPricesObj' does not exist on type '{ id: string; name: string; price: number; compareAtPrice?: number | null | undefined; attributes?: Record<string, string> | undefined; isDefault?: boolean | undefined; recurringPrices?: any[] | undefined; billingType?: "ONE_TIME" | ... 1 more ... | undefined; setupFee?: number | undefined; }'. Did you mean 'recurringPrices'?
+src/components/storefront/ProductConfigurator.tsx(344,24): error TS2551: Property 'recurringPricesObj' does not exist on type '{ id: string; name: string; price: number; compareAtPrice?: number | null | undefined; attributes?: Record<string, string> | undefined; isDefault?: boolean | undefined; recurringPrices?: any[] | undefined; billingType?: "ONE_TIME" | ... 1 more ... | undefined; setupFee?: number | undefined; }'. Did you mean 'recurringPrices'?
+src/components/storefront/ProductConfigurator.tsx(345,34): error TS2551: Property 'recurringPricesObj' does not exist on type '{ id: string; name: string; price: number; compareAtPrice?: number | null | undefined; attributes?: Record<string, string> | undefined; isDefault?: boolean | undefined; recurringPrices?: any[] | undefined; billingType?: "ONE_TIME" | ... 1 more ... | undefined; setupFee?: number | undefined; }'. Did you mean 'recurringPrices'?
+src/components/storefront/ProductConfigurator.tsx(1016,18): error TS2339: Property 'slug' does not exist on type '{ id: string; name: string; basePrice: number; productType: string; images: any[]; isRecurring?: boolean | undefined; }'.
+src/components/storefront/ProductConfigurator.tsx(1016,54): error TS2339: Property 'slug' does not exist on type '{ id: string; name: string; basePrice: number; productType: string; images: any[]; isRecurring?: boolean | undefined; }'.
+src/components/storefront/ProductFilters.tsx(58,12): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(59,12): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(62,30): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(63,25): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(64,18): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(67,40): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(83,21): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(214,28): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(226,28): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(317,18): error TS18047: 'searchParams' is possibly 'null'.
+src/components/storefront/ProductFilters.tsx(320,40): error TS18047: 'searchParams' is possibly 'null'.

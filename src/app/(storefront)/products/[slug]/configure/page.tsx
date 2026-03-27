@@ -222,6 +222,8 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     attributes: variant.attributes as Record<string, string> || {},
     billingType: (variant.attributes as Record<string, any>)?.billingType || 'RECURRING',
     setupFee: (variant.attributes as Record<string, any>)?.setupFee ? Number((variant.attributes as Record<string, any>)?.setupFee) : 0,
+    minQuantity: (variant.attributes as Record<string, any>)?.minQuantity ? Number((variant.attributes as Record<string, any>)?.minQuantity) : 1,
+    maxQuantity: (variant.attributes as Record<string, any>)?.maxQuantity ? Number((variant.attributes as Record<string, any>)?.maxQuantity) : null,
     // Include recurring prices array from database
     recurringPrices: variant.recurringPrices ? variant.recurringPrices.map((rp: any) => ({
       id: rp.id,

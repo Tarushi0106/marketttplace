@@ -352,7 +352,7 @@ export function TallyCloudConfigurator({
       }
       groups[groupName].push(addon);
     });
-    // Return groups with multiple options, but also include Cloud Storage groups regardless of item count
+    // Return groups sorted: Licences first, then Cloud Storage, then others
     return Object.entries(groups).filter(([name, items]) => {
       console.log('Group:', name, 'has', items.length, 'items');
       const isCloudStorageGroup = name === 'Cloud Storage' || 
@@ -360,6 +360,18 @@ export function TallyCloudConfigurator({
         name === 'Cloud' ||
         name.toLowerCase().includes('cloud storage');
       return items.length > 1 || isCloudStorageGroup;
+    }).sort(([nameA], [nameB]) => {
+      // Sort: Licences first, then others, then Cloud Storage last
+      const isCloudStorageA = nameA.toLowerCase().includes('cloud storage');
+      const isCloudStorageB = nameB.toLowerCase().includes('cloud storage');
+      const isLicencesA = nameA.toLowerCase().includes('licence') || nameA.toLowerCase().includes('license');
+      const isLicencesB = nameB.toLowerCase().includes('licence') || nameB.toLowerCase().includes('license');
+      
+      if (isLicencesA && !isLicencesB) return -1;
+      if (!isLicencesA && isLicencesB) return 1;
+      if (isCloudStorageA && !isCloudStorageB) return 1;
+      if (!isCloudStorageA && isCloudStorageB) return -1;
+      return 0;
     });
   }, [addons]);
 
@@ -380,6 +392,17 @@ export function TallyCloudConfigurator({
 
   // Track selected dropdown values (for single-select)
   const [selectedDropdownAddon, setSelectedDropdownAddon] = useState<Record<string, string>>({});
+
+  // Track open/closed state of dropdown sections
+  const [openDropdownSections, setOpenDropdownSections] = useState<Record<string, boolean>>({});
+
+  // Toggle dropdown section open/close
+  const toggleDropdownSection = (sectionName: string) => {
+    setOpenDropdownSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
 
   // Track MULTI-SELECT for dropdown groups with quantities
   interface SelectedAddonOption {
@@ -729,312 +752,228 @@ export function TallyCloudConfigurator({
               <p className="text-gray-500">No add-ons available</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {/* Grouped Addons as Dropdowns */}
+            <div className="space-y-4">
+              {/* Render each group as a collapsible dropdown section */}
               {groupedAddons.map(([baseName, items]) => {
-                const selectedId = selectedDropdownAddon[baseName] || items[0]?.id;
-                const selectedAddon = items.find(i => i.id === selectedId);
-                const qty = addonQuantities[selectedId] || 0;
-                
-                // Special handling for Cloud Storage - horizontal cards with checkboxes (NOT dropdown)
-                // Handle various possible group names for Cloud Storage
+                // Determine if this is Cloud Storage
                 const isCloudStorageGroup = baseName === 'Cloud Storage' || 
                   baseName === 'Cloud - Storage' || 
                   baseName === 'Cloud' ||
                   baseName.toLowerCase().includes('cloud storage');
                 
+                const isOpen = true; // Always open by default
+                
                 if (isCloudStorageGroup) {
+                  // CLOUD STORAGE - Single selection cards
                   const currentStorageSelection = multiSelectedAddons[baseName]?.[0];
                   
                   return (
-                    <div key={baseName} className="p-4 rounded-xl border border-gray-200 bg-white">
-                      <div className="font-medium text-gray-900 mb-4">Cloud Storage</div>
-                      {/* Horizontal cards layout - NOT dropdown */}
-                      <div className="flex flex-wrap gap-2">
-                        {items.map((item) => {
-                          const isSelected = currentStorageSelection?.id === item.id;
-                          const storageLabel = item.name?.replace(/^Cloud Storage - /, '').replace(/^Cloud - Storage - /, '').replace(/^Cloud Storage /, '') || '';
+                    <div key={baseName} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                      {/* Dropdown Header */}
+                      <button
+                        onClick={() => toggleDropdownSection(baseName)}
+                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <span className="font-semibold text-gray-900 uppercase text-sm tracking-wide">CLOUD STORAGE</span>
+                        <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {/* Dropdown Content */}
+                      {isOpen && (
+                        <div className="p-4 border-t border-gray-200">
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                            {items.map((item) => {
+                              const isSelected = currentStorageSelection?.id === item.id;
+                              const storageLabel = item.name?.replace(/^Cloud Storage - /, '').replace(/^Cloud - Storage - /, '').replace(/^Cloud Storage /, '') || '';
+                              
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                    isSelected 
+                                      ? "border-[#C62828] bg-red-50" 
+                                      : "border-gray-200 hover:border-gray-300"
+                                  }`}
+                                  onClick={() => {
+                                    handleMultiAddonChange(baseName, [{ id: item.id, name: item.name, price: item.price, qty: 1 }]);
+                                  }}
+                                >
+                                  {/* Radio-style selection indicator */}
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center mb-2 transition-all ${
+                                    isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
+                                  }`}>
+                                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                  </div>
+                                  <div className="text-gray-900 font-medium text-sm text-center">{storageLabel}</div>
+                                  <div className="font-bold text-gray-900 text-sm mt-1">
+                                    {formatPrice(getDynamicPrice(item.price, billingCycle, item.recurringPricesObj))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // LICENCES or other groups - Checkbox with quantity selector
+                const selectedId = selectedDropdownAddon[baseName] || items[0]?.id;
+                const qty = addonQuantities[selectedId] || 0;
+                const hasAnySelection = items.some(item => (addonQuantities[item.id] || 0) > 0);
+                
+                return (
+                  <div key={baseName} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                    {/* Dropdown Header */}
+                    <button
+                      onClick={() => toggleDropdownSection(baseName)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="font-semibold text-gray-900 uppercase text-sm tracking-wide">LICENCES</div>
+                        {hasAnySelection && (
+                          <span className="px-2 py-0.5 bg-[#C62828] text-white text-xs rounded-full">
+                            {items.reduce((sum, item) => sum + (addonQuantities[item.id] || 0), 0)}
+                          </span>
+                        )}
+                      </div>
+                      <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {/* Dropdown Content */}
+                    {isOpen && (
+                      <div className="border-t border-gray-200">
+                        {items.map((item, index) => {
+                          const itemQty = addonQuantities[item.id] || 0;
+                          const isLastItem = index === items.length - 1;
                           
                           return (
-                            <div
+                            <div 
                               key={item.id}
-                              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                                isSelected 
-                                  ? "border-[#C62828] bg-red-50" 
-                                  : "border-gray-200 hover:border-gray-300"
-                              }`}
-                              onClick={() => {
-                                handleMultiAddonChange(baseName, [{ id: item.id, name: item.name, price: item.price, qty: 1 }]);
-                              }}
+                              className={`flex items-center justify-between p-4 ${!isLastItem ? 'border-b border-gray-100' : ''}`}
                             >
-                              {/* Checkbox */}
-                              <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center mb-1 transition-all ${
-                                isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
-                              }`}>
-                                {isSelected && <Check className="w-2 h-2 text-white" />}
+                              <div className="flex items-center gap-4 flex-1">
+                                {/* Checkbox */}
+                                <div
+                                  className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer ${
+                                    itemQty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
+                                  }`}
+                                  onClick={() => {
+                                    if (itemQty > 0) {
+                                      setAddonQuantities(prev => ({ ...prev, [item.id]: 0 }));
+                                    } else {
+                                      setAddonQuantities(prev => ({ ...prev, [item.id]: 1 }));
+                                    }
+                                  }}
+                                >
+                                  {itemQty > 0 && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <div>
+                                  <div className="font-medium text-gray-900">{item.name}</div>
+                                  {item.unit && <div className="text-xs text-gray-400">{item.unit}</div>}
+                                </div>
                               </div>
-                              <div className="text-gray-900 font-medium text-xs text-center">{storageLabel}</div>
-                              <div className="font-bold text-gray-900 text-xs">
-                                {formatPrice(getDynamicPrice(item.price, billingCycle, item.recurringPricesObj))}
+                              <div className="flex items-center gap-4">
+                                {/* Quantity selector */}
+                                <div className="flex items-center bg-gray-100 rounded-full p-1">
+                                  <button
+                                    onClick={() => {
+                                      const currentQty = addonQuantities[item.id] || 0;
+                                      if (currentQty > 0) {
+                                        setAddonQuantities(prev => ({ ...prev, [item.id]: currentQty - 1 }));
+                                      }
+                                    }}
+                                    disabled={itemQty === 0}
+                                    className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs"
+                                  >
+                                    −
+                                  </button>
+                                  <span className="w-6 text-center font-medium text-gray-900 text-sm">{itemQty}</span>
+                                  <button
+                                    onClick={() => {
+                                      const currentQty = addonQuantities[item.id] || 0;
+                                      if (currentQty < 10) {
+                                        setAddonQuantities(prev => ({ ...prev, [item.id]: currentQty + 1 }));
+                                      }
+                                    }}
+                                    disabled={itemQty >= 10}
+                                    className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                {/* Price */}
+                                <div className="w-24 text-right">
+                                  <div className="font-semibold text-gray-900">
+                                    {itemQty > 0 ? formatPrice(getDynamicPrice(item.price, billingCycle, item.recurringPricesObj)) : formatPrice(getDynamicPrice(item.price, billingCycle, item.recurringPricesObj))}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  );
-                }
-                
-                return (
-                  <div
-                    key={baseName}
-                    className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                      qty > 0 
-                        ? "border-[#C62828] bg-red-50/40 shadow-sm" 
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-                    }`}
-                    onClick={() => {
-                      if (selectedId) {
-                        if (qty > 0) {
-                          setAddonQuantities(prev => ({ ...prev, [selectedId]: 0 }));
-                        } else {
-                          setAddonQuantities(prev => ({ ...prev, [selectedId]: 1 }));
-                        }
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div
-                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                          qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
-                        }`}
-                      >
-                        {qty > 0 && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{baseName}</div>
-                        <MultiSelectDropdown
-                          label={baseName}
-                          options={items.map(item => ({
-                            id: item.id,
-                            name: item.name,
-                            price: item.price,
-                            description: item.description || undefined
-                          }))}
-                          selectedIds={(multiSelectedAddons[baseName] || []).map(o => o.id)}
-                          onSelectionChange={(selected) => handleMultiAddonChange(baseName, selected)}
-                          formatPrice={formatPrice}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-5">
-                      <div 
-                        className="flex items-center gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center bg-gray-100 rounded-full p-1">
-                          <button
-                            onClick={() => {
-                              const currentQty = addonQuantities[selectedId] || 0;
-                              if (currentQty > 0) {
-                                setAddonQuantities(prev => ({ ...prev, [selectedId]: currentQty - 1 }));
-                              }
-                            }}
-                            disabled={qty === 0}
-                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
-                          >
-                            −
-                          </button>
-                          <span className="w-8 text-center font-medium text-gray-900 text-sm">{qty}</span>
-                          <button
-                            onClick={() => {
-                              const currentQty = addonQuantities[selectedId] || 0;
-                              if (currentQty < 4) {
-                                setAddonQuantities(prev => ({ ...prev, [selectedId]: currentQty + 1 }));
-                              }
-                            }}
-                            disabled={qty >= 4}
-                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                      <div className="w-24 text-right">
-                        <div className="font-semibold text-gray-900">
-                          {qty > 0 && selectedAddon ? formatPrice(getFinalPrice(selectedAddon.price, billingCycle)) : formatPrice(getFinalPrice(selectedAddon?.price || 0, billingCycle))}
-                        </div>
-                        {selectedAddon?.unit && qty === 0 && (
-                          <div className="text-xs text-gray-400">{selectedAddon.unit}</div>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
-
-              {/* Standalone Addons (regular rows) */}
+              
+              {/* Render standalone addons that don't belong to groups */}
               {standaloneAddons.map((addon) => {
-                // Check if addon has options for dropdown
-                const hasOptions = addon.options && addon.options.length > 0;
-                const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
-                const selectedOption = hasOptions ? addon.options![selectedOptionIndex] : null;
-                
-                // Check if this is Cloud Storage (handle various naming conventions)
-                const isCloudStorage = addon.name === 'Cloud Storage' || 
-                  addon.name === 'Cloud - Storage' ||
-                  addon.name === 'Cloud' ||
-                  addon.name.toLowerCase().includes('cloud storage');
-                
-                console.log('Checking standalone addon:', addon.name, 'isCloudStorage:', isCloudStorage, 'hasOptions:', hasOptions, 'options:', addon.options?.length);
-                
-                // Special handling for Cloud Storage - horizontal cards with checkboxes (NOT dropdown)
-                // Check by addon name or if the name contains storage-related keywords
-                const isStorageAddon = addon.name?.toLowerCase().includes('storage') || 
-                  addon.name?.toLowerCase().includes('cloud');
-                
-                // For storage addons with options, render as horizontal cards
-                if (isStorageAddon && hasOptions) {
-                  const currentSelection = multiSelectedAddons[addon.name]?.[0];
-                  
-                  return (
-                    <div key={addon.id} className="p-4 rounded-xl border border-gray-200 bg-white">
-                      <div className="font-medium text-gray-900 mb-4">Cloud Storage</div>
-                      {/* Horizontal cards layout - NOT dropdown */}
-                      <div className="flex flex-wrap gap-2">
-                        {addon.options!.map((option: any, idx: number) => {
-                          const isSelected = currentSelection?.id === option.id || selectedOptionIndex === idx;
-                          const optionLabel = option.label?.replace(/^Cloud Storage - /, '').replace(/^Cloud - Storage - /, '').replace(/^Cloud Storage /, '') || '';
-                          
-                          return (
-                            <div
-                              key={idx}
-                              className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border-2 cursor-pointer transition-all ${
-                                isSelected 
-                                  ? "border-[#C62828] bg-red-50" 
-                                  : "border-gray-200 hover:border-gray-300"
-                              }`}
-                              onClick={() => {
-                                setSelectedAddonOption(prev => ({ ...prev, [addon.id]: idx }));
-                                handleMultiAddonChange(addon.name, [{ id: option.id || String(idx), name: option.label, price: option.price, qty: 1 }]);
-                              }}
-                            >
-                              {/* Checkbox */}
-                              <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center mb-1 transition-all ${
-                                isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
-                              }`}>
-                                {isSelected && <Check className="w-2 h-2 text-white" />}
-                              </div>
-                              <div className="text-gray-900 font-medium text-xs text-center">{optionLabel}</div>
-                              <div className="font-bold text-gray-900 text-xs">
-                                {formatPrice(getDynamicPrice(option.price, billingCycle, option.recurringPricesObj))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                }
-                
-                // Use option price if available, otherwise use base price
-                const displayPrice = selectedOption ? selectedOption.price : addon.price;
-                const displayUnit = selectedOption?.unit || addon.unit;
-                
                 const qty = addonQuantities[addon.id] || 0;
-                
                 return (
-                  <div
+                  <div 
                     key={addon.id}
-                    className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-200 ${
-                      hasOptions ? "cursor-default" : "cursor-pointer"
-                    } ${
-                      qty > 0 
-                        ? "border-[#C62828] bg-red-50/40 shadow-sm" 
-                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-                    }`}
-                    onClick={() => !hasOptions && toggleAddon(addon.id)}
+                    className="flex items-center justify-between p-5 rounded-xl border border-gray-200 bg-white"
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      {!hasOptions && (
-                        <div
-                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
-                            qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
-                          }`}
-                        >
-                          {qty > 0 && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{addon.name && typeof addon.name === 'string' ? addon.name : 'Unnamed Addon'}</div>
-                        {hasOptions ? (
-                          <Select.Root
-                            value={String(selectedOptionIndex)}
-                            onValueChange={(value) => {
-                              setSelectedAddonOption(prev => ({ ...prev, [addon.id]: parseInt(value) }));
-                            }}
-                          >
-                            <Select.Trigger className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-fit">
-                              <Select.Value placeholder="Select option" />
-                              <Select.Icon>
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
-                              </Select.Icon>
-                            </Select.Trigger>
-                            <Select.Portal>
-                              <Select.Content className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
-                                <Select.Viewport className="p-1">
-                                  {addon.options!.map((option, idx) => (
-                                    <Select.Item
-                                      key={idx}
-                                      value={String(idx)}
-                                      className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 outline-none text-sm text-gray-700 data-[highlighted]:bg-gray-100 min-w-[200px]"
-                                    >
-                                      <Select.ItemText>{option.label}</Select.ItemText>
-                                      <span className="ml-4 font-medium text-gray-900">{formatPrice(option.price)}</span>
-                                    </Select.Item>
-                                  ))}
-                                </Select.Viewport>
-                              </Select.Content>
-                            </Select.Portal>
-                          </Select.Root>
-                        ) : addon.description ? (
-                          <div className="text-sm text-gray-500 mt-0.5">{addon.description}</div>
-                        ) : null}
+                      <div
+                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer ${
+                          qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
+                        }`}
+                        onClick={() => {
+                          if (qty > 0) {
+                            setAddonQuantities(prev => ({ ...prev, [addon.id]: 0 }));
+                          } else {
+                            setAddonQuantities(prev => ({ ...prev, [addon.id]: 1 }));
+                          }
+                        }}
+                      >
+                        {qty > 0 && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{addon.name}</div>
+                        {addon.unit && <div className="text-xs text-gray-400">{addon.unit}</div>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-5">
-                      <div 
-                        className="flex items-center gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center bg-gray-100 rounded-full p-1">
-                          <button
-                            onClick={() => updateQuantity(addon.id, -1)}
-                            disabled={qty === 0}
-                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
-                          >
-                            −
-                          </button>
-                          <span className="w-8 text-center font-medium text-gray-900 text-sm">{qty}</span>
-                          <button
-                            onClick={() => updateQuantity(addon.id, 1)}
-                            disabled={qty >= 4}
-                            className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
-                          >
-                            +
-                          </button>
-                        </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center bg-gray-100 rounded-full p-1">
+                        <button
+                          onClick={() => {
+                            if (qty > 0) {
+                              setAddonQuantities(prev => ({ ...prev, [addon.id]: qty - 1 }));
+                            }
+                          }}
+                          disabled={qty === 0}
+                          className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm"
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center font-medium text-gray-900 text-sm">{qty}</span>
+                        <button
+                          onClick={() => {
+                            setAddonQuantities(prev => ({ ...prev, [addon.id]: qty + 1 }));
+                          }}
+                          className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all text-sm"
+                        >
+                          +
+                        </button>
                       </div>
-                      <div className="w-28 text-right">
+                      <div className="w-24 text-right">
                         <div className="font-semibold text-gray-900">
-                          {qty > 0 
-                            ? <>{formatPrice(getFinalPrice(displayPrice * qty, billingCycle))}<span className="text-xs font-normal text-gray-500">{getBillingSuffix(billingCycle)}</span></>
-                            : formatPrice(getFinalPrice(displayPrice, billingCycle))
-                          }
+                          {formatPrice(getDynamicPrice(addon.price, billingCycle, addon.recurringPricesObj))}
                         </div>
-                        {displayUnit && qty === 0 && (
-                          <div className="text-xs text-gray-400">{displayUnit}</div>
-                        )}
                       </div>
                     </div>
                   </div>

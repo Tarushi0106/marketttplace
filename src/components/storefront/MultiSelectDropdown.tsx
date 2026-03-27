@@ -16,6 +16,7 @@ interface SelectedOption {
   name: string;
   price: number;
   qty: number;
+  unit?: string;
 }
 
 interface MultiSelectDropdownProps {
@@ -24,6 +25,8 @@ interface MultiSelectDropdownProps {
   selectedIds: string[];
   onSelectionChange: (selected: SelectedOption[]) => void;
   formatPrice: (price: number) => string;
+  showQuantity?: boolean;
+  defaultUnit?: string;
 }
 
 export function MultiSelectDropdown({
@@ -32,6 +35,8 @@ export function MultiSelectDropdown({
   selectedIds,
   onSelectionChange,
   formatPrice,
+  showQuantity = true,
+  defaultUnit = 'per camera',
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false);
   
@@ -71,7 +76,8 @@ export function MultiSelectDropdown({
       id,
       name: option?.name || '',
       price: option?.price || 0,
-      qty: selectedQuantities[id] || 1
+      qty: selectedQuantities[id] || 1,
+      unit: defaultUnit
     };
   });
 
@@ -179,31 +185,26 @@ export function MultiSelectDropdown({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <button className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-full min-w-[250px] justify-between">
-          <span className={selectedIds.length > 0 ? 'text-gray-900' : 'text-gray-400'}>
-            {selectedIds.length === 0 
-              ? `Select ${label}` 
-              : `${selectedIds.length} selected`}
-          </span>
-          <div className="flex items-center gap-2">
-            {selectedIds.length > 0 && (
-              <span className="text-[#C62828] font-medium">
-                +{formatPrice(totalPrice)}
-              </span>
-            )}
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
-          </div>
+        <button className="mt-1 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-full min-w-[200px] justify-between">
+            <span className={selectedIds.length > 0 ? 'text-gray-900' : 'text-gray-400'}>
+              {selectedIds.length === 0 
+                ? `Select ${label}` 
+                : `${selectedIds.length} selected`}
+            </span>
+            <div className="flex items-center gap-2">
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </div>
         </button>
       </Popover.Trigger>
 
       <Popover.Portal>
         <Popover.Content
-          className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50 w-[350px]"
+          className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50 w-[420px]"
           sideOffset={5}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
-          {/* Options list */}
-          <div className="p-1 max-h-[250px] overflow-y-auto">
+          {/* Options list - compact with smaller height */}
+          <div className="p-1 max-h-[180px] overflow-y-auto">
             {options.map((option) => {
               const isSelected = selectedIds.includes(option.id);
               const qty = selectedQuantities[option.id] || 1;
@@ -211,43 +212,37 @@ export function MultiSelectDropdown({
               return (
                 <div
                   key={option.id}
-                  className={`rounded-lg mb-1 ${isSelected ? 'bg-gray-50' : ''}`}
+                  className={`rounded mb-0.5 ${isSelected ? 'bg-gray-50' : ''}`}
                 >
-                  {/* Checkbox row */}
+                  {/* Dropdown item row - 4 column grid: Name | Unit | Qty | Price */}
                   <button
                     type="button"
                     onClick={() => handleToggle(option.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 cursor-pointer outline-none transition-all ${
-                      isSelected ? 'text-[#C62828]' : 'text-gray-700'
+                    className={`w-full grid grid-cols-[3fr_1fr_1fr_1fr] gap-1 items-center px-2 py-1.5 cursor-pointer outline-none transition-all rounded ${
+                      isSelected ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-100'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      {/* Checkbox */}
-                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                    {/* Column 1: Name with checkbox */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all flex-shrink-0 ${
                         isSelected ? 'bg-[#C62828] border-[#C62828]' : 'border-gray-300 bg-white'
                       }`}>
-                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                        {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                       </div>
-                      <div className="flex flex-col text-left">
-                        <span className={`font-medium ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
-                          {option.name}
-                        </span>
-                        {option.description && (
-                          <span className="text-xs text-gray-400">{option.description}</span>
-                        )}
-                      </div>
+                      <span className={`font-medium text-xs ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                        {option.name}
+                      </span>
                     </div>
-                    <span className={`font-medium ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
-                      +{formatPrice(option.price)}
-                    </span>
-                  </button>
-
-                  {/* Quantity controls - shown only when selected */}
-                  {isSelected && (
-                    <div className="flex items-center justify-between px-3 py-2 pb-3 ml-8">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">Quantity:</span>
-                        <div className="flex items-center bg-white rounded-full border border-gray-200">
+                    
+                    {/* Column 2: Unit */}
+                    <div className="text-center">
+                      <span className="text-[10px] text-gray-400">{defaultUnit}</span>
+                    </div>
+                    
+                    {/* Center: Quantity (if selected and showQuantity is true) */}
+                    <div className="flex justify-center">
+                      {isSelected && showQuantity ? (
+                        <div className="flex items-center gap-0.5">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -255,64 +250,95 @@ export function MultiSelectDropdown({
                               decreaseQty(option.id);
                             }}
                             disabled={qty <= 1}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                            className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-xs hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <Minus className="w-3 h-3" />
+                            -
                           </button>
-                          <span className="w-8 text-center text-sm font-medium text-gray-900">
-                            {qty}
-                          </span>
+                          <span className="w-4 text-center text-xs font-medium">{qty}</span>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               increaseQty(option.id);
                             }}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-all"
+                            className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-xs hover:bg-gray-100"
                           >
-                            <Plus className="w-3 h-3" />
+                            +
                           </button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#C62828]">
-                          {formatPrice(option.price * qty)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeOption(option.id);
-                          }}
-                          className="p-1 rounded-full hover:bg-red-100 text-gray-400 hover:text-red-500 transition-all"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+                      ) : (
+                        <span className="text-gray-300">-</span>
+                      )}
                     </div>
-                  )}
+                    
+                    {/* Right: Price */}
+                    <div className="text-right">
+                      <span className={`font-semibold text-xs ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                        {isSelected ? formatPrice(option.price * qty) : formatPrice(option.price)}
+                      </span>
+                    </div>
+                  </button>
                 </div>
               );
             })}
           </div>
-          
-          {/* Footer with total and clear */}
-          {selectedIds.length > 0 && (
-            <div className="border-t border-gray-100 p-3 bg-gray-50">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">Total:</span>
-                <span className="text-lg font-bold text-[#C62828]">
-                  {formatPrice(totalPrice)}
-                </span>
+
+          {/* Selected Items Summary - compact */}
+          {selectedOptions.length > 0 && (
+            <div className="border-t border-gray-200 bg-gray-50 p-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-semibold text-gray-500 uppercase">Selected</span>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-[10px] text-[#C62828] hover:underline"
+                >
+                  Clear
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={clearAll}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-200 transition-all"
-              >
-                <X className="w-4 h-4" />
-                Clear all selections
-              </button>
+              {/* Selected items as compact rows */}
+              <div className="space-y-0.5 max-h-[80px] overflow-y-auto">
+                {selectedOptions.map((option) => (
+                  <div
+                    key={option.id}
+                    className="grid grid-cols-[3fr_1fr_1fr_1fr] gap-1 items-center px-1 py-0.5 bg-white rounded text-xs"
+                  >
+                    {/* Name */}
+                    <div className="flex items-center gap-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => removeOption(option.id)}
+                        className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                      <span className="truncate text-gray-700 text-[10px]">{option.name}</span>
+                    </div>
+                    
+                    {/* Unit */}
+                    <div className="text-center text-gray-400 text-[10px]">
+                      {option.unit}
+                    </div>
+                    
+                    {/* Qty */}
+                    <div className="text-center text-gray-400 text-[10px]">
+                      {option.qty}
+                    </div>
+                    
+                    {/* Price */}
+                    <div className="text-right">
+                      <span className="font-medium text-gray-900 text-[10px]">
+                        {formatPrice(option.price * option.qty)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Total */}
+              <div className="flex justify-between items-center mt-1 pt-1 border-t border-gray-200">
+                <span className="text-xs font-medium text-gray-600">Total</span>
+                <span className="text-xs font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+              </div>
             </div>
           )}
         </Popover.Content>
@@ -320,5 +346,3 @@ export function MultiSelectDropdown({
     </Popover.Root>
   );
 }
-
-export default MultiSelectDropdown;
