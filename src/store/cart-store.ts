@@ -324,25 +324,19 @@ export const useCartStore = create<CartState>()(
 
       getSubtotal: () => {
         // Subtotal = total due today
-        // For recurring products: setup fee + first recurring payment (base + configs) + addons
+        // For recurring products: first recurring payment (base + configs) + addons (setup fee is separate)
         // For one-time products: productPrice (base + configs + addons)
-        let setupFeeAdded = false;
         const subtotal = get().items.reduce((sum, item) => {
           const quantity = Number(item.quantity) || 1;
-          // For recurring items, charge: setup fee + first recurring payment + addons
+          // For recurring items, charge: first recurring payment + addons (setup fee is separate)
           if (item.isRecurring && item.billingCycle !== "ONE_TIME") {
-            const setupFee = Number(item.recurringData?.setupFee) || 0;
             const recurringAmount = Number(item.recurringAmount) || 0; // First recurring payment (base + configs)
             const addonsTotal = item.instances?.reduce((instSum: number, inst: any) => {
               return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) =>
                 addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
             }, 0) || 0;
-            // Total due today = setup fee (only once) + first recurring payment + addons
-            const setupFeeToCharge = (!setupFeeAdded && setupFee > 0) ? setupFee : 0;
-            if (setupFeeToCharge > 0) {
-              setupFeeAdded = true;
-            }
-            return sum + ((setupFeeToCharge + recurringAmount + addonsTotal) * quantity);
+            // Total due today = first recurring payment + addons (setup fee is separate)
+            return sum + ((recurringAmount + addonsTotal) * quantity);
           }
           const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           return sum + (productPrice * quantity);
@@ -369,8 +363,10 @@ export const useCartStore = create<CartState>()(
       },
 
       getTodayTotal: () => {
-        // Total due today = subtotal (already includes setup fee for recurring products)
-        return Number(get().getSubtotal());
+        // Total due today = subtotal + setup fee
+        const subtotal = Number(get().getSubtotal());
+        const setupFee = Number(get().getSetupFeeTotal());
+        return subtotal + setupFee;
       },
 
       getTax: () => {
@@ -379,16 +375,18 @@ export const useCartStore = create<CartState>()(
       },
 
       getTotal: () => {
-        // Total = subtotal + tax - discount
+        // Total = subtotal + setup fee + tax - discount
         const subtotal = Number(get().getSubtotal());
+        const setupFee = Number(get().getSetupFeeTotal());
         const tax = Number(get().getTax());
         const discount = Number(get().discountAmount);
-        const total = Math.max(0, subtotal + tax - discount);
+        const total = Math.max(0, subtotal + setupFee + tax - discount);
         
         // Debug log for validation
         if (typeof window !== 'undefined' && get().items.length > 0) {
           console.log('[Cart Debug] Total calculated:', {
             subtotal,
+            setupFee,
             tax,
             discount,
             total,
@@ -406,10 +404,10 @@ export const useCartStore = create<CartState>()(
       getSetupFeeTotal: () => {
         return get().items.reduce((sum, item) => {
           const setupFee = Number(item.recurringData?.setupFee);
-          const quantity = Number(item.quantity) || 1;
           // Check if setupFee is a valid number greater than 0
+          // Setup fee is charged once per product, not multiplied by quantity
           if (!isNaN(setupFee) && setupFee > 0) {
-            return sum + (setupFee * quantity);
+            return sum + setupFee;
           }
           return sum;
         }, 0);
