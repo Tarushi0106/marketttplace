@@ -212,8 +212,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
     if (allSelectedAddons.length === 0) return;
     
     // Add on-premise solution as a bundle item
+    // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
     const cartItem = {
-      id: `on-premise-${Date.now()}`,
       product: {
         id: onPremiseProduct.id,
         slug: onPremiseProduct.slug,

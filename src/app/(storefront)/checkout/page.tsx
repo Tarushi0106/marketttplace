@@ -40,13 +40,14 @@ const countries = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, getSubtotal, getTax, discountCode, clearCart } = useCartStore();
+  const { items, getSubtotal, getTax, getSetupFeeTotal, discountCode, clearCart } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
   const subtotal = getSubtotal();
   const tax = getTax();
+  const setupFeeTotal = getSetupFeeTotal();
 
   const [shippingAddress, setShippingAddress] = useState({
     firstName: "",
@@ -749,7 +750,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatPrice(Number(subtotal) + Number(tax))}
+                    {formatPrice(Number(subtotal) + Number(tax) + Number(setupFeeTotal))}
                   </span>
                 </div>
 

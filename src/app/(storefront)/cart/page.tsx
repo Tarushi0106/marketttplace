@@ -483,7 +483,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">
-                    {formatPrice(subtotal + tax)}
+                    {formatPrice(subtotal + tax + setupFeeTotal)}
                   </span>
                 </div>
               </div>

@@ -153,7 +153,7 @@ export function CartDrawer() {
                         {/* Selected addons */}
                         {item.selectedAddons && item.selectedAddons.length > 0 && (
                           <div className="mt-1 text-xs text-muted-foreground">
-                            + {item.selectedAddons.map((a) => a.addon.name).join(", ")}
+                            + {item.selectedAddons.map((a) => a.addon?.name).join(", ")}
                           </div>
                         )}
 
@@ -232,7 +232,7 @@ export function CartDrawer() {
                                 </span>
                               </>
                             ) : (
-                              formatPrice(item.totalPrice || 0)
+                              formatPrice(item.baseProductPrice || 0)
                             )}
                           </p>
                         </div>

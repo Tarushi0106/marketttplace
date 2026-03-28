@@ -88,6 +88,10 @@ interface OrderItem {
   isRecurring?: boolean | null;
   billingCycle?: string | null;
   recurringPrice?: number | null;
+  recurringData?: {
+    setupFee?: number | null;
+    [key: string]: any;
+  } | null;
   instances?: Array<{
     instanceId?: string;
     selectedConfigs?: Array<{ configId?: string; configName?: string; price?: number }>;
@@ -353,8 +357,8 @@ export default function InvoicePage() {
                         {item.recurringPrice && ` (${formatCurrency(Number(item.recurringPrice))}/cycle)`}
                       </p>
                     )}
-                    {item.setupFee && item.setupFee > 0 && (
-                      <p className="text-xs text-amber-600 mt-1">+ Setup Fee: {formatCurrency(Number(item.setupFee))}</p>
+                    {item.recurringData?.setupFee && item.recurringData.setupFee > 0 && (
+                      <p className="text-xs text-amber-600 mt-1">+ Setup Fee: {formatCurrency(Number(item.recurringData.setupFee))}</p>
                     )}
                   </td>
                   <td className="py-3 text-sm text-gray-600">{item.hsnCode || "9983"}</td>

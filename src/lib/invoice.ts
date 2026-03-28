@@ -511,10 +511,14 @@ export async function generateInvoicePDF(order: OrderInterface): Promise<Uint8Ar
 
     const quantity = Number(item.quantity) || 1;
     const unitPrice = Number(item.unitPrice) || 0;
-    const itemTotal = quantity * unitPrice;
     const cgstRate = Number(item.cgstRate) || 0;
     const sgstRate = Number(item.sgstRate) || 0;
     const setupFee = Number(item.setupFee) || 0;
+    
+    // Calculate item total WITHOUT setup fee (setup fee is added separately via oneTimeTotal)
+    // unitPrice includes setupFee, so we need to subtract it to get the recurring/base price
+    const recurringPrice = unitPrice - setupFee;
+    const itemTotal = quantity * recurringPrice;
     
     subtotal += itemTotal;
     totalCgst += (itemTotal * cgstRate) / 100;

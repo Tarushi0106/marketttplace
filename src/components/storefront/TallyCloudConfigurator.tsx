@@ -656,8 +656,8 @@ export function TallyCloudConfigurator({
     console.log('cloudGatewayVariant:', cloudGatewayVariant);
     
     // Add the main item (Connect Cloud)
+    // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
     const cartItem = {
-      id: `${productId || productSlug || 'product'}-${selectedPlan.id}-${Date.now()}`,
       product: {
         id: productId || '',
         slug: productSlug || '',
@@ -688,8 +688,8 @@ export function TallyCloudConfigurator({
       // Use getPriceForBillingCycle to properly get the recurring price for the selected cycle
       const gatewayPrice = getPriceForBillingCycle(cloudGatewayVariant, billingCycle);
       
+      // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
       const gatewayCartItem = {
-        id: `${productId || productSlug || 'product'}-${cloudGatewayVariant.id}-${Date.now()}`,
         product: {
           id: productId || '',
           slug: productSlug || '',
@@ -704,7 +704,6 @@ export function TallyCloudConfigurator({
         recurringAmount: gatewayPrice * gatewayQty,
         variantId: cloudGatewayVariant.id,
         isDependentItem: true, // Flag to identify as dependent item
-        parentItemId: cartItem.id,
       };
       
       addToCart(gatewayCartItem as any);

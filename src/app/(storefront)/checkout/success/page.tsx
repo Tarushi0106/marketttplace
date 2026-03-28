@@ -449,9 +449,9 @@ function CheckoutSuccessContent() {
                           </span>
                         )}
                       </div>
-                      {item.setupFee && item.setupFee > 0 && (
+                      {item.recurringData?.setupFee && item.recurringData.setupFee > 0 && (
                         <p className="text-xs text-amber-600 mt-1">
-                          + {formatCurrency(item.setupFee, order.currency)} setup fee included
+                          + {formatCurrency(item.recurringData.setupFee, order.currency)} setup fee included
                         </p>
                       )}
                     </div>

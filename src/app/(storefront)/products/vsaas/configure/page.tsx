@@ -110,7 +110,14 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
           return {
             ...variant,
             recurringPrices: [],
-            recurringPricesObj: null,
+            recurringPricesObj: {
+              monthly: Number(variant.price) || null,
+              quarterly: null,
+              yearly: null,
+              biennial: null,
+              triennial: null,
+              semiAnnual: null,
+            },
           };
         }),
       };

@@ -222,7 +222,7 @@ export const useCartStore = create<CartState>()(
               items[existingItemIndex] = {
                 ...items[existingItemIndex],
                 ...item, // Preserve all new item data including instances
-                quantity: safeNumber(items[existingItemIndex].quantity) + safeNumber(item.quantity),
+                quantity: safeNumber(item.quantity), // Replace quantity, don't add
                 totalPrice: calculateItemTotal({
                   ...items[existingItemIndex],
                   ...item,
@@ -323,14 +323,14 @@ export const useCartStore = create<CartState>()(
         // Subtotal = total due today
         // For recurring products: setup fee + first recurring payment (base + configs) + addons
         // For one-time products: productPrice (base + configs + addons)
-        return get().items.reduce((sum, item) => {
+        const subtotal = get().items.reduce((sum, item) => {
           const quantity = Number(item.quantity) || 1;
           // For recurring items, charge: setup fee + first recurring payment + addons
           if (item.isRecurring && item.billingCycle !== "ONE_TIME") {
             const setupFee = Number(item.recurringData?.setupFee) || 0;
             const recurringAmount = Number(item.recurringAmount) || 0; // First recurring payment (base + configs)
             const addonsTotal = item.instances?.reduce((instSum: number, inst: any) => {
-              return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) => 
+              return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) =>
                 addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
             }, 0) || 0;
             // Total due today = setup fee + first recurring payment + addons
@@ -339,6 +339,25 @@ export const useCartStore = create<CartState>()(
           const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           return sum + (productPrice * quantity);
         }, 0);
+        
+        // Debug log for validation
+        if (typeof window !== 'undefined' && get().items.length > 0) {
+          console.log('[Cart Debug] Subtotal calculated:', {
+            subtotal,
+            itemCount: get().items.length,
+            items: get().items.map(item => ({
+              name: item.product?.name || item.bundle?.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              baseProductPrice: item.baseProductPrice,
+              productPrice: item.productPrice,
+              isRecurring: item.isRecurring,
+              billingCycle: item.billingCycle,
+            }))
+          });
+        }
+        
+        return subtotal;
       },
 
       getTodayTotal: () => {
@@ -356,7 +375,20 @@ export const useCartStore = create<CartState>()(
         const subtotal = Number(get().getSubtotal());
         const tax = Number(get().getTax());
         const discount = Number(get().discountAmount);
-        return Math.max(0, subtotal + tax - discount);
+        const total = Math.max(0, subtotal + tax - discount);
+        
+        // Debug log for validation
+        if (typeof window !== 'undefined' && get().items.length > 0) {
+          console.log('[Cart Debug] Total calculated:', {
+            subtotal,
+            tax,
+            discount,
+            total,
+            itemCount: get().items.length,
+          });
+        }
+        
+        return total;
       },
 
       getItemCount: () => {
