@@ -543,7 +543,7 @@ export function VSAASConfigurator({
         unitPrice: licensePricePerCamera,
         totalPrice: baseLicenseTotal,
         deploymentType: deploymentType,
-        recurringAmount: baseLicenseTotal,
+        recurringAmount: licensePricePerCamera,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -570,7 +570,7 @@ export function VSAASConfigurator({
         unitPrice: gatewayPricePerUnit,
         totalPrice: gatewayTotal,
         deploymentType: deploymentType,
-        recurringAmount: gatewayTotal,
+        recurringAmount: gatewayPricePerUnit,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -597,7 +597,7 @@ export function VSAASConfigurator({
         unitPrice: storagePricePerCamera,
         totalPrice: storageTotal,
         deploymentType: deploymentType,
-        recurringAmount: storageTotal,
+        recurringAmount: storagePricePerCamera,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -624,7 +624,7 @@ export function VSAASConfigurator({
         unitPrice: streamOSPricePerCamera,
         totalPrice: streamOSPricePerCamera * effectiveStreamOSQty,
         deploymentType: deploymentType,
-        recurringAmount: streamOSPricePerCamera * effectiveStreamOSQty,
+        recurringAmount: streamOSPricePerCamera,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -651,7 +651,7 @@ export function VSAASConfigurator({
         unitPrice: aiBoxPricePerUnit,
         totalPrice: aiBoxPricePerUnit * effectiveAiBoxQty,
         deploymentType: deploymentType,
-        recurringAmount: aiBoxPricePerUnit * effectiveAiBoxQty,
+        recurringAmount: aiBoxPricePerUnit,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -678,7 +678,7 @@ export function VSAASConfigurator({
         unitPrice: aiLicensePricePerUnit,
         totalPrice: aiLicensePricePerUnit * effectiveAiLicenseQty,
         deploymentType: deploymentType,
-        recurringAmount: aiLicensePricePerUnit * effectiveAiLicenseQty,
+        recurringAmount: aiLicensePricePerUnit,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -715,7 +715,7 @@ export function VSAASConfigurator({
               unitPrice: feature.price,
               totalPrice: feature.price * qty,
               deploymentType: deploymentType,
-              recurringAmount: feature.price * qty,
+              recurringAmount: feature.price,
             };
             addToCart(aiFeatureItem as any);
           }

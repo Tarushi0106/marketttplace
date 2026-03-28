@@ -335,8 +335,9 @@ export const useCartStore = create<CartState>()(
               return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) =>
                 addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
             }, 0) || 0;
-            // Total due today = first recurring payment + addons (setup fee is separate)
-            return sum + ((recurringAmount + addonsTotal) * quantity);
+            // Total due today = (first recurring payment * quantity) + addons (setup fee is separate)
+            // recurringAmount is the per-unit recurring price, so we multiply by quantity
+            return sum + (recurringAmount * quantity) + addonsTotal;
           }
           const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           return sum + (productPrice * quantity);
@@ -355,6 +356,7 @@ export const useCartStore = create<CartState>()(
               productPrice: item.productPrice,
               isRecurring: item.isRecurring,
               billingCycle: item.billingCycle,
+              recurringAmount: item.recurringAmount,
             }))
           });
         }

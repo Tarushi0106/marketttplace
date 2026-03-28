@@ -933,9 +933,14 @@ export function ProductConfigurator({
     const baseRecurringPrice = currentRecurringData?.pricePerCycle ?? pricing.pricePerCycle;
     const setupFee = currentRecurringData?.setupFee ?? pricing.setupFee;
     
+    // Calculate total quantity from all instances
+    const totalQuantity = configInstances.reduce((sum, instance) => sum + (instance.quantity || 1), 0);
+    
     // For recurring products: the recurring amount should include base price + configs (both are recurring)
     // Configs with monthlyPriceModifier are recurring charges
-    const totalRecurringAmount = baseRecurringPrice + pricing.configsTotal;
+    // Note: pricing.configsTotal already includes quantity multiplication, so we need to divide by totalQuantity to get per-unit price
+    const perUnitConfigsTotal = totalQuantity > 0 ? pricing.configsTotal / totalQuantity : pricing.configsTotal;
+    const totalRecurringAmount = baseRecurringPrice + perUnitConfigsTotal;
     
     // For recurring products: productPrice should include setup fee + first recurring payment + addons
     // For one-time products: productPrice includes base + configs + addons
@@ -947,7 +952,7 @@ export function ProductConfigurator({
     const cartItem = {
       product,
       variant: currentVariant || undefined,
-      quantity: 1,
+      quantity: totalQuantity,
       instances,
       unitPrice: totalRecurringAmount,
       // Store the base product price separately for display purposes

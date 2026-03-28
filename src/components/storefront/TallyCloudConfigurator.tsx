@@ -676,7 +676,7 @@ export function TallyCloudConfigurator({
       isRecurring: true,
       unitPrice: variantPrice,
       totalPrice: totalPrice,
-      recurringAmount: totalPrice,
+      recurringAmount: variantPrice,
       variantId: selectedVariant || undefined,
       deploymentType: 'cloud' as const,
     };
@@ -702,7 +702,7 @@ export function TallyCloudConfigurator({
         isRecurring: true,
         unitPrice: gatewayPrice,
         totalPrice: gatewayPrice * gatewayQty,
-        recurringAmount: gatewayPrice * gatewayQty,
+        recurringAmount: gatewayPrice,
         variantId: cloudGatewayVariant.id,
         isDependentItem: true, // Flag to identify as dependent item
         deploymentType: 'cloud' as const,
