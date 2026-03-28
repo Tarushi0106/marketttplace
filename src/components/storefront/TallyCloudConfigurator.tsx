@@ -676,8 +676,9 @@ export function TallyCloudConfigurator({
       isRecurring: true,
       unitPrice: variantPrice,
       totalPrice: totalPrice,
-      recurringAmount: calculatedBasePrice,
+      recurringAmount: totalPrice,
       variantId: selectedVariant || undefined,
+      deploymentType: 'cloud' as const,
     };
     
     addToCart(cartItem as any);
@@ -704,6 +705,7 @@ export function TallyCloudConfigurator({
         recurringAmount: gatewayPrice * gatewayQty,
         variantId: cloudGatewayVariant.id,
         isDependentItem: true, // Flag to identify as dependent item
+        deploymentType: 'cloud' as const,
       };
       
       addToCart(gatewayCartItem as any);

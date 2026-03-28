@@ -225,8 +225,9 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
       isRecurring: true,
       unitPrice: totalPrice,
       totalPrice: totalPrice,
-      recurringAmount: amcTotal + subscriptionTotal,
+      recurringAmount: totalPrice,
       variantId: undefined,
+      deploymentType: 'onPremise' as const,
     };
     
     addToCart(cartItem as any);

@@ -9,6 +9,7 @@ export interface CartItem {
   variant?: ProductVariant;
   bundle?: Bundle;
   quantity?: number;
+  deploymentType?: 'cloud' | 'onPremise' | 'ai'; // Track which deployment type this item belongs to
   // Support for multiple configuration instances
   instances?: {
     instanceId: string;
@@ -130,6 +131,8 @@ const calculateItemTotal = (item: Omit<CartItem, "id" | "totalPrice">): number =
 const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   const productId = item.product?.id || item.bundle?.id || "";
   const variantId = item.variant?.id || "default";
+  const variantName = item.variant?.name || "default";
+  const deploymentType = item.deploymentType || "default";
   // Don't include billingCycle in ID - same product should update existing item
   
   // Check for new instances format first
@@ -141,7 +144,7 @@ const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
       configs: inst.selectedConfigs?.map(c => ({ id: c.configId, value: c.value, price: c.price })) || [],
       addons: inst.selectedAddons?.map(a => ({ id: a.addon?.id || "", qty: a.quantity })) || [],
     }));
-    return `${productId}-${variantId}-instances-${JSON.stringify(instancesHash)}`;
+    return `${productId}-${variantId}-${variantName}-${deploymentType}-instances-${JSON.stringify(instancesHash)}`;
   }
   
   // Legacy support for flat configs/addons
@@ -149,7 +152,7 @@ const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   const addonsHash = JSON.stringify(
     (item.selectedAddons || []).map(a => ({ id: a.addon?.id || "", qty: a.quantity })).sort((a, b) => a.id.localeCompare(b.id))
   );
-  return `${productId}-${variantId}-${configsHash}-${addonsHash}`;
+  return `${productId}-${variantId}-${variantName}-${deploymentType}-${configsHash}-${addonsHash}`;
 };
 
 export const useCartStore = create<CartState>()(
@@ -323,6 +326,7 @@ export const useCartStore = create<CartState>()(
         // Subtotal = total due today
         // For recurring products: setup fee + first recurring payment (base + configs) + addons
         // For one-time products: productPrice (base + configs + addons)
+        let setupFeeAdded = false;
         const subtotal = get().items.reduce((sum, item) => {
           const quantity = Number(item.quantity) || 1;
           // For recurring items, charge: setup fee + first recurring payment + addons
@@ -333,8 +337,12 @@ export const useCartStore = create<CartState>()(
               return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) =>
                 addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
             }, 0) || 0;
-            // Total due today = setup fee + first recurring payment + addons
-            return sum + ((setupFee + recurringAmount + addonsTotal) * quantity);
+            // Total due today = setup fee (only once) + first recurring payment + addons
+            const setupFeeToCharge = (!setupFeeAdded && setupFee > 0) ? setupFee : 0;
+            if (setupFeeToCharge > 0) {
+              setupFeeAdded = true;
+            }
+            return sum + ((setupFeeToCharge + recurringAmount + addonsTotal) * quantity);
           }
           const productPrice = Number(item.productPrice ?? item.baseProductPrice ?? 0);
           return sum + (productPrice * quantity);

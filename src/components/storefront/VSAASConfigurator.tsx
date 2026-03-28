@@ -449,7 +449,23 @@ export function VSAASConfigurator({
   
   const subtotal = licenseTotal + gatewayTotal + storageTotal + aiFeaturesTotal + streamOSTotal + aiBoxTotal + aiLicenseTotal;
   // Prices already include billing cycle discount, so no additional multiplier needed
-  const total = subtotal;
+  // Add setup fee to total for cloud and on-premise deployments
+  const setupFeeForTotal = (() => {
+    if (deploymentType === 'cloud') {
+      const baseSetupFee = 9999;
+      switch (billingCycle) {
+        case 'monthly': return baseSetupFee;
+        case 'quarterly': return Math.round(baseSetupFee * 1.5);
+        case 'semiAnnual': return Math.round(baseSetupFee * 2);
+        case 'yearly': return Math.round(baseSetupFee * 3);
+        default: return baseSetupFee;
+      }
+    } else if (deploymentType === 'onPremise') {
+      return 46000;
+    }
+    return 0;
+  })();
+  const total = subtotal + setupFeeForTotal;
 
   // ----------------------------------------
   // HANDLERS
@@ -518,7 +534,7 @@ export function VSAASConfigurator({
       // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
       // Base Connect Cloud license is per camera
       const connectCloudItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: connectCloudVariant.name || currentProduct.name },
         quantity: cameraCount,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
@@ -526,6 +542,8 @@ export function VSAASConfigurator({
         unitPrice: licensePricePerCamera,
         totalPrice: baseLicenseTotal,
         variantId: connectCloudVariant.id,
+        deploymentType: deploymentType,
+        recurringAmount: baseLicenseTotal,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -543,7 +561,7 @@ export function VSAASConfigurator({
     if (cloudGatewayVariant && deploymentType === 'cloud') {
       // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
       const gatewayItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: cloudGatewayVariant.name || currentProduct.name },
         quantity: hardwareQuantity,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
@@ -551,6 +569,8 @@ export function VSAASConfigurator({
         unitPrice: gatewayPricePerUnit,
         totalPrice: gatewayTotal,
         variantId: cloudGatewayVariant.id,
+        deploymentType: deploymentType,
+        recurringAmount: gatewayTotal,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -568,7 +588,7 @@ export function VSAASConfigurator({
     if (selectedStorageAddon) {
       // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
       const storageItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: selectedStorageAddon.name || currentProduct.name },
         quantity: storageQuantity,
         selectedAddons: [selectedStorageAddon],
         billingCycle: billingCycle.toUpperCase(),
@@ -576,6 +596,8 @@ export function VSAASConfigurator({
         unitPrice: storagePricePerCamera,
         totalPrice: storageTotal,
         variantId: null,
+        deploymentType: deploymentType,
+        recurringAmount: storageTotal,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -593,7 +615,7 @@ export function VSAASConfigurator({
     // Add Stream OS to cart (for on-premise)
     if (deploymentType === 'onPremise' && streamOSVariant && effectiveStreamOSQty > 0) {
       const streamOSItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: streamOSVariant.name || currentProduct.name },
         quantity: effectiveStreamOSQty,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
@@ -601,6 +623,8 @@ export function VSAASConfigurator({
         unitPrice: streamOSPricePerCamera,
         totalPrice: streamOSPricePerCamera * effectiveStreamOSQty,
         variantId: streamOSVariant.id,
+        deploymentType: deploymentType,
+        recurringAmount: streamOSPricePerCamera * effectiveStreamOSQty,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -618,7 +642,7 @@ export function VSAASConfigurator({
     // Add AI-Box to cart (for on-premise)
     if (deploymentType === 'onPremise' && aiBoxVariant && effectiveAiBoxQty > 0) {
       const aiBoxItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: aiBoxVariant.name || currentProduct.name },
         quantity: effectiveAiBoxQty,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
@@ -626,6 +650,8 @@ export function VSAASConfigurator({
         unitPrice: aiBoxPricePerUnit,
         totalPrice: aiBoxPricePerUnit * effectiveAiBoxQty,
         variantId: aiBoxVariant.id,
+        deploymentType: deploymentType,
+        recurringAmount: aiBoxPricePerUnit * effectiveAiBoxQty,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -643,7 +669,7 @@ export function VSAASConfigurator({
     // Add AI Licenses to cart (for on-premise)
     if (deploymentType === 'onPremise' && aiLicenseVariant && effectiveAiLicenseQty > 0) {
       const aiLicenseItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: aiLicenseVariant.name || currentProduct.name },
         quantity: effectiveAiLicenseQty,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
@@ -651,6 +677,8 @@ export function VSAASConfigurator({
         unitPrice: aiLicensePricePerUnit,
         totalPrice: aiLicensePricePerUnit * effectiveAiLicenseQty,
         variantId: aiLicenseVariant.id,
+        deploymentType: deploymentType,
+        recurringAmount: aiLicensePricePerUnit * effectiveAiLicenseQty,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
@@ -674,7 +702,7 @@ export function VSAASConfigurator({
           if (qty > 0) {
             // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
             const aiFeatureItem = {
-              product: { id: currentProduct.id, slug: currentProduct.slug, name: currentProduct.name },
+              product: { id: currentProduct.id, slug: currentProduct.slug, name: feature.name },
               quantity: qty,
               selectedAddons: [{
                 name: feature.name,
@@ -686,6 +714,8 @@ export function VSAASConfigurator({
               unitPrice: feature.price,
               totalPrice: feature.price * qty,
               variantId: null,
+              deploymentType: deploymentType,
+              recurringAmount: feature.price * qty,
             };
             addToCart(aiFeatureItem as any);
           }
