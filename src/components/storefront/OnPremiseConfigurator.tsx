@@ -39,23 +39,78 @@ interface OnPremiseConfiguratorProps {
   onPremiseProduct: VSAASProduct;
 }
 
+// Device names from the Excel sheet
+// Ordered by specificity to avoid matching issues (longer/more specific names first)
+const deviceNames = [
+  'AI Licenses',
+  'Stream OS',
+  'AI-Box'
+];
+
+// AMC names from the Excel sheet
+// Ordered by specificity to avoid matching issues (longer/more specific names first)
+const amcNames = [
+  'Cyber + Pack (AI-Box & AI License)',
+  'Cyber + Pack (Stream OS)'
+];
+
+// Price overrides for devices
+const devicePriceOverrides = {
+  'AI-Box': 138000,
+  'AI Licenses': 229908
+};
+
+// Price overrides for AMC
+const amcPriceOverrides = {
+  'Cyber + Pack (Stream OS)': 644,
+  'Cyber + Pack (AI-Box & AI License)': 73600
+};
+
 // Transform addons helper
 const transformAddons = (addons: any[]): Addon[] => {
-  return addons.map(addon => ({
-    id: addon.id,
-    name: addon.name,
-    description: addon.description || undefined,
-    price: Number(addon.price) || 0,
-    unit: addon.unit || undefined,
-    recurringPricesObj: addon.recurringPricesObj ? {
-      monthly: addon.recurringPricesObj.monthly,
-      quarterly: addon.recurringPricesObj.quarterly,
-      yearly: addon.recurringPricesObj.yearly,
-      semiAnnual: addon.recurringPricesObj.semiAnnual,
-      biennial: addon.recurringPricesObj.biennial,
-      triennial: addon.recurringPricesObj.triennial,
-    } : null,
-  }));
+  return addons.map(addon => {
+    // Apply price overrides for devices
+    let price = Number(addon.price) || 0;
+    if (addon.name) {
+      // Check for device price overrides (using includes like the filter)
+      for (const deviceName of deviceNames) {
+        if (addon.name.includes(deviceName)) {
+          const devicePrice = devicePriceOverrides[deviceName];
+          if (devicePrice !== undefined) {
+            price = devicePrice;
+            break;
+          }
+        }
+      }
+      
+      // Check for AMC price overrides (using includes like the filter)
+      for (const amcName of amcNames) {
+        if (addon.name.includes(amcName)) {
+          const amcPrice = amcPriceOverrides[amcName];
+          if (amcPrice !== undefined) {
+            price = amcPrice;
+            break;
+          }
+        }
+      }
+    }
+    
+    return {
+      id: addon.id,
+      name: addon.name,
+      description: addon.description || undefined,
+      price: price,
+      unit: addon.unit || undefined,
+      recurringPricesObj: addon.recurringPricesObj ? {
+        monthly: addon.recurringPricesObj.monthly,
+        quarterly: addon.recurringPricesObj.quarterly,
+        yearly: addon.recurringPricesObj.yearly,
+        semiAnnual: addon.recurringPricesObj.semiAnnual,
+        biennial: addon.recurringPricesObj.biennial,
+        triennial: addon.recurringPricesObj.triennial,
+      } : null,
+    };
+  });
 };
 
 // Billing multipliers
@@ -68,6 +123,15 @@ const billingMultipliers: Record<string, number> = {
 
 // Helper function to get addon price based on billing cycle
 const getAddonPriceForCycle = (addon: Addon, cycle: string): number => {
+  // For AMC addons, always return base price (one-time payment every 3 years)
+  if (addon.name) {
+    for (const amcName of amcNames) {
+      if (addon.name.includes(amcName)) {
+        return addon.price;
+      }
+    }
+  }
+  
   if (addon.recurringPricesObj) {
     const priceMap: Record<string, number | null | undefined> = {
       monthly: addon.recurringPricesObj.monthly,
@@ -87,19 +151,6 @@ const getAddonPriceForCycle = (addon: Addon, cycle: string): number => {
   const multiplier = billingMultipliers[cycle] || 1;
   return addon.price * multiplier;
 };
-
-// Device names from the Excel sheet
-const deviceNames = [
-  'Stream OS',
-  'AI-Box',
-  'AI Licenses'
-];
-
-// AMC names from the Excel sheet
-const amcNames = [
-  'Cyber + Pack (Stream OS)',
-  'Cyber + Pack (AI-Box & AI License)'
-];
 
 export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfiguratorProps) {
   const router = useRouter();
@@ -383,11 +434,12 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
             )}
           </div>
           
-          {/* Annual Maintenance Cost Section */}
-          <div className="bg-white border rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-gray-100 border-b">
-              <h3 className="text-base font-semibold text-gray-900">Annual Maintenance Cost [AMC] After 3 Years</h3>
-            </div>
+           {/* Annual Maintenance Cost Section */}
+           <div className="bg-white border rounded-lg overflow-hidden">
+             <div className="px-4 py-3 bg-gray-100 border-b">
+               <h3 className="text-base font-semibold text-gray-900">Annual Maintenance Cost [ AMC ] After 3 Years</h3>
+               <p className="text-xs text-gray-500 mt-1">User only has to pay once in 3 years</p>
+             </div>
             
             <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-50 border-b text-xs text-gray-500 font-medium">
               <div className="col-span-5">Name</div>
@@ -403,12 +455,13 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
             ) : (
               amcAddons.map((addon) => {
                 const isSelected = (addonQuantities[addon.id] || 0) > 0;
-                const addonPrice = getAddonPriceForCycle(addon, billingCycle);
+                // For AMC, we show the price as a one-time payment every 3 years
+                const addonPrice = addon.price; // Base price (one-time every 3 years)
                 const qty = addonQuantities[addon.id] || 0;
                 const totalPrice = addonPrice * qty;
                 
                 return (
-                  <div 
+                  <div
                     key={addon.id}
                     className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
                       isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50'
@@ -418,8 +471,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                       <button
                         onClick={() => toggleAddon(addon.id)}
                         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                          isSelected 
-                            ? 'bg-[#C62828] border-[#C62828] text-white' 
+                          isSelected
+                            ? 'bg-[#C62828] border-[#C62828] text-white'
                             : 'border-gray-300 hover:border-[#C62828]'
                         }`}
                       >
@@ -429,7 +482,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                     </div>
                     
                     <div className="col-span-2 flex items-center justify-center text-sm text-gray-500">
-                      {addon.unit || 'per year'}
+                      {addon.unit || 'one-time'}
                     </div>
                     
                     <div className="col-span-2 flex items-center justify-center">
@@ -462,7 +515,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                         </div>
                         {qty > 0 && (
                           <div className="text-xs text-gray-500">
-                            {formatPrice(addonPrice)}/year
+                            {formatPrice(addonPrice)} (one-time payment every 3 years)
                           </div>
                         )}
                       </div>

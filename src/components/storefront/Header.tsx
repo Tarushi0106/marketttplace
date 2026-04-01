@@ -127,7 +127,7 @@ export function Header() {
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const settings = useSiteSettings();
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [navLinks, setNavLinks] = useState<MenuItem[]>([]);
 
@@ -148,17 +148,17 @@ export function Header() {
     }
   }, [items, mounted]);
 
-  // Fetch categories and nav menu dynamically
+  // Fetch products and nav menu dynamically
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch("/api/categories?includeSubCategories=false");
+        const response = await fetch("/api/products?status=ACTIVE&limit=20");
         const data = await response.json();
         if (data.data) {
-          setCategories(data.data);
+          setCategories(data.data.map((p: any) => ({ id: p.id, name: p.name, slug: p.slug })));
         }
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to fetch products:", error);
       } finally {
         setCategoriesLoading(false);
       }
@@ -374,34 +374,26 @@ export function Header() {
                   ) : categories.length === 0 ? (
                     <div className="py-4 text-center text-sm text-gray-500">No categories</div>
                   ) : (
-                    categories.slice(0, 10).map((category) => {
-                      const IconComponent = getIconComponent(category.icon || null);
-                      return (
-                        <DropdownMenuItem key={category.id} asChild>
+                    categories.slice(0, 10).map((product) => (
+                        <DropdownMenuItem key={product.id} asChild>
                           <Link
-                            href={`/categories/${category.slug}`}
+                            href={`/products/${product.slug}`}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                           >
                             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                              <IconComponent className="h-4 w-4 text-[#8B1D1D]" />
+                              <LayoutGrid className="h-4 w-4 text-[#8B1D1D]" />
                             </div>
-                            <div>
-                              <div className="font-medium text-gray-900">{category.name}</div>
-                              {category._count?.products !== undefined && (
-                                <div className="text-xs text-gray-500">{category._count.products} products</div>
-                              )}
-                            </div>
+                            <div className="font-medium text-gray-900">{product.name}</div>
                           </Link>
                         </DropdownMenuItem>
-                      );
-                    })
+                    ))
                   )}
                   {categories.length > 10 && (
                     <>
                       <DropdownMenuSeparator className="my-1" />
                       <DropdownMenuItem asChild>
-                        <Link href="/categories" className="justify-center text-[#8B1D1D] font-medium">
-                          View All Categories
+                        <Link href="/products" className="justify-center text-[#8B1D1D] font-medium">
+                          View All Products
                         </Link>
                       </DropdownMenuItem>
                     </>
@@ -421,9 +413,9 @@ export function Header() {
                 <Headphones className="h-4 w-4" />
                 <span>Support</span>
               </Link>
-              <a href="tel:+912261891110" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#8B1D1D] transition-colors duration-200">
+              <a href="tel:+918698080000" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#8B1D1D] transition-colors duration-200">
                 <Phone className="h-4 w-4" />
-                <span className="font-medium">+91 22-61891110</span>
+                <span className="font-medium">+91 86980 80000</span>
               </a>
             </div>
           </div>
@@ -457,31 +449,28 @@ export function Header() {
               ) : categories.length === 0 ? (
                 <div className="col-span-2 py-4 text-center text-sm text-gray-500">No categories</div>
               ) : (
-                categories.slice(0, 8).map((category) => {
-                  const IconComponent = getIconComponent(category.icon || null);
-                  return (
+                categories.slice(0, 8).map((product) => (
                     <Link
-                      key={category.id}
-                      href={`/categories/${category.slug}`}
+                      key={product.id}
+                      href={`/products/${product.slug}`}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[0.98] transition-all duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="w-9 h-9 rounded-lg bg-white shadow-sm flex items-center justify-center">
-                        <IconComponent className="h-4 w-4 text-[#8B1D1D]" />
+                        <LayoutGrid className="h-4 w-4 text-[#8B1D1D]" />
                       </div>
-                      <span className="truncate">{category.name}</span>
+                      <span className="truncate">{product.name}</span>
                     </Link>
-                  );
-                })
+                ))
               )}
             </div>
             {categories.length > 8 && (
               <Link
-                href="/categories"
+                href="/products"
                 className="flex items-center justify-center gap-2 mt-3 py-2.5 text-sm font-medium text-[#8B1D1D] hover:bg-gray-50 rounded-xl transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                View All Categories
+                View All Products
                 <ChevronRight className="h-4 w-4" />
               </Link>
             )}

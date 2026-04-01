@@ -212,15 +212,23 @@ export default async function HomePage() {
               <div className="flex items-center gap-8 mt-10 text-slate-400 text-sm">
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>99.9% Uptime</span>
+                  <span>99.9% Uptime — Always watching, never sleeping</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>AI-Powered</span>
+                  <span>AI-Powered — Learns and adapts to your environment</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-green-500" />
-                  <span>24/7 Support</span>
+                  <span>24/7 Support — We're here whenever you need us</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>Cloud Storage — Your footage, safe and accessible anywhere</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span>Real-Time Alerts — Know the moment something happens</span>
                 </div>
               </div>
             </div>

@@ -469,17 +469,72 @@ export default async function ProductDetailPage({ params }: Props) {
                       <p className="text-sm text-gray-500">Always available</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                      <Sparkles className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">AI Intelligence</p>
+                      <p className="text-sm text-gray-500">Advanced AI analytics</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-2 space-y-10">
                     {/* Description */}
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
-                      {product.description ? (
-                        <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                      {product.slug === 'vsaas' ? (
+                        <div className="space-y-8">
+                          {/* Header */}
+                          <div>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Vsaas</h2>
+                            <p className="text-gray-600 leading-relaxed">
+                              AI-powered Video Surveillance as a Service (VSaaS) that delivers real-time monitoring, cloud recording, and intelligent analytics—without heavy infrastructure.
+                            </p>
+                          </div>
+
+                          {/* Customer Benefits */}
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Customer Benefits</h3>
+                            <ul className="space-y-3">
+                              {[
+                                { title: "No CapEx Model", desc: "Subscription-based, no upfront investment." },
+                                { title: "Anywhere Access", desc: "Monitor all sites from one dashboard." },
+                                { title: "AI Security", desc: "Real-time threat and anomaly detection." },
+                                { title: "Lower Costs", desc: "Reduce manpower and maintenance expenses." },
+                                { title: "Multi-Site Monitoring", desc: "Manage multiple locations centrally." },
+                                { title: "Fast Investigations", desc: "Find events instantly with AI search." },
+                                { title: "Scalable Solution", desc: "Easily add or remove cameras anytime." },
+                                { title: "Compliance Ready", desc: "Secure, compliant, and audit-ready system." },
+                              ].map((item, i) => (
+                                <li key={i} className="flex items-start gap-3">
+                                  <span className="text-red-500 mt-0.5">•</span>
+                                  <div>
+                                    <span className="font-semibold text-gray-900">{item.title}</span>
+                                    <span className="text-gray-600"> — {item.desc}</span>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* ONVIF Note */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                            <p className="text-blue-800 text-sm">
+                              👉 Our platform works seamlessly with ONVIF-compliant cameras across multiple brands, ensuring easy integration with your existing infrastructure.
+                            </p>
+                          </div>
+                        </div>
                       ) : (
-                        <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
+                        <>
+                          <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
+                          {product.description ? (
+                            <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                          ) : (
+                            <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
+                          )}
+                        </>
                       )}
                     </div>
 

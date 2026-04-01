@@ -421,8 +421,8 @@ export function VSAASConfigurator({
   const gatewayPricePerUnit = getPriceForCycle(cloudGatewayVariant ?? null, billingCycle);
   const storagePricePerCamera = selectedStorageAddon ? getAddonPriceForCycle(selectedStorageAddon, billingCycle) : 0;
   const streamOSPricePerCamera = getPriceForCycle(streamOSVariant ?? null, billingCycle);
-  const aiBoxPricePerUnit = getPriceForCycle(aiBoxVariant ?? null, billingCycle);
-  const aiLicensePricePerUnit = getPriceForCycle(aiLicenseVariant ?? null, billingCycle);
+  const aiBoxPricePerUnit = 138000;
+  const aiLicensePricePerUnit = 229908;
   const cyberPackStreamPrice = getPriceForCycle(cyberPackStreamVariant ?? null, billingCycle);
   const cyberPackAIPrice = getPriceForCycle(cyberPackAIVariant ?? null, billingCycle);
 
@@ -613,82 +613,55 @@ export function VSAASConfigurator({
     }
 
     // Add Stream OS to cart (for on-premise)
-    if (deploymentType === 'onPremise' && streamOSVariant && effectiveStreamOSQty > 0) {
+    if (deploymentType === 'onPremise' && effectiveStreamOSQty > 0) {
       const streamOSItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: streamOSVariant.name || currentProduct.name },
-        variant: { id: streamOSVariant.id, name: streamOSVariant.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Stream OS' },
+        variant: { id: streamOSVariant?.id ?? null, name: 'Stream OS' },
         quantity: effectiveStreamOSQty,
         selectedAddons: [],
-        billingCycle: billingCycle.toUpperCase(),
-        isRecurring: true,
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
         unitPrice: streamOSPricePerCamera,
         totalPrice: streamOSPricePerCamera * effectiveStreamOSQty,
         deploymentType: deploymentType,
-        recurringAmount: streamOSPricePerCamera,
-        recurringData: {
-          enabled: true,
-          billingCycle: billingCycle.toUpperCase() as any,
-          setupFee: 0,
-          pricePerCycle: streamOSPricePerCamera,
-          baseProductPrice: 0,
-          totalForPeriod: streamOSPricePerCamera * effectiveStreamOSQty,
-          savingsPercentage: 0,
-          monthlyEquivalent: streamOSPricePerCamera,
-        },
+        baseProductPrice: streamOSPricePerCamera,
+        productPrice: streamOSPricePerCamera * effectiveStreamOSQty,
       };
       addToCart(streamOSItem as any);
     }
 
     // Add AI-Box to cart (for on-premise)
-    if (deploymentType === 'onPremise' && aiBoxVariant && effectiveAiBoxQty > 0) {
+    if (deploymentType === 'onPremise' && effectiveAiBoxQty > 0) {
       const aiBoxItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: aiBoxVariant.name || currentProduct.name },
-        variant: { id: aiBoxVariant.id, name: aiBoxVariant.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'AI-Box' },
+        variant: { id: aiBoxVariant?.id ?? null, name: 'AI-Box' },
         quantity: effectiveAiBoxQty,
         selectedAddons: [],
-        billingCycle: billingCycle.toUpperCase(),
-        isRecurring: true,
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
         unitPrice: aiBoxPricePerUnit,
         totalPrice: aiBoxPricePerUnit * effectiveAiBoxQty,
         deploymentType: deploymentType,
-        recurringAmount: aiBoxPricePerUnit,
-        recurringData: {
-          enabled: true,
-          billingCycle: billingCycle.toUpperCase() as any,
-          setupFee: 0,
-          pricePerCycle: aiBoxPricePerUnit,
-          baseProductPrice: 0,
-          totalForPeriod: aiBoxPricePerUnit * effectiveAiBoxQty,
-          savingsPercentage: 0,
-          monthlyEquivalent: aiBoxPricePerUnit,
-        },
+        baseProductPrice: aiBoxPricePerUnit,
+        productPrice: aiBoxPricePerUnit * effectiveAiBoxQty,
       };
       addToCart(aiBoxItem as any);
     }
 
     // Add AI Licenses to cart (for on-premise)
-    if (deploymentType === 'onPremise' && aiLicenseVariant && effectiveAiLicenseQty > 0) {
+    if (deploymentType === 'onPremise' && effectiveAiLicenseQty > 0) {
       const aiLicenseItem = {
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: aiLicenseVariant.name || currentProduct.name },
-        variant: { id: aiLicenseVariant.id, name: aiLicenseVariant.name },
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'AI Licenses' },
+        variant: { id: aiLicenseVariant?.id ?? null, name: 'AI Licenses' },
         quantity: effectiveAiLicenseQty,
         selectedAddons: [],
-        billingCycle: billingCycle.toUpperCase(),
-        isRecurring: true,
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
         unitPrice: aiLicensePricePerUnit,
         totalPrice: aiLicensePricePerUnit * effectiveAiLicenseQty,
         deploymentType: deploymentType,
-        recurringAmount: aiLicensePricePerUnit,
-        recurringData: {
-          enabled: true,
-          billingCycle: billingCycle.toUpperCase() as any,
-          setupFee: 0,
-          pricePerCycle: aiLicensePricePerUnit,
-          baseProductPrice: 0,
-          totalForPeriod: aiLicensePricePerUnit * effectiveAiLicenseQty,
-          savingsPercentage: 0,
-          monthlyEquivalent: aiLicensePricePerUnit,
-        },
+        baseProductPrice: aiLicensePricePerUnit,
+        productPrice: aiLicensePricePerUnit * effectiveAiLicenseQty,
       };
       addToCart(aiLicenseItem as any);
     }
@@ -721,6 +694,42 @@ export function VSAASConfigurator({
           }
         });
       });
+    }
+
+    // Add AMC Cyber+ Pack (Stream OS) - charged once every 3 years
+    if (deploymentType === 'onPremise' && streamOSQuantity > 0) {
+      const cyberPackStreamItem = {
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' },
+        variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' },
+        quantity: streamOSQuantity,
+        selectedAddons: [],
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
+        unitPrice: 644,
+        totalPrice: 644 * streamOSQuantity,
+        deploymentType: deploymentType,
+        baseProductPrice: 644,
+        productPrice: 644 * streamOSQuantity,
+      };
+      addToCart(cyberPackStreamItem as any);
+    }
+
+    // Add AMC Cyber+ Pack (AI-Box & AI License) - charged once every 3 years
+    if (deploymentType === 'onPremise' && aiBoxQuantity > 0) {
+      const cyberPackAIItem = {
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' },
+        variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' },
+        quantity: aiBoxQuantity,
+        selectedAddons: [],
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
+        unitPrice: 73600,
+        totalPrice: 73600 * aiBoxQuantity,
+        deploymentType: deploymentType,
+        baseProductPrice: 73600,
+        productPrice: 73600 * aiBoxQuantity,
+      };
+      addToCart(cyberPackAIItem as any);
     }
 
     // Add setup fee as a separate one-time item (only charged once)
@@ -1383,7 +1392,7 @@ export function VSAASConfigurator({
                       {/* Unit Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(streamOSPricePerCamera)}{getBillingSuffix()}
+                          {formatPrice(streamOSPricePerCamera)} Fixed Price
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(streamOSPricePerCamera * streamOSQuantity)}
@@ -1464,7 +1473,7 @@ export function VSAASConfigurator({
                       {/* Unit Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(aiBoxPricePerUnit)}{getBillingSuffix()}
+                          {formatPrice(aiBoxPricePerUnit)} Fixed Price
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(aiBoxPricePerUnit * aiBoxQuantity)}
@@ -1545,7 +1554,7 @@ export function VSAASConfigurator({
                       {/* Unit Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(aiLicensePricePerUnit)}{getBillingSuffix()}
+                          {formatPrice(aiLicensePricePerUnit)} Fixed Price
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(aiLicensePricePerUnit * aiLicenseQuantity)}
@@ -1615,10 +1624,10 @@ export function VSAASConfigurator({
                       {/* Right: Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(644)}/year
+                          {formatPrice(644)} / 3 years
                         </div>
                         <div className="text-lg font-bold text-gray-900">
-                          {formatPrice(644 * cameraCount)}
+                          {formatPrice(644)}
                         </div>
                       </div>
                     </div>
@@ -1672,7 +1681,7 @@ export function VSAASConfigurator({
                       {/* Right: Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(73600)}/year
+                          {formatPrice(73600)} / 3 years
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(73600 * Math.ceil(cameraCount / 16))}
@@ -1982,7 +1991,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* Stream OS - On-Premise Only */}
-                    {deploymentType === 'onPremise' && streamOSVariant && streamOSQuantity > 0 && (
+                    {deploymentType === 'onPremise' && streamOSQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Stream OS</div>
                         <div className="flex justify-between items-start">
@@ -1998,7 +2007,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* AI-Box - On-Premise Only */}
-                    {deploymentType === 'onPremise' && aiBoxVariant && aiBoxQuantity > 0 && (
+                    {deploymentType === 'onPremise' && aiBoxQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI-Box</div>
                         <div className="flex justify-between items-start">
@@ -2014,7 +2023,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* AI Licenses - On-Premise Only */}
-                    {deploymentType === 'onPremise' && aiLicenseVariant && aiLicenseQuantity > 0 && (
+                    {deploymentType === 'onPremise' && aiLicenseQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI Licenses</div>
                         <div className="flex justify-between items-start">
@@ -2104,7 +2113,7 @@ export function VSAASConfigurator({
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for Stream</div>
                           </div>
                           <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(644 * streamOSQuantity)}/year
+                            {formatPrice(644 * streamOSQuantity)} / 3 yrs
                           </div>
                         </div>
                         <div className="flex justify-between items-start mt-2">
@@ -2113,7 +2122,7 @@ export function VSAASConfigurator({
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for AI-Box</div>
                           </div>
                           <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(73600 * aiBoxQuantity)}/year
+                            {formatPrice(73600)} / 3 yrs
                           </div>
                         </div>
                       </div>
