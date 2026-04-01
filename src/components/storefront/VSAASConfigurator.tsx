@@ -423,8 +423,8 @@ export function VSAASConfigurator({
   const streamOSPricePerCamera = getPriceForCycle(streamOSVariant ?? null, billingCycle);
   const aiBoxPricePerUnit = 138000;
   const aiLicensePricePerUnit = 229908;
-  const cyberPackStreamPrice = getPriceForCycle(cyberPackStreamVariant ?? null, billingCycle);
-  const cyberPackAIPrice = getPriceForCycle(cyberPackAIVariant ?? null, billingCycle);
+  const cyberPackStreamPrice = 644; // Fixed AMC price, billed once every 3 years
+  const cyberPackAIPrice = 73600;   // Fixed AMC price, billed once every 3 years
 
   // DERIVED quantities
   const hardwareQuantity = Math.max(1, Math.ceil(cameraCount / 8));
@@ -2113,7 +2113,7 @@ export function VSAASConfigurator({
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for Stream</div>
                           </div>
                           <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(644 * streamOSQuantity)} / 3 yrs
+                            {formatPrice(644)} / 3 yrs
                           </div>
                         </div>
                         <div className="flex justify-between items-start mt-2">

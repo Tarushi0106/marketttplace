@@ -379,6 +379,15 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
+              {product.slug === 'vsaas' && (
+              <TabsTrigger
+                value="solutions"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+              >
+                <Cloud className="h-4 w-4 mr-2" />
+                Solutions
+              </TabsTrigger>
+              )}
               {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"
@@ -559,6 +568,81 @@ export default async function ProductDetailPage({ params }: Props) {
                   ) : (
                     <div className="text-center py-16 text-gray-500">No features listed for this product.</div>
                   )}
+                </div>
+              </TabsContent>
+
+              {/* Solutions Tab — VSaaS only */}
+              <TabsContent value="solutions" className="mt-0">
+                <div className="max-w-5xl mx-auto">
+                  <div className="text-center mb-10">
+                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                      <Cloud className="h-4 w-4 mr-1" /> Solutions
+                    </Badge>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your deployment model</h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">Select the VSaaS solution that best fits your infrastructure and business requirements.</p>
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    {/* VSaaS On Cloud */}
+                    <div className="group p-8 bg-gradient-to-br from-blue-50 to-white rounded-2xl border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                        <Cloud className="h-7 w-7" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On Cloud</h3>
+                      <p className="text-gray-600 mb-6">
+                        Fully managed cloud-hosted video surveillance. No on-site servers required — store, manage, and access all footage securely from anywhere.
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {[
+                          "Zero infrastructure investment",
+                          "Automatic updates & maintenance",
+                          "Scalable cloud storage",
+                          "Access from any device, anywhere",
+                          "Pay-as-you-grow model",
+                          "99.99% uptime SLA",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                            <CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link href="/products/vsaas/configure">
+                        <button className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                          Get Started <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </Link>
+                    </div>
+
+                    {/* VSaaS On-Prem */}
+                    <div className="group p-8 bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 hover:border-[#8B1D1D]/40 hover:shadow-xl transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                        <Server className="h-7 w-7" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On-Prem</h3>
+                      <p className="text-gray-600 mb-6">
+                        Deploy on your own infrastructure for maximum control, data privacy, and compliance. All the power of VSaaS — fully within your network.
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {[
+                          "Full data sovereignty & privacy",
+                          "Works in air-gapped environments",
+                          "Integrates with existing hardware",
+                          "Customisable to your IT policies",
+                          "No internet dependency",
+                          "Dedicated on-site support",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                            <CheckCircle className="h-4 w-4 text-[#8B1D1D] flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <button className="w-full h-11 bg-[#8B1D1D] hover:bg-[#C62828] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                        Contact Sales <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 

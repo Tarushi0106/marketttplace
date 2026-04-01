@@ -384,58 +384,154 @@ export function VSAASLandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features & Solutions Tabs Section */}
       <section className="py-20 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Powerful Features
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Everything you need for comprehensive video surveillance
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Left: Feature List */}
-            <div className="space-y-6">
-              {features.map((feature, index) => (
-                <FeatureItem 
-                  key={index}
-                  title={feature.title}
-                  description={feature.description}
-                />
-              ))}
+          <Tabs defaultValue="features" className="w-full">
+            <div className="flex justify-center mb-12">
+              <TabsList className="bg-gray-100 p-1 rounded-xl">
+                <TabsTrigger
+                  value="features"
+                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white"
+                >
+                  Features
+                </TabsTrigger>
+                <TabsTrigger
+                  value="solutions"
+                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white"
+                >
+                  Solutions
+                </TabsTrigger>
+              </TabsList>
             </div>
-            
-            {/* Right: Visual */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 text-white">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                    <Search className="h-6 w-6 mb-2 text-red-400" />
-                    <p className="font-semibold">AI Search</p>
-                    <p className="text-xs text-gray-400">Find events instantly</p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                    <Bell className="h-6 w-6 mb-2 text-red-400" />
-                    <p className="font-semibold">Smart Alerts</p>
-                    <p className="text-xs text-gray-400">Real-time notifications</p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                    <Smartphone className="h-6 w-6 mb-2 text-red-400" />
-                    <p className="font-semibold">Mobile App</p>
-                    <p className="text-xs text-gray-400">Access anywhere</p>
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                    <Database className="h-6 w-6 mb-2 text-red-400" />
-                    <p className="font-semibold">Cloud Storage</p>
-                    <p className="text-xs text-gray-400">Secure & scalable</p>
+
+            {/* Features Tab */}
+            <TabsContent value="features">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                  Powerful Features
+                </h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Everything you need for comprehensive video surveillance
+                </p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-16">
+                {/* Left: Feature List */}
+                <div className="space-y-6">
+                  {features.map((feature, index) => (
+                    <FeatureItem
+                      key={index}
+                      title={feature.title}
+                      description={feature.description}
+                    />
+                  ))}
+                </div>
+
+                {/* Right: Visual */}
+                <div className="relative">
+                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 text-white">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                        <Search className="h-6 w-6 mb-2 text-red-400" />
+                        <p className="font-semibold">AI Search</p>
+                        <p className="text-xs text-gray-400">Find events instantly</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                        <Bell className="h-6 w-6 mb-2 text-red-400" />
+                        <p className="font-semibold">Smart Alerts</p>
+                        <p className="text-xs text-gray-400">Real-time notifications</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                        <Smartphone className="h-6 w-6 mb-2 text-red-400" />
+                        <p className="font-semibold">Mobile App</p>
+                        <p className="text-xs text-gray-400">Access anywhere</p>
+                      </div>
+                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                        <Database className="h-6 w-6 mb-2 text-red-400" />
+                        <p className="font-semibold">Cloud Storage</p>
+                        <p className="text-xs text-gray-400">Secure & scalable</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+
+            {/* Solutions Tab */}
+            <TabsContent value="solutions">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                  VSaaS Solutions
+                </h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Choose the deployment model that fits your business needs
+                </p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* VSaaS On Cloud */}
+                <div className="group p-8 bg-gradient-to-br from-blue-50 to-white rounded-2xl border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                    <Cloud className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On Cloud</h3>
+                  <p className="text-gray-600 mb-6">
+                    Fully managed cloud-hosted video surveillance. No on-site servers required — store, manage, and access all footage securely from anywhere.
+                  </p>
+                  <ul className="space-y-3 mb-8">
+                    {[
+                      "Zero infrastructure investment",
+                      "Automatic updates & maintenance",
+                      "Scalable cloud storage",
+                      "Access from any device, anywhere",
+                      "Pay-as-you-grow model",
+                      "99.99% uptime SLA",
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                        <CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/products/vsaas/configure">
+                    <Button className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl">
+                      Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* VSaaS On-Prem */}
+                <div className="group p-8 bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 hover:border-red-300 hover:shadow-xl transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                    <Server className="h-7 w-7" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On-Prem</h3>
+                  <p className="text-gray-600 mb-6">
+                    Deploy on your own infrastructure for maximum control, data privacy, and compliance. All the power of VSaaS — fully within your network.
+                  </p>
+                  <ul className="space-y-3 mb-8">
+                    {[
+                      "Full data sovereignty & privacy",
+                      "Works in air-gapped environments",
+                      "Integrates with existing hardware",
+                      "Customisable to your IT policies",
+                      "No internet dependency",
+                      "Dedicated on-site support",
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                        <CheckCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl">
+                    Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
