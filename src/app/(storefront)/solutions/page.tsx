@@ -283,26 +283,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 bg-[#8B1D1D]">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready to Get Started?</h2>
-          <p className="text-red-200 mb-8 max-w-xl mx-auto">Join businesses across India already using Shaurrya Teleservices.</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/products">
-              <Button size="lg" className="bg-white text-[#8B1D1D] hover:bg-gray-100 font-semibold">
-                Explore Products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10">
-                Create Account
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
