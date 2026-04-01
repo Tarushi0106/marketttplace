@@ -48,7 +48,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
 import { formatPrice } from "@/lib/utils";
 
 // Render icon based on icon name
@@ -150,7 +149,6 @@ async function getProduct(slug: string) {
           // Use variant-specific recurring prices
           variant.recurringPrices = variantSpecificPrices;
           // Add transformed object for storefront frontend
-          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = {
             monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
             quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
@@ -158,12 +156,10 @@ async function getProduct(slug: string) {
             biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
             triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
           };
-          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'recurring';
         } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
           // Variant already has recurring prices (included in query)
           // Keep as is
-          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = {
             monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
             quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
@@ -171,14 +167,11 @@ async function getProduct(slug: string) {
             biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
             triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
           };
-          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'recurring';
         } else {
           // No variant-specific prices - clear to avoid stale data
           variant.recurringPrices = [];
-          // @ts-ignore - Adding dynamic properties
           variant.recurringPricesObj = null;
-          // @ts-ignore - Adding dynamic properties
           variant.billingType = 'one_time';
         }
         return variant;
@@ -354,16 +347,9 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {(product.slug !== 'vsaas' && product.slug !== 'connect-cloud') && (
                   <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
                     <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                   </Button>
-                  )}
-                  {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
-                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                    <Link href={`#solutions`}><ShoppingBag className="h-4 w-4 mr-2" />View Solutions</Link>
-                  </Button>
-                  )}
                   <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
                     <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
                   </Button>
@@ -393,16 +379,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
-              {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
-              <TabsTrigger
-                value="solutions"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
-              >
-                <Cloud className="h-4 w-4 mr-2" />
-                Solutions
-              </TabsTrigger>
-              )}
-              {(product.slug !== 'vsaas' && product.slug !== 'connect-cloud') && (
+              {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -461,6 +438,15 @@ export default async function ProductDetailPage({ params }: Props) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                      <Sparkles className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">AI Intelligence</p>
+                      <p className="text-sm text-gray-500">Advanced AI analytics</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                       <Headphones className="h-6 w-6 text-purple-600" />
                     </div>
@@ -469,72 +455,46 @@ export default async function ProductDetailPage({ params }: Props) {
                       <p className="text-sm text-gray-500">Always available</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                      <Sparkles className="h-6 w-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">AI Intelligence</p>
-                      <p className="text-sm text-gray-500">Advanced AI analytics</p>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-2 space-y-10">
                     {/* Description */}
                     <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
                       {product.slug === 'vsaas' ? (
-                        <div className="space-y-8">
-                          {/* Header */}
+                        <div className="space-y-5">
+                          <p className="text-gray-600 leading-relaxed">
+                            NetNxt VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
+                          </p>
                           <div>
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Vsaas</h2>
-                            <p className="text-gray-600 leading-relaxed">
-                              AI-powered Video Surveillance as a Service (VSaaS) that delivers real-time monitoring, cloud recording, and intelligent analytics—without heavy infrastructure.
-                            </p>
-                          </div>
-
-                          {/* Customer Benefits */}
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">Customer Benefits</h3>
-                            <ul className="space-y-3">
+                            <h4 className="text-base font-bold text-gray-900 mb-3">Customer Benefits</h4>
+                            <ul className="space-y-2.5">
                               {[
-                                { title: "No CapEx Model", desc: "Subscription-based, no upfront investment." },
-                                { title: "Anywhere Access", desc: "Monitor all sites from one dashboard." },
-                                { title: "AI Security", desc: "Real-time threat and anomaly detection." },
-                                { title: "Lower Costs", desc: "Reduce manpower and maintenance expenses." },
-                                { title: "Multi-Site Monitoring", desc: "Manage multiple locations centrally." },
-                                { title: "Fast Investigations", desc: "Find events instantly with AI search." },
-                                { title: "Scalable Solution", desc: "Easily add or remove cameras anytime." },
-                                { title: "Compliance Ready", desc: "Secure, compliant, and audit-ready system." },
+                                { title: "No CapEx Model", desc: "Eliminate upfront hardware costs with a fully managed cloud solution." },
+                                { title: "Anywhere Access", desc: "Monitor your premises from any device, anywhere in the world." },
+                                { title: "AI Security", desc: "Proactive threat detection powered by advanced AI algorithms." },
+                                { title: "Lower Costs", desc: "Reduce operational expenses compared to traditional CCTV infrastructure." },
+                                { title: "Multi-Site Monitoring", desc: "Manage all your locations from a single unified dashboard." },
+                                { title: "Fast Investigations", desc: "Quickly search and retrieve footage with intelligent indexing." },
+                                { title: "Scalable Solution", desc: "Easily add cameras and users as your business grows." },
+                                { title: "Compliance Ready", desc: "Meet industry regulations with encrypted, audit-ready recordings." },
                               ].map((item, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                  <span className="text-red-500 mt-0.5">•</span>
-                                  <div>
-                                    <span className="font-semibold text-gray-900">{item.title}</span>
-                                    <span className="text-gray-600"> — {item.desc}</span>
-                                  </div>
+                                <li key={i} className="flex items-start gap-2.5">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <span className="text-gray-600 text-sm"><span className="font-semibold text-gray-800">{item.title}</span> — {item.desc}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
-
-                          {/* ONVIF Note */}
-                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                            <p className="text-blue-800 text-sm">
-                              👉 Our platform works seamlessly with ONVIF-compliant cameras across multiple brands, ensuring easy integration with your existing infrastructure.
-                            </p>
-                          </div>
+                          <p className="text-sm text-gray-500 border-l-2 border-[#8B1D1D]/30 pl-3">
+                            👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
+                          </p>
                         </div>
+                      ) : product.description ? (
+                        <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
                       ) : (
-                        <>
-                          <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
-                          {product.description ? (
-                            <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
-                          ) : (
-                            <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
-                          )}
-                        </>
+                        <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
                       )}
                     </div>
 
@@ -601,111 +561,6 @@ export default async function ProductDetailPage({ params }: Props) {
                   )}
                 </div>
               </TabsContent>
-
-              {/* Solutions Tab - Only for VSAAS */}
-              {(product.slug === 'vsaas' || product.slug === 'connect-cloud') && (
-              <TabsContent value="solutions" className="mt-0">
-                <div className="max-w-5xl mx-auto">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* VSAAS Cloud - Cloud Video Surveillance */}
-                    <div className="bg-white border-2 border-blue-200 rounded-2xl p-8 hover:border-blue-500 hover:shadow-lg transition-all">
-                      <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                        <Cloud className="h-8 w-8 text-blue-600" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">Cloud Video Surveillance (VSaaS)</h3>
-                      <p className="text-gray-500 mb-6">
-                        Move your surveillance system to the cloud and eliminate the need for on-site hardware. Monitor live feeds, access recordings, and manage security from anywhere with a secure and scalable platform.
-                      </p>
-                      
-                      <ul className="space-y-3 mb-8">
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span>Reliable 24/7 Remote Monitoring</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span>Quick and Hassle-Free Deployment</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span>Secure Cloud Storage with Backup</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span>AI-Based Alerts and Insights</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span>Scalable for Multiple Locations</span>
-                        </li>
-                      </ul>
-                      
-                      {product.variants?.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')) ? (
-                        <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('cloud') || v.sku?.toLowerCase().includes('cloud')).id}`}>
-                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                            Configure Cloud Setup
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Link href={`/products/${product.slug}/configure`}>
-                          <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                            Configure Cloud Setup
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-
-                    {/* VSAAS On-Premise - On-Premise Video Surveillance */}
-                    <div className="bg-white border-2 border-red-200 rounded-2xl p-8 hover:border-red-500 hover:shadow-lg transition-all">
-                      <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mb-6">
-                        <Server className="h-8 w-8 text-red-600" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3">On-Premise Video Surveillance</h3>
-                      <p className="text-gray-500 mb-6">
-                        Deploy and manage your surveillance system on local infrastructure with complete control over data, security, and performance. Ideal for organizations requiring strict compliance and internal data management.
-                      </p>
-                      
-                      <ul className="space-y-3 mb-8">
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                          <span>Complete Data Ownership and Privacy</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                          <span>Dedicated On-Site Infrastructure</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                          <span>High Performance on Local Network</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                          <span>Flexible Customization and Integration</span>
-                        </li>
-                        <li className="flex items-start gap-3 text-gray-700">
-                          <Check className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                          <span>Reliable Enterprise-Grade Support</span>
-                        </li>
-                      </ul>
-                      
-                      {product.variants?.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')) ? (
-                        <Link href={`/products/${product.slug}/configure?variant=${product.variants.find((v: any) => v.name.toLowerCase().includes('stream os') || v.sku?.toLowerCase().includes('onprem') || v.name.toLowerCase().includes('on premise') || v.name.toLowerCase().includes('on-prem')).id}`}>
-                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure On-Prem Setup
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Link href={`/products/${product.slug}/configure`}>
-                          <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]">
-                            Configure On-Prem Setup
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              )}
 
               {/* Pricing Tab */}
               <TabsContent value="pricing" className="mt-0">
@@ -1031,7 +886,7 @@ export default async function ProductDetailPage({ params }: Props) {
                         <AccordionItem value="refund" className="border rounded-2xl px-5">
                           <AccordionTrigger className="hover:no-underline">Refund Policy</AccordionTrigger>
                           <AccordionContent className="text-gray-500">
-                            Our refund policy ensures customer satisfaction. Contact our support team for assistance.
+                            We offer a 30-day money-back guarantee on all products. If you&apos;re not satisfied, contact our support team for a full refund.
                           </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="privacy" className="border rounded-2xl px-5">

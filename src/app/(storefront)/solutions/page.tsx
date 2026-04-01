@@ -142,11 +142,6 @@ export default function SolutionsPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/contact">
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-white/5 hover:text-white px-6">
-                  Talk to Sales
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
