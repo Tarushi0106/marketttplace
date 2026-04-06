@@ -76,12 +76,6 @@ const formatCurrency = (amount: number): string => {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-const formatDate = (date: string | Date | null | undefined): string => {
-  if (!date) return "";
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-};
-
 const formatInvoiceDate = (): string => {
   const d = new Date();
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -138,218 +132,594 @@ const groupItems = (items: OrderItem[]): OrderItem[] => {
 function generateHTML(order: Order): string {
   const invoiceNumber = generateInvoiceNumber();
   const billingAddr = order.billingAddress || order.shippingAddress;
-  const shippingAddr = order.shippingAddress;
   const items = groupItems(order.items || []);
-  
-  // Calculate today's total (baseProductPrice + setupFee)
-  const todayTotal = items.reduce((sum, item) => {
-    const basePrice = Number(item.baseProductPrice) || 0;
-    const setupFee = Number(item.setupFee) || 0;
-    const quantity = Number(item.quantity) || 1;
-    return sum + ((basePrice + setupFee) * quantity);
-  }, 0);
-  
-  const discountAmount = Number(order.discountAmount) || 0;
-  const taxAmount = Number(order.taxAmount) || 0;
-  const shippingAmount = Number(order.shippingAmount) || 0;
-  const subtotal = todayTotal;
-  const total = Number(order.total) || subtotal - discountAmount + taxAmount + shippingAmount;
-  const setupFeeTotal = items.reduce((sum, item) => sum + (Number(item.setupFee) || 0), 0);
-  const recurringItem = items.find(item => item.isRecurring);
-  const hasRecurring = recurringItem?.isRecurring;
 
-  return `
-<!DOCTYPE html>
+  const discountAmount = Number(order.discountAmount) || 0;
+  const taxAmount     = Number(order.taxAmount)      || 0;
+  const cgstAmount    = Number((order as any).cgstAmount)  || (taxAmount / 2);
+  const sgstAmount    = Number((order as any).sgstAmount)  || (taxAmount / 2);
+  const shippingAmount = Number(order.shippingAmount) || 0;
+
+  const subtotal = items.reduce((sum, item) => {
+    const base  = Number(item.baseProductPrice) || Number(item.unitPrice) || 0;
+    const setup = Number(item.setupFee) || 0;
+    const qty   = Number(item.quantity) || 1;
+    return sum + (base + setup) * qty;
+  }, 0);
+
+  const total = Number(order.total) || subtotal - discountAmount + taxAmount + shippingAmount;
+  const recurringItem = items.find(item => item.isRecurring);
+  const hasRecurring  = !!recurringItem?.isRecurring;
+
+  const isPaid = order.paymentStatus === 'PAID';
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice ${invoiceNumber}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @page {
-      size: A4;
-      margin: 0;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page { size: A4; margin: 0; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: #fff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOP ACCENT BAR ── */
+    .accent-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #1a2744 0%, #b91c1c 60%, #ef4444 100%);
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 32px 48px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #e8edf5;
+    }
+
+    .company-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a2744;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+
+    .company-tagline {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 400;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .company-meta {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.7;
+    }
+
+    .company-tax {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    .invoice-meta {
+      text-align: right;
+    }
+
+    .invoice-label {
+      font-size: 28px;
+      font-weight: 700;
+      color: #b91c1c;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .invoice-number {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a2744;
+      margin-bottom: 3px;
+    }
+
+    .invoice-date {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+
+    .badge-paid {
+      display: inline-block;
+      padding: 4px 14px;
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 20px;
+      border: 1px solid #bbf7d0;
+      text-transform: uppercase;
+    }
+
+    .badge-pending {
+      display: inline-block;
+      padding: 4px 14px;
+      background: #fef3c7;
+      color: #b45309;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 20px;
+      border: 1px solid #fde68a;
+      text-transform: uppercase;
+    }
+
+    /* ── PAID WATERMARK ── */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 96px;
+      font-weight: 800;
+      color: rgba(21, 128, 61, 0.055);
+      letter-spacing: 8px;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+
+    /* ── ADDRESS SECTION ── */
+    .address-section {
+      padding: 24px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      border-bottom: 1px solid #e8edf5;
+    }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .addr-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a2744;
+      margin-bottom: 4px;
+    }
+
+    .addr-line {
+      font-size: 11px;
+      color: #475569;
+      line-height: 1.8;
+    }
+
+    .addr-gstin {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .order-detail-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 3px 0;
+    }
+
+    .order-detail-key {
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .order-detail-val {
+      color: #1a2744;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    /* ── TABLE ── */
+    .table-section {
+      padding: 24px 48px 0;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: #1a2744;
+    }
+
+    thead th {
+      padding: 10px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #cbd5e1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    thead th:first-child { border-radius: 4px 0 0 4px; }
+    thead th:last-child  { border-radius: 0 4px 4px 0; }
+
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    tbody td {
+      padding: 12px 12px;
+      vertical-align: top;
+    }
+
+    .item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a2744;
+      margin-bottom: 2px;
+    }
+
+    .item-sub {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .item-tag {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 8px;
+      background: #fff1f2;
+      color: #b91c1c;
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid #fecaca;
+    }
+
+    .item-tag-amber {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    /* ── TOTALS ── */
+    .totals-section {
+      padding: 20px 48px 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .totals-box {
+      width: 260px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed #e8edf5;
+    }
+
+    .totals-row:last-child { border-bottom: none; }
+
+    .totals-label { color: #64748b; }
+    .totals-value { color: #1a2744; font-weight: 500; }
+    .totals-value-green { color: #15803d; font-weight: 500; }
+
+    .totals-final {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 14px;
+      margin-top: 8px;
+      background: #1a2744;
+      border-radius: 6px;
+    }
+
+    .totals-final-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .totals-final-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    /* ── RECURRING BANNER ── */
+    .recurring-box {
+      margin: 16px 48px 0;
+      padding: 10px 16px;
+      background: #fff1f2;
+      border-left: 3px solid #b91c1c;
+      border-radius: 0 4px 4px 0;
+      font-size: 11px;
+      color: #991b1b;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: auto;
+      padding: 20px 48px 24px;
+      border-top: 1px solid #e8edf5;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .footer-heading {
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .footer-text {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.7;
+    }
+
+    .sig-line {
+      width: 120px;
+      border-top: 1px solid #cbd5e1;
+      margin-top: 28px;
+      margin-bottom: 4px;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 9px;
+      color: #cbd5e1;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* ── HELPERS ── */
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
   </style>
 </head>
-<body class="bg-white m-0 p-0">
-  <div class="max-w-[210mm] mx-auto bg-white" style="min-height: 297mm">
-    <!-- Header -->
-    <div class="px-8 pt-8 pb-6">
-      <div class="flex justify-between items-start">
-        <div>
-          <h1 class="text-xl font-semibold text-gray-900">SHAURRYA TELESERVICES</h1>
-          <p class="text-sm text-gray-500 mt-1">
-            Laxmi Plaza, 213, Off New Link Rd, Laxmi Industrial Estate<br>
-            Andheri West, Mumbai, Maharashtra 400053
-          </p>
-          <p class="text-xs text-gray-400 mt-1">
-            PAN: ABCCS1234A | GST: 27ABCCS1234A1Z9
-          </p>
-        </div>
-        <div class="text-right">
-          <h2 class="text-lg font-medium text-gray-700">INVOICE</h2>
-          <p class="text-sm text-gray-500 mt-2">${invoiceNumber}</p>
-          <p class="text-sm text-gray-500">${formatInvoiceDate()}</p>
-          ${order.paymentStatus === "PAID" ? `
-          <span class="inline-block px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded mt-2">
-            PAID
-          </span>
-          ` : ''}
-        </div>
+<body>
+<div class="page">
+
+  ${isPaid ? '<div class="watermark">PAID</div>' : ''}
+
+  <!-- Accent bar -->
+  <div class="accent-bar"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="company-name">SHAURRYA TELESERVICES</div>
+      <div class="company-tagline">Telecom &amp; Technology Solutions</div>
+      <div class="company-meta">
+        Laxmi Plaza, 213, Off New Link Rd<br>
+        Laxmi Industrial Estate, Andheri West<br>
+        Mumbai, Maharashtra 400053
       </div>
+      <div class="company-tax">PAN: ABCCS1234A &nbsp;|&nbsp; GSTIN: 27ABCCS1234A1Z9</div>
     </div>
-
-    <!-- Bill To & Ship To -->
-    <div class="px-8 pb-6">
-      <div class="grid grid-cols-2 gap-12">
-        <!-- Bill To -->
-        <div>
-          <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Bill To</h3>
-          ${billingAddr?.company ? `<p class="text-sm font-medium text-gray-900">${billingAddr.company}</p>` : ''}
-          <p class="text-sm text-gray-600">
-            ${billingAddr?.firstName || ''} ${billingAddr?.lastName || ''}
-          </p>
-          <p class="text-sm text-gray-500">
-            ${billingAddr?.address1 || ''}
-            ${billingAddr?.address2 ? `, ${billingAddr.address2}` : ''}
-          </p>
-          <p class="text-sm text-gray-500">
-            ${billingAddr?.city || ''}${billingAddr?.city && billingAddr?.state ? ', ' : ''}${billingAddr?.state || ''} ${billingAddr?.postalCode || ''}
-          </p>
-          ${billingAddr?.phone ? `<p class="text-sm text-gray-500 mt-1">${billingAddr.phone}</p>` : ''}
-          ${billingAddr?.gstin ? `<p class="text-sm text-gray-500 mt-1">GSTIN: ${billingAddr.gstin}</p>` : ''}
-          <p class="text-sm text-gray-500 mt-1">${order.email || ''}</p>
-        </div>
-
-        <!-- Ship To / Order Details -->
-        <div>
-          <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Order Details</h3>
-          <p class="text-sm text-gray-600">
-            <span class="text-gray-500">Order:</span> ${order.orderNumber || ''}
-          </p>
-          <p class="text-sm text-gray-600">
-            <span class="text-gray-500">Payment:</span> ${(order.paymentMethod || '').toUpperCase() || 'N/A'}
-          </p>
-          <p class="text-sm text-gray-600">
-            <span class="text-gray-500">Status:</span> ${order.paymentStatus || order.status || 'Pending'}
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Items Table -->
-    <div class="px-8">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-gray-200">
-            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-10">#</th>
-            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-            <th class="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Qty</th>
-            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rate</th>
-            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map((item, index) => `
-          <tr class="border-b border-gray-100">
-            <td class="py-3 text-sm text-gray-500">${index + 1}</td>
-            <td class="py-3">
-              <p class="text-sm text-gray-900">${item.name || ''}</p>
-              ${item.variant && typeof item.variant === 'object' ? `<p class="text-xs text-gray-500">${(item.variant as any).name || ''}</p>` : ''}
-              ${item.isRecurring ? `
-              <p class="text-xs text-gray-500 mt-1">
-                Recurring: ${getBillingCycleLabel(item.billingCycle)}
-                ${item.recurringPrice ? ` (${formatCurrency(Number(item.recurringPrice))}/cycle)` : ''}
-              </p>
-              ` : ''}
-              ${item.setupFee && item.setupFee > 0 ? `
-              <p class="text-xs text-gray-500 mt-1">Setup Fee: ${formatCurrency(Number(item.setupFee))}</p>
-              ` : ''}
-            </td>
-            <td class="py-3 text-sm text-gray-600 text-center">${item.quantity || 1}</td>
-            <td class="py-3 text-sm text-gray-600 text-right">${formatCurrency(Number(item.unitPrice) || 0)}</td>
-            <td class="py-3 text-sm text-gray-900 text-right font-medium">
-              ${formatCurrency(Number(item.totalPrice) || 0)}
-            </td>
-          </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Totals -->
-    <div class="px-8 py-6">
-      <div class="flex justify-end">
-        <div class="w-56">
-          <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-500">Subtotal</span>
-            <span class="text-gray-900">${formatCurrency(subtotal)}</span>
-          </div>
-          ${discountAmount > 0 ? `
-          <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-500">Discount</span>
-            <span class="text-green-600">-${formatCurrency(discountAmount)}</span>
-          </div>
-          ` : ''}
-          ${taxAmount > 0 ? `
-          <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-500">Tax</span>
-            <span class="text-gray-900">${formatCurrency(taxAmount)}</span>
-          </div>
-          ` : ''}
-          ${shippingAmount > 0 ? `
-          <div class="flex justify-between py-2 text-sm">
-            <span class="text-gray-500">Shipping</span>
-            <span class="text-gray-900">${formatCurrency(shippingAmount)}</span>
-          </div>
-          ` : ''}
-          <div class="flex justify-between py-3 border-t border-gray-200 mt-2">
-            <span class="text-sm font-medium text-gray-900">Total</span>
-            <span class="text-sm font-medium text-gray-900">${formatCurrency(total)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recurring Info (inline, no colored bar) -->
-    ${hasRecurring ? `
-    <div class="px-8 py-4">
-      <p class="text-sm text-gray-600">
-        <span class="font-medium">Recurring:</span> ${getBillingCycleLabel(recurringItem?.billingCycle)}
-        ${recurringItem?.recurringPrice ? ` (${formatCurrency(Number(recurringItem.recurringPrice))}/cycle)` : ''}
-        ${setupFeeTotal > 0 ? ` | Setup Fee: ${formatCurrency(setupFeeTotal)}` : ''}
-      </p>
-    </div>
-    ` : ''}
-
-    <!-- Footer -->
-    <div class="px-8 py-6 border-t border-gray-100 mt-auto">
-      <div class="flex justify-between items-end">
-        <div>
-          <h4 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Bank Details</h4>
-          <p class="text-xs text-gray-500">HDFC Bank | A/C: 123456789012 | IFSC: HDFC0001234</p>
-          <p class="text-xs text-gray-400 mt-1">Andheri West, Mumbai</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs font-medium text-gray-600">For Shaurrya Teleservices</p>
-          <p class="text-xs text-gray-400 mt-4">Authorized Signatory</p>
-        </div>
-      </div>
-      <p class="text-xs text-gray-300 text-center mt-6">
-        Computer-generated invoice. No signature required.
-      </p>
+    <div class="invoice-meta">
+      <div class="invoice-label">INVOICE</div>
+      <div class="invoice-number">${invoiceNumber}</div>
+      <div class="invoice-date">Date: ${formatInvoiceDate()}</div>
+      ${isPaid
+        ? '<span class="badge-paid">&#10003; Paid</span>'
+        : '<span class="badge-pending">Pending</span>'}
     </div>
   </div>
+
+  <!-- Address + Order Details -->
+  <div class="address-section">
+    <div>
+      <div class="section-label">Bill To</div>
+      ${billingAddr?.company ? `<div class="addr-name">${billingAddr.company}</div>` : ''}
+      <div class="addr-name" style="${billingAddr?.company ? 'font-weight:500;font-size:12px' : ''}">
+        ${billingAddr?.firstName || ''} ${billingAddr?.lastName || ''}
+      </div>
+      <div class="addr-line">
+        ${[
+          billingAddr?.address1,
+          billingAddr?.address2,
+          [billingAddr?.city, billingAddr?.state].filter(Boolean).join(', '),
+          billingAddr?.postalCode,
+        ].filter(Boolean).join('<br>')}
+      </div>
+      ${billingAddr?.phone   ? `<div class="addr-line" style="margin-top:6px">&#128222; ${billingAddr.phone}</div>` : ''}
+      ${order.email          ? `<div class="addr-line">&#9993; ${order.email}</div>` : ''}
+      ${billingAddr?.gstin   ? `<div class="addr-gstin">GSTIN: ${billingAddr.gstin}</div>` : ''}
+    </div>
+
+    <div>
+      <div class="section-label">Order Details</div>
+      ${order.orderNumber ? `
+      <div class="order-detail-row">
+        <span class="order-detail-key">Order No.</span>
+        <span class="order-detail-val">${order.orderNumber}</span>
+      </div>` : ''}
+      <div class="order-detail-row">
+        <span class="order-detail-key">Invoice No.</span>
+        <span class="order-detail-val">${invoiceNumber}</span>
+      </div>
+      <div class="order-detail-row">
+        <span class="order-detail-key">Invoice Date</span>
+        <span class="order-detail-val">${formatInvoiceDate()}</span>
+      </div>
+      <div class="order-detail-row">
+        <span class="order-detail-key">Payment Mode</span>
+        <span class="order-detail-val">${(order.paymentMethod || 'N/A').toUpperCase()}</span>
+      </div>
+      <div class="order-detail-row">
+        <span class="order-detail-key">Payment Status</span>
+        <span class="order-detail-val">${order.paymentStatus || 'Pending'}</span>
+      </div>
+      <div class="order-detail-row">
+        <span class="order-detail-key">Place of Supply</span>
+        <span class="order-detail-val">Maharashtra (27)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Items Table -->
+  <div class="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:32px">#</th>
+          <th style="text-align:left">Description</th>
+          <th style="width:48px">HSN</th>
+          <th style="width:40px">Qty</th>
+          <th style="width:88px;text-align:right">Unit Price</th>
+          <th style="width:88px;text-align:right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map((item, idx) => `
+        <tr>
+          <td class="text-center" style="color:#94a3b8;font-size:11px">${idx + 1}</td>
+          <td>
+            <div class="item-name">${item.name || ''}</div>
+            ${item.variant && typeof item.variant === 'object'
+              ? `<div class="item-sub">Variant: ${(item.variant as any).name || ''}</div>`
+              : ''}
+            ${item.isRecurring
+              ? `<span class="item-tag">&#8635; ${getBillingCycleLabel(item.billingCycle)}${item.recurringPrice ? ` — ${formatCurrency(Number(item.recurringPrice))}/cycle` : ''}</span>`
+              : ''}
+            ${item.setupFee && Number(item.setupFee) > 0
+              ? `<span class="item-tag item-tag-amber">Setup: ${formatCurrency(Number(item.setupFee))}</span>`
+              : ''}
+          </td>
+          <td class="text-center" style="font-size:10px;color:#94a3b8">${(item as any).hsnCode || '—'}</td>
+          <td class="text-center" style="color:#475569">${item.quantity || 1}</td>
+          <td class="text-right" style="color:#475569">${formatCurrency(Number(item.unitPrice) || 0)}</td>
+          <td class="text-right" style="font-weight:600;color:#1a2744">${formatCurrency(Number(item.totalPrice) || 0)}</td>
+        </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Totals -->
+  <div class="totals-section">
+    <div class="totals-box">
+      <div class="totals-row">
+        <span class="totals-label">Subtotal</span>
+        <span class="totals-value">${formatCurrency(subtotal)}</span>
+      </div>
+      ${discountAmount > 0 ? `
+      <div class="totals-row">
+        <span class="totals-label">Discount</span>
+        <span class="totals-value-green">&#8722; ${formatCurrency(discountAmount)}</span>
+      </div>` : ''}
+      ${taxAmount > 0 ? `
+      <div class="totals-row">
+        <span class="totals-label">CGST (9%)</span>
+        <span class="totals-value">${formatCurrency(cgstAmount)}</span>
+      </div>
+      <div class="totals-row">
+        <span class="totals-label">SGST (9%)</span>
+        <span class="totals-value">${formatCurrency(sgstAmount)}</span>
+      </div>` : ''}
+      ${shippingAmount > 0 ? `
+      <div class="totals-row">
+        <span class="totals-label">Shipping</span>
+        <span class="totals-value">${formatCurrency(shippingAmount)}</span>
+      </div>` : ''}
+      <div class="totals-final">
+        <span class="totals-final-label">Total Due</span>
+        <span class="totals-final-value">${formatCurrency(total)}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recurring Info -->
+  ${hasRecurring ? `
+  <div class="recurring-box">
+    <strong>Recurring Subscription:</strong>
+    ${getBillingCycleLabel(recurringItem?.billingCycle)} billing
+    ${recurringItem?.recurringPrice ? ` — ${formatCurrency(Number(recurringItem.recurringPrice))} per cycle` : ''}
+    &nbsp;&bull;&nbsp; Next charge will be billed automatically.
+  </div>` : ''}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-heading">Bank Details</div>
+        <div class="footer-text">
+          <strong>Bank:</strong> HDFC Bank<br>
+          <strong>A/C No:</strong> 123456789012<br>
+          <strong>IFSC:</strong> HDFC0001234<br>
+          <strong>Branch:</strong> Andheri West, Mumbai
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="footer-heading">For Shaurrya Teleservices</div>
+        <div class="sig-line" style="margin-left:auto;margin-right:0"></div>
+        <div class="footer-text">Authorised Signatory</div>
+      </div>
+    </div>
+    <div class="footer-note">
+      This is a computer-generated invoice and does not require a physical signature. &nbsp;|&nbsp;
+      Subject to Mumbai jurisdiction. &nbsp;|&nbsp; E&amp;OE
+    </div>
+  </div>
+
+</div>
 </body>
-</html>
-  `;
+</html>`;
 }
 
 export async function generateInvoicePDF(order: Order): Promise<Buffer> {

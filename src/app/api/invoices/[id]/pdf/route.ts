@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateInvoicePDF, transformOrderToInvoiceData } from "@/lib/invoice-pdfmake";
+import { generateInvoicePDF } from "@/lib/pdf-generator";
 
 /**
  * GET /api/invoices/[id]/pdf - Generate and download invoice PDF using Puppeteer
@@ -71,9 +71,8 @@ export async function GET(
     orderData.billingAddress = metadata.shippingAddress || null;
     orderData.shippingAddress = metadata.shippingAddress || null;
 
-    // Transform order to invoice data and generate PDF using pdfmake
-    const invoiceData = transformOrderToInvoiceData(orderData);
-    const pdfBuffer = await generateInvoicePDF(invoiceData);
+    // Generate PDF using puppeteer
+    const pdfBuffer = await generateInvoicePDF(orderData as any);
 
     // Return the PDF as a downloadable file
     return new NextResponse(pdfBuffer as unknown as BodyInit, {

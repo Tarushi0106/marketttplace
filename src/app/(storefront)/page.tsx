@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
 import { TrendingProducts } from "@/components/storefront/TrendingProducts";
 import { Testimonials } from "@/components/storefront/Testimonials";
-import { CompanyLogos } from "@/components/storefront/CompanyLogos";
 import { prisma } from "@/lib/prisma";
 import { SolutionsCarousel } from "@/components/storefront/SolutionsCarousel";
 
@@ -170,9 +169,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Company Logos - Auto Scrolling */}
-      <CompanyLogos />
 
       {/* Browse Top Solutions Section - From Database */}
       <SolutionsCarousel categories={categories} iconMap={iconMap} />
