@@ -284,7 +284,8 @@ export function VSAASConfigurator({
   ), [variants]);
 
   const connectCloudVariant = useMemo(() => variants.find((v) =>
-    v.name?.toLowerCase().includes('connect cloud')
+    v.name?.toLowerCase().includes('connect cloud') ||
+    v.name?.toLowerCase().includes('cloud connect')
   ), [variants]);
 
   const streamOSVariant = useMemo(() => variants.find((v) =>
