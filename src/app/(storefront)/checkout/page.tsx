@@ -633,10 +633,21 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   {items.map((item: any) => (
                     <div key={item.id}>
-                      {/* Product/Bundle name - show recurring price for recurring products */}
+                      {/* Product/Bundle name */}
                       <div className="flex justify-between text-sm font-medium">
                         <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
-                        <span>{formatPrice(item.isRecurring && item.billingCycle !== 'ONE_TIME' ? (item.recurringAmount || 0) : (item.baseProductPrice || 0))}</span>
+                        <span>{formatPrice(item.isRecurring && item.billingCycle !== 'ONE_TIME' ? (item.quantityLocked ? (item.recurringAmount || 0) : (item.recurringAmount || 0) * (item.quantity || 1)) : (item.baseProductPrice || 0))}</span>
+                      </div>
+
+                      {/* Quantity row */}
+                      <div className="flex items-center gap-2 mt-1 ml-1">
+                        <span className="text-xs text-gray-400">Qty:</span>
+                        <span className="text-xs font-medium text-gray-700">{item.quantity ?? 1}</span>
+                        {item.quantityLocked && item.cameraCount && (
+                          <span className="text-xs text-gray-400">
+                            — {Math.ceil(item.cameraCount / 8)} device{Math.ceil(item.cameraCount / 8) > 1 ? 's' : ''} for {item.cameraCount} camera{item.cameraCount > 1 ? 's' : ''}
+                          </span>
+                        )}
                       </div>
 
                       {/* For configurable products with instances */}

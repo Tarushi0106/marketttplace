@@ -10,6 +10,8 @@ export interface CartItem {
   bundle?: Bundle;
   quantity?: number;
   deploymentType?: 'cloud' | 'onPremise' | 'ai'; // Track which deployment type this item belongs to
+  quantityLocked?: boolean; // When true, cart UI should not allow manual quantity changes
+  cameraCount?: number; // For VSAAS items: the camera count this was configured for
   // Support for multiple configuration instances
   instances?: {
     instanceId: string;
@@ -133,26 +135,24 @@ const calculateItemId = (item: Omit<CartItem, "id" | "totalPrice">): string => {
   const variantId = item.variant?.id || "default";
   const variantName = item.variant?.name || "default";
   const deploymentType = item.deploymentType || "default";
-  // Don't include billingCycle in ID - same product should update existing item
-  
+  const cameraKey = ""; // cameraCount not used in ID — same product accumulates quantity
+
   // Check for new instances format first
   if (item.instances && item.instances.length > 0) {
-    // Generate a hash from all instances' configs and addons (excluding timestamp-based instanceId)
     const instancesHash = item.instances.map(inst => ({
-      // Use instanceNumber instead of instanceId to avoid timestamp-based uniqueness
       num: inst.instanceNumber,
       configs: inst.selectedConfigs?.map(c => ({ id: c.configId, value: c.value, price: c.price })) || [],
       addons: inst.selectedAddons?.map(a => ({ id: a.addon?.id || "", qty: a.quantity })) || [],
     }));
-    return `${productId}-${variantId}-${variantName}-${deploymentType}-instances-${JSON.stringify(instancesHash)}`;
+    return `${productId}-${variantId}-${variantName}-${deploymentType}${cameraKey}-instances-${JSON.stringify(instancesHash)}`;
   }
-  
+
   // Legacy support for flat configs/addons
   const configsHash = JSON.stringify(item.selectedConfigs || []);
   const addonsHash = JSON.stringify(
     (item.selectedAddons || []).map(a => ({ id: a.addon?.id || "", qty: a.quantity })).sort((a, b) => a.id.localeCompare(b.id))
   );
-  return `${productId}-${variantId}-${variantName}-${deploymentType}-${configsHash}-${addonsHash}`;
+  return `${productId}-${variantId}-${variantName}-${deploymentType}${cameraKey}-${configsHash}-${addonsHash}`;
 };
 
 export const useCartStore = create<CartState>()(
@@ -220,18 +220,18 @@ export const useCartStore = create<CartState>()(
               console.log("[Cart Debug] Updated existing item billing cycle:", item.billingCycle);
               set({ items });
             } else {
-              // Same billing cycle - update quantity and configurations
+              // Same billing cycle - replace quantity with latest configured value
               const items = [...get().items];
               items[existingItemIndex] = {
                 ...items[existingItemIndex],
-                ...item, // Preserve all new item data including instances
-                quantity: safeNumber(item.quantity), // Replace quantity, don't add
+                ...item,
+                quantity: safeNumber(item.quantity),
                 totalPrice: calculateItemTotal({
                   ...items[existingItemIndex],
                   ...item,
                 }),
               };
-              console.log("[Cart Debug] Updated existing item quantity and configs");
+              console.log("[Cart Debug] Updated item quantity to:", item.quantity);
               set({ items });
             }
           } else {
@@ -335,6 +335,10 @@ export const useCartStore = create<CartState>()(
               return instSum + (inst.selectedAddons?.reduce((addonSum: number, addon: any) =>
                 addonSum + Number(addon.addon?.price || 0) * addon.quantity, 0) || 0);
             }, 0) || 0;
+            // For quantityLocked VSAAS items: recurringAmount is already the full total (not per-unit)
+            if (item.quantityLocked) {
+              return sum + recurringAmount + addonsTotal;
+            }
             // Total due today = (first recurring payment * quantity) + addons (setup fee is separate)
             // recurringAmount is the per-unit recurring price, so we multiply by quantity
             return sum + (recurringAmount * quantity) + addonsTotal;

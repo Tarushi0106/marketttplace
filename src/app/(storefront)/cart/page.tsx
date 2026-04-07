@@ -138,9 +138,14 @@ export default function CartPage() {
   const setupFeeTotal = Number(getSetupFeeTotal());
   const todayTotal = Number(getTodayTotal());
   // Recurring total is separate - NOT added to Total Due Today
+  // For quantityLocked VSAAS items, recurringAmount is already the full total (not per-unit)
   const recurringTotal = items
     .filter(item => Number(item.recurringAmount) > 0)
-    .reduce((sum, item) => sum + (Number(item.recurringAmount) * Number(item.quantity || 1)), 0);
+    .reduce((sum, item) => {
+      const amount = Number(item.recurringAmount) || 0;
+      if ((item as any).quantityLocked) return sum + amount;
+      return sum + (amount * Number(item.quantity || 1));
+    }, 0);
   const billingCycle = items.find(item => item.billingCycle)?.billingCycle;
 
   return (
@@ -261,23 +266,36 @@ export default function CartPage() {
                     {/* Quantity */}
                     <div className="mt-4 flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Qty:</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-8 text-center">{item.quantity ?? 1}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                      {(item as any).quantityLocked ? (
+                        <>
+                          <span className="w-8 text-center font-medium">{item.quantity ?? 1}</span>
+                          {(item as any).cameraCount && (
+                            <span className="text-xs text-gray-400 ml-1">
+                              (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-8 text-center">{item.quantity ?? 1}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

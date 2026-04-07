@@ -433,15 +433,15 @@ export function VSAASConfigurator({
   const cyberPackAIPrice = 73600;   // Fixed AMC price, billed once every 3 years
 
   // DERIVED quantities
-  const hardwareQuantity = Math.max(1, Math.ceil(cameraCount / 8));
-  const connectCloudQuantity = hardwareQuantity; // always equals NLD hardware count, both counters are in sync
+  const hardwareQuantity = Math.max(1, Math.ceil(cameraCount / 8));                  // physical NLD devices needed
+  const connectCloudQuantity = hardwareQuantity;                                     // 1 for 1-8 cameras, 2 for 9-16, 3 for 17-24...
   const storageQuantity = cameraCount;
 
   // LICENSE: Sum all license types (users can select multiple)
   const licenseQuantity = (licenseQuantities.core || 0) + (licenseQuantities.web || 0) + (licenseQuantities.mobile || 0);
 
   // DERIVED totals (single source of truth)
-  // 1 CC license per NLD device — unit price is 8x per-camera price
+  // 1 CC license per extra 8 cameras (first 8 cameras = 0 CC licenses)
   const connectCloudUnitPrice = licensePricePerCamera * 8;
   const baseLicenseTotal = connectCloudVariant ? connectCloudUnitPrice * connectCloudQuantity : 0;
   // Additional license types (Core, Web, Mobile) are per user
@@ -541,8 +541,9 @@ export function VSAASConfigurator({
     const effectiveAiLicenseQty = deploymentType === 'onPremise' ? aiLicenseQuantity : Math.ceil(cameraCount / 16);
 
     if (connectCloudVariant) {
-      // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
-      // Base Connect Cloud license is per camera
+      // Only add CC item when there are extra NLD devices needed (cameraCount > 8)
+      // quantity = connectCloudQuantity so cart displays the derived count
+      // recurringAmount = baseLicenseTotal (full total); getSubtotal treats quantityLocked items as pre-totalled
       const connectCloudItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: connectCloudVariant.name || currentProduct.name },
         variant: { id: connectCloudVariant.id, name: connectCloudVariant.name },
@@ -550,19 +551,21 @@ export function VSAASConfigurator({
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
         isRecurring: true,
-        unitPrice: connectCloudUnitPrice,
+        unitPrice: baseLicenseTotal,
         totalPrice: baseLicenseTotal,
         deploymentType: deploymentType,
-        recurringAmount: connectCloudUnitPrice,
+        recurringAmount: baseLicenseTotal,
+        quantityLocked: true,
+        cameraCount: cameraCount,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
           setupFee: 0,
-          pricePerCycle: connectCloudUnitPrice,
+          pricePerCycle: baseLicenseTotal,
           baseProductPrice: 0,
           totalForPeriod: baseLicenseTotal,
           savingsPercentage: 0,
-          monthlyEquivalent: connectCloudUnitPrice,
+          monthlyEquivalent: baseLicenseTotal,
         },
       };
       addToCart(connectCloudItem as any);
@@ -570,26 +573,30 @@ export function VSAASConfigurator({
 
     if (cloudGatewayVariant && deploymentType === 'cloud') {
       // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
+      // quantity = cameraCount so cart displays the same number user sees in configurator
+      // recurringAmount = gatewayTotal (full total); getSubtotal treats quantityLocked items as pre-totalled
       const gatewayItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: cloudGatewayVariant.name || currentProduct.name },
         variant: { id: cloudGatewayVariant.id, name: cloudGatewayVariant.name },
-        quantity: hardwareQuantity,
+        quantity: cameraCount,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
         isRecurring: true,
-        unitPrice: gatewayPricePerUnit,
+        unitPrice: gatewayTotal,
         totalPrice: gatewayTotal,
         deploymentType: deploymentType,
-        recurringAmount: gatewayPricePerUnit,
+        recurringAmount: gatewayTotal,
+        quantityLocked: true,
+        cameraCount: cameraCount,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
           setupFee: 0, // Setup fee is handled separately at order level
-          pricePerCycle: gatewayPricePerUnit,
+          pricePerCycle: gatewayTotal,
           baseProductPrice: 0,
           totalForPeriod: gatewayTotal,
           savingsPercentage: 0,
-          monthlyEquivalent: gatewayPricePerUnit,
+          monthlyEquivalent: gatewayTotal,
         },
       };
       addToCart(gatewayItem as any);
@@ -686,12 +693,11 @@ export function VSAASConfigurator({
             // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
             const aiFeatureItem = {
               product: { id: currentProduct.id, slug: currentProduct.slug, name: feature.name },
-              variant: { id: null, name: null },
+              variant: { id: feature.name, name: feature.name },
               quantity: qty,
               selectedAddons: [{
                 name: feature.name,
                 price: feature.price,
-                // Add other properties that might be expected
               } as any],
               billingCycle: billingCycle.toUpperCase(),
               isRecurring: true,
@@ -929,25 +935,30 @@ export function VSAASConfigurator({
                   
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* Quantity Selector */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                      <button
-                        onClick={() => handleCameraCountChange(cameraCount - 1)}
-                        disabled={cameraCount <= 1}
-                        className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        -
-                      </button>
-                      <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                        {cameraCount}
-                      </span>
-                      <button
-                        onClick={() => handleCameraCountChange(cameraCount + 1)}
-                        disabled={cameraCount >= 512}
-                        className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        +
-                      </button>
+                    {/* Quantity Selector — shows cameraCount (matches cart) */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
+                        <button
+                          onClick={() => handleCameraCountChange(cameraCount - 1)}
+                          disabled={cameraCount <= 1}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          -
+                        </button>
+                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">
+                          {cameraCount}
+                        </span>
+                        <button
+                          onClick={() => handleCameraCountChange(cameraCount + 1)}
+                          disabled={cameraCount >= 512}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">
+                        {hardwareQuantity} device{hardwareQuantity > 1 ? 's' : ''} needed
+                      </p>
                     </div>
                     
                     {/* Unit Price */}
@@ -1033,12 +1044,12 @@ export function VSAASConfigurator({
                   
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* Quantity Selector */}
+                    {/* Quantity Selector — steps by 1 CC license = 16 cameras */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
                         <button
-                          onClick={() => handleCameraCountChange((hardwareQuantity - 1) * 8)}
-                          disabled={hardwareQuantity <= 1}
+                          onClick={() => handleCameraCountChange(Math.max(1, (connectCloudQuantity - 2) * 8 + 1))}
+                          disabled={connectCloudQuantity <= 1}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           -
@@ -1047,15 +1058,15 @@ export function VSAASConfigurator({
                           {connectCloudQuantity}
                         </span>
                         <button
-                          onClick={() => handleCameraCountChange(hardwareQuantity * 8 + 1)}
-                          disabled={hardwareQuantity >= 64}
+                          onClick={() => handleCameraCountChange(connectCloudQuantity * 8 + 1)}
+                          disabled={cameraCount >= 512}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           +
                         </button>
                       </div>
                       <p className="text-[10px] text-gray-400 text-center leading-tight">
-                        {hardwareQuantity} hardware device{hardwareQuantity > 1 ? 's' : ''} for {cameraCount} camera{cameraCount > 1 ? 's' : ''}
+                        1 per extra 8 cameras
                       </p>
                     </div>
 
