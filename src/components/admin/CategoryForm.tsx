@@ -27,6 +27,7 @@ import {
   Monitor,
   Lock,
   Folder,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,6 +107,7 @@ const iconOptions = [
   { value: "monitor", label: "Monitor / Display", icon: Monitor },
   { value: "lock", label: "Lock / Privacy", icon: Lock },
   { value: "folder", label: "Folder / General", icon: Folder },
+  { value: "package", label: "Package / Products", icon: Package },
 ];
 
 const colorPresets = [
@@ -124,7 +126,7 @@ const colorPresets = [
 
 const getIconComponent = (iconName: string) => {
   const found = iconOptions.find((opt) => opt.value === iconName);
-  return found ? found.icon : Folder;
+  return found ? found.icon : Package;
 };
 
 export function CategoryForm({ categoryId, isEdit = false }: CategoryFormProps) {

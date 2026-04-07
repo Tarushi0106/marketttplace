@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Soft rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="#FDECEC"/>
+  
+  <!-- Cloud outline - thin consistent stroke -->
+  <path d="M90 60H38a20 20 0 0 1 0-40 24 24 0 0 1 47 11A16 16 0 0 1 90 60z" 
+        fill="none" 
+        stroke="#C62828" 
+        stroke-width="4" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg>

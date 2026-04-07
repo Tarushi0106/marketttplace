@@ -2,12 +2,47 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, Trash2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart-store";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
+
+// Helper to get billing cycle label (slash format for prices)
+const getBillingCycleLabel = (cycle?: string): string => {
+  const labels: Record<string, string> = {
+    ONE_TIME: "",
+    MONTHLY: "/month",
+    BIMONTHLY: "/2 months",
+    QUARTERLY: "/quarter",
+    FOUR_MONTHLY: "/4 months",
+    SEMI_ANNUAL: "/6 months",
+    TRI_ANNUAL: "/9 months",
+    YEARLY: "/year",
+    BIENNIAL: "/2 years",
+    TRIENNIAL: "/3 years",
+  };
+  return labels[cycle || ""] || cycle || "";
+};
+
+// Helper to get billing cycle name (full format for badges)
+const getBillingCycleName = (cycle?: string): string => {
+  const labels: Record<string, string> = {
+    ONE_TIME: "One-time",
+    MONTHLY: "Monthly",
+    BIMONTHLY: "Bi-Monthly",
+    QUARTERLY: "Quarterly",
+    FOUR_MONTHLY: "Four-Monthly",
+    SEMI_ANNUAL: "Semi-Annual",
+    TRI_ANNUAL: "Tri-Annual",
+    YEARLY: "Yearly",
+    BIENNIAL: "Biennial",
+    TRIENNIAL: "Triennial",
+  };
+  return labels[cycle || ""] || cycle || "";
+};
 
 export function CartDrawer() {
   const {
@@ -19,6 +54,7 @@ export function CartDrawer() {
     getSubtotal,
     getTax,
     getTotal,
+    getSetupFeeTotal,
     discountCode,
     discountAmount,
   } = useCartStore();
@@ -60,7 +96,7 @@ export function CartDrawer() {
               <ShoppingBag className="h-16 w-16 text-muted-foreground" />
               <p className="text-lg font-medium">Your cart is empty</p>
               <p className="text-sm text-muted-foreground text-center">
-                Looks like you haven&apos;t added anything to your cart yet.
+                Looks like you haven't added anything to your cart yet.
               </p>
               <Button asChild onClick={() => setIsOpen(false)}>
                 <Link href="/products">Browse Products</Link>
@@ -115,16 +151,48 @@ export function CartDrawer() {
                         </div>
 
                         {/* Selected addons */}
-                        {item.selectedAddons.length > 0 && (
+                        {item.selectedAddons && item.selectedAddons.length > 0 && (
                           <div className="mt-1 text-xs text-muted-foreground">
-                            + {item.selectedAddons.map((a) => a.addon.name).join(", ")}
+                            + {item.selectedAddons.map((a) => a.addon?.name).join(", ")}
                           </div>
                         )}
 
-                        {/* Selected configs */}
-                        {item.selectedConfigs.length > 0 && (
+                        {/* Selected configs (flat format) */}
+                        {item.selectedConfigs && item.selectedConfigs.length > 0 && (
                           <div className="mt-1 text-xs text-muted-foreground">
                             {item.selectedConfigs.map((c) => `${c.configName}: ${c.value}`).join(", ")}
+                          </div>
+                        )}
+
+                        {/* Instance configurations */}
+                        {item.instances && item.instances.length > 0 && (
+                          <div className="mt-1 space-y-1">
+                            {item.instances.map((instance) => (
+                              <div key={instance.instanceId}>
+                                {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {instance.selectedConfigs.map((c) => 
+                                      `${c.configName}${c.price != null && c.price > 0 ? ` - ${formatPrice(c.price)}` : ''}`
+                                    ).join(", ")}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Billing cycle and setup fee for recurring items */}
+                        {item.isRecurring && item.billingCycle && (
+                          <div className="mt-1 flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              <CreditCard className="h-3 w-3 mr-1" />
+                              {getBillingCycleName(item.billingCycle)}
+                            </Badge>
+                            {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
+                              <span className="text-xs text-amber-600">
+                                + {formatPrice(item.recurringData.setupFee)} setup
+                              </span>
+                            )}
                           </div>
                         )}
 
@@ -136,7 +204,7 @@ export function CartDrawer() {
                               size="icon"
                               className="h-7 w-7"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity - 1)
+                                updateQuantity(item.id, (item.quantity ?? 1) - 1)
                               }
                             >
                               <Minus className="h-3 w-3" />
@@ -149,14 +217,23 @@ export function CartDrawer() {
                               size="icon"
                               className="h-7 w-7"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
+                                updateQuantity(item.id, (item.quantity ?? 1) + 1)
                               }
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
                           <p className="font-medium">
-                            {formatCurrency(item.totalPrice)}
+                            {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
+                              <>
+                                {formatPrice(item.recurringAmount || 0)}
+                                <span className="text-sm text-muted-foreground ml-1">
+                                  {getBillingCycleLabel(item.billingCycle)}
+                                </span>
+                              </>
+                            ) : (
+                              formatPrice(item.baseProductPrice || 0)
+                            )}
                           </p>
                         </div>
                       </div>
@@ -170,28 +247,28 @@ export function CartDrawer() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(getSubtotal())}</span>
+                    <span>{formatPrice(getSubtotal())}</span>
                   </div>
                   {discountCode && (
                     <div className="flex justify-between text-success">
                       <span>Discount ({discountCode})</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
+                      <span>-{formatPrice(discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tax</span>
-                    <span>{formatCurrency(getTax())}</span>
+                    <span>{formatPrice(getTax())}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>{formatCurrency(getTotal())}</span>
+                    <span>{formatPrice(getTotal())}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2">
                   <Button asChild className="w-full" size="lg">
-                    <Link href="/checkout" onClick={() => setIsOpen(false)}>
+                    <Link href="/cart" onClick={() => setIsOpen(false)}>
                       Checkout
                     </Link>
                   </Button>
@@ -201,7 +278,7 @@ export function CartDrawer() {
                     asChild
                     onClick={() => setIsOpen(false)}
                   >
-                    <Link href="/cart">View Cart</Link>
+                    <Link href="/products">Continue Shopping</Link>
                   </Button>
                 </div>
               </div>

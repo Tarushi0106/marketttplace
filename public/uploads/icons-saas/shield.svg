@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Soft rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="#FDECEC"/>
+  
+  <!-- Shield outline - thin consistent stroke -->
+  <path d="M64 16L24 32v32c0 24 16.8 46 40 52 23.2-6 40-28 40-52V32L64 16z" 
+        fill="none" 
+        stroke="#C62828" 
+        stroke-width="4" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg>

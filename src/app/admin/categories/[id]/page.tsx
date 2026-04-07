@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, FolderTree, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, FolderTree, Trash2, Settings, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,70 @@ const iconOptions = [
   { value: "server", label: "Server" },
   { value: "monitor", label: "Monitor" },
   { value: "lock", label: "Lock" },
+  { value: "zap", label: "Lightning (Fast)" },
+  { value: "code", label: "Code (Development)" },
+  { value: "layers", label: "Layers" },
+  { value: "box", label: "Box (Package)" },
+  { value: "download", label: "Download" },
+  { value: "hard-drive", label: "Hard Drive" },
+  { value: "cpu", label: "CPU" },
+  { value: "globe", label: "Globe (Web)" },
+  { value: "smartphone", label: "Mobile" },
+  { value: "terminal", label: "Terminal" },
+  { value: "file-code", label: "File Code" },
+  { value: "database-zap", label: "Database Zap" },
+  { value: "cloud-lightning", label: "Cloud Lightning" },
+  { value: "wifi-high", label: "Wi-Fi High" },
+  { value: "crosshair", label: "Crosshair" },
+  { value: "layout", label: "Layout (Dashboard)" },
+  { value: "megaphone", label: "Marketing" },
+  { value: "shopping-cart", label: "E-Commerce" },
+  { value: "briefcase", label: "Business" },
+  { value: "trending-up", label: "Analytics" },
+  { value: "pen-tool", label: "Design" },
+  { value: "mail", label: "Email" },
+  { value: "message-square", label: "Messages" },
+  { value: "bell", label: "Notifications" },
+  { value: "users", label: "Team/Users" },
+  { value: "calendar", label: "Calendar" },
+  { value: "credit-card", label: "Payments" },
+  { value: "search", label: "Search" },
+  { value: "filter", label: "Filter" },
+  { value: "pie-chart", label: "Pie Chart" },
+  { value: "bar-chart", label: "Bar Chart" },
+  { value: "line-chart", label: "Line Chart" },
+  { value: "file-text", label: "Documents" },
+  { value: "archive", label: "Archive" },
+  { value: "key", label: "Key (Access)" },
+  { value: "fingerprint", label: "Security" },
+  { value: "refresh-cw", label: "Sync/Refresh" },
+  { value: "upload", label: "Upload" },
+  { value: "download-cloud", label: "Cloud Download" },
+  { value: "share", label: "Share" },
+  { value: "link", label: "Link" },
+  { value: "laptop", label: "Laptop" },
+  { value: "tablet", label: "Tablet" },
+  { value: "watch", label: "Watch" },
+  { value: "headphones", label: "Audio" },
+  { value: "video", label: "Video" },
+  { value: "book", label: "Book" },
+  { value: "book-open", label: "Learning" },
+  { value: "graduation-cap", label: "Education" },
+  { value: "award", label: "Award" },
+  { value: "star", label: "Star (Featured)" },
+  { value: "heart", label: "Health/Medical" },
+  { value: "flag", label: "Flag" },
+  { value: "map", label: "Map" },
+  { value: "compass", label: "Navigation" },
+  { value: "target", label: "Target" },
+  { value: "rocket", label: "Launch" },
+  { value: "puzzle", label: "Integration" },
+  { value: "wrench", label: "Tools" },
+  { value: "building", label: "Real Estate" },
+  { value: "factory", label: "Manufacturing" },
+  { value: "plane", label: "Travel" },
+  { value: "coffee", label: "Food/Restaurant" },
+  { value: "wallet", label: "Finance" },
 ];
 
 const colorPresets = [
@@ -70,6 +134,8 @@ export default function EditCategoryPage() {
   const [deleting, setDeleting] = useState(false);
   const [productCount, setProductCount] = useState(0);
   const [subCategoryCount, setSubCategoryCount] = useState(0);
+  const [attachedConfigs, setAttachedConfigs] = useState<any[]>([]);
+  const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -85,6 +151,7 @@ export default function EditCategoryPage() {
 
   useEffect(() => {
     fetchCategory();
+    fetchCategoryConfigs();
   }, [id]);
 
   async function fetchCategory() {
@@ -117,6 +184,27 @@ export default function EditCategoryPage() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchCategoryConfigs() {
+    try {
+      const response = await fetch(`/api/categories/${id}/configs`);
+      const data = await response.json();
+      if (data.data) {
+        setAttachedConfigs(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching category configs:", error);
+    }
+
+    // Also fetch available templates
+    try {
+      const templatesResponse = await fetch("/api/config-templates");
+      const templatesData = await templatesResponse.json();
+      setAvailableTemplates(templatesData);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
     }
   }
 
@@ -448,6 +536,110 @@ export default function EditCategoryPage() {
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Configurations Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sliders className="h-5 w-5" />
+                  Configurations
+                </CardTitle>
+                <CardDescription>
+                  Attach configuration templates to this category. All products in this category will inherit these configurations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Available Configuration Templates</Label>
+                  <Select
+                    onValueChange={async (templateId) => {
+                      if (!templateId) return;
+                      
+                      // Add the template to the category
+                      const response = await fetch(`/api/categories/${id}/configs`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          templateId,
+                          isInherited: true,
+                        }),
+                      });
+
+                      if (response.ok) {
+                        toast({
+                          title: "Success",
+                          description: "Configuration template attached successfully",
+                        });
+                        fetchCategoryConfigs(); // Refresh configs
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "Failed to attach configuration template",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a template to attach" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTemplates.map((template: any) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name} ({template.inputType})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Label className="text-sm font-medium mb-2 block">
+                    Attached Configurations ({attachedConfigs.length})
+                  </Label>
+                  
+                  {attachedConfigs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No configurations attached. Select a template above to add one.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {attachedConfigs.map((config: any) => (
+                        <div
+                          key={config.id}
+                          className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{config.template?.name || "Configuration"}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={async () => {
+                              const response = await fetch(`/api/categories/${id}/configs/${config.id}`, {
+                                method: "DELETE",
+                              });
+
+                              if (response.ok) {
+                                toast({
+                                  title: "Success",
+                                  description: "Configuration removed",
+                                });
+                                fetchCategory();
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

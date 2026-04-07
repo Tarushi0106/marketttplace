@@ -1,12 +1,23 @@
 import NextAuth from "next-auth";
-import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { Adapter } from "next-auth/adapters";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { authConfig } from "./auth.config";
 
-export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+// Create adapter with error handling
+let prismaAdapter: Adapter | undefined;
+try {
+  prismaAdapter = PrismaAdapter(prisma);
+} catch (error) {
+  console.error("Failed to create Prisma adapter:", error);
+  prismaAdapter = undefined;
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  adapter: prismaAdapter,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -46,58 +57,7 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-    async authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-      const isOnAuth = nextUrl.pathname.startsWith("/login") ||
-                       nextUrl.pathname.startsWith("/register");
-
-      if (isOnAdmin) {
-        if (isLoggedIn && (auth.user.role === "ADMIN" || auth.user.role === "SUPER_ADMIN")) {
-          return true;
-        }
-        return false;
-      }
-
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false;
-      }
-
-      if (isOnAuth && isLoggedIn) {
-        return Response.redirect(new URL("/", nextUrl));
-      }
-
-      return true;
-    },
-  },
-};
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+});
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);

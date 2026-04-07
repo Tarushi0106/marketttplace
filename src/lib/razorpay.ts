@@ -1,21 +1,35 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { runtimeEnv } from "@/runtime-env";
 
-let razorpay: Razorpay | null = null;
+let _razorpay: Razorpay | null = null;
 
-function getRazorpay() {
-  if (!razorpay) {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      throw new Error("Razorpay keys missing");
-    }
+function getRazorpayKeys(): { keyId: string; keySecret: string } {
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const keyId = runtimeEnv.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+  const keySecret = runtimeEnv.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    throw new Error("Razorpay keys are not configured. Please add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to environment variables.");
+  }
+  return { keyId, keySecret };
+}
 
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
+function getRazorpay(): Razorpay {
+  if (!_razorpay) {
+    const { keyId, keySecret } = getRazorpayKeys();
+    _razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
     });
   }
+  return _razorpay;
+}
 
-  return razorpay;
+export function isRazorpayConfigured(): boolean {
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const keyId = runtimeEnv.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+  const keySecret = runtimeEnv.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  return !!(keyId && keySecret);
 }
 
 export async function createRazorpayOrder({
@@ -29,14 +43,14 @@ export async function createRazorpayOrder({
   receipt: string;
   notes?: Record<string, string>;
 }) {
-  const razorpay = getRazorpay();
-
-  return razorpay.orders.create({
-    amount: Math.round(amount * 100),
+  const order = await getRazorpay().orders.create({
+    amount: Math.round(amount * 100), // Convert to paise
     currency,
     receipt,
     notes,
   });
+
+  return order;
 }
 
 export function verifyRazorpaySignature({
@@ -48,10 +62,10 @@ export function verifyRazorpaySignature({
   paymentId: string;
   signature: string;
 }): boolean {
-  const body = `${orderId}|${paymentId}`;
-
+  const { keySecret } = getRazorpayKeys();
+  const body = orderId + "|" + paymentId;
   const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+    .createHmac("sha256", keySecret)
     .update(body)
     .digest("hex");
 
@@ -59,8 +73,7 @@ export function verifyRazorpaySignature({
 }
 
 export async function fetchRazorpayPayment(paymentId: string) {
-  const razorpay = getRazorpay();
-  return razorpay.payments.fetch(paymentId);
+  return getRazorpay().payments.fetch(paymentId);
 }
 
 export async function refundRazorpayPayment({
@@ -70,11 +83,11 @@ export async function refundRazorpayPayment({
   paymentId: string;
   amount?: number;
 }) {
-  const razorpay = getRazorpay();
-
-  return razorpay.payments.refund(paymentId, {
+  const refund = await getRazorpay().payments.refund(paymentId, {
     amount: amount ? Math.round(amount * 100) : undefined,
   });
+
+  return refund;
 }
 
 export function formatAmountForRazorpay(amount: number): number {

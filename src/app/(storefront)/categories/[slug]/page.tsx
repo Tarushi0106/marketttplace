@@ -47,6 +47,7 @@ import {
   Target,
   Award,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -121,10 +122,14 @@ function getSubCategoryIcon(iconName: string | null, index: number, className: s
   const icon = iconName || subCategoryIcons[index % subCategoryIcons.length];
   const IconComponent = iconComponents[icon];
   const color = textColor || subCategoryColors[index % subCategoryColors.length].text;
-if (IconComponent) {
-  return <IconComponent className={`${className} text-[${color}]`} />;
-}
-return <Folder className={`${className} text-[${color}]`} />;
+const Icon = IconComponent as React.ComponentType<{
+  className?: string;
+  color?: string;
+}>;
+
+return <Icon className={className} color={color} />;
+
+
 
 }
 
@@ -151,7 +156,9 @@ async function getCategory(slug: string) {
         },
       },
       products: {
-        where: { status: "ACTIVE" },
+        where: { 
+          status: "ACTIVE",
+        },
         orderBy: [{ isFeatured: "desc" }, { salesCount: "desc" }],
         take: 8,
         include: {
@@ -449,9 +456,9 @@ export default async function CategoryPage({
                                 className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
                                 asChild
                               >
-                                <Link href={`/products/${product.slug}#pricing`}>
-                                  <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                                  Buy Now
+                                <Link href={`/products/${product.slug}`}>
+                                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                  Product Details
                                 </Link>
                               </Button>
                               <Button

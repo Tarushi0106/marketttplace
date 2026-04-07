@@ -3,6 +3,84 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
+// Helper function to convert Prisma Decimal fields to plain objects
+function convertDecimalToString(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    // Handle Prisma Decimal - check multiple ways
+    const constructorName = obj.constructor?.name;
+    if (constructorName === 'Decimal' || 
+        (typeof obj.toNumber === 'function' && typeof obj.equals === 'function') ||
+        (typeof obj.toFixed === 'function' && typeof obj.toString === 'function' && obj.toString !== Object.prototype.toString)) {
+      return obj.toString();
+    }
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertDecimalToString(item));
+    }
+    // Handle regular objects
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertDecimalToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+// Helper function to transform recurringPrices array to object format
+function transformRecurringPrices(recurringPrices: any[]): any {
+  if (!recurringPrices || recurringPrices.length === 0) return null;
+  
+  const price = recurringPrices[0];
+  return {
+    monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
+    quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    'semi-annual': price.semiAnnualPrice ? Number(price.semiAnnualPrice) : null,
+    yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
+    biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
+    triennial: price.triennialPrice ? Number(price.triennialPrice) : null,
+  };
+}
+
+// Helper to transform variant with recurring prices
+function transformVariant(variant: any) {
+  // First, preserve the original recurringPrices array before any conversion
+  const originalRecurringPrices = variant.recurringPrices;
+  
+  const converted = convertDecimalToString(variant);
+  
+  // Restore the original array (ensure it's an array, not an object)
+  if (originalRecurringPrices && Array.isArray(originalRecurringPrices)) {
+    converted.recurringPrices = originalRecurringPrices.map((rp: any) => convertDecimalToString(rp));
+  } else {
+    converted.recurringPrices = [];
+  }
+  
+  // Determine billing type based on recurring prices
+  if (converted.recurringPrices && converted.recurringPrices.length > 0) {
+    // Add transformed object for storefront frontend (monthly, quarterly, yearly keys)
+    converted.recurringPricesObj = transformRecurringPrices(converted.recurringPrices);
+    converted.billingType = 'recurring';
+  } else {
+    converted.billingType = 'one_time';
+  }
+  
+  return converted;
+}
+
+// Helper function to serialize a complete product for API response
+function serializeProduct(product: any) {
+  const converted = convertDecimalToString(product);
+  // Transform variants to include recurringPrices in the expected format
+  if (converted.variants) {
+    converted.variants = converted.variants.map((variant: any) => transformVariant(variant));
+  }
+  return converted;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,18 +106,27 @@ export async function GET(
         variants: {
           where: isAdmin ? {} : { isActive: true },
           orderBy: { sortOrder: "asc" },
+          include: {
+            recurringPrices: true,
+          },
         },
         addons: {
           where: isAdmin ? {} : { isActive: true },
           orderBy: { sortOrder: "asc" },
         },
         configs: {
+          include: {
+            options: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
           orderBy: { sortOrder: "asc" },
         },
         pricingTiers: {
           where: { isActive: true },
           orderBy: { minQty: "asc" },
         },
+        recurringPrices: true,
         seoMetadata: true,
         reviews: {
           where: { isApproved: true },
@@ -69,7 +156,7 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({ data: product });
+    return NextResponse.json({ data: serializeProduct(product) });
   } catch (error) {
     console.error("Error fetching product:", error);
     return NextResponse.json(
@@ -84,49 +171,92 @@ const imageSchema = z.object({
   id: z.string().optional(),
   url: z.string(),
   alt: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
   isPrimary: z.boolean().default(false),
 });
 
 const variantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1),
-  sku: z.string().optional(),
-  price: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  stockQuantity: z.number().int().min(0).default(0),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  price: z.coerce.number().min(0).optional(),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).optional().default(0),
   attributes: z.record(z.string(), z.string()).optional(),
-  isDefault: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  specifications: z.record(z.string(), z.any()).optional(),
+  isDefault: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
+  sortOrder: z.coerce.number().optional().default(0),
+  billingType: z.string().optional(),
 });
 
 const addonSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  price: z.number().min(0),
+  price: z.coerce.number().min(0),
+  unit: z.string().optional(),
   pricingType: z.enum(["ONE_TIME", "RECURRING_MONTHLY", "RECURRING_YEARLY"]).default("ONE_TIME"),
   isRequired: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const configOptionSchema = z.object({
-  value: z.string(),
-  label: z.string(),
-  priceModifier: z.number().default(0),
+  id: z.string().optional(),
+  value: z.string().optional(),
+  label: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  priceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return 0;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? 0 : num;
+  }),
+  monthlyPriceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  yearlyPriceModifier: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  isPercentage: z.boolean().optional().default(false),
+  modifierType: z.enum(["ADD", "MULTIPLY", "REPLACE"]).optional().default("ADD"),
+  sortOrder: z.coerce.number().optional().default(0),
+  isAvailable: z.boolean().optional().default(true),
+  stockStatus: z.string().optional().nullable(),
 });
 
 const configSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1),
-  type: z.enum(["SELECT", "RADIO", "CHECKBOX", "NUMBER"]).default("SELECT"),
-  options: z.array(configOptionSchema),
-  isRequired: z.boolean().default(false),
-  defaultValue: z.string().optional(),
-  sortOrder: z.number().default(0),
+  configType: z.string().optional(),
+  name: z.string().min(1).optional(),
+  displayName: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  unitPlural: z.string().optional().nullable(),
+  inputType: z.enum(["SELECT", "RADIO", "CHECKBOX", "SLIDER", "NUMBER"]).optional().default("SELECT"),
+  minValue: z.coerce.number().optional().nullable(),
+  maxValue: z.coerce.number().optional().nullable(),
+  stepValue: z.coerce.number().optional().nullable(),
+  defaultValue: z.string().optional().nullable(),
+  isRequired: z.boolean().optional().default(false),
+  allowCustom: z.boolean().optional().default(false),
+  sortOrder: z.coerce.number().optional().default(0),
+  basePrice: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  pricePerUnit: z.union([z.coerce.number(), z.string()]).optional().nullable().transform((val) => {
+    if (val === undefined || val === null || val === "") return null;
+    const num = typeof val === "string" ? parseFloat(val) : val;
+    return isNaN(num) ? null : num;
+  }),
+  options: z.array(configOptionSchema).optional(),
 });
 
 const seoSchema = z.object({
@@ -147,12 +277,23 @@ const updateProductSchema = z.object({
   specifications: z.record(z.string(), z.string()).optional(),
   sku: z.string().optional().nullable(),
   barcode: z.string().optional().nullable(),
-  basePrice: z.number().min(0).optional(),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  taxRate: z.number().min(0).optional().nullable(),
-  productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).optional(),
+  basePrice: z.coerce.number().min(0).optional(),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  taxRate: z.coerce.number().min(0).optional().nullable(),
+  
+  // Product Type - One-time or Recurring
+  isRecurring: z.boolean().optional(),
+  setupFee: z.coerce.number().min(0).optional().nullable(),
+  
+  // Note: Recurring prices are stored in product_recurring_prices table
+  // and should be updated via the /api/products/[id]/recurring-prices endpoint
+  
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE", "WITH_ADDONS"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
+  pricingDisplayFormat: z.enum(["TABLE", "CARD"]).optional(),
+  icon: z.string().optional().nullable(),
+  brandLogo: z.string().optional().nullable(),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),
   isFeatured: z.boolean().optional(),
@@ -160,18 +301,18 @@ const updateProductSchema = z.object({
   requiresShipping: z.boolean().optional(),
   trackInventory: z.boolean().optional(),
   allowBackorder: z.boolean().optional(),
-  stockQuantity: z.number().int().min(0).optional(),
-  lowStockThreshold: z.number().int().min(0).optional(),
-  weight: z.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).optional(),
+  lowStockThreshold: z.coerce.number().int().min(0).optional(),
+  weight: z.coerce.number().min(0).optional().nullable(),
   weightUnit: z.string().optional(),
-  sortOrder: z.number().int().optional(),
+  sortOrder: z.coerce.number().int().optional(),
   // Related data
   images: z.array(imageSchema).optional(),
   variants: z.array(variantSchema).optional(),
   addons: z.array(addonSchema).optional(),
   configs: z.array(configSchema).optional(),
   seoMetadata: seoSchema.optional(),
-});
+}).passthrough();
 
 export async function PUT(
   request: NextRequest,
@@ -186,7 +327,26 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const data = updateProductSchema.parse(body);
+    
+    // Validate the data with better error handling
+    let data;
+    try {
+      data = updateProductSchema.parse(body);
+    } catch (parseError: any) {
+      console.error("Full validation error:", parseError);
+      if (parseError.name === 'ZodError' || parseError.errors) {
+        const errorDetails = parseError.errors || parseError.issues || [];
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: errorDetails,
+          message: parseError.message
+        }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        message: parseError.message || "Unknown error"
+      }, { status: 400 });
+    }
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
@@ -195,7 +355,11 @@ export async function PUT(
         images: true,
         variants: true,
         addons: true,
-        configs: true,
+        configs: {
+          include: {
+            options: true,
+          },
+        },
         seoMetadata: true,
       },
     });
@@ -205,7 +369,26 @@ export async function PUT(
     }
 
     // Extract related data
-    const { images, variants, addons, configs, seoMetadata, ...productData } = data;
+    const { images, variants, addons, configs, seoMetadata, ...restData } = data;
+    
+    // Filter out any extra fields that are not valid Prisma product fields
+    // This handles fields that come from the form but aren't in the schema
+    const allowedProductFields = [
+      'name', 'slug', 'shortDescription', 'description', 'features', 'specifications',
+      'sku', 'barcode', 'basePrice', 'compareAtPrice', 'costPrice', 'taxRate',
+      'isRecurring', 'setupFee', 'productType', 'status', 'pricingDisplayFormat', 'icon', 'brandLogo',
+      'categoryId', 'subCategoryId', 'isFeatured', 'isDigital', 'requiresShipping',
+      'trackInventory', 'allowBackorder', 'stockQuantity', 'lowStockThreshold',
+      'weight', 'weightUnit', 'sortOrder'
+    ];
+    
+    // Create a clean productData object with only allowed fields
+    const productData: Record<string, any> = {};
+    for (const key of allowedProductFields) {
+      if (key in restData) {
+        productData[key] = restData[key];
+      }
+    }
 
     // Check if slug is unique (if updating slug)
     if (productData.slug && productData.slug !== existingProduct.slug) {
@@ -222,7 +405,8 @@ export async function PUT(
     }
 
     // Check if SKU is unique (if updating SKU)
-    if (productData.sku && productData.sku !== existingProduct.sku) {
+    // Only check if SKU is provided and not empty
+    if (productData.sku && productData.sku.trim() !== "" && productData.sku !== existingProduct.sku) {
       const skuExists = await prisma.product.findFirst({
         where: {
           sku: productData.sku,
@@ -237,8 +421,42 @@ export async function PUT(
         );
       }
     }
+    
+    // If SKU is empty string, set to null to avoid unique constraint issues
+    if (productData.sku === "" || productData.sku === null) {
+      productData.sku = null;
+    }
+
+    // Validate categoryId if provided
+    if (productData.categoryId && productData.categoryId.trim() !== "") {
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: productData.categoryId },
+      });
+      if (!categoryExists) {
+        // Set to null if category doesn't exist
+        productData.categoryId = null;
+      }
+    } else {
+      // Set to null if empty string or falsy
+      productData.categoryId = null;
+    }
+
+    // Validate subCategoryId if provided
+    if (productData.subCategoryId && productData.subCategoryId.trim() !== "") {
+      const subCategoryExists = await prisma.subCategory.findUnique({
+        where: { id: productData.subCategoryId },
+      });
+      if (!subCategoryExists) {
+        // Set to null if subCategory doesn't exist
+        productData.subCategoryId = null;
+      }
+    } else {
+      // Set to null if empty string or falsy
+      productData.subCategoryId = null;
+    }
 
     // Update product with all related data in a transaction
+    // Use extended timeout for large product updates with many variants
     const product = await prisma.$transaction(async (tx) => {
       // Update the product
       const updatedProduct = await tx.product.update({
@@ -285,40 +503,135 @@ export async function PUT(
 
         // Update or create variants
         for (const variant of variants) {
+          // Reserved keys that should NOT be in specifications
+          const reservedKeys = [
+            'billingType', 'setupFee',
+            'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+            'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+            'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+            'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+            'shortDesc', 'longDesc'
+          ];
+          
+          // Filter out reserved keys from specifications
+          const filteredSpecs: Record<string, string> = {};
+          for (const [key, value] of Object.entries(variant.specifications || {})) {
+            if (!reservedKeys.includes(key)) {
+              filteredSpecs[key] = value;
+            }
+          }
+          
+          // Merge specifications into attributes, but preserve billingType and setupFee
+          const mergedAttributes = {
+            ...filteredSpecs,
+            // Ensure billingType and setupFee are preserved
+            billingType: (variant.attributes as any)?.billingType || "RECURRING",
+            ...((variant.attributes as any)?.billingType === "ONE_TIME" && (variant.attributes as any)?.setupFee 
+              ? { setupFee: (variant.attributes as any).setupFee } 
+              : {}),
+          };
+          
           if (variant.id && existingVariantIds.includes(variant.id)) {
-            // Update existing
-            await tx.productVariant.update({
-              where: { id: variant.id },
-              data: {
-                name: variant.name,
-                sku: variant.sku,
-                price: variant.price,
-                compareAtPrice: variant.compareAtPrice,
-                costPrice: variant.costPrice,
-                stockQuantity: variant.stockQuantity,
-                attributes: variant.attributes || {},
-                isDefault: variant.isDefault,
-                isActive: variant.isActive,
-                sortOrder: variant.sortOrder,
-              },
-            });
+            // Update existing - check if SKU is being changed to one that already exists
+            const existingVariant = existingProduct.variants.find(v => v.id === variant.id);
+            if (existingVariant && existingVariant.sku !== variant.sku) {
+              // SKU is being changed, check if new SKU already exists
+              const skuExists = await tx.productVariant.findFirst({
+                where: { sku: variant.sku, NOT: { id: variant.id } },
+              });
+              if (skuExists) {
+                // Generate a unique SKU by appending a timestamp
+                const uniqueSku = `${variant.sku}-${Date.now()}`;
+                await tx.productVariant.update({
+                  where: { id: variant.id },
+                  data: {
+                    name: variant.name,
+                    sku: uniqueSku,
+                    price: variant.price,
+                    compareAtPrice: variant.compareAtPrice,
+                    costPrice: variant.costPrice,
+                    stockQuantity: variant.stockQuantity,
+                    attributes: mergedAttributes,
+                    isDefault: variant.isDefault,
+                    isActive: variant.isActive,
+                    sortOrder: variant.sortOrder,
+                  },
+                });
+              } else {
+                await tx.productVariant.update({
+                  where: { id: variant.id },
+                  data: {
+                    name: variant.name,
+                    sku: variant.sku,
+                    price: variant.price,
+                    compareAtPrice: variant.compareAtPrice,
+                    costPrice: variant.costPrice,
+                    stockQuantity: variant.stockQuantity,
+                    attributes: mergedAttributes,
+                    isDefault: variant.isDefault,
+                    isActive: variant.isActive,
+                    sortOrder: variant.sortOrder,
+                  },
+                });
+              }
+            } else {
+              // SKU not changed, just update
+              await tx.productVariant.update({
+                where: { id: variant.id },
+                data: {
+                  name: variant.name,
+                  sku: variant.sku,
+                  price: variant.price,
+                  compareAtPrice: variant.compareAtPrice,
+                  costPrice: variant.costPrice,
+                  stockQuantity: variant.stockQuantity,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault,
+                  isActive: variant.isActive,
+                  sortOrder: variant.sortOrder,
+                },
+              });
+            }
           } else {
-            // Create new
-            await tx.productVariant.create({
-              data: {
-                productId: id,
-                name: variant.name,
-                sku: variant.sku,
-                price: variant.price,
-                compareAtPrice: variant.compareAtPrice,
-                costPrice: variant.costPrice,
-                stockQuantity: variant.stockQuantity,
-                attributes: variant.attributes || {},
-                isDefault: variant.isDefault,
-                isActive: variant.isActive ?? true,
-                sortOrder: variant.sortOrder,
-              },
+            // Create new - check if SKU already exists
+            const skuExists = await tx.productVariant.findFirst({
+              where: { sku: variant.sku },
             });
+            if (skuExists) {
+              // Generate a unique SKU by appending a timestamp
+              const uniqueSku = `${variant.sku}-${Date.now()}`;
+              await tx.productVariant.create({
+                data: {
+                  productId: id,
+                  name: variant.name || "Default Variant",
+                  sku: uniqueSku,
+                  price: variant.price ?? 0,
+                  compareAtPrice: variant.compareAtPrice ?? null,
+                  costPrice: variant.costPrice ?? null,
+                  stockQuantity: variant.stockQuantity ?? 0,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault ?? false,
+                  isActive: variant.isActive ?? true,
+                  sortOrder: variant.sortOrder ?? 0,
+                },
+              });
+            } else {
+              await tx.productVariant.create({
+                data: {
+                  productId: id,
+                  name: variant.name || "Default Variant",
+                  sku: variant.sku ?? null,
+                  price: variant.price ?? 0,
+                  compareAtPrice: variant.compareAtPrice ?? null,
+                  costPrice: variant.costPrice ?? null,
+                  stockQuantity: variant.stockQuantity ?? 0,
+                  attributes: mergedAttributes,
+                  isDefault: variant.isDefault ?? false,
+                  isActive: variant.isActive ?? true,
+                  sortOrder: variant.sortOrder ?? 0,
+                },
+              });
+            }
           }
         }
       }
@@ -349,6 +662,7 @@ export async function PUT(
                 name: addon.name,
                 description: addon.description,
                 price: addon.price,
+                unit: addon.unit,
                 pricingType: addon.pricingType,
                 isRequired: addon.isRequired,
                 isActive: addon.isActive,
@@ -363,6 +677,7 @@ export async function PUT(
                 name: addon.name,
                 description: addon.description,
                 price: addon.price,
+                unit: addon.unit,
                 pricingType: addon.pricingType,
                 isRequired: addon.isRequired,
                 isActive: addon.isActive ?? true,
@@ -375,8 +690,9 @@ export async function PUT(
 
       // Update configs if provided
       if (configs !== undefined) {
-        // Get existing config IDs
-        const existingConfigIds = existingProduct.configs.map((c) => c.id);
+        // Get existing config IDs (handle case where configs might be null/undefined)
+        const existingConfigs = existingProduct.configs || [];
+        const existingConfigIds = existingConfigs.map((c) => c.id);
         const newConfigIds = configs.filter((c) => c.id).map((c) => c.id);
 
         // Delete removed configs
@@ -389,32 +705,117 @@ export async function PUT(
           });
         }
 
-        // Update or create configs
+        // Update or create configs (basic fields only - use Configurations API for full options management)
         for (const config of configs) {
           if (config.id && existingConfigIds.includes(config.id)) {
-            // Update existing
+            // Update existing config basic fields only, skip options
             await tx.productConfig.update({
               where: { id: config.id },
               data: {
+                configType: config.configType || "STANDARD",
                 name: config.name,
-                type: config.type,
-                options: config.options,
-                isRequired: config.isRequired,
-                defaultValue: config.defaultValue,
-                sortOrder: config.sortOrder,
+                displayName: config.displayName || null,
+                description: config.description || null,
+                unit: config.unit || null,
+                unitPlural: config.unitPlural || null,
+                inputType: config.inputType || "SELECT",
+                minValue: config.minValue ?? null,
+                maxValue: config.maxValue ?? null,
+                stepValue: config.stepValue ?? 1,
+                defaultValue: config.defaultValue || null,
+                isRequired: config.isRequired ?? false,
+                allowCustom: config.allowCustom ?? false,
+                sortOrder: config.sortOrder ?? 0,
+                basePrice: config.basePrice ? parseFloat(config.basePrice.toString()) : null,
+                pricePerUnit: config.pricePerUnit ? parseFloat(config.pricePerUnit.toString()) : null,
               },
             });
+            // Also update options
+            const existingConfig = existingConfigs.find(c => c.id === config.id);
+            const existingOptionIds = (existingConfig?.options || []).map((o: any) => o.id);
+            const newOptionIds = (config.options || []).filter((o: any) => o.id).map((o: any) => o.id);
+            const optionsToDelete = existingOptionIds.filter((id: string) => !newOptionIds.includes(id));
+            if (optionsToDelete.length > 0) {
+              await tx.productConfigOption.deleteMany({
+                where: { id: { in: optionsToDelete } },
+              });
+            }
+            for (const option of (config.options || [])) {
+              if (option.id && existingOptionIds.includes(option.id)) {
+                await tx.productConfigOption.update({
+                  where: { id: option.id },
+                  data: {
+                    value: option.value,
+                    label: option.label || option.value,
+                    description: option.description || null,
+                    priceModifier: option.priceModifier ? parseFloat(option.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: option.monthlyPriceModifier ? parseFloat(option.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: option.yearlyPriceModifier ? parseFloat(option.yearlyPriceModifier.toString()) : null,
+                    isPercentage: option.isPercentage ?? false,
+                    modifierType: option.modifierType || "ADD",
+                    sortOrder: option.sortOrder ?? 0,
+                    isAvailable: option.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when updating
+                    stockStatus: option.stockStatus || null,
+                  },
+                });
+              } else {
+                await tx.productConfigOption.create({
+                  data: {
+                    configId: config.id,
+                    value: option.value || "default",
+                    label: option.label || option.value || "Default",
+                    description: option.description || null,
+                    priceModifier: option.priceModifier ? parseFloat(option.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: option.monthlyPriceModifier ? parseFloat(option.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: option.yearlyPriceModifier ? parseFloat(option.yearlyPriceModifier.toString()) : null,
+                    isPercentage: option.isPercentage ?? false,
+                    modifierType: option.modifierType || "ADD",
+                    sortOrder: option.sortOrder ?? 0,
+                    isAvailable: option.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when creating
+                    stockStatus: option.stockStatus || null,
+                  },
+                });
+              }
+            }
           } else {
             // Create new
             await tx.productConfig.create({
               data: {
                 productId: id,
-                name: config.name,
-                type: config.type,
-                options: config.options,
-                isRequired: config.isRequired,
-                defaultValue: config.defaultValue,
-                sortOrder: config.sortOrder,
+                configType: config.configType || "STANDARD",
+                name: config.name || "Default Config",
+                displayName: config.displayName || null,
+                description: config.description || null,
+                unit: config.unit || null,
+                unitPlural: config.unitPlural || null,
+                inputType: config.inputType || "SELECT",
+                minValue: config.minValue ?? null,
+                maxValue: config.maxValue ?? null,
+                stepValue: config.stepValue ?? 1,
+                defaultValue: config.defaultValue || null,
+                isRequired: config.isRequired ?? false,
+                allowCustom: config.allowCustom ?? false,
+                sortOrder: config.sortOrder ?? 0,
+                basePrice: config.basePrice ? parseFloat(config.basePrice.toString()) : null,
+                pricePerUnit: config.pricePerUnit ? parseFloat(config.pricePerUnit.toString()) : null,
+                options: config.options && config.options.length > 0 ? {
+                  create: config.options.map((opt: any) => ({
+                    value: opt.value,
+                    label: opt.label || opt.value,
+                    description: opt.description || null,
+                    priceModifier: opt.priceModifier ? parseFloat(opt.priceModifier.toString()) : 0,
+                    monthlyPriceModifier: opt.monthlyPriceModifier ? parseFloat(opt.monthlyPriceModifier.toString()) : null,
+                    yearlyPriceModifier: opt.yearlyPriceModifier ? parseFloat(opt.yearlyPriceModifier.toString()) : null,
+                    isPercentage: opt.isPercentage ?? false,
+                    modifierType: opt.modifierType || "ADD",
+                    isAvailable: opt.isAvailable ?? true,
+                    isActive: true, // Always ensure isActive is true when creating
+                    sortOrder: opt.sortOrder ?? 0,
+                    stockStatus: opt.stockStatus || null,
+                  })),
+                } : undefined,
               },
             });
           }
@@ -441,6 +842,9 @@ export async function PUT(
       }
 
       return updatedProduct;
+    }, {
+      maxWait: 30000, // Maximum time to wait for transaction to start (30 seconds)
+      timeout: 60000, // Maximum time for transaction to complete (60 seconds)
     });
 
     // Fetch the complete product with all relations
@@ -452,22 +856,34 @@ export async function PUT(
         images: { orderBy: { sortOrder: "asc" } },
         variants: { orderBy: { sortOrder: "asc" } },
         addons: { orderBy: { sortOrder: "asc" } },
-        configs: { orderBy: { sortOrder: "asc" } },
+        configs: {
+          include: {
+            options: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
         seoMetadata: true,
       },
     });
 
-    return NextResponse.json({ data: completeProduct });
+    return NextResponse.json({ data: serializeProduct(completeProduct) });
   } catch (error) {
     console.error("Error updating product:", error);
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
         { error: "Invalid request data", details: error.issues },
         { status: 400 }
       );
     }
+    // Log more details about Prisma errors
+    if (typeof error === 'object' && error !== null) {
+      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    }
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: "Failed to update product", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
@@ -495,10 +911,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Soft delete by setting status to ARCHIVED
-    await prisma.product.update({
+    // Hard delete - remove product and all related records
+    // Due to cascade delete in schema, this will also delete:
+    // - variants, addons, configs, images, recurringPrices, pricingTiers, etc.
+    await prisma.product.delete({
       where: { id },
-      data: { status: "ARCHIVED" },
     });
 
     return NextResponse.json({ message: "Product deleted successfully" });

@@ -1,0 +1,1203 @@
+﻿"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { Check, ShoppingCart, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatPrice } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
+import { useRouter } from "next/navigation";
+import * as Select from "@radix-ui/react-select";
+import * as Popover from "@radix-ui/react-popover";
+import { MultiSelectDropdown } from "./MultiSelectDropdown";
+
+interface AddonOption {
+  label: string;
+  price: number;
+  unit?: string;
+  recurringPricesObj?: {
+    monthly?: number | null;
+    quarterly?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    semiAnnual?: number | null;
+  } | null;
+}
+
+interface Addon {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  unit?: string | null;
+  quantity?: number;
+  group?: string; // For grouping addons in dropdown
+  options?: AddonOption[]; // For dropdown options (e.g., Cloud Storage - 4 Days, 27 Days, etc.)
+  recurringPricesObj?: {
+    monthly?: number | null;
+    quarterly?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    semiAnnual?: number | null;
+  } | null;
+}
+
+interface BillingPlan {
+  id: string;
+  label: string;
+  period: string;
+  price: number;
+  savings?: number;
+}
+
+interface TallyCloudConfiguratorProps {
+  productId?: string;
+  productSlug?: string;
+  productName?: string;
+  productDescription?: string;
+  basePrice: number;
+  addons: Addon[];
+  variants?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice?: number | null;
+    isDefault?: boolean;
+    attributes?: Record<string, string>;
+    billingType?: string;
+    setupFee?: number;
+    minQuantity?: number;
+    maxQuantity?: number | null;
+    recurringPricesObj?: {
+      monthly?: number | null;
+      quarterly?: number | null;
+      yearly?: number | null;
+      biennial?: number | null;
+      triennial?: number | null;
+      semiAnnual?: number | null;
+    } | null;
+    recurringPrices?: Array<{
+      id: string;
+      variantId: string | null;
+      monthlyPrice: number | null;
+      quarterlyPrice: number | null;
+      yearlyPrice: number | null;
+      biMonthlyPrice: number | null;
+      fourMonthlyPrice: number | null;
+      semiAnnualPrice: number | null;
+      triAnnualPrice: number | null;
+      biennialPrice: number | null;
+      triennialPrice: number | null;
+    }>;
+  }>;
+  selectedVariantId?: string | null;
+  billingPlans?: BillingPlan[];
+  /** When provided, the variant is locked and cannot be changed. Shows "Selected Plan" display instead of "Select Plan" section */
+  lockedVariantId?: string | null;
+}
+
+export function TallyCloudConfigurator({
+  productId,
+  productSlug,
+  productName = "Tally Cloud Server",
+  productDescription = "",
+  basePrice = 4500,
+  addons = [],
+  variants = [],
+  selectedVariantId = null,
+  lockedVariantId = null,
+  billingPlans = [
+    { id: "monthly", label: "Monthly", period: "/month", price: 4500 },
+    { id: "quarterly", label: "Quarterly", period: "/quarter", price: 12900, savings: 6 },
+    { id: "semi-annual", label: "Semi Annual", period: "/6 months", price: 24300, savings: 10 },
+    { id: "yearly", label: "Yearly", period: "/year", price: 43200, savings: 20 },
+  ],
+}: TallyCloudConfiguratorProps) {
+  const router = useRouter();
+  const { addItem: addToCart } = useCartStore();
+  const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({});
+
+  // ============================================
+  // BILLING CYCLE PRICING LOGIC - SINGLE SOURCE OF TRUTH
+  // ============================================
+  
+  // Multipliers for each billing cycle (how many months)
+  const billingMultipliers: Record<string, number> = {
+    monthly: 1,
+    quarterly: 3,
+    'semi-annual': 6,
+    yearly: 12,
+  };
+
+  // Labels for each billing cycle
+  const billingLabels: Record<string, string> = {
+    monthly: "month",
+    quarterly: "quarter",
+    'semi-annual': "6 months",
+    yearly: "year",
+  };
+
+  // SINGLE FUNCTION: Get final price based on billing cycle
+  // Uses monthly base price and applies multiplier
+  const getFinalPrice = (basePrice: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    return basePrice * multiplier;
+  };
+
+  // Helper function to get price based on billing cycle
+  // First checks if option has recurringPricesObj, otherwise uses base price with multiplier
+  const getDynamicPrice = (basePrice: number, cycle: string, recurringPricesObj?: any): number => {
+    // If option has recurringPricesObj, use the specific price for the billing cycle
+    if (recurringPricesObj) {
+      const priceKeyMap: Record<string, string> = {
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        'semi-annual': 'semiAnnual',
+        yearly: 'yearly'
+      };
+      const priceKey = priceKeyMap[cycle];
+      if (priceKey && recurringPricesObj[priceKey] !== undefined && recurringPricesObj[priceKey] !== null) {
+        return recurringPricesObj[priceKey];
+      }
+    }
+    // Fallback: use base price with multiplier
+    return getFinalPrice(basePrice, cycle);
+  };
+
+  // Discounts for each billing cycle
+  const billingDiscounts: Record<string, number> = {
+    monthly: 0,
+    quarterly: 0.05,  // 5% discount
+    'semi-annual': 0.10, // 10% discount
+    yearly: 0.20,    // 20% discount
+  };
+
+  // Calculate addon price based on billing cycle
+  const calculateAddonPrice = (basePrice: number, quantity: number, cycle: string): number => {
+    console.log("calculateAddonPrice called:", { basePrice, quantity, cycle, multiplier: billingMultipliers[cycle], discount: billingDiscounts[cycle] });
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    const finalPrice = total - (total * discount);
+    console.log("calculateAddonPrice result:", { total, finalPrice });
+    return finalPrice;
+  };
+
+  // Get display price per billing period
+  const getDisplayAddonPrice = (basePrice: number, quantity: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    const finalPrice = total - (total * discount);
+    return finalPrice;
+  };
+
+  // Get savings amount for display
+  const getAddonSavings = (basePrice: number, quantity: number, cycle: string): number => {
+    const multiplier = billingMultipliers[cycle] || 1;
+    const discount = billingDiscounts[cycle] || 0;
+    const total = basePrice * quantity * multiplier;
+    return total * discount;
+  };
+
+  // Get billing suffix for display
+  const getBillingSuffix = (cycle: string): string => {
+    switch (cycle) {
+      case 'monthly': return '/mo';
+      case 'quarterly': return '/quarter';
+      case 'semi-annual': return '/6 months';
+      case 'yearly': return '/year';
+      default: return '/period';
+    }
+  };
+
+  // ============================================
+  
+  // Determine if variant is locked (configure page) or selectable (pricing page)
+  const isVariantLocked = !!lockedVariantId;
+  
+  // Initialize selected variant - use lockedVariantId if provided, otherwise use selectedVariantId prop
+  // When locked, the variant cannot be changed
+  const defaultVariantId = variants && variants.length > 0 
+    ? (lockedVariantId && variants.some(v => v.id === lockedVariantId) 
+        ? lockedVariantId 
+        : (selectedVariantId && variants.some(v => v.id === selectedVariantId) 
+            ? selectedVariantId 
+            : variants.find(v => v.isDefault)?.id || variants[0]?.id))
+    : null;
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(defaultVariantId);
+
+  // Generate billing plans from the selected variant's recurring prices
+  const generatedBillingPlans = useMemo(() => {
+    console.log("Generating billing plans:", { selectedVariant, variants });
+    
+    if (!selectedVariant || variants.length === 0) {
+      console.log("No selected variant, returning default billing plans");
+      return billingPlans; // Fall back to default billing plans
+    }
+    
+    const variant = variants.find(v => v.id === selectedVariant);
+    console.log("Found variant:", variant?.name, "recurringPrices:", variant?.recurringPrices);
+    
+    // Use recurringPrices array from the database
+    if (variant?.recurringPrices && variant.recurringPrices.length > 0) {
+      const rp = variant.recurringPrices[0]; // Use the first set of recurring prices
+      const plans: BillingPlan[] = [];
+      
+      // Monthly price - use variant.price as base, fallback to rp.monthlyPrice
+      const monthlyPrice = variant.price || (rp.monthlyPrice ? Number(rp.monthlyPrice) : null);
+      if (monthlyPrice) {
+        plans.push({ id: "monthly", label: "Monthly", period: "/month", price: Number(monthlyPrice) });
+      }
+      
+      // Quarterly price
+      if (rp.quarterlyPrice !== null) {
+        const price = Number(rp.quarterlyPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 3 - price) / (monthlyPrice * 3)) * 100) : undefined;
+        plans.push({ id: "quarterly", label: "Quarterly", period: "/quarter", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate quarterly as monthly * 3
+        const price = monthlyPrice * 3;
+        plans.push({ id: "quarterly", label: "Quarterly", period: "/quarter", price });
+      }
+      
+      // Semi-annual price
+      if (rp.semiAnnualPrice !== null) {
+        const price = Number(rp.semiAnnualPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 6 - price) / (monthlyPrice * 6)) * 100) : undefined;
+        plans.push({ id: "semi-annual", label: "Semi Annual", period: "/6 months", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate semi-annual as monthly * 6
+        const price = monthlyPrice * 6;
+        plans.push({ id: "semi-annual", label: "Semi Annual", period: "/6 months", price });
+      }
+      
+      // Yearly price
+      if (rp.yearlyPrice !== null) {
+        const price = Number(rp.yearlyPrice);
+        const savings = monthlyPrice ? Math.round(((monthlyPrice * 12 - price) / (monthlyPrice * 12)) * 100) : undefined;
+        plans.push({ id: "yearly", label: "Yearly", period: "/year", price, savings });
+      } else if (monthlyPrice) {
+        // Calculate yearly as monthly * 12
+        const price = monthlyPrice * 12;
+        plans.push({ id: "yearly", label: "Yearly", period: "/year", price });
+      }
+      
+      console.log("Generated plans from recurringPrices:", plans);
+      return plans.length > 0 ? plans : billingPlans;
+    }
+    
+    // If no recurring prices, use variant.price as monthly
+    if (variant?.price) {
+      const monthlyPrice = Number(variant.price);
+      return [
+        { id: "monthly", label: "Monthly", period: "/month", price: monthlyPrice },
+        { id: "quarterly", label: "Quarterly", period: "/quarter", price: monthlyPrice * 3 },
+        { id: "semi-annual", label: "Semi Annual", period: "/6 months", price: monthlyPrice * 6 },
+        { id: "yearly", label: "Yearly", period: "/year", price: monthlyPrice * 12 },
+      ];
+    }
+    
+    return billingPlans;
+  }, [selectedVariant, variants, billingPlans]);
+
+  const [selectedPlan, setSelectedPlan] = useState<BillingPlan>(generatedBillingPlans[0]);
+  
+  // Separate billing cycle state for simpler control
+  const [billingCycle, setBillingCycle] = useState<string>("monthly");
+  
+  // Debug: Log billing cycle changes
+  const handleBillingCycleChange = (newCycle: string) => {
+    console.log('Billing cycle changed:', { from: billingCycle, to: newCycle });
+    setBillingCycle(newCycle);
+  };
+
+  // Sync billingCycle with selectedPlan when plan changes
+  useEffect(() => {
+    console.log("Billing:", billingCycle, "Selected Plan:", selectedPlan?.id);
+    if (selectedPlan && selectedPlan.id) {
+      setBillingCycle(selectedPlan.id);
+    }
+  }, [selectedPlan?.id]);
+
+  // Update selected plan when generated billing plans change (variant changes)
+  useEffect(() => {
+    if (generatedBillingPlans.length > 0) {
+      const currentPlan = generatedBillingPlans.find(p => p.id === selectedPlan.id);
+      if (!currentPlan) {
+        setSelectedPlan(generatedBillingPlans[0]);
+      }
+    }
+  }, [generatedBillingPlans, selectedPlan.id]);
+
+  // Helper function to check if addon is an AI feature
+  const isAIAddon = (name: string): boolean => {
+    const lowerName = name.toLowerCase();
+    return lowerName.includes('ai') || 
+           lowerName.includes('security') || 
+           lowerName.includes('business') || 
+           lowerName.includes('safety') ||
+           lowerName.includes('investigation');
+  };
+
+  // Helper function to check if addon is Setup
+  const isSetupAddon = (name: string): boolean => {
+    return name.toLowerCase().includes('setup') || 
+           name.toLowerCase().includes('implementation');
+  };
+
+  // Group addons by base name (use group field if available, otherwise parse from name)
+  const groupedAddons = useMemo(() => {
+    const groups: Record<string, Addon[]> = {};
+    addons.forEach(addon => {
+      // Use explicit group field if available, otherwise parse from name
+      // Match patterns like "Cloud Storage - 4 Days", "Cloud Storage - 27 Days" -> "Cloud Storage"
+      let groupName = addon.group || addon.name.replace(/\s*-\s+.+$/, '').trim();
+      
+      // Special handling for Cloud Storage
+      if (addon.name && addon.name.includes('Cloud - Storage')) {
+        groupName = 'Cloud - Storage';
+      }
+      
+      console.log('Grouping addon:', addon.name, '-> group:', groupName);
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(addon);
+    });
+    // Return groups with multiple options, but also include Cloud Storage groups regardless of item count
+    return Object.entries(groups).filter(([name, items]) => {
+      console.log('Group:', name, 'has', items.length, 'items');
+      const isCloudStorageGroup = name === 'Cloud Storage' || 
+        name === 'Cloud - Storage' || 
+        name === 'Cloud' ||
+        name.toLowerCase().includes('cloud storage');
+      return items.length > 1 || isCloudStorageGroup;
+    });
+  }, [addons]);
+
+  // Get standalone addons (not part of a group with multiple options)
+  // But exclude Cloud Storage, AI features, and Setup since they're handled specially
+  const standaloneAddons = useMemo(() => {
+    const groupNames = new Set(groupedAddons.map(([name]) => name));
+    return addons.filter(addon => {
+      const groupName = (addon as any).group || addon.name.replace(/\s*-\s*\d+.*$/, '').trim();
+      const isCloudStorage = groupName === 'Cloud Storage' || 
+        groupName === 'Cloud - Storage' || 
+        groupName === 'Cloud' ||
+        groupName.toLowerCase().includes('cloud storage');
+      // Check if it's an AI feature
+      const isAI = isAIAddon(addon.name || '');
+      // Check if it's Setup
+      const isSetup = isSetupAddon(addon.name || '');
+      // Exclude Cloud Storage, AI features, and Setup from standalone addons
+      // They are handled in their own sections
+      return !groupNames.has(groupName) && !isCloudStorage && !isAI && !isSetup;
+    });
+  }, [addons, groupedAddons]);
+
+  // Set default quantity of 1 for non-AI products when component mounts
+  // AI features should be UNSELECTED by default (user must manually select them)
+  useEffect(() => {
+    const initialQuantities: Record<string, number> = {};
+    
+    // Set default quantity for grouped addons (exclude AI features)
+    groupedAddons.forEach(([groupName, items]) => {
+      // Skip AI features and Setup - they should be unselected by default
+      if (items.length > 0 && items[0].id) {
+        if (!isAIAddon(groupName) && !isSetupAddon(groupName)) {
+          initialQuantities[items[0].id] = 1;
+        }
+      }
+    });
+    
+    // Set default quantity for standalone addons (exclude AI features and Setup)
+    standaloneAddons.forEach(addon => {
+      // Skip AI features and Setup - they should be unselected by default
+      if (addon.id && !isAIAddon(addon.name || '') && !isSetupAddon(addon.name || '')) {
+        initialQuantities[addon.id] = 1;
+      }
+    });
+    
+    // Only update if we have values and they're not already set
+    if (Object.keys(initialQuantities).length > 0) {
+      setAddonQuantities(prev => {
+        const newQuantities = { ...prev };
+        let hasChanges = false;
+        Object.entries(initialQuantities).forEach(([id, qty]) => {
+          if (!(id in newQuantities)) {
+            newQuantities[id] = qty;
+            hasChanges = true;
+          }
+        });
+        return hasChanges ? newQuantities : prev;
+      });
+    }
+  }, [groupedAddons, standaloneAddons]);
+
+  // Track selected dropdown values (for single-select)
+  const [selectedDropdownAddon, setSelectedDropdownAddon] = useState<Record<string, string>>({});
+
+  // Track MULTI-SELECT for dropdown groups with quantities
+  interface SelectedAddonOption {
+    id: string;
+    name: string;
+    price: number;
+    qty: number;
+  }
+  const [multiSelectedAddons, setMultiSelectedAddons] = useState<Record<string, SelectedAddonOption[]>>({});
+
+  // Handler for multi-select addon changes with quantities
+  const handleMultiAddonChange = (groupName: string, selectedOptions: SelectedAddonOption[]) => {
+    setMultiSelectedAddons(prev => ({
+      ...prev,
+      [groupName]: selectedOptions
+    }));
+    
+    // Update addonQuantities to reflect selection with quantities
+    setAddonQuantities(prev => {
+      const updated = { ...prev };
+      const group = groupedAddons.find(([name]) => name === groupName);
+      if (!group) return prev;
+      const [_, items] = group;
+      
+      // Clear all items in this group first
+      items.forEach(item => {
+        updated[item.id] = 0;
+      });
+      
+      // Set selected items with their quantities
+      selectedOptions.forEach(opt => {
+        updated[opt.id] = opt.qty;
+      });
+      
+      return updated;
+    });
+  };
+   
+  // Track selected option index for addons with options
+  const [selectedAddonOption, setSelectedAddonOption] = useState<Record<string, number>>({});
+
+  // Initialize dropdown selections with first option
+  useMemo(() => {
+    groupedAddons.forEach(([baseName, items]) => {
+      if (!selectedDropdownAddon[baseName] && items.length > 0) {
+        setSelectedDropdownAddon(prev => ({ ...prev, [baseName]: items[0].id }));
+      }
+    });
+  }, [groupedAddons]);
+
+  const toggleAddon = (addonId: string) => {
+    setAddonQuantities((prev) => {
+      const newQuantities = { ...prev };
+      if (newQuantities[addonId] > 0) {
+        newQuantities[addonId] = 0;
+      } else {
+        newQuantities[addonId] = 1;
+      }
+      return newQuantities;
+    });
+  };
+
+  const updateQuantity = (addonId: string, delta: number) => {
+    setAddonQuantities((prev) => {
+      const currentQty = prev[addonId] || 0;
+      const newQty = Math.max(0, Math.min(4, currentQty + delta));
+      return { ...prev, [addonId]: newQty };
+    });
+  };
+
+  const selectedAddonObjects = useMemo(() => {
+    return addons
+      .filter((addon) => (addonQuantities[addon.id] || 0) > 0)
+      .map((addon) => {
+        // Get the actual price (option price if available)
+        let actualPrice = addon.price;
+        let selectedOptionLabel: string | undefined;
+        
+        if (addon.options && addon.options.length > 0) {
+          const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
+          const option = addon.options[selectedOptionIndex];
+          if (option) {
+            actualPrice = option.price;
+            selectedOptionLabel = option.label;
+          }
+        }
+        
+        return {
+          ...addon,
+          price: actualPrice,
+          quantity: addonQuantities[addon.id] || 0,
+          selectedOption: selectedOptionLabel,
+        };
+      });
+  }, [addons, addonQuantities, selectedAddonOption]);
+
+  // Helper function to get addon price based on billing cycle
+  // Uses getFinalPrice which multiplies base price by billing cycle multiplier
+  const getAddonPriceForCycle = (addon: any, cycle: string): number => {
+    // First check if addon has recurringPricesObj
+    if (addon.recurringPricesObj) {
+      const priceMap: Record<string, number | null | undefined> = {
+        monthly: addon.recurringPricesObj.monthly,
+        quarterly: addon.recurringPricesObj.quarterly,
+        'semi-annual': addon.recurringPricesObj.semiAnnual,
+        yearly: addon.recurringPricesObj.yearly,
+      };
+      const price = priceMap[cycle];
+      if (price !== null && price !== undefined) {
+        return price;
+      }
+      // Fallback to monthly
+      if (priceMap.monthly !== null && priceMap.monthly !== undefined) {
+        return priceMap.monthly;
+      }
+    }
+    // Fallback: use getFinalPrice with base price (monthly price)
+    return getFinalPrice(addon.price || 0, cycle);
+  };
+
+  const addonsTotal = useMemo(() => {
+    return addons.reduce((sum, addon) => {
+      const qty = addonQuantities[addon.id] || 0;
+      if (qty === 0) return sum;
+      
+      // Use option price if addon has options
+      if (addon.options && addon.options.length > 0) {
+        const selectedOptionIndex = selectedAddonOption[addon.id] ?? 0;
+        const option = addon.options[selectedOptionIndex];
+        const basePrice = option ? option.price : addon.price;
+        // Use getFinalPrice for dynamic billing cycle pricing
+        return sum + (getFinalPrice(basePrice, billingCycle) * qty);
+      }
+      
+      // Use getFinalPrice for dynamic billing cycle pricing
+      const addonPrice = getAddonPriceForCycle(addon, billingCycle);
+      return sum + (addonPrice * qty);
+    }, 0);
+  }, [addons, addonQuantities, selectedAddonOption, billingCycle]);
+
+  // Helper function to get price based on billing cycle
+  // First checks if variant has specific prices in recurringPricesObj, otherwise uses base price with multiplier
+  const getPriceForBillingCycle = (variant: any, cycle: string): number => {
+    console.log("getPriceForBillingCycle: variant.price =", variant?.price, "cycle =", cycle, "recurringPricesObj =", variant?.recurringPricesObj);
+    
+    // First check if recurringPricesObj has a specific price for this billing cycle
+    if (variant?.recurringPricesObj) {
+      // Map cycle names to recurringPricesObj keys
+      const priceKeyMap: Record<string, string> = {
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        'semi-annual': 'semiAnnual',
+        yearly: 'yearly'
+      };
+      const priceKey = priceKeyMap[cycle];
+      if (priceKey && variant.recurringPricesObj[priceKey] !== undefined && variant.recurringPricesObj[priceKey] !== null) {
+        console.log("Using recurringPricesObj price:", variant.recurringPricesObj[priceKey]);
+        return variant.recurringPricesObj[priceKey];
+      }
+    }
+    
+    // Fallback: Use getFinalPrice with base price (monthly price) - applies multiplier for billing cycle
+    const basePrice = variant?.price || 0;
+    return getFinalPrice(basePrice, cycle);
+  };
+
+  // Get billing cycle label
+  const getBillingLabel = (cycle: string): string => {
+    const labelMap: Record<string, string> = {
+      monthly: "Monthly Plan",
+      quarterly: "Quarterly Plan",
+      "semi-annual": "Semi Annual Plan",
+      yearly: "Yearly Plan",
+    };
+    return labelMap[cycle] || cycle;
+  };
+
+  // Get the base price - use variant.price as the single source of truth
+  const variantPrice = useMemo(() => {
+    if (!selectedVariant || variants.length === 0) {
+      return selectedPlan?.price || 0;
+    }
+    
+    const variant = variants.find(v => v.id === selectedVariant);
+    if (!variant) {
+      return selectedPlan?.price || 0;
+    }
+    
+    // Use getPriceForBillingCycle to get the correct recurring price based on billing cycle
+    return getPriceForBillingCycle(variant, billingCycle);
+  }, [selectedVariant, variants, selectedPlan, billingCycle]);
+  
+  // Product quantity state
+  // For VSAAS products: use minimum 2 as default (Connect Cloud requirement)
+  // Use minQuantity from variant if available, otherwise check product's minQuantity
+  const getInitialQuantity = () => {
+    // First try to get from selected variant
+    if (selectedVariant) {
+      const variant = variants.find(v => v.id === selectedVariant);
+      if (variant?.minQuantity && variant.minQuantity > 1) {
+        return variant.minQuantity;
+      }
+    }
+    // For VSAAS products with multiple variants, ensure minimum of 2
+    if (variants && variants.length > 0) {
+      const minVariantQty = Math.min(...variants.map(v => v.minQuantity || 1));
+      return Math.max(minVariantQty, 2); // Ensure at least 2 for VSAAS
+    }
+    return 2; // Default to 2 for VSAAS products
+  };
+  const [quantity, setQuantity] = useState(getInitialQuantity());
+
+  // Find Cloud Gateway variant from the variants list
+  const cloudGatewayVariant = variants?.find((v: any) => 
+    v.name?.toLowerCase().includes('cloud gateway')
+  );
+  
+  // Find Connect Cloud variant from the variants list
+  const connectCloudVariant = variants?.find((v: any) => 
+    v.name?.toLowerCase().includes('connect cloud')
+  );
+
+  // Separate state for Cloud Gateway quantity (user can adjust)
+  // Max 10 gateways (supports up to 80 cameras at 8 per gateway)
+  const [gatewayQuantity, setGatewayQuantity] = useState<number>(Math.ceil(quantity / 8));
+
+  // Calculate Cloud Gateway quantity based on Connect Cloud quantity
+  // Rule: 1 gateway per 8 cameras
+  const getGatewayQuantity = (cameraQty: number) => {
+    return Math.ceil(cameraQty / 8);
+  };
+
+  // Sync gateway quantity with connect cloud quantity
+  // When user manually sets gateway, auto-set connect cloud to match (at 8 cameras per gateway)
+  useEffect(() => {
+    // If quantity is less than 8, we still need at least 1 gateway
+    if (gatewayQuantity === 1 && quantity >= 8) {
+      // User has 8+ cameras but only 1 gateway, that's ok (they might want to add more)
+      return;
+    }
+    
+    // Calculate the minimum cameras needed for this gateway count
+    const minCameras = (gatewayQuantity - 1) * 8 + 1; // e.g., 1 gateway = 1 camera, 2 gateways = 9 cameras
+    
+    if (quantity < minCameras) {
+      // User manually selected more gateways than current cameras support, increase cameras
+      setQuantity(minCameras);
+    } else if (quantity > gatewayQuantity * 8) {
+      // Current cameras exceed what this gateway count supports, decrease gateway
+      setGatewayQuantity(Math.ceil(quantity / 8));
+    }
+  }, [gatewayQuantity]);
+
+  // When connect cloud quantity changes, sync gateway quantity
+  useEffect(() => {
+    const newGatewayQty = Math.ceil(quantity / 8);
+    // Ensure at least 1 gateway
+    const finalGatewayQty = Math.max(1, newGatewayQty);
+    if (finalGatewayQty !== gatewayQuantity) {
+      setGatewayQuantity(finalGatewayQty);
+    }
+  }, [quantity]);
+
+  // Calculate Cloud Gateway price based on billing cycle
+  const gatewayPrice = useMemo(() => {
+    console.log('gatewayPrice recalculating:', { billingCycle, variant: cloudGatewayVariant?.price, recurringPricesObj: cloudGatewayVariant?.recurringPricesObj });
+    if (!cloudGatewayVariant) return 0;
+    // Use getPriceForBillingCycle to properly get the recurring price for the selected cycle
+    return getPriceForBillingCycle(cloudGatewayVariant, billingCycle);
+  }, [cloudGatewayVariant, billingCycle]);
+  
+  const gatewayQty = gatewayQuantity;
+  const gatewayTotal = cloudGatewayVariant ? gatewayPrice * gatewayQty : 0;
+  
+  // Calculate total price: unit price Ã— quantity + addons + Cloud Gateway
+  const calculatedBasePrice = variants.length > 0 ? variantPrice * quantity : selectedPlan.price;
+  const totalPrice = calculatedBasePrice + addonsTotal + gatewayTotal;
+
+  const handleAddToCart = () => {
+    // Debug logging
+    console.log('=== Add to Cart Debug ===');
+    console.log('selectedVariant:', selectedVariant);
+    console.log('variants:', variants?.map((v: any) => v.name));
+    
+    // Check if selected variant is Connect Cloud
+    const selectedVariantName = variants?.find((v: any) => v.id === selectedVariant)?.name || '';
+    console.log('selectedVariantName:', selectedVariantName);
+    const isConnectCloud = selectedVariantName.toLowerCase().includes('connect cloud');
+    console.log('isConnectCloud:', isConnectCloud);
+    console.log('cloudGatewayVariant:', cloudGatewayVariant);
+    
+    // Add the main item (Connect Cloud)
+    const cartItem = {
+      id: `${productId || productSlug || 'product'}-${selectedPlan.id}-${Date.now()}`,
+      product: {
+        id: productId || '',
+        slug: productSlug || '',
+        name: productName,
+      } as any,
+      quantity: quantity,
+      selectedAddons: selectedAddonObjects.map((addon) => ({
+        addon: {
+          id: addon.id,
+          name: addon.name,
+          price: addon.price,
+        },
+        quantity: addonQuantities[addon.id] || 1,
+      })),
+      billingCycle: selectedPlan.id.toUpperCase() as any,
+      isRecurring: true,
+      unitPrice: variantPrice,
+      totalPrice: totalPrice,
+      recurringAmount: calculatedBasePrice,
+      variantId: selectedVariant || undefined,
+    };
+    
+    addToCart(cartItem as any);
+    
+    // Always automatically add Cloud Gateway if available in variants (for VSAAS products)
+    if (cloudGatewayVariant) {
+      const gatewayQty = gatewayQuantity;
+      // Use getPriceForBillingCycle to properly get the recurring price for the selected cycle
+      const gatewayPrice = getPriceForBillingCycle(cloudGatewayVariant, billingCycle);
+      
+      const gatewayCartItem = {
+        id: `${productId || productSlug || 'product'}-${cloudGatewayVariant.id}-${Date.now()}`,
+        product: {
+          id: productId || '',
+          slug: productSlug || '',
+          name: productName,
+        } as any,
+        quantity: gatewayQty,
+        selectedAddons: [],
+        billingCycle: selectedPlan.id.toUpperCase() as any,
+        isRecurring: true,
+        unitPrice: gatewayPrice,
+        totalPrice: gatewayPrice * gatewayQty,
+        recurringAmount: gatewayPrice * gatewayQty,
+        variantId: cloudGatewayVariant.id,
+        isDependentItem: true, // Flag to identify as dependent item
+        parentItemId: cartItem.id,
+      };
+      
+      addToCart(gatewayCartItem as any);
+      console.log('Added Cloud Gateway to cart with quantity:', gatewayQty);
+    } else {
+      console.log('Cloud Gateway NOT found in variants');
+    }
+    
+    router.push("/cart");
+  };
+
+  // Build table rows from products and addons
+  const tableRows = useMemo(() => {
+    const rows: any[] = [];
+    
+    // Platform Section
+    if (connectCloudVariant) {
+      rows.push({
+        section: 'Platform',
+        description: 'Connect Cloud',
+        unit: 'per camera',
+        quantity: quantity,
+        price: variantPrice,
+        total: variantPrice * quantity,
+        type: 'platform',
+        onQuantityChange: (delta: number) => setQuantity(q => Math.max(2, Math.min(100, q + delta)))
+      });
+    }
+    
+    if (cloudGatewayVariant) {
+      rows.push({
+        section: 'Platform',
+        description: 'Cloud Gateway',
+        unit: 'hardware',
+        quantity: gatewayQuantity,
+        price: gatewayPrice,
+        total: gatewayPrice * gatewayQuantity,
+        type: 'gateway',
+        onQuantityChange: (delta: number) => setGatewayQuantity(q => Math.max(1, Math.min(10, q + delta)))
+      });
+    }
+    
+    // Cloud Storage Section - find storage addon
+    const storageAddon = addons.find((a: any) => 
+      a.name?.toLowerCase().includes('cloud storage') || 
+      a.name?.toLowerCase().includes('storage')
+    );
+    
+    if (storageAddon) {
+      const selectedOptionIndex = selectedAddonOption[storageAddon.id] ?? 0;
+      const option = storageAddon.options?.[selectedOptionIndex];
+      const storagePrice = option ? getDynamicPrice(option.price, billingCycle, option.recurringPricesObj) : storageAddon.price;
+      
+      rows.push({
+        section: 'Storage',
+        description: storageAddon.name,
+        unit: storageAddon.unit || 'per camera',
+        quantity: quantity, // Same as cameras
+        price: storagePrice,
+        total: storagePrice * quantity,
+        type: 'storage',
+        options: storageAddon.options,
+        selectedOptionIndex,
+        onOptionChange: (idx: number) => {
+          setSelectedAddonOption(prev => ({ ...prev, [storageAddon.id]: idx }));
+        }
+      });
+    }
+    
+    // License Section - platform license
+    const licenseAddons = addons.filter((a: any) => 
+      a.name?.toLowerCase().includes('platform') || 
+      a.name?.toLowerCase().includes('license')
+    );
+    
+    licenseAddons.forEach((addon: any) => {
+      const qty = addonQuantities[addon.id] || 0;
+      const price = getAddonPriceForCycle(addon, billingCycle);
+      rows.push({
+        section: 'License',
+        description: addon.name,
+        unit: addon.unit || 'per user',
+        quantity: qty,
+        price: price,
+        total: price * qty,
+        type: 'license',
+        addonId: addon.id,
+        onQuantityChange: (delta: number) => updateQuantity(addon.id, delta)
+      });
+    });
+    
+    // AI Features Section - each as separate row
+    const aiAddons = addons.filter((a: any) => {
+      const name = a.name?.toLowerCase() || '';
+      return name.includes('ai') || 
+             name.includes('security') || 
+             name.includes('business') || 
+             name.includes('safety') ||
+             name.includes('investigation');
+    });
+    
+    aiAddons.forEach((addon: any) => {
+      const qty = addonQuantities[addon.id] || 0;
+      const price = getAddonPriceForCycle(addon, billingCycle);
+      rows.push({
+        section: 'AI Features',
+        description: addon.name,
+        unit: addon.unit || 'per camera',
+        quantity: qty,
+        price: price,
+        total: price * qty,
+        type: 'ai',
+        addonId: addon.id,
+        isSelected: qty > 0,
+        onToggle: () => {
+          if (qty > 0) {
+            setAddonQuantities(prev => ({ ...prev, [addon.id]: 0 }));
+          } else {
+            setAddonQuantities(prev => ({ ...prev, [addon.id]: quantity }));
+          }
+        }
+      });
+    });
+    
+    // Setup Section - one-time
+    rows.push({
+      section: 'Setup',
+      description: 'Setup & Implementation',
+      unit: 'one-time',
+      quantity: 1,
+      price: 9999,
+      total: 9999,
+      type: 'setup'
+    });
+    
+    return rows;
+  }, [addons, quantity, gatewayQuantity, variantPrice, gatewayPrice, billingCycle, addonQuantities, selectedAddonOption]);
+
+  // Calculate totals
+  const subtotal = useMemo(() => {
+    return tableRows.reduce((sum, row) => sum + (row.total || 0), 0);
+  }, [tableRows]);
+  
+  const gst = subtotal * 0.18; // 18% GST
+  const grandTotal = subtotal + gst;
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      {/* Billing Cycle Selector */}
+      {generatedBillingPlans.length > 1 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Billing Cycle</h3>
+          <div className="flex gap-2 flex-wrap">
+            {generatedBillingPlans.map((plan) => (
+              <button
+                key={plan.id}
+                onClick={() => {
+                  handleBillingCycleChange(plan.id);
+                  setSelectedPlan(plan);
+                }}
+                className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                  billingCycle === plan.id
+                    ? "border-[#C62828] bg-red-50 text-[#C62828] font-medium"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                {plan.label} - {formatPrice(plan.price)}{plan.period}
+                {plan.savings && (
+                  <span className="ml-1 text-xs text-green-600">({plan.savings}% off)</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Table Layout */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Table Header */}
+        <div className="bg-gray-50 border-b border-gray-200 grid grid-cols-12 gap-4 px-4 py-3 text-sm font-semibold text-gray-700">
+          <div className="col-span-4">Description</div>
+          <div className="col-span-2">Unit</div>
+          <div className="col-span-2">Quantity</div>
+          <div className="col-span-2 text-right">Price</div>
+          <div className="col-span-2 text-right">Total</div>
+        </div>
+
+        {/* Table Body */}
+        {tableRows.map((row, index) => (
+          <div 
+            key={`${row.section}-${row.description}-${index}`}
+            className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 items-center ${
+              index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+            }`}
+          >
+            {/* Description */}
+            <div className="col-span-4">
+              {row.section === 'Setup' ? (
+                <div className="font-medium text-gray-900">{row.description}</div>
+              ) : row.type === 'ai' ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={row.onToggle}
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                      row.isSelected 
+                        ? "border-[#C62828] bg-[#C62828]" 
+                        : "border-gray-300 bg-white hover:border-gray-400"
+                    }`}
+                  >
+                    {row.isSelected && <Check className="w-3 h-3 text-white" />}
+                  </button>
+                  <span className={row.isSelected ? 'text-gray-900 font-medium' : 'text-gray-500'}>
+                    {row.description}
+                  </span>
+                </div>
+              ) : row.options ? (
+                <Select.Root
+                  value={String(row.selectedOptionIndex)}
+                  onValueChange={(value) => row.onOptionChange(parseInt(value))}
+                >
+                  <Select.Trigger className="flex items-center justify-between w-full px-3 py-2 rounded-lg border border-gray-200 bg-white hover:border-gray-300 transition-all outline-none text-left">
+                    <Select.Value placeholder="Select" />
+                    <Select.Icon>
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    </Select.Icon>
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                      <Select.Viewport className="p-1">
+                        {row.options.map((option: any, idx: number) => (
+                          <Select.Item
+                            key={idx}
+                            value={String(idx)}
+                            className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 outline-none text-sm text-gray-700"
+                          >
+                            <Select.ItemText>{option.label}</Select.ItemText>
+                            <span className="ml-4 font-medium text-gray-900">
+                              {formatPrice(getDynamicPrice(option.price, billingCycle, option.recurringPricesObj))}
+                            </span>
+                          </Select.Item>
+                        ))}
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
+              ) : (
+                <span className="font-medium text-gray-900">{row.description}</span>
+              )}
+            </div>
+
+            {/* Unit */}
+            <div className="col-span-2 text-sm text-gray-500">
+              {row.unit}
+            </div>
+
+            {/* Quantity */}
+            <div className="col-span-2">
+              {row.type === 'setup' ? (
+                <span className="text-gray-500">1</span>
+              ) : row.type === 'ai' ? (
+                <span className={row.isSelected ? 'text-gray-900' : 'text-gray-400'}>
+                  {row.isSelected ? row.quantity : '-'}
+                </span>
+              ) : row.type === 'storage' ? (
+                <span className="text-gray-500">= Cameras</span>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => row.onQuantityChange(-1)}
+                    disabled={row.type === 'platform' && row.quantity <= 2}
+                    className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    âˆ’
+                  </button>
+                  <span className="w-8 text-center font-medium text-gray-900">{row.quantity}</span>
+                  <button
+                    onClick={() => row.onQuantityChange(1)}
+                    className="w-7 h-7 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Price */}
+            <div className="col-span-2 text-right text-sm">
+              <span className="text-gray-900">{formatPrice(row.price)}</span>
+              {row.type !== 'setup' && <span className="text-gray-500 text-xs">{getBillingSuffix(billingCycle)}</span>}
+            </div>
+
+            {/* Total */}
+            <div className="col-span-2 text-right">
+              <span className={`font-semibold ${row.type === 'setup' ? 'text-green-700' : 'text-gray-900'}`}>
+                {formatPrice(row.total)}
+                {row.type === 'setup' && <span className="text-xs text-green-600 ml-1">one-time</span>}
+              </span>
+            </div>
+          </div>
+        ))}
+
+        {/* Summary Section */}
+        <div className="bg-gray-50 p-6">
+          <div className="max-w-md ml-auto space-y-2">
+            <div className="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal)}{getBillingSuffix(billingCycle)}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>GST (18%)</span>
+              <span>{formatPrice(gst)}{getBillingSuffix(billingCycle)}</span>
+            </div>
+            <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
+              <span>Total</span>
+              <span>{formatPrice(grandTotal)}{getBillingSuffix(billingCycle)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Add to Cart Button */}
+        <div className="p-6 border-t border-gray-200">
+          <Button
+            onClick={handleAddToCart}
+            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#C62828] to-[#B71C1C] hover:from-[#B71C1C] hover:to-[#8B1D1D] shadow-lg shadow-red-100 hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Add to Cart
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Dummy return to replace the old one - this will be removed
+export default function Dummy() { return null; }
+        {/* Left Column: Add-ons (3 columns) */}
+        <div className="lg:col-span-3">
+          {/* Cloud Gateway - Primary Dependency - Shown at top as header */}
+          {cloudGatewayVariant && (
+            <div className="mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md border-2 border-red-500 bg-red-500 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="text-red-800 font-medium text-sm">Cloud Gateway</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center bg-white rounded-full p-0.5 border border-red-200">
+                    <button
+                      onClick={() => {
+                        if (gatewayQuantity > 1) {
+                          setGatewayQuantity(gatewayQuantity - 1);
+                        }
+                      }}
+                      disabled={gatewayQuantity <= 1}
+                      className="w-6 h-6 rounded-full bg-white border border-red-200 flex items-center justify-center text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    >
+                      âˆ’
+                    </button>
+                    <span className="w-6 text-center font-bold text-red-700 text-sm">{gatewayQuantity}</span>
+                    <button
+                      onClick={() => {
+                        // Allow up to 10 gateways (supports 80 cameras)
+                        if (gatewayQuantity < 10) {
+                          setGatewayQuantity(gatewayQuantity + 1);
+                        }
+                      }}
+                      disabled={gatewayQuantity >= 10}
+                      className="w-6 h-6 rounded-full bg-white border border-red-200 flex items-center justify-center text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="text-red-600 text-xs mt-1 ml-6">
+                {gatewayQuantity >= 2 ? '2 units (8+ cameras need 2 hardware)' : 'Connects up to 8 cameras in local network'}
+              </div>
+              <div className="text-red-800 font-semibold text-sm mt-1 ml-6">
+                {formatPrice(gatewayTotal)}{getBillingSuffix(billingCycle)}
+              </div>
+            </div>
+          )}
+          
+          {/* Connect Cloud - Main Product - Shown below Cloud Gateway */}
+          {connectCloudVariant && (
+            <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-md border-2 border-blue-500 bg-blue-500 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="text-blue-800 font-medium text-sm">Connect Cloud</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center bg-white rounded-full p-0.5 border border-blue-200">
+                    <button
+                      onClick={() => setQuantity(q => Math.max(2, q - 1))}
+                      disabled={quantity <= 2}
+                      className="w-6 h-6 rounded-full bg-white border border-blue-200 flex items-center justify-center text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    >
+                      âˆ’
+                    </button>
+                    <span className="w-6 text-center font-bold text-blue-700 text-sm">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(100, quantity + 1))}
+                      className="w-6 h-6 rounded-full bg-white border border-blue-200 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-all text-sm font-medium"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="text-blue-600 text-xs mt-1 ml-6">
+                {quantity >= 8 ? '8+ cameras need 2 Cloud Gateways' : 'Cameras to connect to cloud'}
+              </div>
+              <div className="text-blue-800 font-semibold text-sm mt-1 ml-6">
+                {formatPrice(varia

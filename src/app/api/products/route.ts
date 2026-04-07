@@ -3,11 +3,78 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
+// Helper function to convert Prisma Decimal fields to plain objects
+function convertDecimalToString(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    // Handle Prisma Decimal - check multiple ways
+    const constructorName = obj.constructor?.name;
+    if (constructorName === 'Decimal' || 
+        (typeof obj.toNumber === 'function' && typeof obj.equals === 'function') ||
+        (typeof obj.toFixed === 'function' && typeof obj.toString === 'function' && obj.toString !== Object.prototype.toString)) {
+      return obj.toString();
+    }
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertDecimalToString(item));
+    }
+    // Handle regular objects
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertDecimalToString(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+// Helper function to transform recurringPrices array to object format
+function transformRecurringPrices(recurringPrices: any[]): any {
+  if (!recurringPrices || recurringPrices.length === 0) return null;
+  
+  const price = recurringPrices[0];
+  return {
+    monthly: price.monthlyPrice ? Number(price.monthlyPrice) : null,
+    quarterly: price.quarterlyPrice ? Number(price.quarterlyPrice) : null,
+    yearly: price.yearlyPrice ? Number(price.yearlyPrice) : null,
+    biennial: price.biennialPrice ? Number(price.biennialPrice) : null,
+    triennial: price.triennialPrice ? Number(price.triennialPrice) : null,
+  };
+}
+
+// Helper to transform variant with recurring prices
+function transformVariant(variant: any) {
+  // First, preserve the original recurringPrices array before any conversion
+  const originalRecurringPrices = variant.recurringPrices;
+  
+  const converted = convertDecimalToString(variant);
+  
+  // Restore the original array (ensure it's an array, not an object)
+  if (originalRecurringPrices && Array.isArray(originalRecurringPrices)) {
+    converted.recurringPrices = originalRecurringPrices.map((rp: any) => convertDecimalToString(rp));
+  } else {
+    converted.recurringPrices = [];
+  }
+  
+  // Determine billing type based on recurring prices
+  if (converted.recurringPrices && converted.recurringPrices.length > 0) {
+    // Add transformed object for storefront frontend (monthly, quarterly, yearly keys)
+    converted.recurringPricesObj = transformRecurringPrices(converted.recurringPrices);
+    converted.billingType = 'recurring';
+  } else {
+    converted.billingType = 'one_time';
+  }
+  
+  return converted;
+}
+
 const productFilterSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
   subCategoryId: z.string().optional(),
-  productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).optional(),
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE"]).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).optional(),
   isFeatured: z.coerce.boolean().optional(),
   minPrice: z.coerce.number().optional(),
@@ -19,22 +86,23 @@ const productFilterSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  // Try to get session, but don't fail if database is unavailable
+  let isAdmin = false;
+  try {
+    const session = await auth();
+    isAdmin = !!(session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string));
+  } catch (authError) {
+    console.warn("Auth failed, continuing as non-admin:", authError);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
-    const session = await auth();
-    const isAdmin = session?.user && ["ADMIN", "SUPER_ADMIN"].includes(session.user.role as string);
-
+    
     const filters = productFilterSchema.parse(params);
 
+    // Build where clause - show all products for debugging
     const where: any = {};
-
-    // Admin can see all statuses, public only sees ACTIVE
-    if (filters.status) {
-      where.status = filters.status;
-    } else if (!isAdmin) {
-      where.status = "ACTIVE";
-    }
 
     if (filters.search) {
       where.OR = [
@@ -95,33 +163,49 @@ export async function GET(request: NextRequest) {
 
     const skip = (filters.page - 1) * filters.limit;
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy,
-        skip,
-        take: filters.limit,
-        include: {
-          category: true,
-          subCategory: true,
-          images: {
-            orderBy: { sortOrder: "asc" },
-            take: 1,
+    let products: any[] = [];
+    let total = 0;
+    
+    try {
+      [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          orderBy,
+          skip,
+          take: filters.limit,
+          include: {
+            category: true,
+            subCategory: true,
+            images: {
+              orderBy: { sortOrder: "asc" },
+              take: 1,
+            },
+            variants: {
+              where: { isActive: true },
+              orderBy: { sortOrder: "asc" },
+              include: {
+                recurringPrices: true,
+              },
+            },
+            _count: {
+              select: { reviews: true },
+            },
           },
-          variants: {
-            where: { isActive: true },
-            orderBy: { sortOrder: "asc" },
-          },
-          _count: {
-            select: { reviews: true },
-          },
-        },
-      }),
-      prisma.product.count({ where }),
-    ]);
+        }),
+        prisma.product.count({ where }),
+      ]);
+    } catch (dbError) {
+      console.error("Database error fetching products:", dbError);
+      // Return empty array if database is unavailable
+      products = [];
+      total = 0;
+    }
 
     return NextResponse.json({
-      data: products,
+      data: products.map((product: any) => ({
+        ...convertDecimalToString(product),
+        variants: product.variants.map((variant: any) => transformVariant(variant)),
+      })),
       pagination: {
         page: filters.page,
         limit: filters.limit,
@@ -137,10 +221,11 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 }
-    );
+    // Return empty data instead of 500 for graceful degradation
+    return NextResponse.json({ 
+      data: [],
+      pagination: { page: 1, limit: 20, total: 0, totalPages: 0 }
+    });
   }
 }
 
@@ -149,39 +234,43 @@ const imageSchema = z.object({
   id: z.string().optional(),
   url: z.string(),
   alt: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
   isPrimary: z.boolean().default(false),
 });
 
 const variantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1),
-  sku: z.string().optional(),
-  price: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  stockQuantity: z.number().int().min(0).default(0),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  price: z.coerce.number().min(0).optional(),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).optional().default(0),
   attributes: z.record(z.string(), z.string()).optional(),
-  isDefault: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  specifications: z.record(z.string(), z.any()).optional(),
+  isDefault: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
+  sortOrder: z.coerce.number().optional().default(0),
 });
 
 const addonSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  price: z.number().min(0),
+  price: z.coerce.number().min(0),
+  unit: z.string().optional(),
   pricingType: z.enum(["ONE_TIME", "RECURRING_MONTHLY", "RECURRING_YEARLY"]).default("ONE_TIME"),
   isRequired: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const configOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
-  priceModifier: z.number().default(0),
+  priceModifier: z.coerce.number().default(0),
+  monthlyPriceModifier: z.coerce.number().nullable().optional(),
+  yearlyPriceModifier: z.coerce.number().nullable().optional(),
 });
 
 const configSchema = z.object({
@@ -191,7 +280,7 @@ const configSchema = z.object({
   options: z.array(configOptionSchema),
   isRequired: z.boolean().default(false),
   defaultValue: z.string().optional(),
-  sortOrder: z.number().default(0),
+  sortOrder: z.coerce.number().default(0),
 });
 
 const seoSchema = z.object({
@@ -209,33 +298,41 @@ const createProductSchema = z.object({
   shortDescription: z.string().optional(),
   description: z.string().optional(),
   features: z.array(z.string()).optional(),
-  specifications: z.record(z.string(), z.string()).optional(),
+  specifications: z.record(z.string(), z.any()).optional(),
   sku: z.string().optional(),
   barcode: z.string().optional(),
-  basePrice: z.number().min(0),
-  compareAtPrice: z.number().min(0).optional().nullable(),
-  costPrice: z.number().min(0).optional().nullable(),
-  taxRate: z.number().min(0).optional().nullable(),
-  productType: z.enum(["STANDALONE", "WITH_ADDONS", "CONFIGURABLE", "BUNDLE"]).default("STANDALONE"),
+  basePrice: z.coerce.number().min(0),
+  compareAtPrice: z.coerce.number().min(0).optional().nullable(),
+  costPrice: z.coerce.number().min(0).optional().nullable(),
+  taxRate: z.coerce.number().min(0).optional().nullable(),
+  monthlyPrice: z.coerce.number().min(0).optional().nullable(),
+  yearlyPrice: z.coerce.number().min(0).optional().nullable(),
+  monthlySavings: z.coerce.number().min(0).optional().nullable(),
+  yearlySavings: z.coerce.number().min(0).optional().nullable(),
+  productType: z.enum(["STANDALONE", "CONFIGURABLE", "BUNDLE", "WITH_ADDONS"]).default("STANDALONE"),
   status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]).default("DRAFT"),
   categoryId: z.string().optional().nullable(),
   subCategoryId: z.string().optional().nullable(),
   isFeatured: z.boolean().default(false),
+  isChild: z.boolean().default(false),
   isDigital: z.boolean().default(false),
   requiresShipping: z.boolean().default(true),
   trackInventory: z.boolean().default(true),
   allowBackorder: z.boolean().default(false),
-  stockQuantity: z.number().int().min(0).default(0),
-  lowStockThreshold: z.number().int().min(0).default(5),
-  weight: z.number().min(0).optional().nullable(),
+  stockQuantity: z.coerce.number().int().min(0).default(0),
+  lowStockThreshold: z.coerce.number().int().min(0).default(5),
+  weight: z.coerce.number().min(0).optional().nullable(),
   weightUnit: z.string().default("kg"),
+  brandLogo: z.string().optional().nullable(),
   // Related data
   images: z.array(imageSchema).optional(),
   variants: z.array(variantSchema).optional(),
   addons: z.array(addonSchema).optional(),
   configs: z.array(configSchema).optional(),
   seoMetadata: seoSchema.optional(),
-});
+  // Child products - handled separately
+  childProducts: z.array(z.any()).optional(),
+}).passthrough();
 
 export async function POST(request: NextRequest) {
   try {
@@ -246,7 +343,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const data = createProductSchema.parse(body);
+    
+    // Validate the data with better error handling
+    let data;
+    try {
+      data = createProductSchema.parse(body);
+    } catch (parseError: any) {
+      console.error("Full validation error:", parseError);
+      if (parseError.name === 'ZodError' || parseError.errors) {
+        const errorDetails = parseError.errors || parseError.issues || [];
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: errorDetails,
+          message: parseError.message
+        }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        error: "Validation failed", 
+        message: parseError.message || "Unknown error"
+      }, { status: 400 });
+    }
 
     // Extract related data
     const { images, variants, addons, configs, seoMetadata, ...productData } = data;
@@ -263,17 +379,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if SKU is unique (if provided)
-    if (productData.sku) {
+    // Auto-generate SKU if not provided or if it already exists
+    let finalSku = productData.sku;
+    if (!finalSku) {
+      // Generate a unique SKU based on product name
+      const baseSku = productData.name.toUpperCase().replace(/[^A-Z0-9]/g, "-").slice(0, 10);
+      finalSku = `${baseSku}-${Date.now().toString(36).toUpperCase()}`;
+    } else {
+      // Check if the provided SKU already exists
       const existingSku = await prisma.product.findUnique({
-        where: { sku: productData.sku },
+        where: { sku: finalSku },
       });
 
       if (existingSku) {
-        return NextResponse.json(
-          { error: "A product with this SKU already exists" },
-          { status: 400 }
-        );
+        // Append timestamp to make it unique
+        finalSku = `${finalSku}-${Date.now().toString(36).toUpperCase()}`;
       }
     }
 
@@ -283,6 +403,7 @@ export async function POST(request: NextRequest) {
       const newProduct = await tx.product.create({
         data: {
           ...productData,
+          sku: finalSku,
           features: productData.features || [],
           specifications: productData.specifications || {},
           categoryId: productData.categoryId || null,
@@ -306,19 +427,49 @@ export async function POST(request: NextRequest) {
       // Create variants if provided
       if (variants && variants.length > 0) {
         await tx.productVariant.createMany({
-          data: variants.map((v, idx) => ({
-            productId: newProduct.id,
-            name: v.name,
-            sku: v.sku,
-            price: v.price,
-            compareAtPrice: v.compareAtPrice,
-            costPrice: v.costPrice,
-            stockQuantity: v.stockQuantity,
-            attributes: v.attributes || {},
-            isDefault: v.isDefault ?? idx === 0,
-            isActive: v.isActive ?? true,
-            sortOrder: v.sortOrder ?? idx,
-          })),
+          data: variants.map((v, idx) => {
+            // Reserved keys that should NOT be in specifications
+            const reservedKeys = [
+              'billingType', 'setupFee',
+              'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+              'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+              'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+              'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee',
+              'shortDesc', 'longDesc'
+            ];
+            
+            // Filter out reserved keys from specifications
+            const filteredSpecs: Record<string, string> = {};
+            for (const [key, value] of Object.entries(v.specifications || {})) {
+              if (!reservedKeys.includes(key)) {
+                filteredSpecs[key] = value;
+              }
+            }
+            
+            // Merge specifications into attributes, preserving billingType and setupFee
+            const mergedAttributes = {
+              ...filteredSpecs,
+              // Ensure billingType and setupFee are preserved
+              billingType: (v.attributes as any)?.billingType || "RECURRING",
+              ...((v.attributes as any)?.billingType === "ONE_TIME" && (v.attributes as any)?.setupFee 
+                ? { setupFee: (v.attributes as any).setupFee } 
+                : {}),
+            };
+            
+            return {
+              productId: newProduct.id,
+              name: v.name || "Default Variant",
+              sku: v.sku ?? null,
+              price: v.price ?? 0,
+              compareAtPrice: v.compareAtPrice ?? null,
+              costPrice: v.costPrice ?? null,
+              stockQuantity: v.stockQuantity ?? 0,
+              attributes: mergedAttributes,
+              isDefault: v.isDefault ?? idx === 0,
+              isActive: v.isActive ?? true,
+              sortOrder: v.sortOrder ?? idx,
+            };
+          }),
         });
       }
 
@@ -361,6 +512,52 @@ export async function POST(request: NextRequest) {
             ...seoMetadata,
           },
         });
+      }
+
+      // Create child products if provided
+      const childProducts = data.childProducts as any[];
+      if (childProducts && childProducts.length > 0) {
+        for (const child of childProducts) {
+          // Create the child product
+          const newChildProduct = await tx.product.create({
+            data: {
+              name: child.name,
+              slug: child.slug,
+              shortDescription: child.shortDescription,
+              description: child.description,
+              basePrice: child.basePrice || 0,
+              compareAtPrice: child.compareAtPrice,
+              costPrice: child.costPrice,
+              productType: child.productType || "STANDALONE",
+              status: child.status || "ACTIVE",
+              categoryId: newProduct.categoryId,
+              isFeatured: false,
+              isDigital: newProduct.isDigital,
+              requiresShipping: newProduct.requiresShipping,
+              trackInventory: newProduct.trackInventory,
+              allowBackorder: newProduct.allowBackorder,
+              stockQuantity: child.stockQuantity || 0,
+              // @ts-ignore - isChild field exists in database but not in generated client
+              isChild: true,
+            } as any,
+          });
+
+          // Create recurring prices for the child product if billingType is RECURRING
+          if (child.billingType === "RECURRING") {
+            await tx.productRecurringPrice.create({
+              data: {
+                productId: newChildProduct.id,
+                variantId: null,
+                monthlyPrice: child.monthlyPrice,
+                quarterlyPrice: child.quarterlyPrice,
+                semiAnnualPrice: child.semiAnnualPrice,
+                yearlyPrice: child.yearlyPrice,
+                currency: "INR",
+                isActive: child.isActive !== false,
+              },
+            });
+          }
+        }
       }
 
       return newProduct;

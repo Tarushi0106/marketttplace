@@ -30,6 +30,19 @@ export interface Product {
   category: Category | null;
   subCategory: SubCategory | null;
   seoMetadata: SeoMetadata | null;
+  recurringPrices: ProductRecurringPrice[];
+  // Transformed recurring prices object format from API
+  recurringPricesObj?: {
+    monthly?: number | null;
+    biMonthly?: number | null;
+    quarterly?: number | null;
+    fourMonthly?: number | null;
+    semiAnnual?: number | null;
+    triAnnual?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +70,48 @@ export interface ProductVariant {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
+  recurringPrices: ProductRecurringPrice[];
+  // Recurring price fields for form editing
+  billingType?: "ONE_TIME" | "RECURRING";
+  monthlyPrice?: string;
+  biMonthlyPrice?: string;
+  fourMonthlyPrice?: string;
+  quarterlyPrice?: string;
+  semiAnnualPrice?: string;
+  triAnnualPrice?: string;
+  yearlyPrice?: string;
+  biennialPrice?: string;
+  triennialPrice?: string;
+  monthlySetupFee?: string;
+  biMonthlySetupFee?: string;
+  fourMonthlySetupFee?: string;
+  quarterlySetupFee?: string;
+  semiAnnualSetupFee?: string;
+  triAnnualSetupFee?: string;
+  yearlySetupFee?: string;
+  biennialSetupFee?: string;
+  triennialSetupFee?: string;
+  // Transformed recurring prices object format from API
+  recurringPricesObj?: {
+    monthly?: number | null;
+    biMonthly?: number | null;
+    quarterly?: number | null;
+    fourMonthly?: number | null;
+    semiAnnual?: number | null;
+    triAnnual?: number | null;
+    yearly?: number | null;
+    biennial?: number | null;
+    triennial?: number | null;
+    monthlySetupFee?: number | null;
+    biMonthlySetupFee?: number | null;
+    quarterlySetupFee?: number | null;
+    fourMonthlySetupFee?: number | null;
+    semiAnnualSetupFee?: number | null;
+    triAnnualSetupFee?: number | null;
+    yearlySetupFee?: number | null;
+    biennialSetupFee?: number | null;
+    triennialSetupFee?: number | null;
+  } | null;
 }
 
 export interface ProductAddon {
@@ -86,12 +141,93 @@ export interface ConfigOption {
   value: string;
   label: string;
   priceModifier: number;
+  monthlyPriceModifier?: number;
+  yearlyPriceModifier?: number;
 }
 
 export type ProductType = "STANDALONE" | "WITH_ADDONS" | "CONFIGURABLE" | "BUNDLE";
 export type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 export type AddonPricingType = "ONE_TIME" | "RECURRING_MONTHLY" | "RECURRING_YEARLY";
 export type ConfigType = "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER";
+
+// Extended Configuration Types
+export type PricingModel = "FIXED" | "PER_UNIT" | "TIERED" | "HYBRID";
+export type BillingCycle = "ONE_TIME" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "BIENNIAL" | "TRIENNIAL";
+export type ConfigInputType = "SELECT" | "RADIO" | "CHECKBOX" | "NUMBER" | "SLIDER" | "TEXT";
+export type ModifierType = "ADD" | "MULTIPLY" | "REPLACE";
+export type ChargeType = "USAGE" | "SETUP" | "LICENSE" | "SUPPORT" | "STORAGE" | "BANDWIDTH";
+export type ConfigurationScope = "GLOBAL" | "CATEGORY" | "PRODUCT";
+export type InheritSource = "CATEGORY" | "TEMPLATE" | "NONE";
+
+export interface ExtendedConfigOption {
+  id: string;
+  value: string;
+  label: string;
+  description?: string;
+  priceModifier?: number;
+  monthlyPriceModifier?: number;
+  yearlyPriceModifier?: number;
+  isPercentage?: boolean;
+  modifierType?: ModifierType;
+  isAvailable?: boolean;
+  stockStatus?: string;
+}
+
+export interface ExtendedProductConfig {
+  id: string;
+  name: string;
+  displayName?: string;
+  description?: string;
+  unit?: string;
+  unitPlural?: string;
+  icon?: string;
+  pricingModel?: PricingModel;
+  basePrice?: number;
+  pricePerUnit?: number;
+  currency?: string;
+  billingCycle?: BillingCycle;
+  isRecurring?: boolean;
+  inputType?: ConfigInputType;
+  minValue?: number;
+  maxValue?: number;
+  stepValue?: number;
+  defaultValue?: string;
+  isRequired?: boolean;
+  allowCustom?: boolean;
+  source: "PRODUCT" | "CATEGORY" | "TEMPLATE";
+  inheritedFromId?: string;
+  options: ExtendedConfigOption[];
+}
+
+export interface ProductRecurringPrice {
+  id: string;
+  productId: string;
+  variantId?: string;
+  monthlyPrice?: number;
+  quarterlyPrice?: number;
+  yearlyPrice?: number;
+  biennialPrice?: number;
+  triennialPrice?: number;
+  biMonthlyPrice?: number;
+  fourMonthlyPrice?: number;
+  semiAnnualPrice?: number;
+  triAnnualPrice?: number;
+  monthlySavings?: number;
+  quarterlySavings?: number;
+  yearlySavings?: number;
+  // Setup fees per billing cycle
+  monthlySetupFee?: number;
+  biMonthlySetupFee?: number;
+  fourMonthlySetupFee?: number;
+  quarterlySetupFee?: number;
+  semiAnnualSetupFee?: number;
+  triAnnualSetupFee?: number;
+  yearlySetupFee?: number;
+  biennialSetupFee?: number;
+  triennialSetupFee?: number;
+  currency?: string;
+  isActive?: boolean;
+}
 
 // ============================================
 // CATEGORY TYPES
@@ -213,6 +349,9 @@ export interface CartItem {
   selectedAddons: SelectedAddon[];
   selectedConfigs: SelectedConfig[];
   bundle: Bundle | null;
+  unitPrice?: number;
+  billingCycle?: BillingCycle;
+  isRecurring?: boolean;
 }
 
 export interface SelectedAddon {
@@ -256,9 +395,13 @@ export interface Order {
   shippingAmount: number;
   total: number;
   currency: string;
+  discountId: string | null;
+  shippingAddressId: string | null;
+  billingAddressId: string | null;
+  notes: string | null;
+  metadata: Record<string, unknown> | null;
   items: OrderItem[];
   shippingAddress: Address | null;
-  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -275,6 +418,9 @@ export interface OrderItem {
   unitPrice: number;
   totalPrice: number;
   configuration: Record<string, string> | null;
+  billingCycle: BillingCycle;
+  isRecurring: boolean;
+  recurringPrice: number | null;
   addons: OrderItemAddon[];
 }
 
@@ -285,6 +431,8 @@ export interface OrderItemAddon {
   name: string;
   price: number;
   quantity: number;
+  billingCycle: BillingCycle;
+  isRecurring: boolean;
 }
 
 export type OrderStatus =

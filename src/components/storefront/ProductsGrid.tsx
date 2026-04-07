@@ -1,14 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Building2, Package, Sparkles, ShoppingBag, MessageCircle } from "lucide-react";
+import { Star, Building2, Package, Sparkles, MessageCircle, Eye, Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// Helper to check if product has pricing
-function hasPricing(price: any): boolean {
-  const numPrice = Number(price);
-  return !isNaN(numPrice) && numPrice > 0;
+// Map icon name to lucide-react component
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart,
+};
+
+// Fallback icon when no custom icon is set
+function FallbackIcon({ name }: { name: string }) {
+  return (
+    <span className="text-3xl font-bold text-gray-400">
+      {name.charAt(0)}
+    </span>
+  );
+}
+
+// Icon component that renders the appropriate icon or fallback
+function ProductIcon({ iconName, productName }: { iconName?: string | null; productName: string }) {
+  if (iconName && iconMap[iconName]) {
+    const IconComponent = iconMap[iconName];
+    return <IconComponent className="w-8 h-8 text-[#8B1D1D]" />;
+  }
+  return <FallbackIcon name={productName} />;
 }
 
 interface Product {
@@ -22,6 +39,8 @@ interface Product {
   reviewCount: number;
   isFeatured: boolean;
   productType: string;
+  icon?: string | null;
+  brandLogo?: string | null;
   category: {
     id: string;
     name: string;
@@ -40,6 +59,25 @@ interface Product {
   _count: {
     reviews: number;
   };
+  variants?: {
+    id: string;
+    price: number;
+  }[];
+  displayPrice?: number;
+}
+
+// Helper to get the correct price based on product type
+function getDisplayPrice(product: Product): number {
+  // If displayPrice is provided (from server), use it
+  if (product.displayPrice !== undefined) {
+    return product.displayPrice;
+  }
+  // For CONFIGURABLE products, use the lowest variant price
+  if (product.productType === "CONFIGURABLE" && product.variants && product.variants.length > 0) {
+    return Math.min(...product.variants.map(v => Number(v.price)));
+  }
+  // For other product types (STANDALONE, WITH_ADDONS), use basePrice
+  return Number(product.basePrice);
 }
 
 interface ProductsGridProps {
@@ -107,168 +145,82 @@ function ListView({ products }: { products: Product[] }) {
   );
 }
 
-// Standard Product Card
+// Standard Product Card - SaaS Style with Minimal Red Outline Icons
 function ProductCard({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
+
+  // Render icon based on icon name
+  const renderIcon = (iconName?: string | null) => {
+    const props = { size: 28, className: "text-red-600" };
+    
+    switch (iconName) {
+      case "Cloud":
+        return <Cloud {...props} />;
+      case "Shield":
+        return <Shield {...props} />;
+      case "Server":
+        return <Server {...props} />;
+      case "Database":
+        return <Database {...props} />;
+      case "Lock":
+        return <Lock {...props} />;
+      default:
+        return <Cloud {...props} />;
+    }
+  };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
-      {/* Image Section - Clickable */}
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
+      {/* Icon Section - Centered with light pink background */}
       <Link href={`/products/${product.slug}`}>
-        <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-          {product.images[0]?.url ? (
-            <img
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                <span className="text-3xl font-bold text-gray-400">
-                  {product.name.charAt(0)}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {product.isFeatured && (
-              <Badge className="bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C] text-white border-0 shadow-lg">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Featured
-              </Badge>
-            )}
-            {discount > 0 && (
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-lg">
-                {discount}% OFF
-              </Badge>
-            )}
-          </div>
-
-          {/* Product Logo/Icon Overlay */}
-          <div className="absolute bottom-3 left-3">
-            <div className="w-12 h-12 rounded-xl bg-white shadow-lg flex items-center justify-center border border-gray-100">
-              {product.images[1]?.url ? (
-                <img
-                  src={product.images[1].url}
-                  alt="Logo"
-                  className="w-8 h-8 object-contain"
-                />
-              ) : (
-                <span className="text-lg font-bold text-[#8B1D1D]">
-                  {product.name.charAt(0)}
-                </span>
-              )}
-            </div>
+        <div className="flex items-center justify-center h-28">
+          <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-red-50">
+            {renderIcon(product.icon)}
           </div>
         </div>
       </Link>
 
       {/* Content Section */}
       <div className="p-4 flex-1 flex flex-col">
-        {/* Category */}
+        {/* Category Label */}
         {product.category && (
-          <div className="flex items-center gap-2 mb-2">
-            <Building2 className="h-3.5 w-3.5 text-gray-400" />
-            <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+          <div className="mb-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#8B1D1D]/10 text-[#8B1D1D]">
               {product.category.name}
             </span>
           </div>
         )}
 
-        {/* Title - Clickable */}
+        {/* Title */}
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-2">
+          <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors mb-2">
             {product.name}
           </h3>
         </Link>
 
-        {/* Description */}
+        {/* Short Description */}
         {product.shortDescription && (
           <p className="text-sm text-gray-500 line-clamp-2 mb-3 flex-1">
             {product.shortDescription}
           </p>
         )}
 
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-3.5 w-3.5 ${
-                  i < Math.floor(Number(product.averageRating) || 0)
-                    ? "fill-amber-400 text-amber-400"
-                    : "text-gray-200"
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-gray-500">
-            ({product._count.reviews})
-          </span>
-        </div>
-
-        {/* Price & CTA Buttons */}
-        <div className="mt-auto pt-3 border-t border-gray-100">
-          {hasPrice && (
-            <div className="mb-3">
-              <span className="text-lg font-bold text-gray-900">
-                ₹{Number(product.basePrice).toLocaleString("en-IN")}
-              </span>
-              {product.compareAtPrice && (
-                <span className="text-sm text-gray-400 line-through ml-2">
-                  ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-                </span>
-              )}
-            </div>
-          )}
-          <div className="flex gap-2">
-            {hasPrice ? (
-              <>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-                  asChild
-                >
-                  <Link href={`/products/${product.slug}#pricing`}>
-                    <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                    Buy Now
-                  </Link>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D]"
-                  asChild
-                >
-                  <Link href="/contact">
-                    <MessageCircle className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="sm"
-                className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-                asChild
-              >
-                <Link href="/contact">
-                  <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Contact Us
-                </Link>
-              </Button>
-            )}
-          </div>
+        {/* CTA Button */}
+        <div className="mt-auto">
+          <Button
+            className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white text-sm font-medium py-2"
+            asChild
+          >
+            <Link href={`/products/${product.slug}`}>
+              View Details
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
@@ -279,12 +231,11 @@ function ProductCard({ product }: { product: Product }) {
 function CompactProductCard({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
@@ -304,16 +255,14 @@ function CompactProductCard({ product }: { product: Product }) {
 
           {/* Product Logo - Main focus */}
           <div className="relative w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
-            {product.images[0]?.url ? (
+            {product.brandLogo ? (
               <img
-                src={product.images[0].url}
+                src={product.brandLogo}
                 alt={product.name}
                 className="w-12 h-12 object-contain"
               />
             ) : (
-              <span className="text-2xl font-bold text-[#8B1D1D]">
-                {product.name.charAt(0)}
-              </span>
+              <ProductIcon iconName={product.icon} productName={product.name} />
             )}
           </div>
 
@@ -362,45 +311,18 @@ function CompactProductCard({ product }: { product: Product }) {
           </span>
         </div>
 
-        {/* Price */}
-        {hasPrice && (
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-sm font-bold text-gray-900">
-              ₹{Number(product.basePrice).toLocaleString("en-IN")}
-            </span>
-            {product.compareAtPrice && (
-              <span className="text-xs text-gray-400 line-through">
-                ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-              </span>
-            )}
-          </div>
-        )}
-
         {/* CTA Button */}
         <div className="mt-auto pt-2">
-          {hasPrice ? (
-            <Button
-              size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-              asChild
-            >
-              <Link href={`/products/${product.slug}#pricing`}>
-                <ShoppingBag className="h-3 w-3 mr-1" />
-                Buy Now
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
-              asChild
-            >
-              <Link href="/contact">
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Contact
-              </Link>
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+            asChild
+          >
+            <Link href={`/products/${product.slug}`}>
+              <Eye className="h-3 w-3 mr-1" />
+              Product Details
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
@@ -411,31 +333,28 @@ function CompactProductCard({ product }: { product: Product }) {
 function ProductListItem({ product }: { product: Product }) {
   const discount = product.compareAtPrice
     ? Math.round(
-        ((Number(product.compareAtPrice) - Number(product.basePrice)) /
+        ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
           Number(product.compareAtPrice)) *
           100
       )
     : 0;
-  const hasPrice = hasPricing(product.basePrice);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 group">
       <div className="flex items-stretch">
         {/* Image/Logo Section - Clickable */}
         <Link href={`/products/${product.slug}`} className="w-32 sm:w-40 flex-shrink-0 relative bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-          {product.images[0]?.url ? (
+          {product.brandLogo ? (
             <div className="w-20 h-20 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100">
               <img
-                src={product.images[0].url}
+                src={product.brandLogo}
                 alt={product.name}
                 className="w-14 h-14 object-contain"
               />
             </div>
           ) : (
             <div className="w-20 h-20 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100">
-              <span className="text-2xl font-bold text-[#8B1D1D]">
-                {product.name.charAt(0)}
-              </span>
+              <ProductIcon iconName={product.icon} productName={product.name} />
             </div>
           )}
 
@@ -504,64 +423,30 @@ function ProductListItem({ product }: { product: Product }) {
             </div>
           </div>
 
-          {/* Price & CTA */}
+          {/* CTA */}
           <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-            {hasPrice && (
-              <div className="text-right">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-bold text-gray-900">
-                    ₹{Number(product.basePrice).toLocaleString("en-IN")}
-                  </span>
-                  {discount > 0 && (
-                    <Badge className="bg-green-100 text-green-700 border-0 text-xs">
-                      -{discount}%
-                    </Badge>
-                  )}
-                </div>
-                {product.compareAtPrice && (
-                  <span className="text-sm text-gray-400 line-through">
-                    ₹{Number(product.compareAtPrice).toLocaleString("en-IN")}
-                  </span>
-                )}
-              </div>
-            )}
             <div className="flex gap-2">
-              {hasPrice ? (
-                <>
-                  <Button
-                    size="sm"
-                    className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
-                    asChild
-                  >
-                    <Link href={`/products/${product.slug}#pricing`}>
-                      <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
-                      Buy Now
-                    </Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg"
-                    asChild
-                  >
-                    <Link href="/contact">
-                      <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                      Contact
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
-                  asChild
-                >
-                  <Link href="/contact">
-                    <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                    Contact Us
-                  </Link>
-                </Button>
-              )}
+              <Button
+                size="sm"
+                className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
+                asChild
+              >
+                <Link href={`/products/${product.slug}`}>
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  Product Details
+                </Link>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg"
+                asChild
+              >
+                <Link href="/contact">
+                  <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
+                  Contact
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -569,3 +454,4 @@ function ProductListItem({ product }: { product: Product }) {
     </div>
   );
 }
+

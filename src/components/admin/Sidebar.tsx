@@ -23,6 +23,10 @@ import {
   TrendingUp,
   MessageSquareQuote,
   Building2,
+  Sliders,
+  Layout,
+  RefreshCw,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,9 +51,24 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    name: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: RefreshCw,
+  },
+  {
+    name: "Product Configs",
+    href: "/admin/product-configurations",
+    icon: Sliders,
+  },
+  {
     name: "Products",
     href: "/admin/products",
     icon: Package,
+  },
+  {
+    name: "Hero Products",
+    href: "/admin/hero-products",
+    icon: Star,
   },
   {
     name: "Bundles",
@@ -107,6 +126,11 @@ const contentNav = [
 ];
 
 const settingsNav = [
+  {
+    name: "Landing Page",
+    href: "/admin/landing-page",
+    icon: Layout,
+  },
   {
     name: "Settings",
     href: "/admin/settings",

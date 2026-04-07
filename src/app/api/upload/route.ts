@@ -3,6 +3,9 @@ import { uploadImage } from "@/lib/cloudinary";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // POST - Upload file
 export async function POST(request: NextRequest) {
   try {

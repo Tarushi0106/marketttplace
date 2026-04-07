@@ -239,30 +239,34 @@ async function main() {
       data: {
         productId: product1.id,
         name: "Operating System",
-        type: "SELECT",
-        options: [
-          { value: "ubuntu-22", label: "Ubuntu 22.04 LTS", priceModifier: 0 },
-          { value: "debian-12", label: "Debian 12", priceModifier: 0 },
-          { value: "windows-2022", label: "Windows Server 2022", priceModifier: 25 },
-        ],
+        inputType: "SELECT",
         isRequired: true,
         defaultValue: "ubuntu-22",
         sortOrder: 0,
+        options: {
+          create: [
+            { value: "ubuntu-22", label: "Ubuntu 22.04 LTS", priceModifier: 0, sortOrder: 0 },
+            { value: "debian-12", label: "Debian 12", priceModifier: 0, sortOrder: 1 },
+            { value: "windows-2022", label: "Windows Server 2022", priceModifier: 25, sortOrder: 2 },
+          ],
+        },
       },
     }),
     prisma.productConfig.create({
       data: {
         productId: product1.id,
         name: "Data Center Region",
-        type: "SELECT",
-        options: [
-          { value: "us-east", label: "US East (N. Virginia)", priceModifier: 0 },
-          { value: "us-west", label: "US West (Oregon)", priceModifier: 0 },
-          { value: "eu-west", label: "EU West (Ireland)", priceModifier: 5 },
-        ],
+        inputType: "SELECT",
         isRequired: true,
         defaultValue: "us-east",
         sortOrder: 1,
+        options: {
+          create: [
+            { value: "us-east", label: "US East (N. Virginia)", priceModifier: 0, sortOrder: 0 },
+            { value: "us-west", label: "US West (Oregon)", priceModifier: 0, sortOrder: 1 },
+            { value: "eu-west", label: "EU West (Ireland)", priceModifier: 5, sortOrder: 2 },
+          ],
+        },
       },
     }),
   ]);

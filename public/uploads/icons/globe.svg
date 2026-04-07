@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Globe Circle -->
+  <circle cx="32" cy="32" r="24" fill="#ffffff" stroke="#2D3436" stroke-width="3"/>
+  <!-- Globe Lines - Horizontal -->
+  <ellipse cx="32" cy="32" rx="24" ry="10" stroke="#2D3436" stroke-width="2"/>
+  <ellipse cx="32" cy="32" rx="24" ry="18" stroke="#2D3436" stroke-width="2"/>
+  <!-- Globe Line - Vertical -->
+  <line x1="32" y1="8" x2="32" y2="56" stroke="#2D3436" stroke-width="2"/>
+  <!-- Globe Meridian -->
+  <ellipse cx="32" cy="32" rx="10" ry="24" stroke="#2D3436" stroke-width="2"/>
+  <!-- Red Dot - Location Accent -->
+  <circle cx="32" cy="32" r="4" fill="#E74C3C" stroke="#ffffff" stroke-width="1"/>
+</svg>

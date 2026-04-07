@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart } from "lucide-react";
+import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart, Box, Wifi, Shield, Server, Database, Cloud, Cpu, Headphones, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart-store";
@@ -15,6 +15,7 @@ interface Product {
   compareAtPrice: number | null;
   averageRating: number;
   salesCount: number;
+  productType: string;
   category: {
     id: string;
     name: string;
@@ -25,22 +26,102 @@ interface Product {
     url: string;
     alt: string | null;
   }[];
+  variants?: {
+    id: string;
+    price: number | null;
+  }[];
   _count: {
     reviews: number;
   };
 }
 
-// Color schemes for product cards
-const cardColors = [
-  { bg: "bg-[#1A1A1A]", text: "text-white", accent: "text-[#00E5A0]" },
-  { bg: "bg-[#2563EB]", text: "text-white", accent: "text-white" },
-  { bg: "bg-white border border-gray-200", text: "text-[#00A8E0]", accent: "text-[#00A8E0]" },
-  { bg: "bg-[#1A1A1A]", text: "text-white", accent: "text-white" },
-  { bg: "bg-white border border-gray-200", text: "text-[#2563EB]", accent: "text-[#2563EB]" },
-  { bg: "bg-[#8B1D1D]", text: "text-white", accent: "text-white" },
-  { bg: "bg-[#059669]", text: "text-white", accent: "text-white" },
-  { bg: "bg-[#7C3AED]", text: "text-white", accent: "text-white" },
+// Sample fallback products when database is empty
+const sampleProducts: Product[] = [
+  {
+    id: "1",
+    name: "Cloud Server Basic",
+    slug: "cloud-server-basic",
+    shortDescription: "Entry-level cloud server with essential features",
+    basePrice: 29.99,
+    compareAtPrice: 39.99,
+    averageRating: 4.5,
+    salesCount: 10,
+    productType: "STANDALONE",
+    category: { id: "1", name: "Cloud Services", slug: "cloud-services" },
+    images: [],
+    _count: { reviews: 5 },
+  },
+  {
+    id: "2",
+    name: "Enterprise Security Suite",
+    slug: "enterprise-security",
+    shortDescription: "Complete security solution for enterprise",
+    basePrice: 199.99,
+    compareAtPrice: 299.99,
+    averageRating: 4.8,
+    salesCount: 25,
+    productType: "STANDALONE",
+    category: { id: "2", name: "Security", slug: "security" },
+    images: [],
+    _count: { reviews: 12 },
+  },
+  {
+    id: "3",
+    name: "SD-WAN Solution",
+    slug: "sdwan-solution",
+    shortDescription: "Software-defined wide area networking",
+    basePrice: 349.99,
+    compareAtPrice: 449.99,
+    averageRating: 4.3,
+    salesCount: 8,
+    productType: "STANDALONE",
+    category: { id: "3", name: "Network Solutions", slug: "network-solutions" },
+    images: [],
+    _count: { reviews: 3 },
+  },
+  {
+    id: "4",
+    name: "Microsoft 365 Business",
+    slug: "microsoft-365-business",
+    shortDescription: "Complete office productivity suite",
+    basePrice: 12.99,
+    compareAtPrice: 15.99,
+    averageRating: 4.7,
+    salesCount: 50,
+    productType: "STANDALONE",
+    category: { id: "4", name: "Software", slug: "software" },
+    images: [],
+    _count: { reviews: 20 },
+  },
+  {
+    id: "5",
+    name: "Tally on Cloud",
+    slug: "tally-on-cloud",
+    shortDescription: "Accounting software hosted on cloud",
+    basePrice: 49.99,
+    compareAtPrice: 79.99,
+    averageRating: 4.6,
+    salesCount: 30,
+    productType: "STANDALONE",
+    category: { id: "5", name: "Business Applications", slug: "business-applications" },
+    images: [],
+    _count: { reviews: 15 },
+  },
 ];
+
+// Function to get icon based on product name
+const getProductIcon = (productName: string) => {
+  const name = productName.toLowerCase();
+  if (name.includes("wifi") || name.includes("router") || name.includes("network")) return <Wifi className="w-10 h-10 text-red-600" />;
+  if (name.includes("security") || name.includes("firewall") || name.includes("protect")) return <Shield className="w-10 h-10 text-red-600" />;
+  if (name.includes("server") || name.includes("hosting")) return <Server className="w-10 h-10 text-red-600" />;
+  if (name.includes("database") || name.includes("data")) return <Database className="w-10 h-10 text-red-600" />;
+  if (name.includes("cloud")) return <Cloud className="w-10 h-10 text-red-600" />;
+  if (name.includes("cpu") || name.includes("processor") || name.includes("compute")) return <Cpu className="w-10 h-10 text-red-600" />;
+  if (name.includes("support") || name.includes("service") || name.includes("managed")) return <Headphones className="w-10 h-10 text-red-600" />;
+  if (name.includes("business") || name.includes("enterprise") || name.includes("solution")) return <Briefcase className="w-10 h-10 text-red-600" />;
+  return <Box className="w-10 h-10 text-red-600" />;
+};
 
 export function FeaturedProducts() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,14 +135,13 @@ export function FeaturedProducts() {
       try {
         const response = await fetch("/api/products?isFeatured=true&limit=10");
         const data = await response.json();
+        console.log("API Response:", JSON.stringify(data));
         if (data.data && data.data.length > 0) {
           setProducts(data.data);
         } else {
-          // Fallback: fetch any active products if no featured ones
-          const fallbackResponse = await fetch("/api/products?limit=10");
-          const fallbackData = await fallbackResponse.json();
-          setProducts(fallbackData.data || []);
+          console.log("No products found, will use fallback. Response:", data);
         }
+        // Don't set fallback products here - we'll use sampleProducts as fallback in rendering
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -70,6 +150,9 @@ export function FeaturedProducts() {
     }
     fetchProducts();
   }, []);
+
+  // Use database products if available, otherwise show fallback
+  const displayProducts = products.length > 0 ? products : sampleProducts;
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -96,12 +179,30 @@ export function FeaturedProducts() {
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
+    
+    let displayPrice: number;
+    if (isConfigurable && product.variants && product.variants.length > 0) {
+      const variantPrices = product.variants
+        .filter((v) => v.price !== null)
+        .map((v) => Number(v.price));
+      displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+    } else {
+      displayPrice = Number(product.basePrice);
+    }
+    
+    if (isNaN(displayPrice) || displayPrice === 0) {
+      console.error("Invalid price for product:", product.name);
+      return;
+    }
+    
     addItem({
       product: product as any,
       quantity: 1,
       selectedAddons: [],
       selectedConfigs: [],
-      unitPrice: product.basePrice,
+      unitPrice: displayPrice,
     });
   };
 
@@ -130,10 +231,6 @@ export function FeaturedProducts() {
         </div>
       </section>
     );
-  }
-
-  if (products.length === 0) {
-    return null;
   }
 
   return (
@@ -180,9 +277,20 @@ export function FeaturedProducts() {
             ref={scrollRef}
             className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory items-start"
           >
-            {products.map((product, index) => {
-              const colorScheme = cardColors[index % cardColors.length];
+            {displayProducts.map((product) => {
               const hasSales = product.salesCount > 0;
+              
+              const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
+              
+              let displayPrice: number;
+              if (isConfigurable && product.variants && product.variants.length > 0) {
+                const variantPrices = product.variants
+                  .filter((v) => v.price !== null)
+                  .map((v) => Number(v.price));
+                displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : Number(product.basePrice);
+              } else {
+                displayPrice = Number(product.basePrice);
+              }
 
               return (
                 <Link
@@ -207,9 +315,7 @@ export function FeaturedProducts() {
                       </button>
 
                       {/* Brand Logo Area */}
-                      <div
-                        className={`h-48 ${colorScheme.bg} flex items-center justify-center`}
-                      >
+                      <div className="h-48 bg-white flex items-center justify-center">
                         {product.images[0]?.url ? (
                           <img
                             src={product.images[0].url}
@@ -217,8 +323,8 @@ export function FeaturedProducts() {
                             className="max-h-32 max-w-[80%] object-contain"
                           />
                         ) : (
-                          <div className={`text-4xl font-bold ${colorScheme.text}`}>
-                            {product.name.substring(0, 2).toUpperCase()}
+                          <div className="w-16 h-16 rounded-xl bg-red-50 flex items-center justify-center">
+                            {getProductIcon(product.name)}
                           </div>
                         )}
                       </div>
@@ -239,11 +345,16 @@ export function FeaturedProducts() {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-baseline gap-2">
                           <span className="text-lg font-bold text-gray-900">
-                            ₹{product.basePrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                            ₹{displayPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
                           {product.compareAtPrice && (
                             <span className="text-sm text-gray-400 line-through">
                               ₹{product.compareAtPrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                          {isConfigurable && product.variants && product.variants.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                              (Starts from)
                             </span>
                           )}
                         </div>
@@ -292,12 +403,14 @@ export function FeaturedProducts() {
                               <ShoppingCart className="h-4 w-4" />
                               Add To Cart
                             </Button>
-                            <Button
-                              variant="outline"
-                              className="w-full border-gray-300 text-gray-700 rounded-lg h-10"
-                            >
-                              Buy Now
-                            </Button>
+                            <Link href={`/products/${product.slug}`} className="block w-full">
+                              <Button
+                                variant="outline"
+                                className="w-full border-gray-300 text-gray-700 rounded-lg h-10 hover:bg-gray-50"
+                              >
+                                Product Details
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       </div>

@@ -28,6 +28,10 @@ import {
   Sparkles,
   BadgeCheck,
   Rocket,
+  Cloud,
+  Server,
+  Database,
+  Lock,
   Headphones,
   Info,
   LayoutGrid,
@@ -44,14 +48,52 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
+
+// Render icon based on icon name
+function renderIcon(iconName?: string | null) {
+  const props = { size: 28, className: "text-[#C62828]" };
+
+  switch (iconName) {
+    case "Cloud":
+      return <Cloud {...props} />;
+    case "Shield":
+      return <Shield {...props} />;
+    case "Server":
+      return <Server {...props} />;
+    case "Database":
+      return <Database {...props} />;
+    case "Lock":
+      return <Lock {...props} />;
+    case "Globe":
+      return <Globe {...props} />;
+    default:
+      return <Cloud {...props} />;
+  }
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+async function getProductDisplaySetting(): Promise<"card" | "table"> {
+  try {
+    const setting = await prisma.setting.findUnique({
+      where: { key: "product-display" },
+    });
+    if (setting && setting.value && typeof setting.value === "object") {
+      const val = setting.value as { displayFormat?: string };
+      if (val.displayFormat === "table") return "table";
+    }
+    return "card";
+  } catch {
+    return "card";
+  }
+}
+
 async function getProduct(slug: string) {
-  const product = await prisma.product.findFirst({
+  try {
+    const product = await prisma.product.findFirst({
     where: {
       OR: [{ slug }, { id: slug }],
       status: "ACTIVE",
@@ -63,6 +105,9 @@ async function getProduct(slug: string) {
       variants: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
+        include: {
+          recurringPrices: true,
+        },
       },
       addons: {
         where: { isActive: true },
@@ -78,35 +123,101 @@ async function getProduct(slug: string) {
         },
       },
       seoMetadata: true,
+      recurringPrices: true,
     },
   });
 
   if (product) {
-    await prisma.product.update({
-      where: { id: product.id },
-      data: { viewCount: { increment: 1 } },
-    });
+    // Store all recurring prices before filtering (for variant lookup)
+    const allRecurringPrices = product.recurringPrices ? [...product.recurringPrices] : [];
+    
+    // Transform recurringPrices to include variant-specific pricing
+    // For standalone products: recurringPrices where variantId is null
+    // For variable products: recurringPrices for each variant
+    if (product.recurringPrices) {
+      // Filter product-level recurring prices (variantId = null)
+      product.recurringPrices = product.recurringPrices.filter((rp) => !rp.variantId);
+    }
+    
+    // Ensure variant recurringPrices are properly associated
+    if (product.variants) {
+      product.variants = product.variants.map((variant) => {
+        // Find recurring prices specifically for this variant from the original array
+        const variantSpecificPrices = allRecurringPrices.filter((rp) => rp.variantId === variant.id);
+        
+        if (variantSpecificPrices.length > 0) {
+          // Use variant-specific recurring prices
+          variant.recurringPrices = variantSpecificPrices;
+          // Add transformed object for storefront frontend
+          variant.recurringPricesObj = {
+            monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
+            quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
+            yearly: variantSpecificPrices[0]?.yearlyPrice ? Number(variantSpecificPrices[0].yearlyPrice) : null,
+            biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
+            triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
+          };
+          variant.billingType = 'recurring';
+        } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
+          // Variant already has recurring prices (included in query)
+          // Keep as is
+          variant.recurringPricesObj = {
+            monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
+            quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
+            yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
+            biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
+            triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
+          };
+          variant.billingType = 'recurring';
+        } else {
+          // No variant-specific prices - clear to avoid stale data
+          variant.recurringPrices = [];
+          variant.recurringPricesObj = null;
+          variant.billingType = 'one_time';
+        }
+        return variant;
+      });
+    }
+  }
+
+  if (product) {
+    try {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { viewCount: { increment: 1 } },
+      });
+    } catch (error) {
+      // Silently fail for view count update
+    }
   }
 
   return product;
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return null;
+  }
 }
 
 async function getRelatedProducts(categoryId: string | null, currentProductId: string) {
   if (!categoryId) return [];
 
-  return prisma.product.findMany({
-    where: {
-      categoryId,
-      status: "ACTIVE",
-      id: { not: currentProductId },
-    },
-    include: {
-      images: { take: 1 },
-      category: true,
-    },
-    take: 4,
-    orderBy: { salesCount: "desc" },
-  });
+  try {
+    return await prisma.product.findMany({
+      where: {
+        categoryId,
+        status: "ACTIVE",
+        id: { not: currentProductId },
+      },
+      include: {
+        images: { take: 1 },
+        category: true,
+      },
+      take: 4,
+      orderBy: { salesCount: "desc" },
+    });
+  } catch (error) {
+    console.error('Database connection error in getRelatedProducts:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -130,7 +241,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const [product] = await Promise.all([
+    getProduct(slug),
+    getProductDisplaySetting(),
+  ]);
 
   if (!product) {
     notFound();
@@ -139,7 +253,6 @@ export default async function ProductDetailPage({ params }: Props) {
   const relatedProducts = await getRelatedProducts(product.categoryId, product.id);
 
   const features = (product.features as string[]) || [];
-  const specifications = (product.specifications as Record<string, string>) || {};
 
   const hasDiscount =
     product.compareAtPrice && Number(product.compareAtPrice) > Number(product.basePrice);
@@ -154,11 +267,16 @@ export default async function ProductDetailPage({ params }: Props) {
   const averageRating = product.averageRating ? Number(product.averageRating) : 4.5;
   const reviewCount = product.reviewCount || 0;
 
-  const hasPricing = Number(product.basePrice) > 0 || product.variants.length > 0;
+  const isConfigurable = product.productType === "CONFIGURABLE";
+  
+  // For configurable products, use lowest variant price as starting price
+  const startingPrice = isConfigurable && product.variants.length > 0
+    ? Math.min(...product.variants.map((v: any) => Number(v.price)))
+    : Number(product.basePrice);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Image */}
+      {/* Hero Section with Background Image */}
       <section className="relative">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
           <div className="relative h-[280px] md:h-[320px] rounded-2xl overflow-hidden">
@@ -190,14 +308,9 @@ export default async function ProductDetailPage({ params }: Props) {
               </nav>
 
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-gray-200">
-                  {product.brandLogo ? (
-                    <Image src={product.brandLogo} alt={`${product.name} logo`} width={80} height={80} className="w-full h-full object-contain p-2" />
-                  ) : product.images[0]?.url ? (
-                    <Image src={product.images[0].url} alt={product.name} width={80} height={80} className="w-full h-full object-contain p-2" />
-                  ) : (
-                    <Building2 className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                  )}
+                {/* Dynamic Product Icon - Light red background with red icon */}
+                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-[#FDECEC] rounded-xl flex items-center justify-center">
+                  {renderIcon(product.icon)}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -234,20 +347,12 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {hasPricing ? (
-                    <>
-                      <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                        <a href="#pricing"><ShoppingBag className="h-4 w-4 mr-2" />Buy Now</a>
-                      </Button>
-                      <Button size="lg" variant="outline" className="border-gray-500 text-white hover:bg-white/10 hover:border-gray-400" asChild>
-                        <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                      <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
-                    </Button>
-                  )}
+                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
+                  </Button>
+                  <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
+                    <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -274,6 +379,16 @@ export default async function ProductDetailPage({ params }: Props) {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
+              {product.slug === 'vsaas' && (
+              <TabsTrigger
+                value="solutions"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+              >
+                <Cloud className="h-4 w-4 mr-2" />
+                Solutions
+              </TabsTrigger>
+              )}
+              {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -282,6 +397,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <CreditCard className="h-4 w-4 mr-2" />
                 Pricing
               </TabsTrigger>
+              )}
               <TabsTrigger
                 value="reviews"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -332,11 +448,11 @@ export default async function ProductDetailPage({ params }: Props) {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <Award className="h-6 w-6 text-amber-600" />
+                      <Sparkles className="h-6 w-6 text-amber-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">30-Day Refund</p>
-                      <p className="text-sm text-gray-500">Money back guarantee</p>
+                      <p className="font-semibold text-gray-900">AI Intelligence</p>
+                      <p className="text-sm text-gray-500">Advanced AI analytics</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -352,50 +468,45 @@ export default async function ProductDetailPage({ params }: Props) {
 
                 <div className="grid lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-2 space-y-10">
-                    {/* Image Gallery */}
-                    {product.images.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Gallery</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {product.images.slice(0, 4).map((image, index) => (
-                            <div
-                              key={image.id}
-                              className={`relative rounded-2xl overflow-hidden bg-gray-100 ${index === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
-                            >
-                              <Image src={image.url} alt={image.alt || product.name} fill className="object-cover hover:scale-105 transition-transform duration-300" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Description */}
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
-                      {product.description ? (
+                      {product.slug === 'vsaas' ? (
+                        <div className="space-y-5">
+                          <p className="text-gray-600 leading-relaxed">
+                            NetNxt VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
+                          </p>
+                          <div>
+                            <h4 className="text-base font-bold text-gray-900 mb-3">Customer Benefits</h4>
+                            <ul className="space-y-2.5">
+                              {[
+                                { title: "No CapEx Model", desc: "Eliminate upfront hardware costs with a fully managed cloud solution." },
+                                { title: "Anywhere Access", desc: "Monitor your premises from any device, anywhere in the world." },
+                                { title: "AI Security", desc: "Proactive threat detection powered by advanced AI algorithms." },
+                                { title: "Lower Costs", desc: "Reduce operational expenses compared to traditional CCTV infrastructure." },
+                                { title: "Multi-Site Monitoring", desc: "Manage all your locations from a single unified dashboard." },
+                                { title: "Fast Investigations", desc: "Quickly search and retrieve footage with intelligent indexing." },
+                                { title: "Scalable Solution", desc: "Easily add cameras and users as your business grows." },
+                                { title: "Compliance Ready", desc: "Meet industry regulations with encrypted, audit-ready recordings." },
+                              ].map((item, i) => (
+                                <li key={i} className="flex items-start gap-2.5">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <span className="text-gray-600 text-sm"><span className="font-semibold text-gray-800">{item.title}</span> — {item.desc}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <p className="text-sm text-gray-500 border-l-2 border-[#8B1D1D]/30 pl-3">
+                            👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
+                          </p>
+                        </div>
+                      ) : product.description ? (
                         <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
                       ) : (
                         <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
                       )}
                     </div>
 
-                    {/* Quick Features */}
-                    {features.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Key Features</h3>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          {features.slice(0, 6).map((feature, index) => (
-                            <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {features.length > 6 && (
-                          <p className="mt-3 text-sm text-[#8B1D1D] font-medium">+{features.length - 6} more features in Features tab</p>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Sidebar */}
@@ -428,33 +539,6 @@ export default async function ProductDetailPage({ params }: Props) {
                         </div>
                       </div>
                     </div>
-
-                    {/* Specs Preview */}
-                    {Object.keys(specifications).length > 0 && (
-                      <div className="bg-gray-50 rounded-2xl p-6">
-                        <h3 className="font-bold text-gray-900 mb-4">Specifications</h3>
-                        <div className="space-y-3">
-                          {Object.entries(specifications).slice(0, 5).map(([key, value]) => (
-                            <div key={key} className="flex justify-between text-sm">
-                              <span className="text-gray-500">{key}</span>
-                              <span className="font-medium text-gray-900">{value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quick CTA */}
-                    <div className="bg-[#8B1D1D] rounded-2xl p-6 text-center">
-                      <p className="text-white/80 text-sm mb-2">Starting from</p>
-                      <p className="text-3xl font-bold text-white mb-4">
-                        {hasPricing ? formatCurrency(Number(product.basePrice)) : "Custom"}
-                        {hasPricing && <span className="text-lg font-normal">/mo</span>}
-                      </p>
-                      <Button className="w-full bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
-                        <a href="#pricing">View Pricing</a>
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </TabsContent>
@@ -484,89 +568,243 @@ export default async function ProductDetailPage({ params }: Props) {
                   ) : (
                     <div className="text-center py-16 text-gray-500">No features listed for this product.</div>
                   )}
+                </div>
+              </TabsContent>
 
-                  {/* Specifications */}
-                  {Object.keys(specifications).length > 0 && (
-                    <div className="mt-16">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Technical Specifications</h3>
-                      <div className="grid md:grid-cols-2 gap-3 max-w-3xl mx-auto">
-                        {Object.entries(specifications).map(([key, value]) => (
-                          <div key={key} className="flex justify-between p-4 bg-gray-50 rounded-xl">
-                            <span className="text-gray-500">{key}</span>
-                            <span className="font-semibold text-gray-900">{value}</span>
-                          </div>
-                        ))}
+              {/* Solutions Tab — VSaaS only */}
+              <TabsContent value="solutions" className="mt-0">
+                <div className="max-w-5xl mx-auto">
+                  <div className="text-center mb-10">
+                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                      <Cloud className="h-4 w-4 mr-1" /> Solutions
+                    </Badge>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your deployment model</h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">Select the VSaaS solution that best fits your infrastructure and business requirements.</p>
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    {/* VSaaS On Cloud */}
+                    <div className="group p-8 bg-gradient-to-br from-blue-50 to-white rounded-2xl border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                        <Cloud className="h-7 w-7" />
                       </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On Cloud</h3>
+                      <p className="text-gray-600 mb-6">
+                        Fully managed cloud-hosted video surveillance. No on-site servers required — store, manage, and access all footage securely from anywhere.
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {[
+                          "Zero infrastructure investment",
+                          "Automatic updates & maintenance",
+                          "Scalable cloud storage",
+                          "Access from any device, anywhere",
+                          "Pay-as-you-grow model",
+                          "99.99% uptime SLA",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                            <CheckCircle className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link href="/products/vsaas/configure">
+                        <button className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                          Get Started <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </Link>
                     </div>
-                  )}
+
+                    {/* VSaaS On-Prem */}
+                    <div className="group p-8 bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 hover:border-[#8B1D1D]/40 hover:shadow-xl transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                        <Server className="h-7 w-7" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On-Prem</h3>
+                      <p className="text-gray-600 mb-6">
+                        Deploy on your own infrastructure for maximum control, data privacy, and compliance. All the power of VSaaS — fully within your network.
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {[
+                          "Full data sovereignty & privacy",
+                          "Works in air-gapped environments",
+                          "Integrates with existing hardware",
+                          "Customisable to your IT policies",
+                          "No internet dependency",
+                          "Dedicated on-site support",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
+                            <CheckCircle className="h-4 w-4 text-[#8B1D1D] flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <button className="w-full h-11 bg-[#8B1D1D] hover:bg-[#C62828] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                        Contact Sales <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
               {/* Pricing Tab */}
               <TabsContent value="pricing" className="mt-0">
                 <div className="max-w-5xl mx-auto">
-                  <div className="text-center mb-10">
+                  <div className="text-center mb-6">
                     <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
                       <Rocket className="h-4 w-4 mr-1" /> Pricing
                     </Badge>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your plan</h2>
-                    <p className="text-gray-500 max-w-xl mx-auto">Flexible pricing options to fit your needs.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                      {isConfigurable ? "Choose your plan" : "Simple pricing"}
+                    </h2>
+                    <p className="text-gray-500 max-w-xl mx-auto">
+                      {isConfigurable 
+                        ? "Flexible pricing options to fit your needs."
+                        : "One straightforward price, no hidden fees."}
+                    </p>
                   </div>
 
-                  {product.variants.length > 0 ? (
-                    <div className="grid md:grid-cols-3 gap-6">
-                      {product.variants.map((variant: any) => (
-                        <div
-                          key={variant.id}
-                          className={`relative bg-white rounded-3xl p-8 ${variant.isDefault ? "ring-2 ring-[#8B1D1D] shadow-xl" : "border border-gray-200"}`}
-                        >
-                          {variant.isDefault && (
-                            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#8B1D1D]">Most Popular</Badge>
-                          )}
-                          <div className="text-center mb-6">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{variant.name}</h3>
-                            <p className="text-4xl font-bold text-gray-900">
-                              {formatCurrency(Number(variant.price))}
-                              <span className="text-base font-normal text-gray-500">/mo</span>
-                            </p>
+                  {/* Variants Pricing */}
+                  {product.variants && product.variants.length > 0 ? (
+                    <div className="space-y-4">
+                      {product.variants.map((variant: any) => {
+                        const rp = variant.recurringPrices?.[0];
+                        const reservedKeys = [
+                          'billingType', 'setupFee',
+                          'monthlyPrice', 'biMonthlyPrice', 'quarterlyPrice', 'fourMonthlyPrice',
+                          'semiAnnualPrice', 'triAnnualPrice', 'yearlyPrice', 'biennialPrice', 'triennialPrice',
+                          'monthlySetupFee', 'biMonthlySetupFee', 'quarterlySetupFee', 'fourMonthlySetupFee',
+                          'semiAnnualSetupFee', 'triAnnualSetupFee', 'yearlySetupFee', 'biennialSetupFee', 'triennialSetupFee'
+                        ];
+                        const variantAttrs = variant.attributes as Record<string, string> || {};
+                        const billingType = variantAttrs.billingType || 'RECURRING';
+                        const isOneTime = billingType === 'ONE_TIME';
+                        const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
+
+                        // Get the correct price based on billing type
+                        // If recurring, use monthly price from recurringPricesObj
+                        // If one-time, use variant.price
+                        const displayPrice = isOneTime 
+                          ? (variant.price ? Number(variant.price) : 0)
+                          : (variant.recurringPricesObj?.monthly || variant.price ? Number(variant.price) : 0);
+
+                        return (
+                          <div
+                            key={variant.id}
+                            className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 hover:shadow-xl ${
+                              variant.isDefault
+                                ? "border-[#8B1D1D] shadow-lg"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            {/* Most Popular Banner */}
+                            {variant.isDefault && (
+                              <div className="bg-[#8B1D1D] text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
+                                Most Popular Plan
+                              </div>
+                            )}
+
+                            <div className="bg-white">
+                              {/* Plan Header Row */}
+                              <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-4 border-b border-gray-100 ${variant.isDefault ? "bg-[#8B1D1D]/5" : "bg-gray-50"}`}>
+                                <div>
+                                  <h3 className="text-xl font-bold text-gray-900">{variant.name}</h3>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                  <div className="text-right">
+                                    <div className={`text-3xl font-extrabold ${variant.isDefault ? "text-[#8B1D1D]" : "text-gray-900"}`}>
+                                      ₹{displayPrice.toLocaleString("en-IN")}
+                                    </div>
+                                    <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : '/month'}</div>
+                                  </div>
+                                  <Button
+                                    size="lg"
+                                    className="h-12 px-8 font-semibold text-base whitespace-nowrap rounded-xl bg-[#8B1D1D] hover:bg-[#7A1919] text-white shadow-md"
+                                    asChild
+                                  >
+                                    <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
+                                      Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Specifications Grid */}
+                              {allSpecs.length > 0 && (
+                                <div className="px-4 py-4 border-t border-gray-100">
+                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Specifications</p>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                    {allSpecs.map(([key, value]) => (
+                                      <div key={key} className="flex items-start gap-2.5">
+                                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
+                                          <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-400 font-medium leading-none mb-0.5">{key}</p>
+                                          <p className="text-sm text-gray-900 font-semibold leading-snug">{value}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          {variant.attributes && (
-                            <ul className="space-y-3 mb-8">
-                              {Object.entries(variant.attributes as Record<string, string>).map(([key, value]) => (
-                                <li key={key} className="flex items-center gap-3 text-sm">
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
-                                  <span className="text-gray-600 capitalize">{key}:</span>
-                                  <span className="font-medium text-gray-900">{value}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          <Button className={`w-full h-12 ${variant.isDefault ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`} variant={variant.isDefault ? "default" : "outline"}>
-                            Get Started <ArrowRight className="h-4 w-4 ml-2" />
-                          </Button>
+                        );
+                      })}
+                    </div>
+                  ) : product.configs && product.configs.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">Customize Your Plan</h3>
+                            <p className="text-gray-500 text-sm mt-1">Select configurations that best fit your needs</p>
+                          </div>
+                          <Badge className="bg-[#8B1D1D] text-white">{product.configs.length} Options Available</Badge>
+                        </div>
+                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                          <Link href={`/products/${product.slug}/configure`}>
+                            Configure Now <ArrowRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      </div>
+                      
+                      {/* Show Config Groups */}
+                      {Object.entries(
+                        product.configs.reduce((acc: any, config: any) => {
+                          const group = config.configGroup || 'Other';
+                          if (!acc[group]) acc[group] = [];
+                          acc[group].push(config);
+                          return acc;
+                        }, {})
+                      ).map(([group, configs]: [string, any]) => (
+                        <div key={group} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                            <h4 className="font-semibold text-gray-900">{group}</h4>
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {configs.map((config: any) => (
+                              <div key={config.id} className="flex items-center justify-between px-4 py-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">{config.name}</p>
+                                  {config.description && <p className="text-sm text-gray-500">{config.description}</p>}
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-[#8B1D1D]">
+                                    {config.basePrice > 0 ? `${config.basePrice}` : 'Included'}
+                                    {config.billingCycle === 'MONTHLY' && <span className="text-sm text-gray-500 font-normal">/mo</span>}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
-                  ) : hasPricing ? (
-                    <div className="max-w-md mx-auto bg-white rounded-3xl p-10 text-center shadow-lg border">
-                      <p className="text-5xl font-bold text-gray-900 mb-1">
-                        {formatCurrency(Number(product.basePrice))}
-                        <span className="text-xl font-normal text-gray-500">/mo</span>
-                      </p>
-                      {hasDiscount && <p className="text-gray-400 line-through mb-6">{formatCurrency(Number(product.compareAtPrice))}</p>}
-                      <div className="space-y-3">
-                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] h-14">
-                          <ShoppingBag className="h-5 w-5 mr-2" /> Buy Now
-                        </Button>
-                        <Button size="lg" variant="outline" className="w-full h-14" asChild>
-                          <Link href="/contact">Contact Sales</Link>
-                        </Button>
-                      </div>
-                    </div>
                   ) : (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
-                      <p className="text-2xl font-semibold text-white mb-2">Custom Pricing</p>
-                      <p className="text-gray-400 mb-8">Get a personalized quote for your business</p>
+                      <p className="text-2xl font-semibold text-white mb-2">{formatPrice(startingPrice)}</p>
+                      <p className="text-gray-400 mb-8">Simple, straightforward pricing</p>
                       <Button size="lg" className="bg-white text-gray-900 hover:bg-gray-100 h-14 w-full" asChild>
                         <Link href="/contact"><MessageCircle className="h-5 w-5 mr-2" /> Contact Us</Link>
                       </Button>
@@ -574,22 +812,42 @@ export default async function ProductDetailPage({ params }: Props) {
                   )}
 
                   {/* Add-ons */}
-                  {product.addons.length > 0 && (
+                  {(product.addons.length > 0 || product.configs.length > 0) && (
                     <div className="mt-16">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Available Add-ons</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                        {product.addons.length > 0 ? 'Available Add-ons' : 'Available Configurations'}
+                      </h3>
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {product.addons.map((addon: any) => (
-                          <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-semibold text-gray-900">{addon.name}</h4>
-                              <Badge variant="outline" className="text-xs">
-                                {addon.pricingType === "ONE_TIME" ? "One-time" : addon.pricingType === "RECURRING_MONTHLY" ? "Monthly" : "Yearly"}
-                              </Badge>
+                        {product.addons.length > 0 ? (
+                          product.addons.map((addon: any) => (
+                            <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-gray-900">{addon.name}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {addon.pricingType === "ONE_TIME" ? "One-time" : addon.pricingType === "RECURRING_MONTHLY" ? "Monthly" : "Yearly"}
+                                </Badge>
+                              </div>
+                              {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
+                              <p className="text-2xl font-bold text-[#8B1D1D]">{formatPrice(Number(addon.price))}</p>
                             </div>
-                            {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
-                            <p className="text-2xl font-bold text-[#8B1D1D]">{formatCurrency(Number(addon.price))}</p>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          product.configs.slice(0, 9).map((config: any) => (
+                            <div key={config.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-gray-900">{config.name}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {config.billingCycle === 'ONE_TIME' ? 'One-time' : config.isRecurring ? 'Monthly' : 'N/A'}
+                                </Badge>
+                              </div>
+                              {config.description && <p className="text-sm text-gray-500 mb-3">{config.description}</p>}
+                              <p className="text-2xl font-bold text-[#8B1D1D]">
+                                {config.basePrice > 0 ? formatPrice(Number(config.basePrice)) : 'Included'}
+                                {config.isRecurring && <span className="text-sm font-normal text-gray-500">/mo</span>}
+                              </p>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
@@ -788,7 +1046,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div className="p-5">
                     <p className="text-sm text-gray-500 mb-1">{related.category?.name}</p>
                     <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-2">{related.name}</h3>
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(Number(related.basePrice))}<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                    <p className="text-lg font-bold text-gray-900">{formatPrice(Number(related.basePrice))}<span className="text-sm font-normal text-gray-500">/mo</span></p>
                   </div>
                 </Link>
               ))}

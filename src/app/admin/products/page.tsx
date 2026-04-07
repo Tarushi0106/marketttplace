@@ -130,7 +130,7 @@ export default function ProductsPage() {
   async function fetchProducts() {
     setLoading(true);
     try {
-      const response = await fetch("/api/products?limit=100");
+      const response = await fetch("/api/admin/products?limit=100");
       const data = await response.json();
       if (data.data) {
         setProducts(data.data);
@@ -161,7 +161,7 @@ export default function ProductsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to archive this product?")) return;
+    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
 
     try {
       const response = await fetch(`/api/products/${id}`, {
@@ -174,21 +174,21 @@ export default function ProductsPage() {
 
       toast({
         title: "Success",
-        description: "Product archived successfully",
+        description: "Product deleted successfully",
       });
 
       fetchProducts();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to archive product",
+        description: "Failed to delete product",
         variant: "destructive",
       });
     }
   }
 
   async function handleBulkDelete() {
-    if (!confirm(`Are you sure you want to archive ${selectedProducts.length} products?`)) return;
+    if (!confirm(`Are you sure you want to delete ${selectedProducts.length} products? This action cannot be undone.`)) return;
 
     try {
       await Promise.all(
@@ -199,7 +199,7 @@ export default function ProductsPage() {
 
       toast({
         title: "Success",
-        description: `${selectedProducts.length} products archived successfully`,
+        description: `${selectedProducts.length} products deleted successfully`,
       });
 
       setSelectedProducts([]);
@@ -207,7 +207,7 @@ export default function ProductsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to archive products",
+        description: "Failed to delete products",
         variant: "destructive",
       });
     }

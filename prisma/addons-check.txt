@@ -1,0 +1,33 @@
+Product: Connect Cloud
+Addons count: 30
+Addons:
+- Cloud Storage - 4 Days (Total 7 Days) | Group: Cloud - Storage | Price: 138
+- Cloud Storage - 27 Days (Total 30 Days) | Group: Cloud - Storage | Price: 391
+- Cloud Storage - 87 Days (Total 90 Days) | Group: Cloud - Storage | Price: 920
+- Cloud Storage - 177 Days (Total 180 Days) | Group: Cloud - Storage | Price: 1702
+- Cloud Storage - 362 Days (Total 365 Days) | Group: Cloud - Storage | Price: 3312
+- Core Desktop Application License | Group: Cloud - Platform | Price: 6578
+- Web User License | Group: Cloud - Platform | Price: 69
+- Mobile User License | Group: Cloud - Platform | Price: 69
+- Intrusion Detection | Group: Cloud - AI Security | Price: 161
+- Zone Monitoring | Group: Cloud - AI Security | Price: 161
+- Camera Sabotage | Group: Cloud - AI Security | Price: 161
+- Activity Detection | Group: Cloud - AI Security | Price: 161
+- Trespassing Detection | Group: Cloud - AI Security | Price: 161
+- Perimeter Fence Jumping | Group: Cloud - AI Security | Price: 161
+- Double Line Crossing | Group: Cloud - AI Business | Price: 782
+- Loitering Detection | Group: Cloud - AI Business | Price: 782
+- Overcrowding Detection | Group: Cloud - AI Business | Price: 782
+- People Counting | Group: Cloud - AI Business | Price: 782
+- Missing Staff Detection | Group: Cloud - AI Business | Price: 782
+- Occupancy Statistics | Group: Cloud - AI Business | Price: 782
+- Queue Management | Group: Cloud - AI Business | Price: 782
+- Heatmap Analysis | Group: Cloud - AI Business | Price: 782
+- PPE/Safety Kit Detection | Group: Cloud - AI Safety | Price: 920
+- Smoke & Fire Detection | Group: Cloud - AI Safety | Price: 920
+- Person of Interest (Appearance Search) | Group: Cloud - AI Investigation | Price: 1242
+- Vehicle of Interest (Color & Type Search) | Group: Cloud - AI Investigation | Price: 1242
+- ANPR (Automatic Number Plate Recognition) | Group: Cloud - AI Investigation | Price: 2231
+- Facial Recognition (Up to 50 POI) | Group: Cloud - AI Investigation | Price: 3312
+- Setup & Implementation | Group: Cloud - One Time | Price: 9999
+- Stream OS | Group: On-Premise | Price: 3680

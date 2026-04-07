@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Testimonial {
   id: string;
@@ -60,7 +60,13 @@ export function Testimonials() {
         const response = await fetch("/api/testimonials");
         const data = await response.json();
         if (data.data && data.data.length > 0) {
-          setTestimonials(data.data);
+          // Check if testimonials have valid content (non-empty quotes)
+          const validTestimonials = data.data.filter((t: Testimonial) => t.quote && t.quote.trim().length > 0);
+          if (validTestimonials.length > 0) {
+            setTestimonials(validTestimonials);
+          } else {
+            setTestimonials(defaultTestimonials);
+          }
         } else {
           setTestimonials(defaultTestimonials);
         }
@@ -167,18 +173,15 @@ export function Testimonials() {
 
                   {/* Content */}
                   <div className="flex-1">
-                    {/* Quote Icon */}
-                    <Quote className="h-10 w-10 text-[#8B1D1D] fill-[#8B1D1D] mb-4" />
-
                     {/* Title */}
                     {testimonial.title && (
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">
+                      <h3 className="text-3xl font-bold text-gray-900 mb-3">
                         {testimonial.title}
                       </h3>
                     )}
 
                     {/* Quote Text */}
-                    <p className="text-gray-600 leading-relaxed mb-6 line-clamp-4">
+                    <p className="text-gray-600 leading-relaxed mb-6">
                       {testimonial.quote}
                     </p>
 

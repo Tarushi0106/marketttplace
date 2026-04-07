@@ -65,6 +65,13 @@ interface SiteSettings {
     instagram?: string;
     youtube?: string;
   } | null;
+  // Footer settings
+  footerCompanyName: string;
+  footerTagline: string;
+  footerAddress: string;
+  footerPhone: string;
+  footerEmail: string;
+  footerCopyright: string;
 }
 
 export default function SettingsPage() {
@@ -99,6 +106,12 @@ export default function SettingsPage() {
     headerLogo: null,
     footerLogo: null,
     socialLinks: null,
+    footerCompanyName: "",
+    footerTagline: "",
+    footerAddress: "",
+    footerPhone: "",
+    footerEmail: "",
+    footerCopyright: "",
   });
   const { toast } = useToast();
 
@@ -233,6 +246,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="footer">Footer</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
@@ -962,6 +976,99 @@ export default function SettingsPage() {
                     }
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Footer Tab */}
+        <TabsContent value="footer" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Footer Settings
+              </CardTitle>
+              <CardDescription>
+                Customize your store footer content
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="footerCompanyName">Company Name</Label>
+                  <Input
+                    id="footerCompanyName"
+                    value={settings.footerCompanyName}
+                    onChange={(e) =>
+                      setSettings({ ...settings, footerCompanyName: e.target.value })
+                    }
+                    placeholder="Your company name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="footerTagline">Tagline</Label>
+                  <Input
+                    id="footerTagline"
+                    value={settings.footerTagline}
+                    onChange={(e) =>
+                      setSettings({ ...settings, footerTagline: e.target.value })
+                    }
+                    placeholder="Short tagline or description"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="footerAddress">Address</Label>
+                <Textarea
+                  id="footerAddress"
+                  value={settings.footerAddress}
+                  onChange={(e) =>
+                    setSettings({ ...settings, footerAddress: e.target.value })
+                  }
+                  rows={2}
+                  placeholder="Full address for footer"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="footerPhone">Phone</Label>
+                  <Input
+                    id="footerPhone"
+                    type="tel"
+                    value={settings.footerPhone}
+                    onChange={(e) =>
+                      setSettings({ ...settings, footerPhone: e.target.value })
+                    }
+                    placeholder="Contact phone number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="footerEmail">Email</Label>
+                  <Input
+                    id="footerEmail"
+                    type="email"
+                    value={settings.footerEmail}
+                    onChange={(e) =>
+                      setSettings({ ...settings, footerEmail: e.target.value })
+                    }
+                    placeholder="Contact email"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="footerCopyright">Copyright Text</Label>
+                <Input
+                  id="footerCopyright"
+                  value={settings.footerCopyright}
+                  onChange={(e) =>
+                    setSettings({ ...settings, footerCopyright: e.target.value })
+                  }
+                  placeholder="© 2024 Your Company. All rights reserved."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use {'{year}'} to automatically insert the current year
+                </p>
               </div>
             </CardContent>
           </Card>

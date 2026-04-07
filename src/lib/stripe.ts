@@ -1,20 +1,32 @@
 import Stripe from "stripe";
+import { runtimeEnv } from "@/runtime-env";
 
-let stripe: Stripe | null = null;
+let _stripe: Stripe | null = null;
 
-function getStripe() {
-  if (!stripe) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY is missing");
-    }
+// Check if Stripe key is available
+function getStripeKey(): string {
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const key = runtimeEnv.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured. Please add your Stripe secret key to environment variables.");
+  }
+  return key;
+}
 
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(getStripeKey(), {
       apiVersion: "2026-01-28.clover",
       typescript: true,
     });
   }
+  return _stripe;
+}
 
-  return stripe;
+export function isStripeConfigured(): boolean {
+  // Use runtimeEnv first (for Amplify SSR), fallback to process.env
+  const key = runtimeEnv.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  return !!key;
 }
 
 export async function createCheckoutSession({
@@ -30,9 +42,7 @@ export async function createCheckoutSession({
   cancelUrl: string;
   metadata?: Record<string, string>;
 }) {
-  const stripe = getStripe();
-
-  return stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
     line_items: lineItems,
@@ -45,6 +55,8 @@ export async function createCheckoutSession({
     },
     billing_address_collection: "required",
   });
+
+  return session;
 }
 
 export async function createPaymentIntent({
@@ -58,10 +70,8 @@ export async function createPaymentIntent({
   customerEmail?: string;
   metadata?: Record<string, string>;
 }) {
-  const stripe = getStripe();
-
-  return stripe.paymentIntents.create({
-    amount: Math.round(amount * 100),
+  const paymentIntent = await getStripe().paymentIntents.create({
+    amount: Math.round(amount * 100), // Convert to cents
     currency,
     receipt_email: customerEmail,
     metadata,
@@ -69,29 +79,29 @@ export async function createPaymentIntent({
       enabled: true,
     },
   });
+
+  return paymentIntent;
 }
 
 export async function retrievePaymentIntent(paymentIntentId: string) {
   return getStripe().paymentIntents.retrieve(paymentIntentId);
 }
 
-export function constructWebhookEvent(
+export async function constructWebhookEvent(
   payload: string | Buffer,
   signature: string
 ) {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    throw new Error("STRIPE_WEBHOOK_SECRET missing");
-  }
-
   return getStripe().webhooks.constructEvent(
     payload,
     signature,
-    process.env.STRIPE_WEBHOOK_SECRET
+    process.env.STRIPE_WEBHOOK_SECRET!
   );
 }
 
-export const formatAmountForStripe = (amount: number) =>
-  Math.round(amount * 100);
+export function formatAmountForStripe(amount: number): number {
+  return Math.round(amount * 100);
+}
 
-export const formatAmountFromStripe = (amount: number) =>
-  amount / 100;
+export function formatAmountFromStripe(amount: number): number {
+  return amount / 100;
+}

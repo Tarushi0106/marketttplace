@@ -27,6 +27,13 @@ interface SiteSettings {
     linkedin?: string;
     instagram?: string;
   } | null;
+  // Footer settings
+  footerCompanyName: string;
+  footerTagline: string;
+  footerAddress: string;
+  footerPhone: string;
+  footerEmail: string;
+  footerCopyright: string;
 }
 
 const defaultSettings: SiteSettings = {
@@ -49,6 +56,12 @@ const defaultSettings: SiteSettings = {
   footerLogo: null,
   siteFavicon: null,
   socialLinks: null,
+  footerCompanyName: "",
+  footerTagline: "",
+  footerAddress: "",
+  footerPhone: "",
+  footerEmail: "",
+  footerCopyright: "",
 };
 
 const SiteSettingsContext = createContext<SiteSettings>(defaultSettings);

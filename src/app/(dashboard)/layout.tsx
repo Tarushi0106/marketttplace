@@ -4,6 +4,9 @@ import { auth } from "@/lib/auth";
 import { Header } from "@/components/storefront/Header";
 import { Footer } from "@/components/storefront/Footer";
 
+// Force dynamic rendering for dashboard pages
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children,
 }: {

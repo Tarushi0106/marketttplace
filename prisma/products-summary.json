@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Connect Cloud",
+    "slug": "connect-cloud",
+    "variantsCount": 8,
+    "addonsCount": 29
+  },
+  {
+    "name": "Acronis Backup Advanced SPLA for Partners - IN Backup",
+    "slug": "acronis-backup-advanced-spla",
+    "variantsCount": 23,
+    "addonsCount": 9
+  },
+  {
+    "name": "Microsoft 365 Services",
+    "slug": "microsoft-365-services",
+    "variantsCount": 35,
+    "addonsCount": 7
+  },
+  {
+    "name": "Acronis Cyber Backup Cloud for India Partners-Storage",
+    "slug": "acronis-cyber-backup-cloud-india",
+    "variantsCount": 7,
+    "addonsCount": 5
+  },
+  {
+    "name": "Tally Cloud Server",
+    "slug": "tally-cloud-server",
+    "variantsCount": 9,
+    "addonsCount": 11
+  },
+  {
+    "name": "Acronis Cyber Protect Cloud",
+    "slug": "acronis-cyber-protect-cloud",
+    "variantsCount": 3,
+    "addonsCount": 6
+  }
+]
