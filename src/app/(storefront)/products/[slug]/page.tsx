@@ -149,30 +149,30 @@ async function getProduct(slug: string) {
           // Use variant-specific recurring prices
           variant.recurringPrices = variantSpecificPrices;
           // Add transformed object for storefront frontend
-          variant.recurringPricesObj = {
+          (variant as any).recurringPricesObj = {
             monthly: variantSpecificPrices[0]?.monthlyPrice ? Number(variantSpecificPrices[0].monthlyPrice) : null,
             quarterly: variantSpecificPrices[0]?.quarterlyPrice ? Number(variantSpecificPrices[0].quarterlyPrice) : null,
             yearly: variantSpecificPrices[0]?.yearlyPrice ? Number(variantSpecificPrices[0].yearlyPrice) : null,
             biennial: variantSpecificPrices[0]?.biennialPrice ? Number(variantSpecificPrices[0].biennialPrice) : null,
             triennial: variantSpecificPrices[0]?.triennialPrice ? Number(variantSpecificPrices[0].triennialPrice) : null,
           };
-          variant.billingType = 'recurring';
+          (variant as any).billingType = 'recurring';
         } else if (variant.recurringPrices && variant.recurringPrices.length > 0) {
           // Variant already has recurring prices (included in query)
           // Keep as is
-          variant.recurringPricesObj = {
+          (variant as any).recurringPricesObj = {
             monthly: variant.recurringPrices[0]?.monthlyPrice ? Number(variant.recurringPrices[0].monthlyPrice) : null,
             quarterly: variant.recurringPrices[0]?.quarterlyPrice ? Number(variant.recurringPrices[0].quarterlyPrice) : null,
             yearly: variant.recurringPrices[0]?.yearlyPrice ? Number(variant.recurringPrices[0].yearlyPrice) : null,
             biennial: variant.recurringPrices[0]?.biennialPrice ? Number(variant.recurringPrices[0].biennialPrice) : null,
             triennial: variant.recurringPrices[0]?.triennialPrice ? Number(variant.recurringPrices[0].triennialPrice) : null,
           };
-          variant.billingType = 'recurring';
+          (variant as any).billingType = 'recurring';
         } else {
           // No variant-specific prices - clear to avoid stale data
           variant.recurringPrices = [];
-          variant.recurringPricesObj = null;
-          variant.billingType = 'one_time';
+          (variant as any).recurringPricesObj = null;
+          (variant as any).billingType = 'one_time';
         }
         return variant;
       });
@@ -607,7 +607,7 @@ export default async function ProductDetailPage({ params }: Props) {
                           </li>
                         ))}
                       </ul>
-                      <Link href="/products/vsaas/configure">
+                      <Link href="/products/vsaas/configure?showOnly=cloud">
                         <button className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
                           Get Started <ArrowRight className="h-4 w-4" />
                         </button>
@@ -638,9 +638,11 @@ export default async function ProductDetailPage({ params }: Props) {
                           </li>
                         ))}
                       </ul>
-                      <button className="w-full h-11 bg-[#8B1D1D] hover:bg-[#C62828] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
-                        Contact Sales <ArrowRight className="h-4 w-4" />
-                      </button>
+                      <Link href="/products/vsaas/configure?deployment=onprem&showOnly=onprem">
+                        <button className="w-full h-11 bg-[#8B1D1D] hover:bg-[#C62828] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                          Get Started <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

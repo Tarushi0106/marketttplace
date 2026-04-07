@@ -32,7 +32,7 @@ export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ variant?: string }>;
+  searchParams: Promise<{ variant?: string; deployment?: string; showOnly?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -249,17 +249,21 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+          <nav className="flex items-center justify-center gap-2 text-sm text-gray-400">
             <Link href="/" className="hover:text-[#8B1D1D] transition-colors">
               Home
             </Link>
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
             <Link href="/products" className="hover:text-[#8B1D1D] transition-colors">
               Products
             </Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-gray-900 font-medium">VSAAS</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <Link href="/products/vsaas" className="hover:text-[#8B1D1D] transition-colors">
+              VSAAS
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <span className="text-gray-700 font-medium">Configure</span>
           </nav>
         </div>
       </div>
@@ -286,6 +290,15 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
             images: vsaasProduct.images || [],
           } as any}
           selectedVariantId={resolvedSearchParams.variant || undefined}
+          initialDeployment={
+            resolvedSearchParams.deployment === 'onprem' ? 'onPremise' :
+            resolvedSearchParams.deployment === 'ai' ? 'ai' : undefined
+          }
+          showOnly={
+            resolvedSearchParams.showOnly === 'cloud' ? 'cloud' :
+            resolvedSearchParams.showOnly === 'onprem' ? 'onPremise' :
+            resolvedSearchParams.showOnly === 'ai' ? 'ai' : undefined
+          }
         />
       ) : (
         <div className="container mx-auto px-4 py-10 text-center">

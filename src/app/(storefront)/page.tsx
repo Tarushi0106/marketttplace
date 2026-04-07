@@ -79,10 +79,13 @@ export default async function HomePage() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Left: Text */}
             <div className="text-white flex-1 min-w-0">
-              <div className="inline-flex items-center px-3 py-1 bg-red-600 rounded-full text-xs font-medium mb-4">
+              <div className="inline-flex items-center px-3 py-1 bg-red-600 rounded-full text-xs font-medium mb-3">
                 <Video className="w-3 h-3 mr-1.5" />
                 Full Video Surveillance Camera System
               </div>
+              <p className="text-slate-400 text-xs mb-3 tracking-wide uppercase font-medium">
+                VSaaS — <span className="text-slate-300">Video Surveillance as a Service</span>
+              </p>
               <h2 className="text-2xl md:text-3xl font-bold mb-3 leading-snug">
                 Enterprise-Grade CCTV &amp; AI Video Surveillance
               </h2>
@@ -115,10 +118,10 @@ export default async function HomePage() {
             </div>
             {/* Right: Image */}
             <div className="hidden md:block shrink-0">
-              <div className="w-72 h-56 rounded-xl overflow-hidden shadow-xl shadow-red-900/30 border border-slate-700">
+              <div className="w-80 h-56 rounded-xl overflow-hidden shadow-xl shadow-red-900/30 border border-slate-700 bg-slate-800">
                 <img
-                  src="/uploads/vsaas pic1.jpeg"
-                  alt="AI Video Surveillance Camera System"
+                  src="/uploads/camera.jpeg"
+                  alt="VSaaS CCTV Camera Surveillance System"
                   className="w-full h-full object-cover"
                 />
               </div>

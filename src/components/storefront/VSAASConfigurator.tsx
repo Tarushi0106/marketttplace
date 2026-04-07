@@ -80,6 +80,8 @@ interface VSAASConfiguratorProps {
   onPremiseProduct?: Product;
   aiProduct?: Product;
   selectedVariantId?: string | null;
+  initialDeployment?: 'cloud' | 'onPremise' | 'ai';
+  showOnly?: 'cloud' | 'onPremise' | 'ai';
 }
 
 // AI Features data from vsaas-cloud-data.json
@@ -180,15 +182,18 @@ export function VSAASConfigurator({
   cloudProduct,
   onPremiseProduct,
   aiProduct,
-  selectedVariantId
+  selectedVariantId,
+  initialDeployment,
+  showOnly
 }: VSAASConfiguratorProps) {
   const router = useRouter();
-  const { addItem: addToCart } = useCartStore();
-  
+  const { addItem: addToCart, setIsOpen: setCartOpen } = useCartStore();
+
   // ----------------------------------------
   // STATE: Deployment Type
   // ----------------------------------------
   const [deploymentType, setDeploymentType] = useState<'cloud' | 'onPremise' | 'ai'>(() => {
+    if (initialDeployment) return initialDeployment;
     if (selectedVariantId) {
       const cloudVariant = cloudProduct?.variants?.find((v) => v.id === selectedVariantId);
       if (cloudVariant) return 'cloud';
@@ -429,14 +434,16 @@ export function VSAASConfigurator({
 
   // DERIVED quantities
   const hardwareQuantity = Math.max(1, Math.ceil(cameraCount / 8));
+  const connectCloudQuantity = hardwareQuantity; // always equals NLD hardware count, both counters are in sync
   const storageQuantity = cameraCount;
 
   // LICENSE: Sum all license types (users can select multiple)
   const licenseQuantity = (licenseQuantities.core || 0) + (licenseQuantities.web || 0) + (licenseQuantities.mobile || 0);
 
   // DERIVED totals (single source of truth)
-  // Base Connect Cloud license is per camera
-  const baseLicenseTotal = connectCloudVariant ? licensePricePerCamera * cameraCount : 0;
+  // 1 CC license per NLD device — unit price is 8x per-camera price
+  const connectCloudUnitPrice = licensePricePerCamera * 8;
+  const baseLicenseTotal = connectCloudVariant ? connectCloudUnitPrice * connectCloudQuantity : 0;
   // Additional license types (Core, Web, Mobile) are per user
   const additionalLicenseTotal = licensePricePerCamera * licenseQuantity;
   const licenseTotal = baseLicenseTotal + additionalLicenseTotal;
@@ -447,8 +454,10 @@ export function VSAASConfigurator({
   const streamOSTotal = deploymentType === 'onPremise' ? streamOSPricePerCamera * streamOSQuantity : 0;
   const aiBoxTotal = deploymentType === 'onPremise' ? aiBoxPricePerUnit * aiBoxQuantity : 0;
   const aiLicenseTotal = deploymentType === 'onPremise' ? aiLicensePricePerUnit * aiLicenseQuantity : 0;
-  
-  const subtotal = licenseTotal + gatewayTotal + storageTotal + aiFeaturesTotal + streamOSTotal + aiBoxTotal + aiLicenseTotal;
+  const cyberPackStreamTotal = deploymentType === 'onPremise' ? cyberPackStreamPrice : 0;
+  const cyberPackAITotal = deploymentType === 'onPremise' ? cyberPackAIPrice : 0;
+
+  const subtotal = licenseTotal + gatewayTotal + storageTotal + aiFeaturesTotal + streamOSTotal + aiBoxTotal + aiLicenseTotal + cyberPackStreamTotal + cyberPackAITotal;
   // Prices already include billing cycle discount, so no additional multiplier needed
   // Add setup fee to total for cloud and on-premise deployments
   const setupFeeForTotal = (() => {
@@ -473,7 +482,7 @@ export function VSAASConfigurator({
   // ----------------------------------------
   
   const handleCameraCountChange = (newCount: number) => {
-    setCameraCount(Math.max(1, Math.min(96, newCount)));
+    setCameraCount(Math.max(1, Math.min(512, newCount)));
   };
 
   const handleLicenseChange = (license: LicenseType) => {
@@ -537,23 +546,23 @@ export function VSAASConfigurator({
       const connectCloudItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: connectCloudVariant.name || currentProduct.name },
         variant: { id: connectCloudVariant.id, name: connectCloudVariant.name },
-        quantity: cameraCount,
+        quantity: connectCloudQuantity,
         selectedAddons: [],
         billingCycle: billingCycle.toUpperCase(),
         isRecurring: true,
-        unitPrice: licensePricePerCamera,
+        unitPrice: connectCloudUnitPrice,
         totalPrice: baseLicenseTotal,
         deploymentType: deploymentType,
-        recurringAmount: licensePricePerCamera,
+        recurringAmount: connectCloudUnitPrice,
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
-          setupFee: 0, // Setup fee is handled separately at order level
-          pricePerCycle: licensePricePerCamera,
+          setupFee: 0,
+          pricePerCycle: connectCloudUnitPrice,
           baseProductPrice: 0,
           totalForPeriod: baseLicenseTotal,
           savingsPercentage: 0,
-          monthlyEquivalent: licensePricePerCamera,
+          monthlyEquivalent: connectCloudUnitPrice,
         },
       };
       addToCart(connectCloudItem as any);
@@ -733,8 +742,10 @@ export function VSAASConfigurator({
       addToCart(cyberPackAIItem as any);
     }
 
-    // Add setup fee as a separate one-time item (only charged once)
-    if (setupFee > 0) {
+    // Add setup fee as a separate one-time item (cloud or on-premise)
+    const onPremSetupFee = deploymentType === 'onPremise' ? 46000 : 0;
+    const effectiveSetupFee = setupFee > 0 ? setupFee : onPremSetupFee;
+    if (effectiveSetupFee > 0) {
       const setupFeeItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Setup Fee' },
         variant: { id: null, name: null },
@@ -742,16 +753,47 @@ export function VSAASConfigurator({
         selectedAddons: [],
         billingCycle: 'ONE_TIME',
         isRecurring: false,
-        unitPrice: setupFee,
-        totalPrice: setupFee,
+        unitPrice: effectiveSetupFee,
+        totalPrice: effectiveSetupFee,
         deploymentType: deploymentType,
-        baseProductPrice: setupFee,
-        productPrice: setupFee,
+        baseProductPrice: effectiveSetupFee,
+        productPrice: effectiveSetupFee,
       };
       addToCart(setupFeeItem as any);
     }
 
-    router.push('/cart');
+    // Add cyber pack items unconditionally for on-premise
+    if (deploymentType === 'onPremise') {
+      addToCart({
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' },
+        variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' },
+        quantity: 1,
+        selectedAddons: [],
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
+        unitPrice: 644,
+        totalPrice: 644,
+        deploymentType: deploymentType,
+        baseProductPrice: 644,
+        productPrice: 644,
+      } as any);
+
+      addToCart({
+        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' },
+        variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' },
+        quantity: 1,
+        selectedAddons: [],
+        billingCycle: 'ONE_TIME',
+        isRecurring: false,
+        unitPrice: 73600,
+        totalPrice: 73600,
+        deploymentType: deploymentType,
+        baseProductPrice: 73600,
+        productPrice: 73600,
+      } as any);
+    }
+
+    setCartOpen(true);
   };
 
   // ----------------------------------------
@@ -769,18 +811,18 @@ export function VSAASConfigurator({
     <div className="max-w-7xl mx-auto">
       {/* Deployment Type Selector */}
       {(cloudProduct || onPremiseProduct || aiProduct) && (
-        <div className="mb-8">
-          <div className="grid grid-cols-3 gap-4">
-            {cloudProduct && (
+        <div className="mb-8 flex justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-3xl">
+            {cloudProduct && (!showOnly || showOnly === 'cloud') && (
               <button
                 onClick={() => setDeploymentType('cloud')}
-                className={`p-4 rounded-lg border transition-all text-left ${
+                className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'cloud'
                     ? 'border-[#DC2626] bg-red-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <div>
+                <div className="text-center">
                   <div className={`font-semibold text-base ${deploymentType === 'cloud' ? 'text-[#111827]' : 'text-gray-900'}`}>
                     VSaaS on Cloud
                   </div>
@@ -790,18 +832,14 @@ export function VSAASConfigurator({
                 </div>
               </button>
             )}
-            
-            {onPremiseProduct && (
+
+            {onPremiseProduct && (deploymentType === 'onPremise' || showOnly === 'onPremise') && (!showOnly || showOnly === 'onPremise') && (
               <button
                 onClick={() => setDeploymentType('onPremise')}
-                className={`p-4 rounded-lg border transition-all text-left ${
-                  deploymentType === 'onPremise'
-                    ? 'border-[#DC2626] bg-red-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className="flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm border-[#DC2626] bg-red-50"
               >
-                <div>
-                  <div className={`font-semibold text-base ${deploymentType === 'onPremise' ? 'text-[#111827]' : 'text-gray-900'}`}>
+                <div className="text-center">
+                  <div className="font-semibold text-base text-[#111827]">
                     VSaaS On-Premise
                   </div>
                   <div className="text-sm text-gray-500 mt-1">
@@ -810,17 +848,17 @@ export function VSAASConfigurator({
                 </div>
               </button>
             )}
-            
+
             {aiProduct && (
               <button
                 onClick={() => setDeploymentType('ai')}
-                className={`p-4 rounded-lg border transition-all text-left ${
+                className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'ai'
                     ? 'border-[#DC2626] bg-red-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <div>
+                <div className="text-center">
                   <div className={`font-semibold text-base ${deploymentType === 'ai' ? 'text-[#111827]' : 'text-gray-900'}`}>
                     VSaaS AI Solutions
                   </div>
@@ -867,9 +905,6 @@ export function VSAASConfigurator({
                   {/* Left: Info & Features */}
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Network Link Device</h4>
-                    <p className="text-sm text-gray-500 mt-1 mb-3">
-                      {hardwareQuantity} hardware (supports up to {cameraCount} cameras)
-                    </p>
                     
                     {/* Feature Bullets */}
                     <ul className="space-y-1 text-sm text-gray-600">
@@ -897,18 +932,18 @@ export function VSAASConfigurator({
                     {/* Quantity Selector */}
                     <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
                       <button
-                        onClick={() => handleCameraCountChange(cameraCount - 8)}
-                        disabled={cameraCount <= 8}
+                        onClick={() => handleCameraCountChange(cameraCount - 1)}
+                        disabled={cameraCount <= 1}
                         className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         -
                       </button>
                       <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                        {hardwareQuantity}
+                        {cameraCount}
                       </span>
                       <button
-                        onClick={() => handleCameraCountChange(cameraCount + 8)}
-                        disabled={cameraCount >= 96}
+                        onClick={() => handleCameraCountChange(cameraCount + 1)}
+                        disabled={cameraCount >= 512}
                         className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         +
@@ -918,7 +953,7 @@ export function VSAASConfigurator({
                     {/* Unit Price */}
                     <div className="text-right min-w-[100px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(gatewayPricePerUnit)}/month
+                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(gatewayTotal)}
@@ -954,9 +989,6 @@ export function VSAASConfigurator({
                   {/* Left: Info */}
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Connect Cloud – Platform Fee (Base License)</h4>
-                    <p className="text-sm text-gray-500 mt-1 mb-3">
-                      {cameraCount} cameras
-                    </p>
                     
                     {/* Feature Bullets */}
                     <ul className="space-y-1 text-sm text-gray-600">
@@ -1002,30 +1034,35 @@ export function VSAASConfigurator({
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
                     {/* Quantity Selector */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                      <button
-                        onClick={() => handleCameraCountChange(cameraCount - 1)}
-                        disabled={cameraCount <= 1}
-                        className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        -
-                      </button>
-                      <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                        {cameraCount}
-                      </span>
-                      <button
-                        onClick={() => handleCameraCountChange(cameraCount + 1)}
-                        disabled={cameraCount >= 96}
-                        className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        +
-                      </button>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
+                        <button
+                          onClick={() => handleCameraCountChange((hardwareQuantity - 1) * 8)}
+                          disabled={hardwareQuantity <= 1}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          -
+                        </button>
+                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">
+                          {connectCloudQuantity}
+                        </span>
+                        <button
+                          onClick={() => handleCameraCountChange(hardwareQuantity * 8 + 1)}
+                          disabled={hardwareQuantity >= 64}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">
+                        {hardwareQuantity} hardware device{hardwareQuantity > 1 ? 's' : ''} for {cameraCount} camera{cameraCount > 1 ? 's' : ''}
+                      </p>
                     </div>
-                    
+
                     {/* Unit Price */}
                     <div className="text-right min-w-[120px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(licensePricePerCamera)}{getBillingSuffix()}
+                        {formatPrice(connectCloudUnitPrice)}{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(baseLicenseTotal)}
