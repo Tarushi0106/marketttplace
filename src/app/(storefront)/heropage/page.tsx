@@ -554,7 +554,7 @@ function AIUseCasesSection() {
                 Special Launch Offer
               </div>
               <h3 className="text-xl font-bold text-white mb-3">
-                Starting at Just ₹199/month
+                Starting at Just ₹199/feature
               </h3>
               <p className="text-red-100 text-sm mb-5">
                 Full-featured AI video analytics. No setup fees, cancel anytime.
@@ -585,7 +585,7 @@ function AIUseCasesSection() {
                 <p className="text-xs text-slate-500 mb-1">Starting Plan</p>
                 <div className="flex items-baseline justify-center gap-1 mb-2">
                   <span className="text-3xl font-bold text-slate-900">₹199</span>
-                  <span className="text-slate-500 text-sm">/month</span>
+                  <span className="text-slate-500 text-sm">/feature</span>
                 </div>
                 <a 
                   href="/products/vsaas/configure" 

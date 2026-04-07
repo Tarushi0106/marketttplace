@@ -267,6 +267,14 @@ export function VSAASLandingPage() {
     {
       title: "AI-Based Search",
       description: "Find footage instantly using smart filters like face, object, or event."
+    },
+    {
+      title: "Smart Alerts & Notifications",
+      description: "Get automated alerts via app, email, or SMS for any anomalies."
+    },
+    {
+      title: "Scalable Architecture",
+      description: "Easily expand across locations without infrastructure limitations."
     }
   ];
 
@@ -620,7 +628,7 @@ export function VSAASLandingPage() {
       <section className="py-20 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Ready to Secure Your Business?
+            Start your journey today
           </h2>
           <p className="text-lg text-red-100 mb-8">
             Get started with VSaaS today and experience the future of video surveillance.
