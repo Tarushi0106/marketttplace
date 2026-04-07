@@ -62,10 +62,10 @@ function HeroSection() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-red-100/20 z-10" />
                 
                 {/* Main Image */}
-                <img 
-                  src="/uploads/WhatsApp Image 2026-03-23 at 5.03.20 PM.jpeg" 
-                  alt="VSaaS Video Analytics Platform" 
-                  className="w-full h-[400px] object-cover"
+                <img
+                  src="/uploads/cam2.jpeg"
+                  alt="VSaaS Video Analytics Platform"
+                  className="w-full h-[400px] object-contain bg-slate-900"
                 />
                 
                 {/* Corner Accents */}
