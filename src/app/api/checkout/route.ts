@@ -196,24 +196,13 @@ export async function POST(request: NextRequest) {
           // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
           console.log("Using fallback calculation - basePrice:", Number(product.basePrice));
-          // Fallback to traditional calculation
-          if (validatedVariantId) {
-            const variant = product.variants.find((v) => v.id === validatedVariantId);
-            if (!variant) {
-              console.log("Variant not found in product variants, skipping variant");
-            } else {
-              unitPrice = Number(variant.price);
-              itemName = `${product.name} - ${variant.name}`;
-              sku = variant.sku || product.sku || "";
-            }
-          } else {
-            unitPrice = Number(product.basePrice);
-            itemName = product.name;
-            sku = product.sku || "";
-          }
+          unitPrice = Number(product.basePrice);
+          itemName = product.name;
+          sku = product.sku || "";
+        }
 
-          // Add addon prices
-          if (item.addons) {
+        // Add addon prices
+        if (item.addons) {
             for (const addonItem of item.addons) {
               const addon = product.addons.find((a) => a.id === addonItem.addonId);
               if (addon) {
@@ -263,7 +252,7 @@ export async function POST(request: NextRequest) {
         
         orderItems.push({
           product: { connect: { id: product.id } },
-          ...(validatedVariantId ? { variantId: validatedVariantId } : {}),
+          ...(validatedVariantId ? { variant: { connect: { id: validatedVariantId } } } : {}),
           name: itemName,
           sku,
           quantity: item.quantity || 1,
