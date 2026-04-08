@@ -237,44 +237,40 @@ export function VSAASLandingPage() {
 
   const features = [
     {
-      title: "AI-Powered Analytics",
-      description: "Leverage AI to detect threats, analyze behavior, and generate real-time insights."
+      title: "Cloud VMS with Live & Playback",
+      description: "Access live camera feeds and recorded footage anytime from a unified cloud platform."
     },
     {
-      title: "Cloud Video Storage",
-      description: "Securely store and access recordings on the cloud without local infrastructure."
+      title: "3 Days Cloud Backup",
+      description: "Automatic cloud recording at 8 fps, SD-640×480P resolution with H.265 compression."
     },
     {
-      title: "Real-Time Monitoring",
-      description: "View live camera feeds and receive instant alerts on critical events."
+      title: "Admin Panel",
+      description: "Centralized admin panel for complete device and user management across all sites."
     },
     {
-      title: "Centralized Dashboard",
-      description: "Manage all cameras, sites, and users from a single unified platform."
+      title: "1x Core – Desktop Application",
+      description: "Full-featured desktop application for monitoring and managing your surveillance system."
     },
     {
-      title: "Multi-Device Access",
-      description: "Access your surveillance system anytime via web or mobile devices."
+      title: "5x Web View Access",
+      description: "Up to 5 web browser logins for real-time monitoring without any software installation."
     },
     {
-      title: "ONVIF Camera Support",
-      description: "Seamlessly integrate with all ONVIF-compliant cameras across brands."
+      title: "5x Mobile App Access",
+      description: "Mobile app access for up to 5 users on both Android and iOS devices."
     },
     {
-      title: "Plug & Play Deployment",
-      description: "Quick and hassle-free setup with minimal configuration required."
+      title: "Device Health Check",
+      description: "Proactive health monitoring for cameras, NVRs, HDDs, SD cards, and connected devices."
     },
     {
-      title: "AI-Based Search",
-      description: "Find footage instantly using smart filters like face, object, or event."
+      title: "Reports & Dashboard",
+      description: "Visual dashboards and detailed reports for activity, events, and system performance."
     },
     {
-      title: "Smart Alerts & Notifications",
-      description: "Get automated alerts via app, email, or SMS for any anomalies."
-    },
-    {
-      title: "Scalable Architecture",
-      description: "Easily expand across locations without infrastructure limitations."
+      title: "Logs & Audit Trail",
+      description: "Complete audit trail with timestamped logs for all user actions and system events."
     }
   ];
 
