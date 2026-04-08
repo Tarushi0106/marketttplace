@@ -209,21 +209,20 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Add config price modifiers
-          if (item.configs) {
-            for (const configItem of item.configs) {
-              const config = product.configs.find((c) => c.id === configItem.configId);
-              if (config) {
-                const options = config.options as any[];
-                const selectedOption = options.find((o) => o.value === configItem.value);
-                if (selectedOption?.priceModifier) {
-                  unitPrice += selectedOption.priceModifier;
-                }
+        // Add config price modifiers
+        if (item.configs) {
+          for (const configItem of item.configs) {
+            const config = product.configs.find((c) => c.id === configItem.configId);
+            if (config) {
+              const options = config.options as any[];
+              const selectedOption = options.find((o) => o.value === configItem.value);
+              if (selectedOption?.priceModifier) {
+                unitPrice += selectedOption.priceModifier;
               }
             }
           }
         }
-        
+
         // Calculate setup fee if recurring billing
         const setupFee = item.isRecurring && item.recurringData?.setupFee 
           ? item.recurringData.setupFee 
@@ -286,7 +285,6 @@ export async function POST(request: NextRequest) {
           recurringPrice: recurringAmount,
           setupFee: setupFee > 0 ? setupFee : undefined,
         });
-        }
       } else if (item.bundleId) {
         const bundle = await prisma.bundle.findUnique({
           where: { id: item.bundleId },
