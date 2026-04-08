@@ -86,10 +86,23 @@ export async function POST(request: NextRequest) {
     let pdfBuffer: Buffer;
     try {
       console.log("Starting PDF generation with pdfmake...");
-      pdfBuffer = await generateInvoicePDF(transformOrderToInvoiceData(order));
+      console.log("Order ID:", order?.id);
+      console.log("Items count:", order?.items?.length);
+      console.log("Order data:", JSON.stringify({
+        id: order?.id,
+        subtotal: order?.subtotal,
+        total: order?.total,
+        items: order?.items?.map((i: any) => ({ name: i.name, unitPrice: i.unitPrice, quantity: i.quantity }))
+      }));
+      
+      const invoiceData = transformOrderToInvoiceData(order);
+      console.log("InvoiceData created, items:", invoiceData.items?.length);
+      
+      pdfBuffer = await generateInvoicePDF(invoiceData);
       console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
+      console.error("Error stack:", pdfError instanceof Error ? pdfError.stack : 'No stack');
       return NextResponse.json(
         { error: "Failed to generate invoice PDF", details: pdfError instanceof Error ? pdfError.message : String(pdfError) },
         { status: 500 }
