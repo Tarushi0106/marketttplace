@@ -878,12 +878,65 @@ export function VSAASConfigurator({
         </div>
       )}
 
+      {/* ======================================== */}
+      {/* CAMERA COUNT QUESTION BOX (Cloud only)  */}
+      {/* ======================================== */}
+      {(deploymentType === 'cloud' || showOnly === 'cloud') && (
+        <div className="border-2 border-[#DC2626]/20 rounded-xl bg-gradient-to-r from-red-50 to-white p-6 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-full bg-[#DC2626] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs font-bold">?</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 text-base">
+                  For how many existing cameras do you need a VSaaS solution?
+                </h3>
+              </div>
+              <p className="text-sm text-gray-500 ml-9">
+                Enter the total number of cameras at your site — pricing and hardware requirements will update automatically.
+              </p>
+            </div>
+
+            {/* Camera count stepper */}
+            <div className="flex items-center gap-3 ml-9 sm:ml-0">
+              <button
+                onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
+                disabled={cameraCount <= 1}
+                className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-white flex items-center justify-center text-gray-700 font-bold text-lg hover:border-[#DC2626] hover:text-[#DC2626] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={512}
+                value={cameraCount}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
+                }}
+                className="w-20 h-10 text-center text-xl font-bold text-gray-900 border-2 border-[#DC2626] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/30"
+              />
+              <button
+                onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
+                disabled={cameraCount >= 512}
+                className="w-10 h-10 rounded-lg border-2 border-gray-200 bg-white flex items-center justify-center text-gray-700 font-bold text-lg hover:border-[#DC2626] hover:text-[#DC2626] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                +
+              </button>
+              <span className="text-sm font-medium text-gray-500">cameras</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Layout: 70% Left / 30% Right */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
-        
+
         {/* LEFT SIDE (70%): Configuration */}
         <div className="lg:col-span-7 space-y-6">
-          
+
           {/* ======================================== */}
           {/* SECTION 1: LICENSES - Connect Cloud */}
           {/* ======================================== */}
