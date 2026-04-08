@@ -882,16 +882,13 @@ export function VSAASConfigurator({
       {/* CAMERA COUNT QUESTION BOX (Cloud only)  */}
       {/* ======================================== */}
       {(deploymentType === 'cloud' || showOnly === 'cloud') && (
-        <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
-          <div className="w-1 h-8 rounded-full bg-[#DC2626] flex-shrink-0" />
-          <p className="text-sm font-medium text-gray-700 flex-1">
-            How many cameras do you need VSaaS for?
-          </p>
-          <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="inline-flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+          <span className="text-sm font-medium text-gray-600 whitespace-nowrap">How many cameras?</span>
+          <div className="flex items-center rounded border border-gray-200 overflow-hidden">
             <button
               onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
               disabled={cameraCount <= 1}
-              className="w-7 h-7 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-base font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-7 h-7 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-r border-gray-200"
             >−</button>
             <input
               type="number"
@@ -902,15 +899,14 @@ export function VSAASConfigurator({
                 const v = parseInt(e.target.value, 10);
                 if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
               }}
-              className="w-12 h-7 text-center text-sm font-semibold text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:border-[#DC2626] focus:ring-1 focus:ring-[#DC2626]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-10 h-7 text-center text-sm font-semibold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button
               onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
               disabled={cameraCount >= 512}
-              className="w-7 h-7 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-base font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-7 h-7 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-l border-gray-200"
             >+</button>
           </div>
-          <span className="text-xs text-gray-400 flex-shrink-0">cameras</span>
         </div>
       )}
 
