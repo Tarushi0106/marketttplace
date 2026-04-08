@@ -153,6 +153,7 @@ export default function CheckoutPage() {
                 configId: c.configId,
                 value: c.value,
               })),
+              quantityLocked: (item as any).quantityLocked || false,
             })),
           paymentMethod,
           email: formData.email,

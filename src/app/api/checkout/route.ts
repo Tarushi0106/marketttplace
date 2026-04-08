@@ -61,6 +61,7 @@ const checkoutItemSchema = z.object({
   // Instance-based configuration (from ProductConfigurator)
   instances: z.array(cartItemInstanceSchema).optional(),
   unitPrice: z.number().optional(), // Pre-calculated unit price from cart
+  quantityLocked: z.boolean().optional().default(false), // When true, unitPrice is already the full total (not per-unit)
   // Recurring billing fields
   isRecurring: z.boolean().optional().default(false),
   billingCycle: z.enum(["ONE_TIME", "MONTHLY", "BIMONTHLY", "QUARTERLY", "FOUR_MONTHLY", "SEMI_ANNUAL", "TRI_ANNUAL", "YEARLY", "BIENNIAL", "TRIENNIAL"]).optional(),
@@ -254,7 +255,7 @@ export async function POST(request: NextRequest) {
           sku,
           quantity: item.quantity || 1,
           unitPrice,
-          totalPrice: unitPrice * (item.quantity || 1),
+          totalPrice: item.quantityLocked ? unitPrice : unitPrice * (item.quantity || 1),
           // Store configuration as JSON
           configuration: item.instances && item.instances.length > 0
             ? {
@@ -309,7 +310,8 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      subtotal += unitPrice * (item.quantity || 1);
+      // quantityLocked = unitPrice is already the full total (pre-multiplied by quantity in configurator)
+      subtotal += item.quantityLocked ? unitPrice : unitPrice * (item.quantity || 1);
     }
 
     // Apply discount
@@ -625,11 +627,11 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    const errMsg = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
     return NextResponse.json(
-      { 
-        error: "Failed to create checkout", 
-        message: error instanceof Error ? error.message : "Unknown error",
-        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+      {
+        error: "Failed to create checkout",
+        message: errMsg,
       },
       { status: 500 }
     );
