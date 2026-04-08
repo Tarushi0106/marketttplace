@@ -60,6 +60,7 @@ const checkoutItemSchema = z.object({
     .optional(),
   // Instance-based configuration (from ProductConfigurator)
   instances: z.array(cartItemInstanceSchema).optional(),
+  name: z.string().optional(), // Display name from cart (e.g. variant/product name)
   unitPrice: z.number().optional(), // Pre-calculated unit price from cart
   quantityLocked: z.boolean().optional().default(false), // When true, unitPrice is already the full total (not per-unit)
   // Recurring billing fields
@@ -184,20 +185,22 @@ export async function POST(request: NextRequest) {
           // If not found, validatedVariantId stays undefined — order item created without variant
         }
 
+        // Resolve display name: prefer cart-passed name → variant name → product name
+        const variantName = validatedVariantId
+          ? product.variants.find((v) => v.id === validatedVariantId)?.name
+          : undefined;
+        itemName = item.name || variantName || product.name;
+        sku = product.sku || "";
+
         // If instances are provided (from ProductConfigurator), use the pre-calculated unitPrice
         if (item.unitPrice !== undefined && item.unitPrice > 0) {
           unitPrice = item.unitPrice;
-          itemName = product.name;
-          sku = product.sku || "";
-
           console.log("Using pre-calculated unitPrice:", unitPrice);
           // Note: setup fee is already included in unitPrice for recurring products
           // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
           console.log("Using fallback calculation - basePrice:", Number(product.basePrice));
           unitPrice = Number(product.basePrice);
-          itemName = product.name;
-          sku = product.sku || "";
         }
 
         // Add addon prices

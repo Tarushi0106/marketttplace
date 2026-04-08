@@ -418,7 +418,7 @@ function CheckoutSuccessContent() {
                         <span className="font-medium">{item.name}</span>
                         <span className="font-medium">
                           {item.isRecurring && item.billingCycle !== 'ONE_TIME'
-                            ? `${formatCurrency(displayPrice, order.currency)}/${getBillingCycleLabel(item.billingCycle)?.toLowerCase() === 'monthly' ? 'mo' : 'cycle'}`
+                            ? `${formatCurrency(displayPrice, order.currency)}/${getBillingCycleLabel(item.billingCycle)}`
                             : formatCurrency(displayPrice, order.currency)
                           }
                         </span>
@@ -544,7 +544,7 @@ function CheckoutSuccessContent() {
                         <div key={item.id}>
                           <div className="flex justify-between text-sm font-medium">
                             <span className="text-gray-900">{item.name}</span>
-                            <span>{formatCurrency(displayPrice, order.currency)}/{getBillingCycleLabel(item.billingCycle)?.toLowerCase() === 'monthly' ? 'mo' : 'cycle'}</span>
+                            <span>{formatCurrency(displayPrice, order.currency)}/{getBillingCycleLabel(item.billingCycle)}</span>
                           </div>
                           
                           {/* Configs - show names only, prices included in recurring */}

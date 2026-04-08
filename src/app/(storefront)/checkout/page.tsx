@@ -149,6 +149,7 @@ export default function CheckoutPage() {
                   addonId: a.addon.id,
                   quantity: a.quantity,
                 })),
+              name: item.product?.name || item.bundle?.name || undefined,
               configs: (item.selectedConfigs || []).map((c) => ({
                 configId: c.configId,
                 value: c.value,
