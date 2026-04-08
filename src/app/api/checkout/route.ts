@@ -176,6 +176,20 @@ export async function POST(request: NextRequest) {
           sku = product.sku || "";
           
           console.log("Using pre-calculated unitPrice:", unitPrice);
+          
+          // Validate variant exists in database if provided
+          if (item.variantId) {
+            const dbVariant = await prisma.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { id: true }
+            });
+            if (!dbVariant) {
+              return NextResponse.json(
+                { error: `Variant no longer available: ${item.variantId}. Please refresh your cart.` },
+                { status: 400 }
+              );
+            }
+          }
           // Note: setup fee is already included in unitPrice for recurring products
           // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
