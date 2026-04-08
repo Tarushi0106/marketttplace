@@ -263,15 +263,29 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Quantity — read only, no +/- controls */}
-                    <div className="mt-4 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Qty:</span>
-                      <span className="font-medium text-sm">{item.quantity ?? 1}</span>
-                      {(item as any).cameraCount && (
-                        <span className="text-xs text-gray-400">
-                          (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
-                        </span>
-                      )}
+                    {/* Quantity & Price — read only */}
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Qty:</span>
+                        <span className="font-medium text-sm">{item.quantity ?? 1}</span>
+                        {(item as any).cameraCount && (
+                          <span className="text-xs text-gray-400">
+                            (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-semibold text-gray-900">
+                        {item.isRecurring && item.billingCycle && item.billingCycle !== 'ONE_TIME' ? (
+                          <>
+                            {formatPrice(item.recurringAmount || 0)}
+                            <span className="text-xs font-normal text-gray-400 ml-1">
+                              {item.billingCycle === 'YEARLY' ? '/yr' : item.billingCycle === 'QUARTERLY' ? '/qtr' : '/mo'}
+                            </span>
+                          </>
+                        ) : (
+                          formatPrice(item.baseProductPrice || 0)
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
