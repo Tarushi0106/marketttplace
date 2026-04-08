@@ -885,99 +885,7 @@ export function VSAASConfigurator({
         <div className="lg:col-span-7 space-y-6">
           
           {/* ======================================== */}
-          {/* SECTION 1: HARDWARE - Cloud Gateway */}
-          {/* ======================================== */}
-          {cloudGatewayVariant && deploymentType === 'cloud' && (
-            <div className="border border-gray-200 rounded-lg bg-white">
-              {/* Section Header */}
-              <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  <Server className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                    Cloud Gateway Link Device
-                  </h3>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                    Capex
-                  </span>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-                    One Time
-                  </span>
-                </div>
-              </div>
-              
-              {/* Section Content */}
-              <div className="p-5">
-                <div className="flex items-start justify-between">
-                  {/* Left: Info & Features */}
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">Network Link Device</h4>
-                    
-                    {/* Feature Bullets */}
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li className="flex items-center gap-2">
-                        <Check className="w-3 h-3 text-green-500" />
-                        Supports up to 8 Cameras
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-3 h-3 text-green-500" />
-                        Secure cloud tunnel
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-3 h-3 text-green-500" />
-                        8/16 channel connectivity
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-3 h-3 text-green-500" />
-                        3 year warranty
-                      </li>
-                    </ul>
-                  </div>
-                  
-                  {/* Right: Quantity & Price */}
-                  <div className="flex items-center gap-6">
-                    {/* Quantity Selector — shows cameraCount (matches cart) */}
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                        <button
-                          onClick={() => handleCameraCountChange(cameraCount - 1)}
-                          disabled={cameraCount <= 1}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          -
-                        </button>
-                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                          {cameraCount}
-                        </span>
-                        <button
-                          onClick={() => handleCameraCountChange(cameraCount + 1)}
-                          disabled={cameraCount >= 512}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-gray-400 text-center leading-tight">
-                        {hardwareQuantity} device{hardwareQuantity > 1 ? 's' : ''} needed
-                      </p>
-                    </div>
-                    
-                    {/* Unit Price */}
-                    <div className="text-right min-w-[100px]">
-                      <div className="text-xs text-gray-500">
-                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {formatPrice(gatewayTotal)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ======================================== */}
-          {/* SECTION 2: LICENSES - Connect Cloud */}
+          {/* SECTION 1: LICENSES - Connect Cloud */}
           {/* ======================================== */}
           {connectCloudVariant && (
             <div className="border border-gray-200 rounded-lg bg-white">
@@ -993,14 +901,14 @@ export function VSAASConfigurator({
                   </span>
                 </div>
               </div>
-              
+
               {/* Section Content */}
               <div className="p-5">
                 <div className="flex items-start justify-between">
                   {/* Left: Info */}
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Connect Cloud – Platform Fee (Base License)</h4>
-                    
+
                     {/* Feature Bullets */}
                     <ul className="space-y-1 text-sm text-gray-600">
                       <li className="flex items-center gap-2">
@@ -1041,7 +949,7 @@ export function VSAASConfigurator({
                       </li>
                     </ul>
                   </div>
-                  
+
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
                     {/* Quantity Selector — steps by 1 CC license = 16 cameras */}
@@ -1077,6 +985,98 @@ export function VSAASConfigurator({
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(baseLicenseTotal)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================== */}
+          {/* SECTION 2: HARDWARE - Cloud Gateway */}
+          {/* ======================================== */}
+          {cloudGatewayVariant && deploymentType === 'cloud' && (
+            <div className="border border-gray-200 rounded-lg bg-white">
+              {/* Section Header */}
+              <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  <Server className="w-4 h-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                    Cloud Gateway Link Device
+                  </h3>
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                    Capex
+                  </span>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+                    One Time
+                  </span>
+                </div>
+              </div>
+
+              {/* Section Content */}
+              <div className="p-5">
+                <div className="flex items-start justify-between">
+                  {/* Left: Info & Features */}
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">Network Link Device</h4>
+
+                    {/* Feature Bullets */}
+                    <ul className="space-y-1 text-sm text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3 h-3 text-green-500" />
+                        Supports up to 8 Cameras
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3 h-3 text-green-500" />
+                        Secure cloud tunnel
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3 h-3 text-green-500" />
+                        8/16 channel connectivity
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-3 h-3 text-green-500" />
+                        3 year warranty
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Right: Quantity & Price */}
+                  <div className="flex items-center gap-6">
+                    {/* Quantity Selector — shows cameraCount (matches cart) */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
+                        <button
+                          onClick={() => handleCameraCountChange(cameraCount - 1)}
+                          disabled={cameraCount <= 1}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          -
+                        </button>
+                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">
+                          {cameraCount}
+                        </span>
+                        <button
+                          onClick={() => handleCameraCountChange(cameraCount + 1)}
+                          disabled={cameraCount >= 512}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">
+                        {hardwareQuantity} device{hardwareQuantity > 1 ? 's' : ''} needed
+                      </p>
+                    </div>
+
+                    {/* Unit Price */}
+                    <div className="text-right min-w-[100px]">
+                      <div className="text-xs text-gray-500">
+                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
+                      </div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {formatPrice(gatewayTotal)}
                       </div>
                     </div>
                   </div>
