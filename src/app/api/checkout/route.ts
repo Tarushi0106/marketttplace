@@ -436,6 +436,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Guard: if all items were skipped (no productId/bundleId), fail early with a clear message
+    if (orderItems.length === 0) {
+      console.error("No valid order items after processing. All items were skipped.");
+      return NextResponse.json(
+        { error: "No valid items in cart", message: "None of the cart items could be matched to active products. Please refresh and try again." },
+        { status: 400 }
+      );
+    }
+
     // Create order in database
     const order = await prisma.order.create({
       data: {
