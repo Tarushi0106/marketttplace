@@ -169,20 +169,36 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        // Validate variantId exists in DB if provided (prevents Prisma connect failure)
+        let validatedVariantId: string | undefined = undefined;
+        if (item.variantId) {
+          const dbVariant = await prisma.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { id: true },
+          });
+          if (!dbVariant) {
+            return NextResponse.json(
+              { error: `Variant no longer available. Please refresh your cart and try again.` },
+              { status: 400 }
+            );
+          }
+          validatedVariantId = dbVariant.id;
+        }
+
         // If instances are provided (from ProductConfigurator), use the pre-calculated unitPrice
         if (item.unitPrice !== undefined && item.unitPrice > 0) {
           unitPrice = item.unitPrice;
           itemName = product.name;
           sku = product.sku || "";
-          
+
           console.log("Using pre-calculated unitPrice:", unitPrice);
           // Note: setup fee is already included in unitPrice for recurring products
           // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
           console.log("Using fallback calculation - basePrice:", Number(product.basePrice));
           // Fallback to traditional calculation
-          if (item.variantId) {
-            const variant = product.variants.find((v) => v.id === item.variantId);
+          if (validatedVariantId) {
+            const variant = product.variants.find((v) => v.id === validatedVariantId);
             if (!variant) {
               console.log("Variant not found in product variants, skipping variant");
             } else {
@@ -247,6 +263,7 @@ export async function POST(request: NextRequest) {
         
         orderItems.push({
           product: { connect: { id: product.id } },
+          ...(validatedVariantId ? { variantId: validatedVariantId } : {}),
           name: itemName,
           sku,
           quantity: item.quantity || 1,

@@ -43,15 +43,10 @@ const defaultFooterLinks = {
   ],
   company: [
     { label: "About Us", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Partners", href: "/partners" },
     { label: "Contact", href: "/contact" },
   ],
   support: [
-    { label: "Help Center", href: "/help" },
-    { label: "Documentation", href: "/docs" },
-    { label: "API Reference", href: "/api" },
-    { label: "Status", href: "/status" },
+    { label: "My Orders", href: "/orders" },
   ],
 };
 

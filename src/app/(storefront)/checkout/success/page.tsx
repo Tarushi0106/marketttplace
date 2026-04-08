@@ -216,7 +216,7 @@ function CheckoutSuccessContent() {
       }
 
       console.log('[Checkout] Calling generateInvoice()');
-      await generateInvoice();
+      await generateInvoice(orderResult);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching order/invoice:", error);
@@ -224,20 +224,21 @@ function CheckoutSuccessContent() {
     }
   };
 
-  const generateInvoice = async () => {
-    console.log('[Checkout] Generating invoice for order:', order?.id, 'Email:', order?.email);
-    if (!order?.id) {
+  const generateInvoice = async (orderData?: Order) => {
+    const targetOrder = orderData || order;
+    console.log('[Checkout] Generating invoice for order:', targetOrder?.id, 'Email:', targetOrder?.email);
+    if (!targetOrder?.id) {
       setError("Order not loaded");
       return;
     }
-    
+
     setGeneratingInvoice(true);
     setError(null);
     try {
       const response = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order.id, sendEmail }),
+        body: JSON.stringify({ orderId: targetOrder.id, sendEmail }),
       });
 
       if (response.ok) {

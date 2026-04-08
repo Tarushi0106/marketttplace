@@ -1,8 +1,10 @@
 // @ts-ignore
 const PdfPrinter = require('pdfmake');
+const PdfMake  = require('pdfmake');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TDocumentDefinitions = any;
+type TDocMaker = any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TableCell = any;
 
@@ -341,4 +343,20 @@ export function transformOrderToInvoiceData(order: any): InvoiceData {
       }))
     } : undefined
   };
+}
+
+export function createPdfBuffer(invoiceData: InvoiceData): Buffer {
+  const fonts = {
+    Roboto: {
+      normal: 'Helvetica',
+      bold: 'Helvetica-Bold',
+      italics: 'Helvetica-Oblique',
+      bolditalics: 'Helvetica-BoldOblique'
+    }
+  };
+  
+  const printer = new PdfPrinter(fonts);
+  const doc = createInvoiceDoc(invoiceData);
+  
+  return printer.createPdfKitDocument(doc);
 }

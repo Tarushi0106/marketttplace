@@ -1,103 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateInvoiceNumber } from "@/lib/invoice-pdfmake";
-import { generateInvoicePDF } from "@/lib/pdf-generator";
+import { generateInvoiceNumber, generateInvoicePDF, transformOrderToInvoiceData } from "@/lib/invoice-pdfmake";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-import path from "path";
-import type { Order, OrderItem, Address, AddressType } from "@/types";
 
 // Extend Prisma client with Invoice model (type assertion)
 const invoices = (prisma as any);
 
-// Transform Prisma order to Order type for PDF generation
-function transformOrderForPDF(order: any): Order {
-  // Handle shippingAddress from metadata if not available from relation
-  let shippingAddress = null;
-  if (order.shippingAddress) {
-    shippingAddress = {
-      id: order.shippingAddress.id,
-      userId: order.shippingAddress.userId,
-      type: order.shippingAddress.type,
-      firstName: order.shippingAddress.firstName,
-      lastName: order.shippingAddress.lastName,
-      company: order.shippingAddress.company || "",
-      address1: order.shippingAddress.address1,
-      address2: order.shippingAddress.address2 || "",
-      city: order.shippingAddress.city,
-      state: order.shippingAddress.state,
-      postalCode: order.shippingAddress.postalCode,
-      country: order.shippingAddress.country,
-      phone: order.shippingAddress.phone || "",
-      isDefault: order.shippingAddress.isDefault || false,
-    };
-  } else if (order.metadata && typeof order.metadata === 'object') {
-    const metadata = order.metadata as Record<string, any>;
-    if (metadata.shippingAddress) {
-      shippingAddress = {
-        id: '',
-        userId: '',
-        type: 'SHIPPING' as AddressType,
-        ...metadata.shippingAddress,
-        company: metadata.shippingAddress.company || "",
-        address2: metadata.shippingAddress.address2 || "",
-        phone: metadata.shippingAddress.phone || "",
-        isDefault: false,
-      };
-    }
-  }
-
-  return {
-    id: order.id,
-    orderNumber: order.orderNumber,
-    userId: order.userId,
-    email: order.email,
-    phone: order.phone,
-    status: order.status,
-    paymentStatus: order.paymentStatus,
-    paymentMethod: order.paymentMethod,
-    paymentId: order.paymentId,
-    subtotal: Number(order.subtotal),
-    discountAmount: Number(order.discountAmount),
-    taxAmount: Number(order.taxAmount),
-    shippingAmount: Number(order.shippingAmount),
-    total: Number(order.total),
-    currency: order.currency || "INR",
-    discountId: order.discountId,
-    shippingAddressId: order.shippingAddressId,
-    billingAddressId: order.billingAddressId,
-    notes: order.notes,
-    metadata: order.metadata as Record<string, unknown> | null,
-    items: (order.items || []).map((item: any) => ({
-      id: item.id,
-      orderId: item.orderId,
-      productId: item.productId,
-      variantId: item.variantId,
-      bundleId: item.bundleId,
-      name: item.name,
-      sku: item.sku || "",
-      quantity: item.quantity,
-      unitPrice: Number(item.unitPrice),
-      totalPrice: Number(item.totalPrice),
-      configuration: item.configuration as Record<string, string> | null,
-      billingCycle: item.billingCycle,
-      isRecurring: item.isRecurring || false,
-      recurringPrice: item.recurringPrice ? Number(item.recurringPrice) : null,
-      addons: (item.addons || []).map((addon: any) => ({
-        id: addon.id,
-        orderItemId: addon.orderItemId,
-        addonId: addon.addonId,
-        name: addon.name,
-        price: Number(addon.price),
-        quantity: addon.quantity,
-        billingCycle: addon.billingCycle,
-        isRecurring: addon.isRecurring || false,
-      })),
-    })),
-    shippingAddress,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt,
-  };
-}
 
 /**
  * POST /api/invoices - Generate invoice for an order
@@ -174,24 +82,11 @@ export async function POST(request: NextRequest) {
     const invoiceNumber = generateInvoiceNumber();
     console.log("Generating invoice:", invoiceNumber);
 
-    // Transform order for PDF generation
-    let orderForPdf: Order;
-    try {
-      orderForPdf = transformOrderForPDF(order);
-      console.log("Order transformed for PDF, items count:", orderForPdf.items.length);
-    } catch (transformError) {
-      console.error("Error transforming order:", transformError);
-      return NextResponse.json(
-        { error: "Failed to process order data for invoice" },
-        { status: 500 }
-      );
-    }
-
     // Generate PDF using pdfmake
     let pdfBuffer: Buffer;
     try {
-      console.log("Starting PDF generation with puppeteer...");
-      pdfBuffer = await generateInvoicePDF(orderForPdf as any);
+      console.log("Starting PDF generation with pdfmake...");
+      pdfBuffer = await generateInvoicePDF(transformOrderToInvoiceData(order));
       console.log("PDF generated successfully, size:", pdfBuffer.length);
     } catch (pdfError) {
       console.error("Error generating PDF:", pdfError);
@@ -413,8 +308,7 @@ export async function GET(request: NextRequest) {
       // Regenerate PDF for existing invoice (Amplify has ephemeral filesystem)
       let pdfBase64: string | null = null;
       try {
-        const orderForPdf = transformOrderForPDF(invoice.order);
-        const pdfBuffer = await generateInvoicePDF(orderForPdf as any);
+        const pdfBuffer = await generateInvoicePDF(transformOrderToInvoiceData(invoice.order));
         pdfBase64 = pdfBuffer.toString('base64');
         console.log("PDF regenerated for existing invoice, size:", pdfBuffer.length);
       } catch (pdfError) {
