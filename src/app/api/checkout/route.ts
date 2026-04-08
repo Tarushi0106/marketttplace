@@ -171,18 +171,16 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate variantId exists in DB before connecting (scalar FK not allowed in nested create)
+        // If variant no longer exists, gracefully fall back to product-only (don't block checkout)
         if (item.variantId) {
           const dbVariant = await prisma.productVariant.findUnique({
             where: { id: item.variantId },
             select: { id: true },
           });
-          if (!dbVariant) {
-            return NextResponse.json(
-              { error: "Variant no longer available. Please refresh your cart and try again." },
-              { status: 400 }
-            );
+          if (dbVariant) {
+            validatedVariantId = dbVariant.id;
           }
-          validatedVariantId = dbVariant.id;
+          // If not found, validatedVariantId stays undefined — order item created without variant
         }
 
         // If instances are provided (from ProductConfigurator), use the pre-calculated unitPrice
