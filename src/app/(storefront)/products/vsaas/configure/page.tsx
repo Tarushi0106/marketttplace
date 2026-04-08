@@ -259,7 +259,7 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
               Products
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/products/vsaas" className="hover:text-[#8B1D1D] transition-colors">
+            <Link href="/products/vsaas?tab=solutions" className="hover:text-[#8B1D1D] transition-colors">
               VSAAS
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />

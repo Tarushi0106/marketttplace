@@ -84,6 +84,7 @@ function renderIcon(iconName?: string | null) {
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }
 
 async function getProductDisplaySetting(): Promise<"card" | "table"> {
@@ -249,8 +250,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ProductDetailPage({ params }: Props) {
+export default async function ProductDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { tab } = await searchParams;
   const [product] = await Promise.all([
     getProduct(slug),
     getProductDisplaySetting(),
@@ -373,7 +375,7 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Navigation Tabs */}
       <div className="sticky top-[70px] z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs defaultValue={tab || "overview"} className="w-full">
             <TabsList className="h-14 w-full justify-start gap-0 bg-transparent p-0 overflow-x-auto">
               <TabsTrigger
                 value="overview"
