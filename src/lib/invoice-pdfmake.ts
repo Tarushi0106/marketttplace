@@ -1,3 +1,5 @@
+import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
+
 interface InvoiceItem {
   name: string;
   description?: string;
@@ -43,145 +45,171 @@ export function generateInvoiceNumber(): string {
   return `INV-${year}${month}-${random}`;
 }
 
+function fmt(n: number): string {
+  return `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Convert hex color to pdf-lib rgb (0-1 range)
+function hex(h: string) {
+  const r = parseInt(h.slice(1, 3), 16) / 255;
+  const g = parseInt(h.slice(3, 5), 16) / 255;
+  const b = parseInt(h.slice(5, 7), 16) / 255;
+  return rgb(r, g, b);
+}
+
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
-  // pdfkit works reliably in serverless/Lambda — pdfmake has ESM resolution issues
-  const PDFDocument = require('pdfkit') as typeof import('pdfkit');
+  const { invoiceNumber, date, status, company, customer, items, subtotal, tax, discount, total, recurring } = data;
+  const isPaid = status === 'PAID';
 
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const chunks: Buffer[] = [];
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage(PageSizes.A4);
+  const { width, height } = page.getSize(); // 595.28 x 841.89
 
-    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const { invoiceNumber, date, status, company, customer, items, subtotal, tax, discount, total, recurring } = data;
-    const fmt = (n: number) => `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const isPaid = status === 'PAID';
+  // y coordinate helpers (pdf-lib measures from bottom-left)
+  const y = (fromTop: number) => height - fromTop;
 
-    // ── Header accent bar ─────────────────────────────────────────
-    doc.rect(0, 0, doc.page.width, 6).fill('#b91c1c');
+  // ── Header accent bar ─────────────────────────────────────────
+  page.drawRectangle({ x: 0, y: height - 6, width, height: 6, color: hex('#b91c1c') });
 
-    // ── Company info (left) ───────────────────────────────────────
-    doc.fillColor('#1a2744').fontSize(18).font('Helvetica-Bold')
-      .text(company.name, 50, 30);
-    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
-      .text(company.address, 50, 52)
-      .text(company.city, 50, 64)
-      .text(`GST: ${company.gst}`, 50, 76);
+  // ── Company info (left) ───────────────────────────────────────
+  page.drawText(company.name, { x: 50, y: y(44), font: bold, size: 18, color: hex('#1a2744') });
+  page.drawText(company.address, { x: 50, y: y(62), font: regular, size: 9, color: hex('#64748b') });
+  page.drawText(company.city,    { x: 50, y: y(74), font: regular, size: 9, color: hex('#64748b') });
+  page.drawText(`GST: ${company.gst}`, { x: 50, y: y(86), font: regular, size: 8, color: hex('#94a3b8') });
 
-    // ── Invoice meta (right) ──────────────────────────────────────
-    doc.fillColor('#b91c1c').fontSize(24).font('Helvetica-Bold')
-      .text('INVOICE', 350, 30, { align: 'right', width: 195 });
-    doc.fillColor('#1a2744').fontSize(10).font('Helvetica-Bold')
-      .text(`# ${invoiceNumber}`, 350, 58, { align: 'right', width: 195 });
-    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
-      .text(`Date: ${date}`, 350, 72, { align: 'right', width: 195 });
+  // ── Invoice meta (right) ──────────────────────────────────────
+  const invTitle = 'INVOICE';
+  const invTitleW = bold.widthOfTextAtSize(invTitle, 24);
+  page.drawText(invTitle, { x: width - 50 - invTitleW, y: y(42), font: bold, size: 24, color: hex('#b91c1c') });
 
-    // Status badge
-    const badgeColor = isPaid ? '#15803d' : '#b45309';
-    const badgeBg   = isPaid ? '#dcfce7' : '#fef3c7';
-    doc.roundedRect(440, 88, 105, 18, 9).fill(badgeBg);
-    doc.fillColor(badgeColor).fontSize(9).font('Helvetica-Bold')
-      .text(isPaid ? '✓ PAID' : 'PENDING', 440, 93, { align: 'center', width: 105 });
+  const invNum = `# ${invoiceNumber}`;
+  const invNumW = bold.widthOfTextAtSize(invNum, 10);
+  page.drawText(invNum, { x: width - 50 - invNumW, y: y(64), font: bold, size: 10, color: hex('#1a2744') });
 
-    // ── Divider ───────────────────────────────────────────────────
-    doc.moveTo(50, 116).lineTo(545, 116).lineWidth(1).strokeColor('#e8edf5').stroke();
+  const invDate = `Date: ${date}`;
+  const invDateW = regular.widthOfTextAtSize(invDate, 9);
+  page.drawText(invDate, { x: width - 50 - invDateW, y: y(76), font: regular, size: 9, color: hex('#64748b') });
 
-    // ── Bill To / Order Details ───────────────────────────────────
-    doc.fillColor('#94a3b8').fontSize(8).font('Helvetica-Bold')
-      .text('BILL TO', 50, 126);
-    doc.fillColor('#1a2744').fontSize(11).font('Helvetica-Bold')
-      .text(customer.name || 'Customer', 50, 138);
-    doc.fillColor('#475569').fontSize(9).font('Helvetica')
-      .text(customer.address || '', 50, 152)
-      .text(customer.email || '', 50, 165)
-      .text(customer.phone || '', 50, 177);
+  // Status badge
+  const badgeBg  = isPaid ? hex('#dcfce7') : hex('#fef3c7');
+  const badgeFg  = isPaid ? hex('#15803d') : hex('#b45309');
+  const badgeTxt = isPaid ? 'PAID' : 'PENDING';
+  const badgeTxtW = bold.widthOfTextAtSize(badgeTxt, 9);
+  const badgeX = width - 50 - 90;
+  page.drawRectangle({ x: badgeX, y: y(106), width: 90, height: 18, color: badgeBg });
+  page.drawText(badgeTxt, { x: badgeX + (90 - badgeTxtW) / 2, y: y(101), font: bold, size: 9, color: badgeFg });
 
-    doc.fillColor('#94a3b8').fontSize(8).font('Helvetica-Bold')
-      .text('ORDER DETAILS', 310, 126, { align: 'right', width: 235 });
-    const orderRows = [
-      ['Invoice No.', invoiceNumber],
-      ['Invoice Date', date],
-      ['Payment Status', status || 'Pending'],
-    ];
-    let oy = 138;
-    for (const [k, v] of orderRows) {
-      doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text(k, 310, oy, { width: 110 });
-      doc.fillColor('#1a2744').fontSize(9).font('Helvetica-Bold').text(v, 420, oy, { align: 'right', width: 125 });
-      oy += 14;
-    }
+  // ── Divider ───────────────────────────────────────────────────
+  page.drawLine({ start: { x: 50, y: y(116) }, end: { x: width - 50, y: y(116) }, thickness: 0.5, color: hex('#e8edf5') });
 
-    // ── Items table ───────────────────────────────────────────────
-    const tableTop = 210;
-    doc.rect(50, tableTop, 495, 22).fill('#1a2744');
-    const cols = { desc: 50, qty: 330, rate: 380, amount: 460 };
+  // ── Bill To ───────────────────────────────────────────────────
+  page.drawText('BILL TO', { x: 50, y: y(132), font: bold, size: 8, color: hex('#94a3b8') });
+  page.drawText(customer.name || 'Customer', { x: 50, y: y(146), font: bold, size: 11, color: hex('#1a2744') });
+  if (customer.address) page.drawText(customer.address, { x: 50, y: y(161), font: regular, size: 9, color: hex('#475569') });
+  if (customer.email)   page.drawText(customer.email,   { x: 50, y: y(174), font: regular, size: 9, color: hex('#475569') });
+  if (customer.phone)   page.drawText(customer.phone,   { x: 50, y: y(187), font: regular, size: 9, color: hex('#475569') });
 
-    doc.fillColor('#cbd5e1').fontSize(9).font('Helvetica-Bold');
-    doc.text('DESCRIPTION', cols.desc + 6, tableTop + 6);
-    doc.text('QTY', cols.qty, tableTop + 6, { width: 50, align: 'center' });
-    doc.text('RATE', cols.rate, tableTop + 6, { width: 80, align: 'right' });
-    doc.text('AMOUNT', cols.amount, tableTop + 6, { width: 85, align: 'right' });
+  // ── Order details (right) ─────────────────────────────────────
+  page.drawText('ORDER DETAILS', { x: 330, y: y(132), font: bold, size: 8, color: hex('#94a3b8') });
+  const orderRows = [
+    ['Invoice No.', invoiceNumber],
+    ['Invoice Date', date],
+    ['Status', status || 'PENDING'],
+  ];
+  let oy = 146;
+  for (const [k, v] of orderRows) {
+    page.drawText(k, { x: 330, y: y(oy), font: regular, size: 9, color: hex('#94a3b8') });
+    const vw = bold.widthOfTextAtSize(v, 9);
+    page.drawText(v, { x: width - 50 - vw, y: y(oy), font: bold, size: 9, color: hex('#1a2744') });
+    oy += 14;
+  }
 
-    let rowY = tableTop + 22;
-    items.forEach((item, idx) => {
-      const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
-      doc.rect(50, rowY, 495, 24).fill(bg);
-      doc.fillColor('#1a2744').fontSize(10).font('Helvetica-Bold')
-        .text(item.name, cols.desc + 6, rowY + 7, { width: 270 });
-      doc.fillColor('#475569').fontSize(10).font('Helvetica')
-        .text(String(item.quantity), cols.qty, rowY + 7, { width: 50, align: 'center' })
-        .text(fmt(item.rate), cols.rate, rowY + 7, { width: 80, align: 'right' })
-        .text(fmt(item.amount), cols.amount, rowY + 7, { width: 85, align: 'right' });
-      rowY += 24;
-    });
+  // ── Items table ───────────────────────────────────────────────
+  let tableTop = 212;
+  page.drawRectangle({ x: 50, y: y(tableTop + 22), width: 495, height: 22, color: hex('#1a2744') });
 
-    // ── Totals ────────────────────────────────────────────────────
-    rowY += 10;
-    const totals: [string, string, string?][] = [
-      ['Subtotal', fmt(subtotal)],
-      ...(tax > 0 ? [['Tax (GST)', fmt(tax)] as [string, string]] : []),
-      ...(discount > 0 ? [['Discount', `-${fmt(discount)}`, 'green'] as [string, string, string]] : []),
-    ];
-    for (const [label, value, color] of totals) {
-      doc.fillColor('#64748b').fontSize(10).font('Helvetica').text(label, 360, rowY, { width: 100 });
-      doc.fillColor(color === 'green' ? '#15803d' : '#1a2744').fontSize(10).font('Helvetica')
-        .text(value, 460, rowY, { width: 85, align: 'right' });
-      rowY += 16;
-    }
+  const colDesc = 56, colQty = 336, colRate = 386, colAmt = 466;
 
-    // Total box
-    rowY += 4;
-    doc.rect(355, rowY, 190, 28).fill('#1a2744');
-    doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
-      .text('Total Due', 362, rowY + 8, { width: 90 });
-    doc.fillColor('#fca5a5').fontSize(14).font('Helvetica-Bold')
-      .text(fmt(total), 362, rowY + 7, { width: 175, align: 'right' });
+  page.drawText('DESCRIPTION', { x: colDesc, y: y(tableTop + 14), font: bold, size: 9, color: hex('#cbd5e1') });
+  page.drawText('QTY',    { x: colQty, y: y(tableTop + 14), font: bold, size: 9, color: hex('#cbd5e1') });
+  page.drawText('RATE',   { x: colRate, y: y(tableTop + 14), font: bold, size: 9, color: hex('#cbd5e1') });
+  page.drawText('AMOUNT', { x: colAmt, y: y(tableTop + 14), font: bold, size: 9, color: hex('#cbd5e1') });
 
-    // ── Recurring info ────────────────────────────────────────────
-    if (recurring?.hasRecurring && recurring.items.length > 0) {
-      rowY += 44;
-      doc.rect(50, rowY, 495, 22).fill('#fff1f2');
-      doc.fillColor('#991b1b').fontSize(9).font('Helvetica')
-        .text(
-          `Recurring: ${recurring.items.map(i => `${i.name}: Rs. ${i.amount.toLocaleString('en-IN')}/${i.period}`).join(' | ')}`,
-          58, rowY + 7,
-          { width: 479 }
-        );
-      rowY += 22;
-    }
+  let rowTop = tableTop + 22;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const rowBg = i % 2 === 0 ? hex('#f8fafc') : hex('#ffffff');
+    page.drawRectangle({ x: 50, y: y(rowTop + 24), width: 495, height: 24, color: rowBg });
 
-    // ── Footer ────────────────────────────────────────────────────
-    const footerY = doc.page.height - 80;
-    doc.moveTo(50, footerY).lineTo(545, footerY).lineWidth(1).strokeColor('#e8edf5').stroke();
-    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
-      .text('Thank you for your business!', 50, footerY + 10, { align: 'center', width: 495 })
-      .text(`${company.name}  |  ${company.email}  |  ${company.phone}`, 50, footerY + 24, { align: 'center', width: 495 });
-    doc.fillColor('#94a3b8').fontSize(8)
-      .text('Computer-generated invoice. No signature required.  |  Subject to Mumbai jurisdiction.', 50, footerY + 40, { align: 'center', width: 495 });
+    // Truncate long names
+    let name = item.name;
+    while (name.length > 2 && bold.widthOfTextAtSize(name, 10) > 260) name = name.slice(0, -1);
+    if (name !== item.name) name += '…';
 
-    doc.end();
-  });
+    page.drawText(name, { x: colDesc, y: y(rowTop + 16), font: bold, size: 10, color: hex('#1a2744') });
+    page.drawText(String(item.quantity), { x: colQty, y: y(rowTop + 16), font: regular, size: 10, color: hex('#475569') });
+
+    const rateStr = fmt(item.rate);
+    const rateW = regular.widthOfTextAtSize(rateStr, 10);
+    page.drawText(rateStr, { x: colRate + 70 - rateW, y: y(rowTop + 16), font: regular, size: 10, color: hex('#475569') });
+
+    const amtStr = fmt(item.amount);
+    const amtW = regular.widthOfTextAtSize(amtStr, 10);
+    page.drawText(amtStr, { x: width - 50 - amtW, y: y(rowTop + 16), font: regular, size: 10, color: hex('#475569') });
+
+    rowTop += 24;
+  }
+
+  // ── Totals ────────────────────────────────────────────────────
+  let totY = rowTop + 16;
+  const totalRows: [string, string, boolean][] = [
+    ['Subtotal', fmt(subtotal), false],
+    ...(tax > 0      ? [['Tax (GST)', fmt(tax), false] as [string, string, boolean]] : []),
+    ...(discount > 0 ? [['Discount', `-${fmt(discount)}`, true] as [string, string, boolean]] : []),
+  ];
+  for (const [label, value, isDiscount] of totalRows) {
+    page.drawText(label, { x: 360, y: y(totY), font: regular, size: 10, color: hex('#64748b') });
+    const vw = regular.widthOfTextAtSize(value, 10);
+    page.drawText(value, { x: width - 50 - vw, y: y(totY), font: regular, size: 10, color: isDiscount ? hex('#15803d') : hex('#1a2744') });
+    totY += 16;
+  }
+
+  // Total box
+  totY += 4;
+  page.drawRectangle({ x: 355, y: y(totY + 28), width: 190, height: 28, color: hex('#1a2744') });
+  page.drawText('Total Due', { x: 363, y: y(totY + 17), font: bold, size: 12, color: hex('#ffffff') });
+  const totalStr = fmt(total);
+  const totalStrW = bold.widthOfTextAtSize(totalStr, 13);
+  page.drawText(totalStr, { x: width - 56 - totalStrW, y: y(totY + 17), font: bold, size: 13, color: hex('#fca5a5') });
+
+  // ── Recurring info ────────────────────────────────────────────
+  if (recurring?.hasRecurring && recurring.items.length > 0) {
+    totY += 38;
+    page.drawRectangle({ x: 50, y: y(totY + 22), width: 495, height: 22, color: hex('#fff1f2') });
+    const recText = `Recurring: ${recurring.items.map(i => `${i.name}: Rs. ${i.amount.toLocaleString('en-IN')}/${i.period}`).join(' | ')}`;
+    page.drawText(recText, { x: 58, y: y(totY + 13), font: regular, size: 9, color: hex('#991b1b') });
+  }
+
+  // ── Footer ────────────────────────────────────────────────────
+  const footerY = 80;
+  page.drawLine({ start: { x: 50, y: footerY + 40 }, end: { x: width - 50, y: footerY + 40 }, thickness: 0.5, color: hex('#e8edf5') });
+  const thanks = 'Thank you for your business!';
+  const thanksW = regular.widthOfTextAtSize(thanks, 9);
+  page.drawText(thanks, { x: (width - thanksW) / 2, y: footerY + 26, font: regular, size: 9, color: hex('#64748b') });
+
+  const contactLine = `${company.name}  |  ${company.email}  |  ${company.phone}`;
+  const contactW = regular.widthOfTextAtSize(contactLine, 8);
+  page.drawText(contactLine, { x: (width - contactW) / 2, y: footerY + 14, font: regular, size: 8, color: hex('#94a3b8') });
+
+  const disclaimer = 'Computer-generated invoice. No signature required.';
+  const disclaimerW = regular.widthOfTextAtSize(disclaimer, 7);
+  page.drawText(disclaimer, { x: (width - disclaimerW) / 2, y: footerY + 4, font: regular, size: 7, color: hex('#94a3b8') });
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
 }
 
 export function transformOrderToInvoiceData(order: any): InvoiceData {
