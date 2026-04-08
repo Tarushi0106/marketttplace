@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { 
-  Shield, 
-  Cloud, 
-  Zap, 
-  Users, 
-  Server, 
-  Bell, 
+  Shield,
+  Cloud,
+  Zap,
+  Users,
+  Server,
+  Bell,
   Search,
   Scale,
   CheckCircle,
@@ -25,7 +25,15 @@ import {
   Gauge,
   FileSearch,
   AlertTriangle,
-  Database
+  Database,
+  Video,
+  HardDrive,
+  LayoutDashboard,
+  Monitor,
+  Globe,
+  Activity,
+  BarChart3,
+  ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,15 +62,24 @@ function BenefitCard({ icon, title, description }: BenefitCardProps) {
 interface FeatureItemProps {
   title: string;
   description: string;
+  icon: React.ReactNode;
+  index: number;
 }
 
-function FeatureItem({ title, description }: FeatureItemProps) {
+function FeatureItem({ title, description, icon, index }: FeatureItemProps) {
   return (
-    <div className="flex gap-4">
-      <CheckCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-      <div>
-        <h4 className="font-semibold text-gray-900">{title}</h4>
-        <p className="text-sm text-gray-600">{description}</p>
+    <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-red-200 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300 p-5 flex gap-4 items-start">
+      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <h4 className="font-semibold text-gray-900 text-sm leading-snug">{title}</h4>
+          <span className="text-[10px] font-bold text-red-400 bg-red-50 rounded-full px-1.5 py-0.5 flex-shrink-0">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -237,38 +254,47 @@ export function VSAASLandingPage() {
 
   const features = [
     {
+      icon: <Video className="h-5 w-5" />,
       title: "Cloud VMS with Live & Playback",
       description: "Access live camera feeds and recorded footage anytime from a unified cloud platform."
     },
     {
+      icon: <HardDrive className="h-5 w-5" />,
       title: "3 Days Cloud Backup",
       description: "Automatic cloud recording at 8 fps, SD-640×480P resolution with H.265 compression."
     },
     {
+      icon: <LayoutDashboard className="h-5 w-5" />,
       title: "Admin Panel",
       description: "Centralized admin panel for complete device and user management across all sites."
     },
     {
+      icon: <Monitor className="h-5 w-5" />,
       title: "1x Core – Desktop Application",
       description: "Full-featured desktop application for monitoring and managing your surveillance system."
     },
     {
+      icon: <Globe className="h-5 w-5" />,
       title: "5x Web View Access",
       description: "Up to 5 web browser logins for real-time monitoring without any software installation."
     },
     {
+      icon: <Smartphone className="h-5 w-5" />,
       title: "5x Mobile App Access",
       description: "Mobile app access for up to 5 users on both Android and iOS devices."
     },
     {
+      icon: <Activity className="h-5 w-5" />,
       title: "Device Health Check",
       description: "Proactive health monitoring for cameras, NVRs, HDDs, SD cards, and connected devices."
     },
     {
+      icon: <BarChart3 className="h-5 w-5" />,
       title: "Reports & Dashboard",
       description: "Visual dashboards and detailed reports for activity, events, and system performance."
     },
     {
+      icon: <ScrollText className="h-5 w-5" />,
       title: "Logs & Audit Trail",
       description: "Complete audit trail with timestamped logs for all user actions and system events."
     }
@@ -411,54 +437,25 @@ export function VSAASLandingPage() {
 
             {/* Features Tab */}
             <TabsContent value="features">
-              <div className="text-center mb-16">
+              <div className="text-center mb-12">
                 <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                  Powerful Features
+                  What's Included
                 </h2>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Everything you need for comprehensive video surveillance
+                  Everything you need for professional cloud video surveillance
                 </p>
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-16">
-                {/* Left: Feature List */}
-                <div className="space-y-6">
-                  {features.map((feature, index) => (
-                    <FeatureItem
-                      key={index}
-                      title={feature.title}
-                      description={feature.description}
-                    />
-                  ))}
-                </div>
-
-                {/* Right: Visual */}
-                <div className="relative">
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 text-white">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                        <Search className="h-6 w-6 mb-2 text-red-400" />
-                        <p className="font-semibold">AI Search</p>
-                        <p className="text-xs text-gray-400">Find events instantly</p>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                        <Bell className="h-6 w-6 mb-2 text-red-400" />
-                        <p className="font-semibold">Smart Alerts</p>
-                        <p className="text-xs text-gray-400">Real-time notifications</p>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                        <Smartphone className="h-6 w-6 mb-2 text-red-400" />
-                        <p className="font-semibold">Mobile App</p>
-                        <p className="text-xs text-gray-400">Access anywhere</p>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                        <Database className="h-6 w-6 mb-2 text-red-400" />
-                        <p className="font-semibold">Cloud Storage</p>
-                        <p className="text-xs text-gray-400">Secure & scalable</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {features.map((feature, index) => (
+                  <FeatureItem
+                    key={index}
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                    index={index}
+                  />
+                ))}
               </div>
             </TabsContent>
 
