@@ -1,23 +1,3 @@
-// @ts-ignore
-const PdfPrinter = require('pdfmake');
-const PdfMake  = require('pdfmake');
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TDocumentDefinitions = any;
-type TDocMaker = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TableCell = any;
-
-// Font files for pdfmake
-const fonts = {
-  Roboto: {
-    normal: 'Helvetica',
-    bold: 'Helvetica-Bold',
-    italics: 'Helvetica-Oblique',
-    bolditalics: 'Helvetica-BoldOblique'
-  }
-};
-
 interface InvoiceItem {
   name: string;
   description?: string;
@@ -55,10 +35,6 @@ interface InvoiceData {
   };
 }
 
-function formatCurrency(amount: number): string {
-  return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 export function generateInvoiceNumber(): string {
   const date = new Date();
   const year = date.getFullYear();
@@ -67,227 +43,153 @@ export function generateInvoiceNumber(): string {
   return `INV-${year}${month}-${random}`;
 }
 
-function createInvoiceDoc(data: InvoiceData): TDocumentDefinitions {
-  const { invoiceNumber, date, status, company, customer, items, subtotal, tax, discount, total, recurring } = data;
-
-  // Table content for items
-  const tableBody: TableCell[][] = [
-    // Header row
-    [
-      { text: 'Item', style: 'tableHeader' },
-      { text: 'Qty', style: 'tableHeader', alignment: 'center' },
-      { text: 'Rate', style: 'tableHeader', alignment: 'right' },
-      { text: 'Amount', style: 'tableHeader', alignment: 'right' }
-    ]
-  ];
-
-  // Item rows
-  items.forEach(item => {
-    tableBody.push([
-      { text: item.name, style: 'itemName' },
-      { text: String(item.quantity), alignment: 'center' },
-      { text: formatCurrency(item.rate), alignment: 'right' },
-      { text: formatCurrency(item.amount), alignment: 'right', style: 'itemAmount' }
-    ]);
-  });
-
-  const docDefinition: TDocumentDefinitions = {
-    pageSize: 'A4',
-    pageMargins: [40, 40, 40, 60],
-    content: [
-      // Header
-      {
-        columns: [
-          {
-            width: '*',
-            stack: [
-              { text: company.name, style: 'companyName' },
-              { text: company.address, style: 'companyInfo' },
-              { text: company.city, style: 'companyInfo' },
-              { text: `GST: ${company.gst}`, style: 'gstInfo' }
-            ]
-          },
-          {
-            width: 'auto',
-            stack: [
-              { text: 'INVOICE', style: 'invoiceTitle' },
-              { text: `# ${invoiceNumber}`, style: 'invoiceNumber' },
-              { text: `Date: ${date}`, style: 'invoiceDate' },
-              { 
-                text: status, 
-                style: status === 'PAID' ? 'statusPaid' : 'statusPending',
-                alignment: 'right'
-              }
-            ]
-          }
-        ]
-      },
-      { text: '', margin: [0, 10] },
-      
-      // Divider
-      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#e5e5e5' }] },
-      { text: '', margin: [0, 15] },
-
-      // Bill To & Order Details
-      {
-        columns: [
-          {
-            width: '*',
-            stack: [
-              { text: 'BILL TO', style: 'sectionHeader' },
-              { text: customer.name || '', style: 'customerName' },
-              { text: customer.address, style: 'customerInfo' },
-              { text: customer.email, style: 'customerContact' },
-              { text: customer.phone, style: 'customerContact' }
-            ]
-          },
-          {
-            width: '*',
-            stack: [
-              { text: 'ORDER DETAILS', style: 'sectionHeader', alignment: 'right' },
-              { text: '', margin: [0, 5] }
-            ],
-            alignment: 'right'
-          }
-        ]
-      },
-      { text: '', margin: [0, 20] },
-
-      // Items Table
-      {
-        table: {
-          headerRows: 1,
-          widths: ['*', 40, 80, 90],
-          body: tableBody
-        },
-        layout: {
-          hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5,
-          vLineWidth: () => 0,
-          hLineColor: (i: number) => i === 1 ? '#333' : '#eee',
-          paddingLeft: () => 8,
-          paddingRight: () => 8,
-          paddingTop: () => 6,
-          paddingBottom: () => 6
-        }
-      },
-      { text: '', margin: [0, 15] },
-
-      // Totals
-      {
-        columns: [
-          { width: '*', text: '' },
-          {
-            width: 180,
-            table: {
-              widths: ['*', 'auto'],
-              body: [
-                [{ text: 'Subtotal', style: 'totalLabel' }, { text: formatCurrency(subtotal), alignment: 'right' }],
-                ...(tax > 0 ? [[{ text: 'Tax', style: 'totalLabel' }, { text: formatCurrency(tax), alignment: 'right' }]] : []),
-                ...(discount > 0 ? [[{ text: 'Discount', style: 'discountLabel' }, { text: `-${formatCurrency(discount)}`, alignment: 'right', color: '#16a34a' }]] : []),
-                [{ text: 'Total', style: 'totalFinal' }, { text: formatCurrency(total), alignment: 'right', style: 'totalAmount' }]
-              ]
-            },
-            layout: 'noBorders'
-          }
-        ]
-      },
-
-      // Recurring Info (inline, no box)
-      ...(recurring && recurring.hasRecurring ? [
-        { text: '', margin: [0, 15] },
-        { 
-          text: `Recurring: ${recurring.items.map(i => `${i.name}: Rs. ${i.amount.toLocaleString('en-IN')}/${i.period}`).join(' | ')}`,
-          style: 'recurringInfo'
-        }
-      ] : []),
-
-      // Footer
-      { text: '', margin: [0, 30] },
-      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineColor: '#e5e5e5' }] },
-      { text: '', margin: [0, 10] },
-      { 
-        text: 'Thank you for your business!', 
-        style: 'footer',
-        alignment: 'center'
-      },
-      { 
-        text: `${company.name} | ${company.email} | ${company.phone}`, 
-        style: 'footerInfo',
-        alignment: 'center'
-      },
-      { 
-        text: 'Computer-generated invoice. No signature required.', 
-        style: 'footerSmall',
-        alignment: 'center'
-      }
-    ],
-    styles: {
-      companyName: { fontSize: 20, bold: true, color: '#1a1a2e' },
-      companyInfo: { fontSize: 9, color: '#4b5563' },
-      gstInfo: { fontSize: 8, color: '#9ca3af' },
-      invoiceTitle: { fontSize: 24, bold: true, color: '#2563eb' },
-      invoiceNumber: { fontSize: 10, bold: true, color: '#1a1a2e', margin: [0, 5, 0, 0] },
-      invoiceDate: { fontSize: 10, color: '#4b5563', margin: [0, 0, 0, 5] },
-      statusPaid: { fontSize: 9, bold: true, color: '#16a34a', background: '#dcfce7', margin: [5, 2] },
-      statusPending: { fontSize: 9, bold: true, color: '#b45309', background: '#fef3c7', margin: [5, 2] },
-      sectionHeader: { fontSize: 9, bold: true, color: '#6b7280', margin: [0, 0, 0, 5] },
-      customerName: { fontSize: 11, bold: true, color: '#1a1a2e' },
-      customerInfo: { fontSize: 10, color: '#4b5563', margin: [0, 2, 0, 0] },
-      customerContact: { fontSize: 9, color: '#9ca3af', margin: [0, 2, 0, 0] },
-      tableHeader: { fontSize: 9, bold: true, color: '#4b5563', fillColor: '#f9fafb' },
-      itemName: { fontSize: 10, color: '#1a1a2e' },
-      itemAmount: { fontSize: 10, bold: true },
-      totalLabel: { fontSize: 10, color: '#4b5563' },
-      discountLabel: { fontSize: 10, color: '#16a34a' },
-      totalFinal: { fontSize: 12, bold: true, color: '#1a1a2e' },
-      totalAmount: { fontSize: 14, bold: true, color: '#2563eb' },
-      recurringInfo: { fontSize: 10, color: '#4b5563', italics: true },
-      footer: { fontSize: 10, color: '#4b5563', margin: [0, 0, 0, 5] },
-      footerInfo: { fontSize: 8, color: '#9ca3af', margin: [0, 0, 0, 3] },
-      footerSmall: { fontSize: 7, color: '#d1d5db' }
-    },
-    defaultStyle: {
-      font: 'Roboto'
-    }
-  };
-
-  return docDefinition;
-}
-
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
-  const pdfPrinter = new PdfPrinter(fonts);
-  
-  const docDefinition = createInvoiceDoc(data);
-  
+  // pdfkit works reliably in serverless/Lambda — pdfmake has ESM resolution issues
+  const PDFDocument = require('pdfkit') as typeof import('pdfkit');
+
   return new Promise((resolve, reject) => {
-    const pdfDoc = pdfPrinter.createPdfKitDocument(docDefinition);
-    
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks: Buffer[] = [];
-    
-    pdfDoc.on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const { invoiceNumber, date, status, company, customer, items, subtotal, tax, discount, total, recurring } = data;
+    const fmt = (n: number) => `Rs. ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const isPaid = status === 'PAID';
+
+    // ── Header accent bar ─────────────────────────────────────────
+    doc.rect(0, 0, doc.page.width, 6).fill('#b91c1c');
+
+    // ── Company info (left) ───────────────────────────────────────
+    doc.fillColor('#1a2744').fontSize(18).font('Helvetica-Bold')
+      .text(company.name, 50, 30);
+    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
+      .text(company.address, 50, 52)
+      .text(company.city, 50, 64)
+      .text(`GST: ${company.gst}`, 50, 76);
+
+    // ── Invoice meta (right) ──────────────────────────────────────
+    doc.fillColor('#b91c1c').fontSize(24).font('Helvetica-Bold')
+      .text('INVOICE', 350, 30, { align: 'right', width: 195 });
+    doc.fillColor('#1a2744').fontSize(10).font('Helvetica-Bold')
+      .text(`# ${invoiceNumber}`, 350, 58, { align: 'right', width: 195 });
+    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
+      .text(`Date: ${date}`, 350, 72, { align: 'right', width: 195 });
+
+    // Status badge
+    const badgeColor = isPaid ? '#15803d' : '#b45309';
+    const badgeBg   = isPaid ? '#dcfce7' : '#fef3c7';
+    doc.roundedRect(440, 88, 105, 18, 9).fill(badgeBg);
+    doc.fillColor(badgeColor).fontSize(9).font('Helvetica-Bold')
+      .text(isPaid ? '✓ PAID' : 'PENDING', 440, 93, { align: 'center', width: 105 });
+
+    // ── Divider ───────────────────────────────────────────────────
+    doc.moveTo(50, 116).lineTo(545, 116).lineWidth(1).strokeColor('#e8edf5').stroke();
+
+    // ── Bill To / Order Details ───────────────────────────────────
+    doc.fillColor('#94a3b8').fontSize(8).font('Helvetica-Bold')
+      .text('BILL TO', 50, 126);
+    doc.fillColor('#1a2744').fontSize(11).font('Helvetica-Bold')
+      .text(customer.name || 'Customer', 50, 138);
+    doc.fillColor('#475569').fontSize(9).font('Helvetica')
+      .text(customer.address || '', 50, 152)
+      .text(customer.email || '', 50, 165)
+      .text(customer.phone || '', 50, 177);
+
+    doc.fillColor('#94a3b8').fontSize(8).font('Helvetica-Bold')
+      .text('ORDER DETAILS', 310, 126, { align: 'right', width: 235 });
+    const orderRows = [
+      ['Invoice No.', invoiceNumber],
+      ['Invoice Date', date],
+      ['Payment Status', status || 'Pending'],
+    ];
+    let oy = 138;
+    for (const [k, v] of orderRows) {
+      doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text(k, 310, oy, { width: 110 });
+      doc.fillColor('#1a2744').fontSize(9).font('Helvetica-Bold').text(v, 420, oy, { align: 'right', width: 125 });
+      oy += 14;
+    }
+
+    // ── Items table ───────────────────────────────────────────────
+    const tableTop = 210;
+    doc.rect(50, tableTop, 495, 22).fill('#1a2744');
+    const cols = { desc: 50, qty: 330, rate: 380, amount: 460 };
+
+    doc.fillColor('#cbd5e1').fontSize(9).font('Helvetica-Bold');
+    doc.text('DESCRIPTION', cols.desc + 6, tableTop + 6);
+    doc.text('QTY', cols.qty, tableTop + 6, { width: 50, align: 'center' });
+    doc.text('RATE', cols.rate, tableTop + 6, { width: 80, align: 'right' });
+    doc.text('AMOUNT', cols.amount, tableTop + 6, { width: 85, align: 'right' });
+
+    let rowY = tableTop + 22;
+    items.forEach((item, idx) => {
+      const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+      doc.rect(50, rowY, 495, 24).fill(bg);
+      doc.fillColor('#1a2744').fontSize(10).font('Helvetica-Bold')
+        .text(item.name, cols.desc + 6, rowY + 7, { width: 270 });
+      doc.fillColor('#475569').fontSize(10).font('Helvetica')
+        .text(String(item.quantity), cols.qty, rowY + 7, { width: 50, align: 'center' })
+        .text(fmt(item.rate), cols.rate, rowY + 7, { width: 80, align: 'right' })
+        .text(fmt(item.amount), cols.amount, rowY + 7, { width: 85, align: 'right' });
+      rowY += 24;
     });
-    
-    pdfDoc.on('end', () => {
-      const result = Buffer.concat(chunks);
-      resolve(result);
-    });
-    
-    pdfDoc.on('error', (err: Error) => {
-      reject(err);
-    });
-    
-    pdfDoc.end();
+
+    // ── Totals ────────────────────────────────────────────────────
+    rowY += 10;
+    const totals: [string, string, string?][] = [
+      ['Subtotal', fmt(subtotal)],
+      ...(tax > 0 ? [['Tax (GST)', fmt(tax)] as [string, string]] : []),
+      ...(discount > 0 ? [['Discount', `-${fmt(discount)}`, 'green'] as [string, string, string]] : []),
+    ];
+    for (const [label, value, color] of totals) {
+      doc.fillColor('#64748b').fontSize(10).font('Helvetica').text(label, 360, rowY, { width: 100 });
+      doc.fillColor(color === 'green' ? '#15803d' : '#1a2744').fontSize(10).font('Helvetica')
+        .text(value, 460, rowY, { width: 85, align: 'right' });
+      rowY += 16;
+    }
+
+    // Total box
+    rowY += 4;
+    doc.rect(355, rowY, 190, 28).fill('#1a2744');
+    doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold')
+      .text('Total Due', 362, rowY + 8, { width: 90 });
+    doc.fillColor('#fca5a5').fontSize(14).font('Helvetica-Bold')
+      .text(fmt(total), 362, rowY + 7, { width: 175, align: 'right' });
+
+    // ── Recurring info ────────────────────────────────────────────
+    if (recurring?.hasRecurring && recurring.items.length > 0) {
+      rowY += 44;
+      doc.rect(50, rowY, 495, 22).fill('#fff1f2');
+      doc.fillColor('#991b1b').fontSize(9).font('Helvetica')
+        .text(
+          `Recurring: ${recurring.items.map(i => `${i.name}: Rs. ${i.amount.toLocaleString('en-IN')}/${i.period}`).join(' | ')}`,
+          58, rowY + 7,
+          { width: 479 }
+        );
+      rowY += 22;
+    }
+
+    // ── Footer ────────────────────────────────────────────────────
+    const footerY = doc.page.height - 80;
+    doc.moveTo(50, footerY).lineTo(545, footerY).lineWidth(1).strokeColor('#e8edf5').stroke();
+    doc.fillColor('#64748b').fontSize(9).font('Helvetica')
+      .text('Thank you for your business!', 50, footerY + 10, { align: 'center', width: 495 })
+      .text(`${company.name}  |  ${company.email}  |  ${company.phone}`, 50, footerY + 24, { align: 'center', width: 495 });
+    doc.fillColor('#94a3b8').fontSize(8)
+      .text('Computer-generated invoice. No signature required.  |  Subject to Mumbai jurisdiction.', 50, footerY + 40, { align: 'center', width: 495 });
+
+    doc.end();
   });
 }
 
-// Helper to transform order data to invoice data
 export function transformOrderToInvoiceData(order: any): InvoiceData {
   const billingAddr = order.billingAddress || order.shippingAddress || {};
-  const customerName = billingAddr.company || 
-    `${billingAddr.firstName || ''} ${billingAddr.lastName || ''}`.trim() || 
+  const customerName = billingAddr.company ||
+    `${billingAddr.firstName || ''} ${billingAddr.lastName || ''}`.trim() ||
     order.email?.split('@')[0] || 'Customer';
-  
+
   const customerAddress = [
     billingAddr.address1,
     billingAddr.address2,
@@ -307,7 +209,6 @@ export function transformOrderToInvoiceData(order: any): InvoiceData {
   const discount = Number(order.discountAmount) || 0;
   const total = Number(order.total) || subtotal + tax - discount;
 
-  // Check for recurring items
   const recurringItems = (order.items || []).filter((item: any) => item.isRecurring);
   const hasRecurring = recurringItems.length > 0;
 
@@ -343,20 +244,4 @@ export function transformOrderToInvoiceData(order: any): InvoiceData {
       }))
     } : undefined
   };
-}
-
-export function createPdfBuffer(invoiceData: InvoiceData): Buffer {
-  const fonts = {
-    Roboto: {
-      normal: 'Helvetica',
-      bold: 'Helvetica-Bold',
-      italics: 'Helvetica-Oblique',
-      bolditalics: 'Helvetica-BoldOblique'
-    }
-  };
-  
-  const printer = new PdfPrinter(fonts);
-  const doc = createInvoiceDoc(invoiceData);
-  
-  return printer.createPdfKitDocument(doc);
 }
