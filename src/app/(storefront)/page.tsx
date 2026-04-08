@@ -27,7 +27,7 @@ export default async function HomePage() {
               <div className="max-w-2xl">
                 {/* Pill label */}
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-6">
-                  Choose. Click. Launch.
+                  Choose. Click. Subscribe.
                 </div>
                 
                 {/* Headline */}
@@ -37,7 +37,7 @@ export default async function HomePage() {
                 
                 {/* Subheading */}
                 <p className="mt-6 text-base md:text-lg text-gray-300 leading-relaxed max-w-xl">
-                  Get started with our cloud hosting solutions
+                  Get started with digital transformation solution
                 </p>
                 
                 {/* Buttons */}

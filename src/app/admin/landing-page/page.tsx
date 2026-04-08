@@ -103,7 +103,7 @@ interface LandingPageSettings {
 const defaultSettings: LandingPageSettings = {
   hero: {
     title: "Enterprise Solutions for Growing Business",
-    subtitle: "Choose. Click. Launch. - Get started with our cloud hosting solutions",
+    subtitle: "Choose. Click. Subscribe. - Get started with digital transformation solution",
     ctaText: "Explore Marketplace",
     ctaLink: "/products",
     backgroundImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80",
