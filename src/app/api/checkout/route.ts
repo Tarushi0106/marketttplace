@@ -189,6 +189,17 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
               );
             }
+            // Verify variant exists in database (not just in local array)
+            const dbVariant = await prisma.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { id: true }
+            });
+            if (!dbVariant) {
+              return NextResponse.json(
+                { error: `Variant no longer available: ${item.variantId}. Please refresh your cart.` },
+                { status: 400 }
+              );
+            }
             unitPrice = Number(variant.price);
             itemName = `${product.name} - ${variant.name}`;
             sku = variant.sku || product.sku || "";
