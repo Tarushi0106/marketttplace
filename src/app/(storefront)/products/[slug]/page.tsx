@@ -576,14 +576,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
                               <Icon className="h-5 w-5" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-gray-900 leading-snug">{feature}</span>
-                                <span className="text-[10px] font-bold text-[#8B1D1D] bg-red-50 rounded-full px-1.5 py-0.5 flex-shrink-0">
-                                  {String(index + 1).padStart(2, '0')}
-                                </span>
-                              </div>
-                            </div>
+                            <span className="text-sm font-semibold text-gray-900 leading-snug flex-1 min-w-0">{feature}</span>
                           </div>
                         );
                       })}

@@ -73,12 +73,7 @@ function FeatureItem({ title, description, icon, index }: FeatureItemProps) {
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-semibold text-gray-900 text-sm leading-snug">{title}</h4>
-          <span className="text-[10px] font-bold text-red-400 bg-red-50 rounded-full px-1.5 py-0.5 flex-shrink-0">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-        </div>
+        <h4 className="font-semibold text-gray-900 text-sm leading-snug mb-1">{title}</h4>
         <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
       </div>
     </div>
