@@ -148,6 +148,7 @@ export async function POST(request: NextRequest) {
       let unitPrice = 0;
       let itemName = "";
       let sku = "";
+      let validatedVariantId: string | undefined = undefined;
 
       if (item.productId) {
         console.log("Looking up product:", item.productId);
@@ -169,8 +170,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Validate variantId exists in DB if provided (prevents Prisma connect failure)
-        let validatedVariantId: string | undefined = undefined;
+        // Validate variantId exists in DB before connecting (scalar FK not allowed in nested create)
         if (item.variantId) {
           const dbVariant = await prisma.productVariant.findUnique({
             where: { id: item.variantId },
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
           });
           if (!dbVariant) {
             return NextResponse.json(
-              { error: `Variant no longer available. Please refresh your cart and try again.` },
+              { error: "Variant no longer available. Please refresh your cart and try again." },
               { status: 400 }
             );
           }
@@ -288,6 +288,7 @@ export async function POST(request: NextRequest) {
           recurringPrice: recurringAmount,
           setupFee: setupFee > 0 ? setupFee : undefined,
         });
+        }
       } else if (item.bundleId) {
         const bundle = await prisma.bundle.findUnique({
           where: { id: item.bundleId },
