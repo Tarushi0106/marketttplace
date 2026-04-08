@@ -187,7 +187,7 @@ export function VSAASConfigurator({
   showOnly
 }: VSAASConfiguratorProps) {
   const router = useRouter();
-  const { addItem: addToCart, setIsOpen: setCartOpen } = useCartStore();
+  const { addItem: addToCart } = useCartStore();
   const cartItems = useCartStore((state) => state.items);
 
   // Show warning popup when user tries to select AI features without Connect Cloud + Gateway in cart
@@ -815,7 +815,7 @@ export function VSAASConfigurator({
       } as any);
     }
 
-    setCartOpen(true);
+    router.push('/cart');
   };
 
   // ----------------------------------------
