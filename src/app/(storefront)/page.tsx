@@ -79,9 +79,14 @@ export default async function HomePage() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Left: Text */}
             <div className="text-white flex-1 min-w-0">
-              <div className="inline-flex items-center px-3 py-1 bg-red-600 rounded-full text-xs font-medium mb-3">
-                <Video className="w-3 h-3 mr-1.5" />
-                Full Video Surveillance Camera System
+              <div className="flex items-center gap-2 mb-3">
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-400 text-amber-900 rounded-full text-[11px] font-bold tracking-wide uppercase">
+                  <span>★</span> Premium Best Seller
+                </div>
+                <div className="inline-flex items-center px-3 py-1 bg-red-600 rounded-full text-xs font-medium">
+                  <Video className="w-3 h-3 mr-1.5" />
+                  Full Video Surveillance Camera System
+                </div>
               </div>
               <p className="text-slate-400 text-xs mb-3 tracking-wide uppercase font-medium">
                 VSaaS — <span className="text-slate-300">Video Surveillance as a Service</span>
