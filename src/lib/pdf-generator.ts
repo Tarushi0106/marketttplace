@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import { generateInvoiceNumber } from "./invoice";
 
 interface OrderItem {
@@ -725,12 +724,19 @@ function generateHTML(order: Order): string {
 export async function generateInvoicePDF(order: Order): Promise<Buffer> {
   const html = generateHTML(order);
   
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-
+  let browser;
   try {
+    const puppeteerModule = await import("puppeteer");
+    browser = await puppeteerModule.default.launch({
+      headless: true,
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ],
+    });
+
     const page = await browser.newPage();
     
     await page.setContent(html, {
@@ -749,8 +755,17 @@ export async function generateInvoicePDF(order: Order): Promise<Buffer> {
     });
 
     return Buffer.from(pdfBuffer);
+  } catch (puppeteerError) {
+    console.error("Puppeteer error:", puppeteerError);
+    throw new Error(`PDF generation failed: ${puppeteerError instanceof Error ? puppeteerError.message : 'Unknown error'}`);
   } finally {
-    await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error("Error closing browser:", closeError);
+      }
+    }
   }
 }
 
