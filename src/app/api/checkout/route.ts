@@ -176,20 +176,6 @@ export async function POST(request: NextRequest) {
           sku = product.sku || "";
           
           console.log("Using pre-calculated unitPrice:", unitPrice);
-          
-          // Validate variant exists in database if provided
-          if (item.variantId) {
-            const dbVariant = await prisma.productVariant.findUnique({
-              where: { id: item.variantId },
-              select: { id: true }
-            });
-            if (!dbVariant) {
-              return NextResponse.json(
-                { error: `Variant no longer available: ${item.variantId}. Please refresh your cart.` },
-                { status: 400 }
-              );
-            }
-          }
           // Note: setup fee is already included in unitPrice for recurring products
           // (productPrice from cart = oneTimeTotal which includes setupFee)
         } else {
@@ -198,25 +184,12 @@ export async function POST(request: NextRequest) {
           if (item.variantId) {
             const variant = product.variants.find((v) => v.id === item.variantId);
             if (!variant) {
-              return NextResponse.json(
-                { error: `Variant not found: ${item.variantId}` },
-                { status: 400 }
-              );
+              console.log("Variant not found in product variants, skipping variant");
+            } else {
+              unitPrice = Number(variant.price);
+              itemName = `${product.name} - ${variant.name}`;
+              sku = variant.sku || product.sku || "";
             }
-            // Verify variant exists in database (not just in local array)
-            const dbVariant = await prisma.productVariant.findUnique({
-              where: { id: item.variantId },
-              select: { id: true }
-            });
-            if (!dbVariant) {
-              return NextResponse.json(
-                { error: `Variant no longer available: ${item.variantId}. Please refresh your cart.` },
-                { status: 400 }
-              );
-            }
-            unitPrice = Number(variant.price);
-            itemName = `${product.name} - ${variant.name}`;
-            sku = variant.sku || product.sku || "";
           } else {
             unitPrice = Number(product.basePrice);
             itemName = product.name;
