@@ -37,6 +37,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Don't bundle these on the server — they need direct Node.js fs access
+  serverExternalPackages: ['pdfkit', '@prisma/client', 'prisma'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
