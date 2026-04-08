@@ -274,7 +274,6 @@ export async function POST(request: NextRequest) {
         
         orderItems.push({
           product: { connect: { id: product.id } },
-          variant: item.variantId ? { connect: { id: item.variantId } } : undefined,
           name: itemName,
           sku,
           quantity: item.quantity || 1,
