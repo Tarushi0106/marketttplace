@@ -38,6 +38,16 @@ import {
   CreditCard,
   HelpCircle,
   BookOpen,
+  Video,
+  HardDrive,
+  LayoutDashboard,
+  Monitor,
+  Globe as GlobeIcon,
+  Smartphone,
+  Activity,
+  BarChart3,
+  ScrollText,
+  Wifi,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -556,14 +566,25 @@ export default async function ProductDetailPage({ params }: Props) {
 
                   {features.length > 0 ? (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-[#8B1D1D]/30 hover:shadow-md transition-all group">
-                          <div className="w-10 h-10 rounded-xl bg-green-100 group-hover:bg-green-500 flex items-center justify-center flex-shrink-0 transition-colors">
-                            <Check className="h-5 w-5 text-green-600 group-hover:text-white transition-colors" />
+                      {features.map((feature, index) => {
+                        const icons = [Video, HardDrive, LayoutDashboard, Monitor, GlobeIcon, Smartphone, Activity, BarChart3, ScrollText, Wifi, Shield, Cloud, Database, Lock, Server];
+                        const Icon = icons[index % icons.length];
+                        return (
+                          <div key={index} className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#8B1D1D]/20 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300 p-5 flex gap-4 items-start">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-gray-900 leading-snug">{feature}</span>
+                                <span className="text-[10px] font-bold text-[#8B1D1D] bg-red-50 rounded-full px-1.5 py-0.5 flex-shrink-0">
+                                  {String(index + 1).padStart(2, '0')}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-gray-700 pt-2">{feature}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-16 text-gray-500">No features listed for this product.</div>
