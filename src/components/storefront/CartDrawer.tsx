@@ -198,44 +198,14 @@ export function CartDrawer() {
 
                         {/* Price and quantity */}
                         <div className="mt-auto flex items-center justify-between pt-2">
-                          <div className="flex items-center gap-1">
-                            {(item as any).quantityLocked ? (
-                              <span className="text-sm text-muted-foreground">
-                                Qty: <span className="font-medium text-foreground">{item.quantity}</span>
-                                {(item as any).cameraCount && (
-                                  <span className="text-xs text-muted-foreground ml-1">
-                                    ({(item as any).cameraCount} cam{(item as any).cameraCount > 1 ? 's' : ''})
-                                  </span>
-                                )}
+                          <span className="text-sm text-muted-foreground">
+                            Qty: <span className="font-medium text-foreground">{item.quantity ?? 1}</span>
+                            {(item as any).cameraCount && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                ({(item as any).cameraCount} cam{(item as any).cameraCount > 1 ? 's' : ''})
                               </span>
-                            ) : (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() =>
-                                    updateQuantity(item.id, (item.quantity ?? 1) - 1)
-                                  }
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
-                                <span className="w-8 text-center text-sm">
-                                  {item.quantity}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() =>
-                                    updateQuantity(item.id, (item.quantity ?? 1) + 1)
-                                  }
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </>
                             )}
-                          </div>
+                          </span>
                           <p className="font-medium">
                             {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
                               <>

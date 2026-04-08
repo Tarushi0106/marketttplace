@@ -263,38 +263,14 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Quantity */}
+                    {/* Quantity — read only, no +/- controls */}
                     <div className="mt-4 flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Qty:</span>
-                      {(item as any).quantityLocked ? (
-                        <>
-                          <span className="w-8 text-center font-medium">{item.quantity ?? 1}</span>
-                          {(item as any).cameraCount && (
-                            <span className="text-xs text-gray-400 ml-1">
-                              (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, (item.quantity ?? 1) - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center">{item.quantity ?? 1}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, (item.quantity ?? 1) + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </>
+                      <span className="font-medium text-sm">{item.quantity ?? 1}</span>
+                      {(item as any).cameraCount && (
+                        <span className="text-xs text-gray-400">
+                          (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
+                        </span>
                       )}
                     </div>
                   </div>

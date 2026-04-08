@@ -188,6 +188,20 @@ export function VSAASConfigurator({
 }: VSAASConfiguratorProps) {
   const router = useRouter();
   const { addItem: addToCart, setIsOpen: setCartOpen } = useCartStore();
+  const cartItems = useCartStore((state) => state.items);
+
+  // Show warning popup when user tries to select AI features without Connect Cloud + Gateway in cart
+  const [showAIPrereqPopup, setShowAIPrereqPopup] = useState(false);
+
+  const hasConnectCloud = cartItems?.some((item: any) => {
+    const n = (item.name || item.productName || '').toLowerCase();
+    return n.includes('connect') || n.includes('cloud') || n.includes('platform') || n.includes('licence') || n.includes('license') || n.includes('base');
+  });
+  const hasGateway = cartItems?.some((item: any) => {
+    const n = (item.name || item.productName || '').toLowerCase();
+    return n.includes('gateway') || n.includes('network') || n.includes('link') || n.includes('nld') || n.includes('device');
+  });
+  const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
 
   // ----------------------------------------
   // STATE: Deployment Type
@@ -221,7 +235,7 @@ export function VSAASConfigurator({
     mobile: 0,
   });
   const [selectedStorageAddonId, setSelectedStorageAddonId] = useState<string | null>(null);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('yearly');
   const [isLicenseDropdownOpen, setIsLicenseDropdownOpen] = useState(false);
   
   // Separate quantities for on-premise items (independent of cameraCount)
@@ -236,14 +250,16 @@ export function VSAASConfigurator({
 
   // Toggle AI feature selection (start with quantity 1)
   const toggleAIFeature = (featureName: string) => {
+    if (!hasAIPrereqs) {
+      setShowAIPrereqPopup(true);
+      return;
+    }
     setSelectedAIFeatures(prev => {
       if (prev[featureName]) {
-        // If already selected, deselect it
         const newState = { ...prev };
         delete newState[featureName];
         return newState;
       } else {
-        // If not selected, add with quantity 1
         return { ...prev, [featureName]: 1 };
       }
     });
@@ -441,9 +457,9 @@ export function VSAASConfigurator({
   const licenseQuantity = (licenseQuantities.core || 0) + (licenseQuantities.web || 0) + (licenseQuantities.mobile || 0);
 
   // DERIVED totals (single source of truth)
-  // 1 CC license per extra 8 cameras (first 8 cameras = 0 CC licenses)
-  const connectCloudUnitPrice = licensePricePerCamera * 8;
-  const baseLicenseTotal = connectCloudVariant ? connectCloudUnitPrice * connectCloudQuantity : 0;
+  // License is per camera
+  const connectCloudUnitPrice = licensePricePerCamera;
+  const baseLicenseTotal = connectCloudVariant ? connectCloudUnitPrice * cameraCount : 0;
   // Additional license types (Core, Web, Mobile) are per user
   const additionalLicenseTotal = licensePricePerCamera * licenseQuantity;
   const licenseTotal = baseLicenseTotal + additionalLicenseTotal;
@@ -815,6 +831,53 @@ export function VSAASConfigurator({
 
   return (
     <div className="max-w-7xl mx-auto">
+
+      {/* AI Prerequisite Warning Popup */}
+      {showAIPrereqPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6 text-[#DC2626]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Prerequisites Required</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  To make an impact with AI solutions, you also need to add the following to your cart first:
+                </p>
+                <ul className="mt-3 space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-gray-700">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasConnectCloud ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {hasConnectCloud
+                        ? <Check className="w-3 h-3 text-green-600" />
+                        : <span className="text-red-500 text-xs font-bold">!</span>}
+                    </div>
+                    <span className={hasConnectCloud ? 'line-through text-gray-400' : 'font-medium'}>Connect Cloud – Platform Fee (Base License)</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-gray-700">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasGateway ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {hasGateway
+                        ? <Check className="w-3 h-3 text-green-600" />
+                        : <span className="text-red-500 text-xs font-bold">!</span>}
+                    </div>
+                    <span className={hasGateway ? 'line-through text-gray-400' : 'font-medium'}>Cloud Gateway Link Device (Network Link Device)</span>
+                  </li>
+                </ul>
+                <p className="mt-4 text-xs text-gray-400">
+                  Please configure and add these under the Cloud tab before selecting AI features.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAIPrereqPopup(false)}
+              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Deployment Type Selector */}
       {(cloudProduct || onPremiseProduct || aiProduct) && (
         <div className="mb-8 flex justify-center">
@@ -882,30 +945,32 @@ export function VSAASConfigurator({
       {/* CAMERA COUNT QUESTION BOX (Cloud only)  */}
       {/* ======================================== */}
       {(deploymentType === 'cloud' || showOnly === 'cloud') && (
-        <div className="inline-flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-          <span className="text-sm font-medium text-gray-600 whitespace-nowrap">How many cameras?</span>
-          <div className="flex items-center rounded border border-gray-200 overflow-hidden">
-            <button
-              onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
-              disabled={cameraCount <= 1}
-              className="w-7 h-7 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-r border-gray-200"
-            >−</button>
-            <input
-              type="number"
-              min={1}
-              max={512}
-              value={cameraCount}
-              onChange={(e) => {
-                const v = parseInt(e.target.value, 10);
-                if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
-              }}
-              className="w-10 h-7 text-center text-sm font-semibold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <button
-              onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
-              disabled={cameraCount >= 512}
-              className="w-7 h-7 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-l border-gray-200"
-            >+</button>
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-5 py-3 shadow-sm">
+            <p className="text-sm font-semibold text-gray-700 whitespace-nowrap">How many cameras do you need VSaaS for?</p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
+                disabled={cameraCount <= 1}
+                className="w-7 h-7 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >−</button>
+              <input
+                type="number"
+                min={1}
+                max={512}
+                value={cameraCount}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
+                }}
+                className="w-12 h-7 text-center text-sm font-bold text-gray-900 border border-gray-200 rounded bg-white focus:outline-none focus:border-[#DC2626] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
+                disabled={cameraCount >= 512}
+                className="w-7 h-7 rounded border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >+</button>
+            </div>
           </div>
         </div>
       )}
@@ -984,43 +1049,115 @@ export function VSAASConfigurator({
 
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* Quantity Selector — steps by 1 CC license = 16 cameras */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
                         <button
-                          onClick={() => handleCameraCountChange(Math.max(1, (connectCloudQuantity - 2) * 8 + 1))}
-                          disabled={connectCloudQuantity <= 1}
+                          onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
+                          disabled={cameraCount <= 1}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          -
-                        </button>
+                        >-</button>
                         <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                          {connectCloudQuantity}
+                          {cameraCount}
                         </span>
                         <button
-                          onClick={() => handleCameraCountChange(connectCloudQuantity * 8 + 1)}
+                          onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
                           disabled={cameraCount >= 512}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          +
-                        </button>
+                        >+</button>
                       </div>
-                      <p className="text-[10px] text-gray-400 text-center leading-tight">
-                        1 per extra 8 cameras
-                      </p>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">per camera</p>
                     </div>
-
-                    {/* Unit Price */}
                     <div className="text-right min-w-[120px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(connectCloudUnitPrice)}{getBillingSuffix()}
+                        {formatPrice(connectCloudUnitPrice)}/camera{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
-                        {formatPrice(baseLicenseTotal)}
+                        {formatPrice(baseLicenseTotal)}{getBillingSuffix()}
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* ── Additional Licence ── */}
+                {deploymentType === 'cloud' && (
+                  <div className="mt-5 pt-5 border-t border-gray-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Additional Licence</h4>
+                      <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">Per User</span>
+                    </div>
+                    <div className="relative license-dropdown-container">
+                      <div className="border border-gray-200 rounded-lg bg-white">
+                        <button
+                          type="button"
+                          onClick={() => setIsLicenseDropdownOpen(!isLicenseDropdownOpen)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 text-gray-900 hover:bg-gray-50 rounded-lg"
+                        >
+                          <span className="text-sm">
+                            {Object.values(licenseQuantities).filter(q => q > 0).length > 0
+                              ? `${Object.values(licenseQuantities).filter(q => q > 0).length} license(s) selected`
+                              : 'Select licenses'}
+                          </span>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isLicenseDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isLicenseDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-auto">
+                            {LICENSE_OPTIONS.map((option) => (
+                              <div
+                                key={option.value}
+                                className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={licenseQuantities[option.value] > 0}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        handleLicenseQuantityChange(option.value, 1);
+                                      } else {
+                                        handleLicenseQuantityChange(option.value, 0);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-[#DC2626] border-gray-300 rounded focus:ring-[#DC2626]"
+                                  />
+                                  <span className="text-sm font-medium text-gray-900">{option.label}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1 rounded border border-gray-200 bg-white p-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleLicenseQuantityChange(option.value, Math.max(0, licenseQuantities[option.value] - 1))}
+                                      disabled={licenseQuantities[option.value] <= 0}
+                                      className="w-6 h-6 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+                                    >-</button>
+                                    <span className="w-6 text-center font-semibold text-gray-900 text-sm">{licenseQuantities[option.value]}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleLicenseQuantityChange(option.value, licenseQuantities[option.value] + 1)}
+                                      className="w-6 h-6 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 text-sm"
+                                    >+</button>
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-900 min-w-[80px] text-right">
+                                    {formatPrice(licensePricePerCamera * licenseQuantities[option.value])}{getBillingSuffix()}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {Object.values(licenseQuantities).some(q => q > 0) && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {LICENSE_OPTIONS.map((option) => licenseQuantities[option.value] > 0 && (
+                          <span key={option.value} className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs">
+                            <span className="font-medium">{option.label}</span>
+                            <span className="text-gray-500">×{licenseQuantities[option.value]}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1097,9 +1234,6 @@ export function VSAASConfigurator({
                           +
                         </button>
                       </div>
-                      <p className="text-[10px] text-gray-400 text-center leading-tight">
-                        {hardwareQuantity} device{hardwareQuantity > 1 ? 's' : ''} needed
-                      </p>
                     </div>
 
                     {/* Unit Price */}
@@ -1117,125 +1251,6 @@ export function VSAASConfigurator({
             </div>
           )}
 
-          {/* ======================================== */}
-          {/* SECTION 2: PLATFORM ADD-ONS - LICENSES */}
-          {/* ======================================== */}
-          {deploymentType === 'cloud' && (
-            <div className="border border-gray-200 rounded-lg bg-white">
-              {/* Section Header */}
-              <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                    PLATFORM Add-ons
-                  </h3>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                    Per User
-                  </span>
-                </div>
-              </div>
-              
-              {/* Section Content */}
-              <div className="p-5">
-                {/* Custom Dropdown with Checkboxes and Quantity Inside */}
-                <div className="relative license-dropdown-container">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LICENSES
-                  </label>
-                  <div className="border border-gray-200 rounded-lg bg-white">
-                    {/* Dropdown Trigger */}
-                    <button
-                      type="button"
-                      onClick={() => setIsLicenseDropdownOpen(!isLicenseDropdownOpen)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-gray-900 hover:bg-gray-50 rounded-lg"
-                    >
-                      <span className="text-sm">
-                        {Object.values(licenseQuantities).filter(q => q > 0).length > 0 
-                          ? `${Object.values(licenseQuantities).filter(q => q > 0).length} license(s) selected`
-                          : 'Select licenses'}
-                      </span>
-                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isLicenseDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {/* Dropdown Content */}
-                    {isLicenseDropdownOpen && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-auto">
-                        {LICENSE_OPTIONS.map((option) => (
-                          <div 
-                            key={option.value}
-                            className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
-                          >
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                checked={licenseQuantities[option.value] > 0}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    handleLicenseQuantityChange(option.value, 1);
-                                  } else {
-                                    handleLicenseQuantityChange(option.value, 0);
-                                  }
-                                }}
-                                className="w-4 h-4 text-[#DC2626] border-gray-300 rounded focus:ring-[#DC2626]"
-                              />
-                              <span className="text-sm font-medium text-gray-900">{option.label}</span>
-                            </div>
-                            
-                            {/* Quantity Controls Inside Dropdown */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 rounded border border-gray-200 bg-white p-0.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleLicenseQuantityChange(option.value, Math.max(0, licenseQuantities[option.value] - 1))}
-                                  disabled={licenseQuantities[option.value] <= 0}
-                                  className="w-6 h-6 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
-                                >
-                                  -
-                                </button>
-                                <span className="w-6 text-center font-semibold text-gray-900 text-sm">
-                                  {licenseQuantities[option.value]}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleLicenseQuantityChange(option.value, licenseQuantities[option.value] + 1)}
-                                  className="w-6 h-6 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 text-sm"
-                                >
-                                  +
-                                </button>
-                              </div>
-                              <span className="text-sm font-medium text-gray-900 min-w-[80px] text-right">
-                                {formatPrice(licensePricePerCamera * licenseQuantities[option.value])}{getBillingSuffix()}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Selected Summary Below Dropdown */}
-                {Object.values(licenseQuantities).some(q => q > 0) && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="text-xs text-gray-500 mb-2">Selected:</div>
-                    <div className="flex flex-wrap gap-2">
-                      {LICENSE_OPTIONS.map((option) => (
-                        licenseQuantities[option.value] > 0 && (
-                          <span 
-                            key={option.value}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs"
-                          >
-                            <span className="font-medium">{option.label}</span>
-                            <span className="text-gray-500">×{licenseQuantities[option.value]}</span>
-                          </span>
-                        )
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* ======================================== */}
           {/* SECTION 3: CLOUD STORAGE */}
@@ -1270,11 +1285,20 @@ export function VSAASConfigurator({
                         className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 focus:border-[#DC2626]"
                       >
                         <option value="">None</option>
-                        {storageAddons.map((addon) => (
-                          <option key={addon.id} value={addon.id}>
-                            {addon.name}
-                          </option>
-                        ))}
+                        {storageAddons.map((addon, idx) => {
+                          const labels = [
+                            '4 Days - Total 7 Days',
+                            '27 Days - Total 30 Days',
+                            '87 Days - Total 90 Days',
+                            '177 Days - Total 180 Days',
+                            '362 Days - Total 365 Days',
+                          ];
+                          return (
+                            <option key={addon.id} value={addon.id}>
+                              {labels[idx] ?? addon.name}
+                            </option>
+                          );
+                        })}
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     </div>
@@ -1282,12 +1306,6 @@ export function VSAASConfigurator({
                   
                   {/* Right: Price with Formula */}
                   <div className="flex items-center gap-6">
-                    {/* Formula Display */}
-                    {selectedStorageAddon && (
-                      <div className="text-sm text-gray-500">
-                        {formatPrice(storagePricePerCamera)} × {cameraCount} cameras{getBillingSuffix()}
-                      </div>
-                    )}
                     
                     {/* Total Price */}
                     <div className="text-right min-w-[100px]">
