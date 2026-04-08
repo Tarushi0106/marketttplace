@@ -882,36 +882,35 @@ export function VSAASConfigurator({
       {/* CAMERA COUNT QUESTION BOX (Cloud only)  */}
       {/* ======================================== */}
       {(deploymentType === 'cloud' || showOnly === 'cloud') && (
-        <div className="flex justify-start">
-          <div className="inline-flex items-center gap-4 bg-[#DC2626] rounded-lg px-5 py-3 shadow-sm">
-            <p className="text-sm font-semibold text-white whitespace-nowrap">
-              How many cameras do you need VSaaS for?
-            </p>
-            <div className="flex items-center gap-1.5 bg-white/10 rounded-md px-2 py-1">
-              <button
-                onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
-                disabled={cameraCount <= 1}
-                className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 flex items-center justify-center text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors leading-none"
-              >−</button>
-              <input
-                type="number"
-                min={1}
-                max={512}
-                value={cameraCount}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
-                }}
-                className="w-12 text-center text-sm font-bold text-white bg-transparent border-b border-white/50 focus:outline-none focus:border-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <button
-                onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
-                disabled={cameraCount >= 512}
-                className="w-6 h-6 rounded bg-white/20 hover:bg-white/30 flex items-center justify-center text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors leading-none"
-              >+</button>
-            </div>
-            <span className="text-xs font-medium text-white/70">cameras</span>
+        <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+          <div className="w-1 h-8 rounded-full bg-[#DC2626] flex-shrink-0" />
+          <p className="text-sm font-medium text-gray-700 flex-1">
+            How many cameras do you need VSaaS for?
+          </p>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => handleCameraCountChange(Math.max(1, cameraCount - 1))}
+              disabled={cameraCount <= 1}
+              className="w-7 h-7 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-base font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >−</button>
+            <input
+              type="number"
+              min={1}
+              max={512}
+              value={cameraCount}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
+              }}
+              className="w-12 h-7 text-center text-sm font-semibold text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:border-[#DC2626] focus:ring-1 focus:ring-[#DC2626]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button
+              onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
+              disabled={cameraCount >= 512}
+              className="w-7 h-7 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-base font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >+</button>
           </div>
+          <span className="text-xs text-gray-400 flex-shrink-0">cameras</span>
         </div>
       )}
 
