@@ -442,13 +442,6 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    {/* Recurring Amount - show total recurring with cycle */}
-                    {Number(item.recurringAmount) > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Recurring Amount</span>
-                        <span className="text-gray-500">{formatPrice(Number(item.recurringAmount))}/{item.billingCycle === 'MONTHLY' ? 'mo' : 'cycle'}</span>
-                      </div>
-                    )}
 
                     {/* Setup Fee */}
                     {Number(item.recurringData?.setupFee) > 0 && (
