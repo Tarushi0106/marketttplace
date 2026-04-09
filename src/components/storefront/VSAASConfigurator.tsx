@@ -188,20 +188,19 @@ export function VSAASConfigurator({
 }: VSAASConfiguratorProps) {
   const router = useRouter();
   const { addItem: addToCart } = useCartStore();
-  const sidebarItems = useCartStore((state) => state.sidebarItems);
-  const isCheckedOut = useCartStore((state) => state.isCheckedOut);
-  // Use current session items only (not persistent cart from previous orders)
-  const cartItems = isCheckedOut ? [] : sidebarItems;
+  // Use persistent cart items for prerequisite checks — user may have added
+  // Connect Cloud / Gateway in a previous step (they stay in cart across sessions)
+  const cartItems = useCartStore((state) => state.items);
 
   // Show warning popup when user tries to select AI features without Connect Cloud + Gateway in cart
   const [showAIPrereqPopup, setShowAIPrereqPopup] = useState(false);
 
   const hasConnectCloud = cartItems?.some((item: any) => {
-    const n = (item.name || item.productName || '').toLowerCase();
+    const n = (item.product?.name || item.bundle?.name || item.name || item.productName || '').toLowerCase();
     return n.includes('connect') || n.includes('cloud') || n.includes('platform') || n.includes('licence') || n.includes('license') || n.includes('base');
   });
   const hasGateway = cartItems?.some((item: any) => {
-    const n = (item.name || item.productName || '').toLowerCase();
+    const n = (item.product?.name || item.bundle?.name || item.name || item.productName || '').toLowerCase();
     return n.includes('gateway') || n.includes('network') || n.includes('link') || n.includes('nld') || n.includes('device');
   });
   const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
