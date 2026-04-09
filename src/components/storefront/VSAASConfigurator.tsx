@@ -817,7 +817,6 @@ export function VSAASConfigurator({
       } as any);
     }
 
-    setIsOpen(false); // close sidebar before navigating so it doesn't auto-open on return
     router.push('/cart');
   };
 
