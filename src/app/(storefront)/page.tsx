@@ -114,7 +114,7 @@ export default async function HomePage() {
                   <ArrowRight className="w-4 h-4 ml-1.5" />
                 </a>
                 <a
-                  href="/products/vsaas"
+                  href="/products/vsaas?tab=solutions"
                   className="inline-flex items-center px-5 py-2.5 border border-slate-600 text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-800 transition-all"
                 >
                   View Solutions

@@ -416,6 +416,16 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 Solutions
               </TabsTrigger>
               )}
+              {product.slug === 'vsaas' && (
+              <a
+                href="/Catalogues.zip"
+                download="Catalogues.zip"
+                className="inline-flex items-center h-14 px-6 border-b-2 border-transparent text-sm font-medium text-gray-600 hover:text-[#8B1D1D] hover:border-[#8B1D1D] transition-colors whitespace-nowrap"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Catalogues
+              </a>
+              )}
               {product.slug !== 'vsaas' && (
               <TabsTrigger
                 value="pricing"

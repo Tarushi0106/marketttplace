@@ -44,10 +44,10 @@ function HeroSection() {
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4">
               <Link 
-                href="/products/vsaas"
+                href="/products/vsaas?tab=solutions"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all hover:shadow-lg hover:shadow-red-600/25 hover:scale-105"
               >
-                View Products
+                View Solutions
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
