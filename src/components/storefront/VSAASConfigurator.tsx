@@ -220,6 +220,7 @@ export function VSAASConfigurator({
       const aiVariant = aiProduct?.variants?.find((v) => v.id === selectedVariantId);
       if (aiVariant) return 'ai';
     }
+    if (showOnly) return showOnly;
     return 'cloud';
   });
 
@@ -569,7 +570,7 @@ export function VSAASConfigurator({
     const effectiveAiBoxQty = deploymentType === 'onPremise' ? aiBoxQuantity : Math.ceil(cameraCount / 16);
     const effectiveAiLicenseQty = deploymentType === 'onPremise' ? aiLicenseQuantity : Math.ceil(cameraCount / 16);
 
-    if (connectCloudVariant) {
+    if (connectCloudVariant && deploymentType === 'cloud') {
       // Only add CC item when there are extra NLD devices needed (cameraCount > 8)
       // quantity = connectCloudQuantity so cart displays the derived count
       // recurringAmount = baseLicenseTotal (full total); getSubtotal treats quantityLocked items as pre-totalled
@@ -631,7 +632,7 @@ export function VSAASConfigurator({
       addToCart(gatewayItem as any);
     }
 
-    if (selectedStorageAddon) {
+    if (selectedStorageAddon && deploymentType === 'cloud') {
       // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
       const storageItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: selectedStorageAddon.name || currentProduct.name },

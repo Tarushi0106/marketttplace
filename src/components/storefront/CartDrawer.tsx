@@ -45,7 +45,7 @@ const getBillingCycleName = (cycle?: string): string => {
 };
 
 export function CartDrawer() {
-  const { sidebarItems, isOpen, setIsOpen, removeItem, discountAmount } = useCartStore();
+  const { sidebarItems, isOpen, setIsOpen, removeItem, discountAmount, clearSidebar } = useCartStore();
 
   if (!isOpen) return null;
 
@@ -208,7 +208,7 @@ export function CartDrawer() {
 
                 <div className="mt-4 space-y-2">
                   <Button asChild className="w-full" size="lg">
-                    <Link href="/cart" onClick={() => setIsOpen(false)}>
+                    <Link href="/cart" onClick={() => { clearSidebar(); }}>
                       Checkout
                     </Link>
                   </Button>
