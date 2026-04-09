@@ -278,7 +278,9 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
   ];
 
   const dbFeatures = (product.features as string[]) || [];
-  const features = dbFeatures.length > 0 ? dbFeatures : (product.slug === 'vsaas' ? VSAAS_FALLBACK_FEATURES : []);
+  // For VSaaS: always use hardcoded list so hosted and local stay in sync
+  // regardless of what the DB has stored
+  const features = product.slug === 'vsaas' ? VSAAS_FALLBACK_FEATURES : dbFeatures;
 
   const hasDiscount =
     product.compareAtPrice && Number(product.compareAtPrice) > Number(product.basePrice);
