@@ -264,7 +264,21 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
   const relatedProducts = await getRelatedProducts(product.categoryId, product.id);
 
-  const features = (product.features as string[]) || [];
+  const VSAAS_FALLBACK_FEATURES = [
+    "AI-Powered Analytics - Leverage AI to detect threats, analyze behavior, and generate real-time insights.",
+    "Cloud Video Storage - Securely store and access recordings on the cloud without local infrastructure.",
+    "Real-Time Monitoring - View live camera feeds and receive instant alerts on critical events.",
+    "Centralized Dashboard - Manage all cameras, sites, and users from a single unified platform.",
+    "Multi-Device Access - Access your surveillance system anytime via web or mobile devices.",
+    "ONVIF Camera Support - Seamlessly integrate with all ONVIF-compliant cameras across brands.",
+    "Plug & Play Deployment - Quick and hassle-free setup with minimal configuration required.",
+    "AI-Based Search - Find footage instantly using smart filters like face, object, or event.",
+    "Smart Alerts & Notifications - Get automated alerts via app, email, or SMS for any anomalies.",
+    "Scalable Architecture - Easily expand across locations without infrastructure limitations.",
+  ];
+
+  const dbFeatures = (product.features as string[]) || [];
+  const features = dbFeatures.length > 0 ? dbFeatures : (product.slug === 'vsaas' ? VSAAS_FALLBACK_FEATURES : []);
 
   const hasDiscount =
     product.compareAtPrice && Number(product.compareAtPrice) > Number(product.basePrice);
@@ -571,12 +585,18 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       {features.map((feature, index) => {
                         const icons = [Video, HardDrive, LayoutDashboard, Monitor, GlobeIcon, Smartphone, Activity, BarChart3, ScrollText, Wifi, Shield, Cloud, Database, Lock, Server];
                         const Icon = icons[index % icons.length];
+                        const dashIdx = feature.indexOf(' - ');
+                        const title = dashIdx !== -1 ? feature.slice(0, dashIdx) : feature;
+                        const desc = dashIdx !== -1 ? feature.slice(dashIdx + 3) : null;
                         return (
                           <div key={index} className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#8B1D1D]/20 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300 p-5 flex gap-4 items-start">
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
                               <Icon className="h-5 w-5" />
                             </div>
-                            <span className="text-sm font-semibold text-gray-900 leading-snug flex-1 min-w-0">{feature}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 leading-snug">{title}</p>
+                              {desc && <p className="text-xs text-gray-500 mt-1 leading-snug">{desc}</p>}
+                            </div>
                           </div>
                         );
                       })}
