@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
 import { Header } from "@/components/storefront/Header";
 import { SolutionsNavbar } from "@/components/storefront/SolutionsNavbar";
 import { Footer } from "@/components/storefront/Footer";
@@ -15,14 +14,6 @@ export default function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  // Close the cart drawer on every route change so it never auto-reopens
-  // with stale items when navigating back to a previously visited page
-  useEffect(() => {
-    useCartStore.setState({ isOpen: false });
-  }, [pathname]);
-
   // On bfcache restore (browser back/forward), check localStorage for isCheckedOut.
   // sidebarItems is not persisted, so bfcache can restore stale sidebar state.
   // If checkout happened, explicitly clear the sidebar in the live Zustand store.

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, Plus, Minus, ShoppingBag, Trash2, CreditCard } from "lucide-react";
+import { X, ShoppingBag, Trash2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -45,25 +45,23 @@ const getBillingCycleName = (cycle?: string): string => {
 };
 
 export function CartDrawer() {
-  const {
-    sidebarItems,
-    isCheckedOut,
-    isOpen,
-    setIsOpen,
-    removeItem,
-    updateQuantity,
-    getSubtotal,
-    getTax,
-    getTotal,
-    getSetupFeeTotal,
-    discountCode,
-    discountAmount,
-  } = useCartStore();
-
-  // If user has checked out, sidebar always appears empty (safety net for bfcache)
-  const items = isCheckedOut ? [] : sidebarItems;
+  const { sidebarItems, isOpen, setIsOpen, removeItem, discountAmount } = useCartStore();
 
   if (!isOpen) return null;
+
+  const items = sidebarItems;
+
+  // Compute totals from sidebar items only (not from the persistent full cart)
+  const subtotal = items.reduce((sum, item) => {
+    const qty = Number(item.quantity) || 1;
+    if (item.isRecurring && item.billingCycle !== "ONE_TIME") {
+      const amount = Number(item.recurringAmount) || 0;
+      return sum + (item.quantityLocked ? amount : amount * qty);
+    }
+    return sum + Number(item.productPrice ?? item.baseProductPrice ?? 0) * (item.quantityLocked ? 1 : qty);
+  }, 0);
+  const tax = subtotal * 0.18;
+  const total = Math.max(0, subtotal + tax - Number(discountAmount || 0));
 
   return (
     <>
@@ -195,22 +193,16 @@ export function CartDrawer() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatPrice(getSubtotal())}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
-                  {discountCode && (
-                    <div className="flex justify-between text-success">
-                      <span>Discount ({discountCode})</span>
-                      <span>-{formatPrice(discountAmount)}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tax</span>
-                    <span>{formatPrice(getTax())}</span>
+                    <span>{formatPrice(tax)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>{formatPrice(getTotal())}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
 

@@ -817,7 +817,6 @@ export function VSAASConfigurator({
       } as any);
     }
 
-    router.push('/cart');
   };
 
   // ----------------------------------------
