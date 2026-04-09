@@ -187,7 +187,7 @@ export function VSAASConfigurator({
   showOnly
 }: VSAASConfiguratorProps) {
   const router = useRouter();
-  const { addItem: addToCart } = useCartStore();
+  const { addItem: addToCart, setIsOpen } = useCartStore();
   // Use persistent cart items for prerequisite checks — user may have added
   // Connect Cloud / Gateway in a previous step (they stay in cart across sessions)
   const cartItems = useCartStore((state) => state.items);
@@ -817,6 +817,7 @@ export function VSAASConfigurator({
       } as any);
     }
 
+    setIsOpen(false); // close sidebar before navigating so it doesn't auto-open on return
     router.push('/cart');
   };
 
