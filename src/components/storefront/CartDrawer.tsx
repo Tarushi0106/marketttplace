@@ -46,7 +46,8 @@ const getBillingCycleName = (cycle?: string): string => {
 
 export function CartDrawer() {
   const {
-    sidebarItems: items,
+    sidebarItems,
+    isCheckedOut,
     isOpen,
     setIsOpen,
     removeItem,
@@ -58,6 +59,9 @@ export function CartDrawer() {
     discountCode,
     discountAmount,
   } = useCartStore();
+
+  // If user has checked out, sidebar always appears empty (safety net for bfcache)
+  const items = isCheckedOut ? [] : sidebarItems;
 
   if (!isOpen) return null;
 
@@ -149,37 +153,6 @@ export function CartDrawer() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-
-                        {/* Selected addons */}
-                        {item.selectedAddons && item.selectedAddons.length > 0 && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            + {item.selectedAddons.map((a) => a.addon?.name).join(", ")}
-                          </div>
-                        )}
-
-                        {/* Selected configs (flat format) */}
-                        {item.selectedConfigs && item.selectedConfigs.length > 0 && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {item.selectedConfigs.map((c) => `${c.configName}: ${c.value}`).join(", ")}
-                          </div>
-                        )}
-
-                        {/* Instance configurations */}
-                        {item.instances && item.instances.length > 0 && (
-                          <div className="mt-1 space-y-1">
-                            {item.instances.map((instance) => (
-                              <div key={instance.instanceId}>
-                                {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {instance.selectedConfigs.map((c) => 
-                                      `${c.configName}${c.price != null && c.price > 0 ? ` - ${formatPrice(c.price)}` : ''}`
-                                    ).join(", ")}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
 
                         {/* Billing cycle and setup fee for recurring items */}
                         {item.isRecurring && item.billingCycle && (
