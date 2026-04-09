@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Check, ShoppingCart, ChevronDown, Server, Shield, Database } from "lucide-react";
+import { Check, ShoppingCart, ChevronDown, Server, Shield, Database, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
@@ -204,6 +204,8 @@ export function VSAASConfigurator({
     return n.includes('gateway') || n.includes('network') || n.includes('link') || n.includes('nld') || n.includes('device');
   });
   const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
+
+  const [showCreditWarning, setShowCreditWarning] = useState(false);
 
   // ----------------------------------------
   // STATE: Deployment Type
@@ -539,6 +541,15 @@ export function VSAASConfigurator({
   const handleAddToCart = () => {
     if (!currentProduct) return;
 
+    // Block on-premise cart additions if no Credit Utilization items selected
+    if (deploymentType === 'onPremise') {
+      const hasCreditItems = Object.values(selectedAIFeatures).some((qty) => (qty as number) > 0);
+      if (!hasCreditItems) {
+        setShowCreditWarning(true);
+        return;
+      }
+    }
+
     // Setup fee for cloud deployment - varies by billing cycle
     const getSetupFeeForCycle = (cycle: BillingCycle): number => {
       const baseSetupFee = 9999;
@@ -786,37 +797,6 @@ export function VSAASConfigurator({
       addToCart(setupFeeItem as any);
     }
 
-    // Add cyber pack items unconditionally for on-premise
-    if (deploymentType === 'onPremise') {
-      addToCart({
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' },
-        variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' },
-        quantity: 1,
-        selectedAddons: [],
-        billingCycle: 'ONE_TIME',
-        isRecurring: false,
-        unitPrice: 644,
-        totalPrice: 644,
-        deploymentType: deploymentType,
-        baseProductPrice: 644,
-        productPrice: 644,
-      } as any);
-
-      addToCart({
-        product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' },
-        variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' },
-        quantity: 1,
-        selectedAddons: [],
-        billingCycle: 'ONE_TIME',
-        isRecurring: false,
-        unitPrice: 73600,
-        totalPrice: 73600,
-        deploymentType: deploymentType,
-        baseProductPrice: 73600,
-        productPrice: 73600,
-      } as any);
-    }
-
   };
 
   // ----------------------------------------
@@ -831,6 +811,7 @@ export function VSAASConfigurator({
   }
 
   return (
+    <>
     <div className="max-w-7xl mx-auto">
 
       {/* AI Prerequisite Warning Popup */}
@@ -930,10 +911,7 @@ export function VSAASConfigurator({
               >
                 <div className="text-center">
                   <div className={`font-semibold text-base ${deploymentType === 'ai' ? 'text-[#111827]' : 'text-gray-900'}`}>
-                    VSaaS AI Solutions
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    AI-powered video analytics
+                    VSaaS Credit Utilization
                   </div>
                 </div>
               </button>
@@ -1404,16 +1382,13 @@ export function VSAASConfigurator({
                   <div className="flex items-start justify-between">
                     {/* Left: Info */}
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">Stream OS [ 32 | 64 | 128 | 256 ]</h4>
-                      <p className="text-sm text-gray-500 mt-1 mb-3">
-                        {cameraCount} cameras
-                      </p>
+                      <h4 className="font-semibold text-gray-900">Stream OS [ 32GB | 64GB | 128GB | 256GB ]</h4>
                       
                       {/* Feature Bullets */}
                       <ul className="space-y-1 text-sm text-gray-600">
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
-                          Connects up to 32/64/128/256 channels
+                          Connects up to 32GB/64GB/128GB/256GB channels
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
@@ -1453,7 +1428,7 @@ export function VSAASConfigurator({
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
-                          Zygal Cyber+ Pack for 3 years included
+                          Cyber+ Pack for 3 years included
                         </li>
                       </ul>
                     </div>
@@ -1518,9 +1493,12 @@ export function VSAASConfigurator({
                     {/* Left: Info */}
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">AI-Box</h4>
-                      <p className="text-sm text-gray-500 mt-1 mb-3">
+                      <p className="text-sm text-gray-500 mt-1">
                         Enables on-prem AI Analytics
                       </p>
+                      <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
+                        16 credits
+                      </span>
                       
                       {/* Feature Bullets */}
                       <ul className="space-y-1 text-sm text-gray-600">
@@ -1534,7 +1512,7 @@ export function VSAASConfigurator({
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
-                          Zygal Cyber+ Pack for 3 years included
+                          Cyber+ Pack for 3 years included
                         </li>
                       </ul>
                     </div>
@@ -1599,9 +1577,12 @@ export function VSAASConfigurator({
                     {/* Left: Info */}
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">AI Licenses for on-prem AI-Box</h4>
-                      <p className="text-sm text-gray-500 mt-1 mb-3">
+                      <p className="text-sm text-gray-500 mt-1">
                         License which can be used to enable any AI alerts/analytics
                       </p>
+                      <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
+                        16 credits
+                      </span>
                       
                       {/* Feature Bullets */}
                       <ul className="space-y-1 text-sm text-gray-600">
@@ -1728,9 +1709,12 @@ export function VSAASConfigurator({
                       {/* Left: Info */}
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">Cyber + Pack (AI-Box & AI License)</h4>
-                        <p className="text-sm text-gray-500 mt-1 mb-3">
+                        <p className="text-sm text-gray-500 mt-1">
                           1 year Cyber Security Pack for AI-Box
                         </p>
+                        <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
+                          16 credits
+                        </span>
                         
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
@@ -1904,6 +1888,9 @@ export function VSAASConfigurator({
                               </label>
                               <div className="flex-1 min-w-0">
                                 <span className="text-sm font-medium text-gray-900 block">{feature.name}</span>
+                                <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
+                                  {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
+                                </span>
                               </div>
                             </div>
                             
@@ -2294,6 +2281,50 @@ export function VSAASConfigurator({
 
       </div>
     </div>
+
+    {/* Credit Utilization Warning Modal */}
+    {showCreditWarning && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Credit Utilization Required</h3>
+            </div>
+            <button
+              onClick={() => setShowCreditWarning(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            You must select at least one product from <span className="font-semibold text-gray-900">VSaaS Credit Utilization</span> before adding On-Premise items to your cart.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowCreditWarning(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C] text-white"
+              onClick={() => {
+                setShowCreditWarning(false);
+                setDeploymentType('ai');
+              }}
+            >
+              Go to Credit Utilization
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
