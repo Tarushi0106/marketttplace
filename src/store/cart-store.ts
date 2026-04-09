@@ -317,7 +317,7 @@ export const useCartStore = create<CartState>()(
 
       // Clear only the sidebar (called on checkout). Persistent cart items are preserved.
       clearSidebar: () => {
-        set({ sidebarItems: [], isCheckedOut: true });
+        set({ sidebarItems: [], isCheckedOut: true, isOpen: false });
       },
 
       // Sync sidebar from persistent cart (called when cart icon is clicked after checkout)

@@ -188,7 +188,10 @@ export function VSAASConfigurator({
 }: VSAASConfiguratorProps) {
   const router = useRouter();
   const { addItem: addToCart } = useCartStore();
-  const cartItems = useCartStore((state) => state.items);
+  const sidebarItems = useCartStore((state) => state.sidebarItems);
+  const isCheckedOut = useCartStore((state) => state.isCheckedOut);
+  // Use current session items only (not persistent cart from previous orders)
+  const cartItems = isCheckedOut ? [] : sidebarItems;
 
   // Show warning popup when user tries to select AI features without Connect Cloud + Gateway in cart
   const [showAIPrereqPopup, setShowAIPrereqPopup] = useState(false);

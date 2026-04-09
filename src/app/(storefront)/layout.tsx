@@ -23,7 +23,7 @@ export default function StorefrontLayout({
         try {
           const stored = JSON.parse(localStorage.getItem("naas-cart") || "{}");
           if (stored?.state?.isCheckedOut) {
-            useCartStore.setState({ sidebarItems: [] });
+            useCartStore.setState({ sidebarItems: [], isCheckedOut: true, isOpen: false });
           }
         } catch {}
       }
