@@ -250,7 +250,7 @@ export default function CartPage() {
                             {/* Instance addons */}
                             {instance.selectedAddons && instance.selectedAddons.length > 0 && (
                               <ul className="text-sm ml-2">
-                                {instance.selectedAddons.map((addon) => (
+                                {instance.selectedAddons.filter((addon) => addon.addon?.name).map((addon) => (
                                   <li key={addon.addon?.id} className="text-muted-foreground flex justify-between">
                                     <span>+ {addon.addon?.name}</span>
                                     <span>{formatPrice(addon.addon?.price || 0)}</span>
@@ -378,7 +378,7 @@ export default function CartPage() {
                             ))}
                             
                             {/* Addons */}
-                            {instance.selectedAddons?.map((addon) => (
+                            {instance.selectedAddons?.filter((addon) => addon.addon?.name).map((addon) => (
                               <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
                                 <span className="text-gray-500">+ {addon.addon?.name}</span>
                                 <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
@@ -405,7 +405,7 @@ export default function CartPage() {
                             ))}
                             
                             {/* Addons - these are one-time charges */}
-                            {instance.selectedAddons?.map((addon) => (
+                            {instance.selectedAddons?.filter((addon) => addon.addon?.name).map((addon) => (
                               <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
                                 <span className="text-gray-500">+ {addon.addon?.name}</span>
                                 <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
@@ -433,7 +433,7 @@ export default function CartPage() {
                     {/* Legacy flat addons */}
                     {item.selectedAddons && item.selectedAddons.length > 0 && !item.instances && (
                       <div className="ml-2">
-                        {item.selectedAddons.map((addon) => (
+                        {item.selectedAddons.filter((addon) => addon.addon?.name).map((addon) => (
                           <div key={addon.addon?.id} className="flex justify-between text-sm">
                             <span className="text-gray-600">+ {addon.addon?.name}</span>
                             <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>

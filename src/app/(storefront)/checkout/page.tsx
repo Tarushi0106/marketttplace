@@ -674,7 +674,7 @@ export default function CheckoutPage() {
                               ))}
                               
                               {/* Addons - these are one-time charges */}
-                              {instance.selectedAddons?.map((addon: any) => (
+                              {instance.selectedAddons?.filter((addon: any) => addon.addon?.name).map((addon: any) => (
                                 <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
                                   <span className="text-gray-500">+ {addon.addon?.name}</span>
                                   <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
@@ -706,7 +706,7 @@ export default function CheckoutPage() {
                       {/* Legacy flat addons */}
                       {item.selectedAddons && item.selectedAddons.length > 0 && !item.instances && (
                         <div className="ml-2">
-                          {item.selectedAddons.map((addon: any) => (
+                          {item.selectedAddons.filter((addon: any) => addon.addon?.name).map((addon: any) => (
                             <div key={addon.addon?.id} className="flex justify-between text-sm">
                               <span className="text-gray-600">+ {addon.addon?.name}</span>
                               <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
