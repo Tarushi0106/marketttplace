@@ -317,7 +317,7 @@ export function Header() {
 
               {/* Cart */}
               <button
-                onClick={() => { syncSidebarFromCart(); setIsOpen(true); }}
+                onClick={() => setIsOpen(true)}
                 className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
               >
                 <div className="relative">
