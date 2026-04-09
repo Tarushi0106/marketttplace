@@ -1072,18 +1072,23 @@ export function VSAASConfigurator({
                         {formatPrice(connectCloudUnitPrice)}/camera{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
-                        {formatPrice(baseLicenseTotal)}{getBillingSuffix()}
+                        {formatPrice(licenseTotal)}{getBillingSuffix()}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* ── Additional Licence ── */}
+                {/* ── Additional License ── */}
                 {deploymentType === 'cloud' && (
-                  <div className="mt-5 pt-5 border-t border-gray-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Additional Licence</h4>
-                      <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">Per User</span>
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-gray-900">Additional License</h4>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">Per User</span>
+                      </div>
+                      {additionalLicenseTotal > 0 && (
+                        <span className="text-sm font-bold text-gray-900">{formatPrice(additionalLicenseTotal)}{getBillingSuffix()}</span>
+                      )}
                     </div>
                     <div className="relative license-dropdown-container">
                       <div className="border border-gray-200 rounded-lg bg-white">
@@ -1095,7 +1100,7 @@ export function VSAASConfigurator({
                           <span className="text-sm">
                             {Object.values(licenseQuantities).filter(q => q > 0).length > 0
                               ? `${Object.values(licenseQuantities).filter(q => q > 0).length} license(s) selected`
-                              : 'Select licenses'}
+                              : 'Select License'}
                           </span>
                           <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isLicenseDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
