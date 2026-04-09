@@ -135,6 +135,7 @@ export function Header() {
   // Using the hook directly with selector for proper reactivity
   const items = useCartStore((state) => state.items);
   const setIsOpen = useCartStore((state) => state.setIsOpen);
+  const syncSidebarFromCart = useCartStore((state) => state.syncSidebarFromCart);
   const [mounted, setMounted] = useState(false);
   const [itemCount, setItemCount] = useState(0);
 
@@ -316,7 +317,7 @@ export function Header() {
 
               {/* Cart */}
               <button
-                onClick={() => setIsOpen(true)}
+                onClick={() => { syncSidebarFromCart(); setIsOpen(true); }}
                 className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
               >
                 <div className="relative">

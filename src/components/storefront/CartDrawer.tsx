@@ -46,7 +46,7 @@ const getBillingCycleName = (cycle?: string): string => {
 
 export function CartDrawer() {
   const {
-    items,
+    sidebarItems: items,
     isOpen,
     setIsOpen,
     removeItem,

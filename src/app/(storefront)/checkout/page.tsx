@@ -40,7 +40,7 @@ const countries = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { items, getSubtotal, getTax, getSetupFeeTotal, discountCode, clearCart } = useCartStore();
+  const { items, getSubtotal, getTax, getSetupFeeTotal, discountCode, clearSidebar } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
@@ -252,7 +252,7 @@ export default function CheckoutPage() {
                 razorpaySignature: response.razorpay_signature,
               }),
             });
-            clearCart();
+            clearSidebar();
             router.push(`/checkout/success?order=${data.data.order.id}`);
           },
           prefill: {

@@ -80,8 +80,12 @@ export interface CartItem {
 }
 
 interface CartState {
+  // Persistent cart data — survives checkout, shown on /cart page
   items: CartItem[];
+  // UI-only sidebar state — cleared on checkout, shown in CartDrawer
+  sidebarItems: CartItem[];
   isOpen: boolean;
+  isCheckedOut: boolean; // true after checkout; cleared when new item is added
   discountCode: string | null;
   discountAmount: number;
 
@@ -95,6 +99,8 @@ interface CartState {
     addons: { addon: ProductAddon; quantity: number }[]
   ) => void;
   clearCart: () => void;
+  clearSidebar: () => void;
+  syncSidebarFromCart: () => void;
   setIsOpen: (isOpen: boolean) => void;
   applyDiscount: (code: string, amount: number) => void;
   removeDiscount: () => void;
@@ -159,9 +165,11 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      sidebarItems: [],
       isOpen: false,
       discountCode: null,
       discountAmount: 0,
+      isCheckedOut: false,
 
       addItem: (item) => {
         try {
@@ -170,13 +178,13 @@ export const useCartStore = create<CartState>()(
             console.error("[Cart] Invalid cart item: no product or bundle");
             return;
           }
-          
+
           console.log("[Cart] Adding item to cart:", {
             productName: item.product?.name,
             hasInstances: !!item.instances,
             instancesCount: item.instances?.length,
           });
-          
+
           // Log instances if present
           if (item.instances) {
             item.instances.forEach((inst, idx) => {
@@ -187,80 +195,79 @@ export const useCartStore = create<CartState>()(
               });
             });
           }
-          
+
           const unitPrice = safeNumber(item.unitPrice);
           const id = calculateItemId(item);
-          const existingItemIndex = get().items.findIndex((i) => i.id === id);
 
           console.log("[Cart] Item ID:", id.substring(0, 80) + "...");
-          console.log("[Cart] Existing item index:", existingItemIndex);
 
-
-          // Log instances data for debugging
           if (item.instances) {
             console.log("[Cart] Instances data:", JSON.stringify(item.instances).substring(0, 500));
           }
-                    if (existingItemIndex > -1) {
-            // Check if billing cycle changed - update billing info instead of adding quantity
-            const existingItem = get().items[existingItemIndex];
-            const billingCycleChanged = existingItem.billingCycle !== item.billingCycle;
-            
-            if (billingCycleChanged) {
-              // Update billing cycle and pricing, preserve instances and configurations
-              const items = [...get().items];
-              items[existingItemIndex] = {
-                ...items[existingItemIndex],
-                ...item, // Preserve all new item data including instances
-                billingCycle: item.billingCycle,
-                isRecurring: item.isRecurring,
-                recurringData: item.recurringData,
-                unitPrice: unitPrice,
-                totalPrice: calculateItemTotal(item),
-              };
-              console.log("[Cart Debug] Updated existing item billing cycle:", item.billingCycle);
-              set({ items });
+
+          // Helper: add-or-update an item in a list
+          const applyToList = (list: CartItem[]): CartItem[] => {
+            const existingIndex = list.findIndex((i) => i.id === id);
+            if (existingIndex > -1) {
+              const existing = list[existingIndex];
+              const billingCycleChanged = existing.billingCycle !== item.billingCycle;
+              const updated = [...list];
+              if (billingCycleChanged) {
+                updated[existingIndex] = {
+                  ...existing,
+                  ...item,
+                  billingCycle: item.billingCycle,
+                  isRecurring: item.isRecurring,
+                  recurringData: item.recurringData,
+                  unitPrice,
+                  totalPrice: calculateItemTotal(item),
+                };
+              } else {
+                updated[existingIndex] = {
+                  ...existing,
+                  ...item,
+                  quantity: safeNumber(item.quantity),
+                  totalPrice: calculateItemTotal({ ...existing, ...item }),
+                };
+              }
+              return updated;
             } else {
-              // Same billing cycle - replace quantity with latest configured value
-              const items = [...get().items];
-              items[existingItemIndex] = {
-                ...items[existingItemIndex],
+              const newItem: CartItem = {
                 ...item,
                 quantity: safeNumber(item.quantity),
-                totalPrice: calculateItemTotal({
-                  ...items[existingItemIndex],
-                  ...item,
-                }),
+                unitPrice,
+                id,
+                totalPrice: unitPrice * safeNumber(item.quantity),
               };
-              console.log("[Cart Debug] Updated item quantity to:", item.quantity);
-              set({ items });
+              console.log("[Cart Debug] New cart item:", {
+                id: newItem.id?.substring(0, 50),
+                recurringData: newItem.recurringData,
+                totalPrice: newItem.totalPrice,
+              });
+              return [...list, newItem];
             }
-          } else {
-            // Add new item
-            const newItem: CartItem = {
-              ...item,
-              quantity: safeNumber(item.quantity),
-              unitPrice,
-              id,
-              // totalPrice is used for display only; the actual calculations use getTodayTotal() which adds setupFee separately
-              // For recurring items, unitPrice is the pricePerCycle (not including setupFee)
-              totalPrice: unitPrice * safeNumber(item.quantity),
-            };
-            console.log("[Cart Debug] New cart item created:", {
-              id: newItem.id?.substring(0, 50),
-              recurringData: newItem.recurringData,
-              totalPrice: newItem.totalPrice
-            });
-            set({ items: [...get().items, newItem] });
-          }
+          };
 
-          set({ isOpen: true });
+          // If coming back after checkout, reset isCheckedOut flag (new session starts)
+          const wasCheckedOut = get().isCheckedOut;
+
+          set({
+            items: applyToList(get().items),
+            // New session after checkout: start sidebar fresh with only this new item
+            sidebarItems: applyToList(wasCheckedOut ? [] : get().sidebarItems),
+            isCheckedOut: false,
+            isOpen: true,
+          });
         } catch (error) {
           console.error("Error adding item to cart:", error);
         }
       },
 
       removeItem: (id) => {
-        set({ items: get().items.filter((item) => item.id !== id) });
+        set({
+          items: get().items.filter((item) => item.id !== id),
+          sidebarItems: get().sidebarItems.filter((item) => item.id !== id),
+        });
       },
 
       updateQuantity: (id, quantity) => {
@@ -269,45 +276,53 @@ export const useCartStore = create<CartState>()(
           get().removeItem(id);
           return;
         }
-
-        const items = get().items.map((item) => {
-          if (item.id === id) {
-            const updatedItem = { ...item, quantity: qty };
-            return { ...updatedItem, totalPrice: calculateItemTotal(updatedItem) };
-          }
-          return item;
-        });
-        set({ items });
+        const updateList = (list: CartItem[]) =>
+          list.map((item) => {
+            if (item.id === id) {
+              const updated = { ...item, quantity: qty };
+              return { ...updated, totalPrice: calculateItemTotal(updated) };
+            }
+            return item;
+          });
+        set({ items: updateList(get().items), sidebarItems: updateList(get().sidebarItems) });
       },
 
       updateItem: (id, updates) => {
-        const items = get().items.map((item) => {
-          if (item.id === id) {
-            const updatedItem = { ...item, ...updates };
-            // Recalculate totalPrice with new values
-            const unitPrice = safeNumber(updatedItem.unitPrice);
-            const quantity = safeNumber(updatedItem.quantity);
-            const newTotalPrice = unitPrice * quantity;
-            return { ...updatedItem, totalPrice: newTotalPrice };
-          }
-          return item;
-        });
-        set({ items });
+        const updateList = (list: CartItem[]) =>
+          list.map((item) => {
+            if (item.id === id) {
+              const updated = { ...item, ...updates };
+              return { ...updated, totalPrice: safeNumber(updated.unitPrice) * safeNumber(updated.quantity) };
+            }
+            return item;
+          });
+        set({ items: updateList(get().items), sidebarItems: updateList(get().sidebarItems) });
       },
 
       updateAddons: (id, addons) => {
-        const items = get().items.map((item) => {
-          if (item.id === id) {
-            const updatedItem = { ...item, selectedAddons: addons };
-            return { ...updatedItem, totalPrice: calculateItemTotal(updatedItem) };
-          }
-          return item;
-        });
-        set({ items });
+        const updateList = (list: CartItem[]) =>
+          list.map((item) => {
+            if (item.id === id) {
+              const updated = { ...item, selectedAddons: addons };
+              return { ...updated, totalPrice: calculateItemTotal(updated) };
+            }
+            return item;
+          });
+        set({ items: updateList(get().items), sidebarItems: updateList(get().sidebarItems) });
       },
 
       clearCart: () => {
-        set({ items: [], discountCode: null, discountAmount: 0 });
+        set({ items: [], sidebarItems: [], discountCode: null, discountAmount: 0, isCheckedOut: false });
+      },
+
+      // Clear only the sidebar (called on checkout). Persistent cart items are preserved.
+      clearSidebar: () => {
+        set({ sidebarItems: [], isCheckedOut: true });
+      },
+
+      // Sync sidebar from persistent cart (called when cart icon is clicked after checkout)
+      syncSidebarFromCart: () => {
+        set({ sidebarItems: [...get().items], isCheckedOut: false });
       },
 
       setIsOpen: (isOpen) => {
@@ -469,6 +484,8 @@ export const useCartStore = create<CartState>()(
         items: state.items,
         discountCode: state.discountCode,
         discountAmount: state.discountAmount,
+        isCheckedOut: state.isCheckedOut,
+        // sidebarItems is intentionally NOT persisted — it is UI-only state
       }),
     }
   )

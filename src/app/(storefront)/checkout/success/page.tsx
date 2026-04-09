@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { formatCurrency } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
 
 interface OrderItem {
   id: string;
@@ -153,6 +154,7 @@ function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order");
   const sessionId = searchParams.get("session_id");
+  const clearSidebar = useCartStore((state) => state.clearSidebar);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -168,7 +170,16 @@ function CheckoutSuccessContent() {
       return;
     }
 
+    // Clear sidebar immediately on mount (normal navigation)
+    clearSidebar();
     fetchOrderAndInvoice();
+
+    // Also handle bfcache restore (browser back/forward button)
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) clearSidebar();
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
   }, [orderId, router]);
 
   const fetchOrderAndInvoice = async () => {
