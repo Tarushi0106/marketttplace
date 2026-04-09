@@ -169,16 +169,8 @@ export function CartDrawer() {
                           </div>
                         )}
 
-                        {/* Price and quantity */}
-                        <div className="mt-auto flex items-center justify-between pt-2">
-                          <span className="text-sm text-muted-foreground">
-                            Qty: <span className="font-medium text-foreground">{item.quantity ?? 1}</span>
-                            {(item as any).cameraCount && (
-                              <span className="text-xs text-muted-foreground ml-1">
-                                ({(item as any).cameraCount} cam{(item as any).cameraCount > 1 ? 's' : ''})
-                              </span>
-                            )}
-                          </span>
+                        {/* Price */}
+                        <div className="mt-auto flex items-center justify-end pt-2">
                           <p className="font-medium">
                             {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
                               <>
