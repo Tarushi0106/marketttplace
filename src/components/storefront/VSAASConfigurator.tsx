@@ -1218,36 +1218,22 @@ export function VSAASConfigurator({
 
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* Quantity Selector — shows cameraCount (matches cart) */}
+                    {/* Auto-calculated device count */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                        <button
-                          onClick={() => handleCameraCountChange(cameraCount - 1)}
-                          disabled={cameraCount <= 1}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          -
-                        </button>
-                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">
-                          {cameraCount}
-                        </span>
-                        <button
-                          onClick={() => handleCameraCountChange(cameraCount + 1)}
-                          disabled={cameraCount >= 512}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          +
-                        </button>
+                        <button disabled className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-300 cursor-not-allowed">-</button>
+                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
+                        <button disabled className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-300 cursor-not-allowed">+</button>
                       </div>
                     </div>
 
                     {/* Unit Price */}
                     <div className="text-right min-w-[100px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
+                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()} / device
                       </div>
                       <div className="text-lg font-bold text-gray-900">
-                        {formatPrice(gatewayTotal)}
+                        {formatPrice(gatewayTotal)}{getBillingSuffix()}
                       </div>
                     </div>
                   </div>
