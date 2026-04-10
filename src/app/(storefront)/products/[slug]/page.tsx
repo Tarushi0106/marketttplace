@@ -332,7 +332,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                   </>
                 )}
                 <ChevronRight className="h-4 w-4 text-gray-500" />
-                <span className="text-white truncate max-w-[200px]">{product.name}</span>
+                <span className="text-white truncate max-w-[200px]">{product.slug === 'vsaas' ? 'Video Surveillance as a Service (VSaaS)' : product.name}</span>
               </nav>
 
               <div className="flex items-start gap-4 mb-4">
@@ -349,12 +349,16 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       {product.productType.replace("_", " ")}
                     </Badge>
                   </div>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">{product.name}</h1>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                    {product.slug === 'vsaas' ? 'Video Surveillance as a Service (VSaaS)' : product.name}
+                  </h1>
                 </div>
               </div>
 
-              {product.shortDescription && (
-                <p className="text-gray-300 max-w-3xl mb-4 line-clamp-2">{product.shortDescription}</p>
+              {(product.slug === 'vsaas' || product.shortDescription) && (
+                <p className="text-gray-300 max-w-3xl mb-4 line-clamp-2">
+                  {product.slug === 'vsaas' ? 'Cloud video surveillance solution' : product.shortDescription}
+                </p>
               )}
 
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
