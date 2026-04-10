@@ -224,7 +224,7 @@ export function VSAASConfigurator({
     return 'cloud';
   });
 
-  const isOnPrem = isOnPrem || deploymentType === 'renewal';
+  const isOnPrem = deploymentType === 'onPremise' || deploymentType === 'renewal';
   const currentProduct = deploymentType === 'cloud' ? cloudProduct :
                         isOnPrem ? onPremiseProduct : aiProduct;
   const variants = currentProduct?.variants || [];
