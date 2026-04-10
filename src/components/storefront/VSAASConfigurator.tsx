@@ -899,9 +899,6 @@ export function VSAASConfigurator({
                   <div className={`font-semibold text-base ${deploymentType === 'onPremise' ? 'text-[#111827]' : 'text-gray-900'}`}>
                     VSaaS On-Premise
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Self-hosted video surveillance system
-                  </div>
                 </div>
               </button>
             )}
@@ -934,7 +931,7 @@ export function VSAASConfigurator({
               >
                 <div className="text-center">
                   <div className={`font-semibold text-base ${deploymentType === 'ai' ? 'text-[#111827]' : 'text-gray-900'}`}>
-                    VSaaS Credit Utilization
+                    VSaaS AI Features Credit Utilization
                   </div>
                 </div>
               </button>
@@ -1520,12 +1517,13 @@ export function VSAASConfigurator({
                       <p className="text-sm text-gray-500 mt-1">
                         Enables on-prem AI Analytics
                       </p>
-                      <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
-                        16 credits
-                      </span>
-                      
+
                       {/* Feature Bullets */}
                       <ul className="space-y-1 text-sm text-gray-600">
+                        <li className="flex items-center gap-2">
+                          <Check className="w-3 h-3 text-green-500" />
+                          Supports 16 credits per AI box
+                        </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
                           Enables on-prem AI Analytics
@@ -1600,19 +1598,16 @@ export function VSAASConfigurator({
                   <div className="flex items-start justify-between">
                     {/* Left: Info */}
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">AI Licenses for on-prem AI-Box</h4>
+                      <h4 className="font-semibold text-gray-900">Licenses</h4>
                       <p className="text-sm text-gray-500 mt-1">
                         License which can be used to enable any AI alerts/analytics
                       </p>
-                      <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
-                        16 credits
-                      </span>
-                      
+
                       {/* Feature Bullets */}
                       <ul className="space-y-1 text-sm text-gray-600">
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
-                          AI Licenses for on-prem AI-Box
+                          16 credits available
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-3 h-3 text-green-500" />
@@ -1684,8 +1679,11 @@ export function VSAASConfigurator({
                     <div className="flex items-start justify-between">
                       {/* Left: Info */}
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">Cyber + Pack (Stream OS)</h4>
-                        <p className="text-sm text-gray-500 mt-1 mb-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-gray-900">Cyber + Pack (Stream OS)</h4>
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">per camera</span>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-3">
                           1 year Cyber Security Pack for Stream
                         </p>
                         
@@ -1721,7 +1719,7 @@ export function VSAASConfigurator({
                       {/* Right: Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(644)} / 3 years
+                          {formatPrice(644)} / year
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(644)}
@@ -1734,15 +1732,16 @@ export function VSAASConfigurator({
                       {/* Left: Info */}
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">Cyber + Pack (AI-Box & AI License)</h4>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 mt-1 mb-3">
                           1 year Cyber Security Pack for AI-Box
                         </p>
-                        <span className="inline-block mt-1 mb-3 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full">
-                          16 credits
-                        </span>
-                        
+
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-3 h-3 text-green-500" />
+                            For your existing 16 credits refer VSaaS AI Features
+                          </li>
                           <li className="flex items-center gap-2">
                             <Check className="w-3 h-3 text-green-500" />
                             Latest Upgrades of AI Analytics
@@ -1781,7 +1780,7 @@ export function VSAASConfigurator({
                       {/* Right: Price */}
                       <div className="text-right min-w-[120px]">
                         <div className="text-xs text-gray-500">
-                          {formatPrice(73600)} / 3 years
+                          {formatPrice(73600)} / year
                         </div>
                         <div className="text-lg font-bold text-gray-900">
                           {formatPrice(73600 * Math.ceil(cameraCount / 16))}
@@ -2217,18 +2216,14 @@ export function VSAASConfigurator({
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (Stream OS)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for Stream</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(644)} / 3 yrs
-                          </div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)} / year</div>
                         </div>
                         <div className="flex justify-between items-start mt-2">
                           <div>
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (AI-Box & AI License)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for AI-Box</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(73600)} / 3 yrs
-                          </div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)} / year</div>
                         </div>
                       </div>
                     )}
@@ -2328,7 +2323,7 @@ export function VSAASConfigurator({
             </button>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed mb-6">
-            You must select at least one AI Analytic product from <span className="font-semibold text-gray-900">VSaaS Credit Utilization</span> before adding On-Premise items to your cart.
+            You must select at least one AI Analytic product from <span className="font-semibold text-gray-900">VSaaS AI Features Credit Utilization</span> before adding On-Premise items to your cart.
           </p>
           <div className="flex gap-3">
             <Button

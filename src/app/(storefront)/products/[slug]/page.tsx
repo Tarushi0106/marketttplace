@@ -375,9 +375,15 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
-                    <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
-                  </Button>
+                  {product.slug === 'vsaas' ? (
+                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                      <a href="/Catalogues.zip" download="Catalogues.zip"><Download className="h-4 w-4 mr-2" />Download Catalogue</a>
+                    </Button>
+                  ) : (
+                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                      <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
+                    </Button>
+                  )}
                   <Button size="lg" className="bg-transparent text-white hover:bg-white/10 rounded-lg h-12 px-8 border border-white/30 hover:border-white/50" asChild>
                     <Link href="/contact"><MessageCircle className="h-4 w-4 mr-2" />Contact Us</Link>
                   </Button>
@@ -415,16 +421,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 <Cloud className="h-4 w-4 mr-2" />
                 Solutions
               </TabsTrigger>
-              )}
-              {product.slug === 'vsaas' && (
-              <a
-                href="/Catalogues.zip"
-                download="Catalogues.zip"
-                className="inline-flex items-center h-14 px-6 border-b-2 border-transparent text-sm font-medium text-gray-600 hover:text-[#8B1D1D] hover:border-[#8B1D1D] transition-colors whitespace-nowrap"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download Catalogues
-              </a>
               )}
               {product.slug !== 'vsaas' && (
               <TabsTrigger
