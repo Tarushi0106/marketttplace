@@ -256,7 +256,7 @@ export function VSAASConfigurator({
 
   // Toggle AI feature selection (start with quantity 1)
   const toggleAIFeature = (featureName: string) => {
-    if (!hasAIPrereqs) {
+    if (deploymentType === 'cloud' && !hasAIPrereqs) {
       setShowAIPrereqPopup(true);
       return;
     }
@@ -273,6 +273,10 @@ export function VSAASConfigurator({
 
   // Increase/decrease AI feature quantity
   const updateAIFeatureQuantity = (featureName: string, delta: number) => {
+    if (delta > 0 && deploymentType === 'cloud' && !hasAIPrereqs) {
+      setShowAIPrereqPopup(true);
+      return;
+    }
     setSelectedAIFeatures(prev => {
       const currentQty = prev[featureName] || 0;
       const newQty = Math.max(0, currentQty + delta);
@@ -543,8 +547,8 @@ export function VSAASConfigurator({
   const handleAddToCart = () => {
     if (!currentProduct) return;
 
-    // Block on-premise cart additions if no Credit Utilization items selected
-    if (isOnPrem) {
+    // Block on-premise cart additions if AI-Box or AI Licenses selected but no Credit Utilization items chosen
+    if (isOnPrem && (aiBoxQuantity > 0 || aiLicenseQuantity > 0)) {
       const hasCreditItems = Object.values(selectedAIFeatures).some((qty) => (qty as number) > 0);
       if (!hasCreditItems) {
         setShowCreditWarning(true);
@@ -931,7 +935,9 @@ export function VSAASConfigurator({
               >
                 <div className="text-center">
                   <div className={`font-semibold text-base ${deploymentType === 'ai' ? 'text-[#111827]' : 'text-gray-900'}`}>
-                    VSaaS AI Features Credit Utilization
+                    {showOnly === 'cloud' || (!showOnly && deploymentType === 'cloud')
+                      ? 'VSaaS AI Features'
+                      : 'VSaaS AI Features Credit Utilization'}
                   </div>
                 </div>
               </button>
