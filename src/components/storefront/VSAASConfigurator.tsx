@@ -80,8 +80,8 @@ interface VSAASConfiguratorProps {
   onPremiseProduct?: Product;
   aiProduct?: Product;
   selectedVariantId?: string | null;
-  initialDeployment?: 'cloud' | 'onPremise' | 'ai';
-  showOnly?: 'cloud' | 'onPremise' | 'ai';
+  initialDeployment?: 'cloud' | 'onPremise' | 'ai' | 'renewal';
+  showOnly?: 'cloud' | 'onPremise' | 'ai' | 'renewal';
 }
 
 // AI Features data from vsaas-cloud-data.json
@@ -210,7 +210,7 @@ export function VSAASConfigurator({
   // ----------------------------------------
   // STATE: Deployment Type
   // ----------------------------------------
-  const [deploymentType, setDeploymentType] = useState<'cloud' | 'onPremise' | 'ai'>(() => {
+  const [deploymentType, setDeploymentType] = useState<'cloud' | 'onPremise' | 'ai' | 'renewal'>(() => {
     if (initialDeployment) return initialDeployment;
     if (selectedVariantId) {
       const cloudVariant = cloudProduct?.variants?.find((v) => v.id === selectedVariantId);
@@ -224,8 +224,9 @@ export function VSAASConfigurator({
     return 'cloud';
   });
 
-  const currentProduct = deploymentType === 'cloud' ? cloudProduct : 
-                        deploymentType === 'onPremise' ? onPremiseProduct : aiProduct;
+  const isOnPrem = isOnPrem || deploymentType === 'renewal';
+  const currentProduct = deploymentType === 'cloud' ? cloudProduct :
+                        isOnPrem ? onPremiseProduct : aiProduct;
   const variants = currentProduct?.variants || [];
   const addons = currentProduct?.addons || [];
 
@@ -472,11 +473,11 @@ export function VSAASConfigurator({
   const storageTotal = storagePricePerCamera * storageQuantity;
   
   // On-premise specific totals
-  const streamOSTotal = deploymentType === 'onPremise' ? streamOSPricePerCamera * streamOSQuantity : 0;
-  const aiBoxTotal = deploymentType === 'onPremise' ? aiBoxPricePerUnit * aiBoxQuantity : 0;
-  const aiLicenseTotal = deploymentType === 'onPremise' ? aiLicensePricePerUnit * aiLicenseQuantity : 0;
-  const cyberPackStreamTotal = deploymentType === 'onPremise' ? cyberPackStreamPrice : 0;
-  const cyberPackAITotal = deploymentType === 'onPremise' ? cyberPackAIPrice : 0;
+  const streamOSTotal = isOnPrem ? streamOSPricePerCamera * streamOSQuantity : 0;
+  const aiBoxTotal = isOnPrem ? aiBoxPricePerUnit * aiBoxQuantity : 0;
+  const aiLicenseTotal = isOnPrem ? aiLicensePricePerUnit * aiLicenseQuantity : 0;
+  const cyberPackStreamTotal = isOnPrem ? cyberPackStreamPrice : 0;
+  const cyberPackAITotal = isOnPrem ? cyberPackAIPrice : 0;
 
   const subtotal = licenseTotal + gatewayTotal + storageTotal + aiFeaturesTotal + streamOSTotal + aiBoxTotal + aiLicenseTotal + cyberPackStreamTotal + cyberPackAITotal;
   // Prices already include billing cycle discount, so no additional multiplier needed
@@ -491,7 +492,7 @@ export function VSAASConfigurator({
         case 'yearly': return Math.round(baseSetupFee * 3);
         default: return baseSetupFee;
       }
-    } else if (deploymentType === 'onPremise') {
+    } else if (isOnPrem) {
       return 46000;
     }
     return 0;
@@ -543,7 +544,7 @@ export function VSAASConfigurator({
     if (!currentProduct) return;
 
     // Block on-premise cart additions if no Credit Utilization items selected
-    if (deploymentType === 'onPremise') {
+    if (isOnPrem) {
       const hasCreditItems = Object.values(selectedAIFeatures).some((qty) => (qty as number) > 0);
       if (!hasCreditItems) {
         setShowCreditWarning(true);
@@ -566,9 +567,9 @@ export function VSAASConfigurator({
     const setupFee = deploymentType === 'cloud' ? getSetupFeeForCycle(billingCycle) : 0;
     
     // For on-premise, use separate quantities; for cloud, use cameraCount
-    const effectiveStreamOSQty = deploymentType === 'onPremise' ? streamOSQuantity : cameraCount;
-    const effectiveAiBoxQty = deploymentType === 'onPremise' ? aiBoxQuantity : Math.ceil(cameraCount / 16);
-    const effectiveAiLicenseQty = deploymentType === 'onPremise' ? aiLicenseQuantity : Math.ceil(cameraCount / 16);
+    const effectiveStreamOSQty = isOnPrem ? streamOSQuantity : cameraCount;
+    const effectiveAiBoxQty = isOnPrem ? aiBoxQuantity : Math.ceil(cameraCount / 16);
+    const effectiveAiLicenseQty = isOnPrem ? aiLicenseQuantity : Math.ceil(cameraCount / 16);
 
     if (connectCloudVariant && deploymentType === 'cloud') {
       // Only add CC item when there are extra NLD devices needed (cameraCount > 8)
@@ -660,7 +661,7 @@ export function VSAASConfigurator({
     }
 
     // Add Stream OS to cart (for on-premise)
-    if (deploymentType === 'onPremise' && effectiveStreamOSQty > 0) {
+    if (isOnPrem && effectiveStreamOSQty > 0) {
       const streamOSItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Stream OS' },
         variant: { id: streamOSVariant?.id ?? null, name: 'Stream OS' },
@@ -678,7 +679,7 @@ export function VSAASConfigurator({
     }
 
     // Add AI-Box to cart (for on-premise)
-    if (deploymentType === 'onPremise' && effectiveAiBoxQty > 0) {
+    if (isOnPrem && effectiveAiBoxQty > 0) {
       const aiBoxItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'AI-Box' },
         variant: { id: aiBoxVariant?.id ?? null, name: 'AI-Box' },
@@ -696,7 +697,7 @@ export function VSAASConfigurator({
     }
 
     // Add AI Licenses to cart (for on-premise)
-    if (deploymentType === 'onPremise' && effectiveAiLicenseQty > 0) {
+    if (isOnPrem && effectiveAiLicenseQty > 0) {
       const aiLicenseItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'AI Licenses' },
         variant: { id: aiLicenseVariant?.id ?? null, name: 'AI Licenses' },
@@ -743,7 +744,7 @@ export function VSAASConfigurator({
     }
 
     // Add AMC Cyber+ Pack (Stream OS) - charged once every 3 years
-    if (deploymentType === 'onPremise' && streamOSQuantity > 0) {
+    if (isOnPrem && streamOSQuantity > 0) {
       const cyberPackStreamItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' },
         variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' },
@@ -761,7 +762,7 @@ export function VSAASConfigurator({
     }
 
     // Add AMC Cyber+ Pack (AI-Box & AI License) - charged once every 3 years
-    if (deploymentType === 'onPremise' && aiBoxQuantity > 0) {
+    if (isOnPrem && aiBoxQuantity > 0) {
       const cyberPackAIItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' },
         variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' },
@@ -779,7 +780,7 @@ export function VSAASConfigurator({
     }
 
     // Add setup fee as a separate one-time item (cloud or on-premise)
-    const onPremSetupFee = deploymentType === 'onPremise' ? 46000 : 0;
+    const onPremSetupFee = isOnPrem ? 46000 : 0;
     const effectiveSetupFee = setupFee > 0 ? setupFee : onPremSetupFee;
     if (effectiveSetupFee > 0) {
       const setupFeeItem = {
@@ -885,17 +886,38 @@ export function VSAASConfigurator({
               </button>
             )}
 
-            {onPremiseProduct && (deploymentType === 'onPremise' || showOnly === 'onPremise') && (!showOnly || showOnly === 'onPremise') && (
+            {onPremiseProduct && (isOnPrem || showOnly === 'onPremise' || showOnly === 'renewal') && (!showOnly || showOnly === 'onPremise' || showOnly === 'renewal') && (
               <button
                 onClick={() => setDeploymentType('onPremise')}
-                className="flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm border-[#DC2626] bg-red-50"
+                className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
+                  deploymentType === 'onPremise'
+                    ? 'border-[#DC2626] bg-red-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
               >
                 <div className="text-center">
-                  <div className="font-semibold text-base text-[#111827]">
+                  <div className={`font-semibold text-base ${deploymentType === 'onPremise' ? 'text-[#111827]' : 'text-gray-900'}`}>
                     VSaaS On-Premise
                   </div>
                   <div className="text-sm text-gray-500 mt-1">
                     Self-hosted video surveillance system
+                  </div>
+                </div>
+              </button>
+            )}
+
+            {onPremiseProduct && (isOnPrem || showOnly === 'onPremise' || showOnly === 'renewal') && (!showOnly || showOnly === 'onPremise' || showOnly === 'renewal') && (
+              <button
+                onClick={() => setDeploymentType('renewal')}
+                className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
+                  deploymentType === 'renewal'
+                    ? 'border-[#DC2626] bg-red-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="text-center">
+                  <div className={`font-semibold text-base ${deploymentType === 'renewal' ? 'text-[#111827]' : 'text-gray-900'}`}>
+                    VSaaS On-Prem for Existing Customer Renewal
                   </div>
                 </div>
               </button>
@@ -1358,7 +1380,7 @@ export function VSAASConfigurator({
           {/* ======================================== */}
           {/* SECTION 5: ON-PREMISE DEVICES */}
           {/* ======================================== */}
-          {deploymentType === 'onPremise' && (
+          {isOnPrem && (
             <>
               {/* Stream OS Device */}
               <div className="border border-gray-200 rounded-lg bg-white">
@@ -2019,7 +2041,7 @@ export function VSAASConfigurator({
                 </div>
 
                 {/* Setup Fee */}
-                {(deploymentType === 'cloud' || deploymentType === 'onPremise') && (
+                {(deploymentType === 'cloud' || isOnPrem) && (
                   <div className="px-6 py-4 border-b border-gray-100">
                     <div className="flex justify-between items-center">
                       <div>
@@ -2050,7 +2072,7 @@ export function VSAASConfigurator({
                 {/* Selected Items */}
                 <div className="px-6 py-4 border-b border-gray-100">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Add {deploymentType === 'cloud' ? 'VSaaS on Cloud' : deploymentType === 'onPremise' ? 'VSaaS On-Premise' : 'VSaaS AI Solutions'}
+                    Add {deploymentType === 'cloud' ? 'VSaaS on Cloud' : deploymentType === 'renewal' ? 'VSaaS On-Prem Renewal' : isOnPrem ? 'VSaaS On-Premise' : 'VSaaS AI Solutions'}
                   </h4>
                   
                   <div className="space-y-3">
@@ -2070,7 +2092,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* Stream OS - On-Premise Only */}
-                    {deploymentType === 'onPremise' && streamOSQuantity > 0 && (
+                    {isOnPrem && streamOSQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Stream OS</div>
                         <div className="flex justify-between items-start">
@@ -2086,7 +2108,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* AI-Box - On-Premise Only */}
-                    {deploymentType === 'onPremise' && aiBoxQuantity > 0 && (
+                    {isOnPrem && aiBoxQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI-Box</div>
                         <div className="flex justify-between items-start">
@@ -2102,7 +2124,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* AI Licenses - On-Premise Only */}
-                    {deploymentType === 'onPremise' && aiLicenseQuantity > 0 && (
+                    {isOnPrem && aiLicenseQuantity > 0 && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI Licenses</div>
                         <div className="flex justify-between items-start">
@@ -2183,7 +2205,7 @@ export function VSAASConfigurator({
                     )}
                     
                     {/* Cyber + Pack (Stream OS) - On-Premise Only */}
-                    {deploymentType === 'onPremise' && (
+                    {isOnPrem && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Annual Maintenance</div>
                         <div className="flex justify-between items-start">
