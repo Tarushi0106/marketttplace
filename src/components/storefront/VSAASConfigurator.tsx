@@ -1382,6 +1382,7 @@ export function VSAASConfigurator({
           {/* ======================================== */}
           {isOnPrem && (
             <>
+              {deploymentType === 'onPremise' && <>
               {/* Stream OS Device */}
               <div className="border border-gray-200 rounded-lg bg-white">
                 {/* Section Header */}
@@ -1660,6 +1661,7 @@ export function VSAASConfigurator({
                 </div>
               </div>
 
+              </>}
               {/* Annual Maintenance Cost - Renewal tab only */}
               {deploymentType === 'renewal' && <div className="border border-gray-200 rounded-lg bg-white">
                 {/* Section Header */}
@@ -1790,6 +1792,7 @@ export function VSAASConfigurator({
                 </div>
               </div>}
 
+              {deploymentType === 'onPremise' && <>
               {/* One Time Setup & Implementation Cost */}
               <div className="border border-gray-200 rounded-lg bg-white">
                 {/* Section Header */}
@@ -1841,6 +1844,7 @@ export function VSAASConfigurator({
                   </div>
                 </div>
               </div>
+              </>}
             </>
           )}
 
@@ -2324,7 +2328,7 @@ export function VSAASConfigurator({
             </button>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed mb-6">
-            You must select at least one product from <span className="font-semibold text-gray-900">VSaaS Credit Utilization</span> before adding On-Premise items to your cart.
+            You must select at least one AI Analytic product from <span className="font-semibold text-gray-900">VSaaS Credit Utilization</span> before adding On-Premise items to your cart.
           </p>
           <div className="flex gap-3">
             <Button
