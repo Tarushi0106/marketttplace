@@ -1660,8 +1660,8 @@ export function VSAASConfigurator({
                 </div>
               </div>
 
-              {/* Annual Maintenance Cost */}
-              <div className="border border-gray-200 rounded-lg bg-white">
+              {/* Annual Maintenance Cost - Renewal tab only */}
+              {deploymentType === 'renewal' && <div className="border border-gray-200 rounded-lg bg-white">
                 {/* Section Header */}
                 <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
                   <div className="flex items-center gap-2">
@@ -1788,7 +1788,7 @@ export function VSAASConfigurator({
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>}
 
               {/* One Time Setup & Implementation Cost */}
               <div className="border border-gray-200 rounded-lg bg-white">
