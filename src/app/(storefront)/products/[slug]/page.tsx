@@ -355,10 +355,8 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 </div>
               </div>
 
-              {(product.slug === 'vsaas' || product.shortDescription) && (
-                <p className="text-gray-300 max-w-3xl mb-4 line-clamp-2">
-                  {product.slug === 'vsaas' ? 'Cloud video surveillance solution' : product.shortDescription}
-                </p>
+              {product.slug !== 'vsaas' && product.shortDescription && (
+                <p className="text-gray-300 max-w-3xl mb-4 line-clamp-2">{product.shortDescription}</p>
               )}
 
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
