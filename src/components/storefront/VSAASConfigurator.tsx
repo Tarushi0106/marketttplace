@@ -256,7 +256,7 @@ export function VSAASConfigurator({
 
   // Toggle AI feature selection (start with quantity 1)
   const toggleAIFeature = (featureName: string) => {
-    if (deploymentType === 'cloud' && !hasAIPrereqs) {
+    if (showOnly !== 'onPremise' && showOnly !== 'renewal' && !hasAIPrereqs) {
       setShowAIPrereqPopup(true);
       return;
     }
@@ -273,7 +273,7 @@ export function VSAASConfigurator({
 
   // Increase/decrease AI feature quantity
   const updateAIFeatureQuantity = (featureName: string, delta: number) => {
-    if (delta > 0 && deploymentType === 'cloud' && !hasAIPrereqs) {
+    if (delta > 0 && showOnly !== 'onPremise' && showOnly !== 'renewal' && !hasAIPrereqs) {
       setShowAIPrereqPopup(true);
       return;
     }
