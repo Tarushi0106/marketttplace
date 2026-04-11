@@ -741,6 +741,55 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
                   {/* Variants Pricing */}
                   {product.variants && product.variants.length > 0 ? (
+                    product.slug === 'tally-cloud-server' ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {product.variants.map((variant: any) => {
+                          const variantAttrs = variant.attributes as Record<string, string> || {};
+                          const billingType = variantAttrs.billingType || 'RECURRING';
+                          const isOneTime = billingType === 'ONE_TIME';
+                          const reservedKeys = ['billingType','setupFee','monthlyPrice','biMonthlyPrice','quarterlyPrice','fourMonthlyPrice','semiAnnualPrice','triAnnualPrice','yearlyPrice','biennialPrice','triennialPrice','monthlySetupFee','biMonthlySetupFee','quarterlySetupFee','fourMonthlySetupFee','semiAnnualSetupFee','triAnnualSetupFee','yearlySetupFee','biennialSetupFee','triennialSetupFee'];
+                          const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
+                          const displayPrice = isOneTime ? Number(variant.price || 0) : (variant.recurringPricesObj?.monthly || Number(variant.price || 0));
+                          return (
+                            <div
+                              key={variant.id}
+                              className={`group relative rounded-2xl border-2 overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-2xl hover:-translate-y-1 ${variant.isDefault ? 'border-[#8B1D1D] shadow-lg' : 'border-gray-200 hover:border-[#8B1D1D]'}`}
+                            >
+                              {variant.isDefault && (
+                                <div className="bg-[#8B1D1D] text-white text-center text-[10px] font-bold py-1 tracking-widest uppercase">Popular</div>
+                              )}
+                              {/* Default face */}
+                              <div className={`px-4 pt-5 pb-6 transition-all duration-300 group-hover:opacity-0 group-hover:h-0 group-hover:overflow-hidden group-hover:py-0 group-hover:px-0 ${variant.isDefault ? 'bg-[#8B1D1D]/5' : 'bg-white'}`}>
+                                <h3 className="text-sm font-bold text-gray-900 leading-snug mb-1">{variant.name}</h3>
+                                {variant.shortDescription && <p className="text-xs text-gray-500 mb-3 leading-snug">{variant.shortDescription}</p>}
+                                <div className={`text-2xl font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>
+                                  ₹{displayPrice.toLocaleString('en-IN')}
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">{isOneTime ? 'one-time' : '/month'}</div>
+                              </div>
+                              {/* Hover face */}
+                              <div className="absolute inset-0 bg-[#8B1D1D] text-white opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col px-4 py-4 overflow-auto">
+                                <h3 className="text-sm font-bold mb-1 leading-snug">{variant.name}</h3>
+                                <div className="text-lg font-extrabold mb-3">₹{displayPrice.toLocaleString('en-IN')}<span className="text-xs font-normal ml-1">{isOneTime ? 'one-time' : '/month'}</span></div>
+                                {allSpecs.length > 0 && (
+                                  <ul className="space-y-1 mb-3 flex-1">
+                                    {allSpecs.map(([key, value]) => (
+                                      <li key={key} className="flex items-start gap-1.5 text-xs">
+                                        <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/80" />
+                                        <span><span className="font-semibold">{key}:</span> {value}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                                <Link href={`/products/${product.slug}/configure?variant=${variant.id}`} className="mt-auto block text-center bg-white text-[#8B1D1D] text-xs font-bold py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                  Get Started →
+                                </Link>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
                     <div className="space-y-4">
                       {product.variants.map((variant: any) => {
                         const rp = variant.recurringPrices?.[0];
@@ -755,11 +804,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         const billingType = variantAttrs.billingType || 'RECURRING';
                         const isOneTime = billingType === 'ONE_TIME';
                         const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
-
-                        // Get the correct price based on billing type
-                        // If recurring, use monthly price from recurringPricesObj
-                        // If one-time, use variant.price
-                        const displayPrice = isOneTime 
+                        const displayPrice = isOneTime
                           ? (variant.price ? Number(variant.price) : 0)
                           : (variant.recurringPricesObj?.monthly || variant.price ? Number(variant.price) : 0);
 
@@ -772,15 +817,12 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 : "border-gray-200 hover:border-gray-300"
                             }`}
                           >
-                            {/* Most Popular Banner */}
                             {variant.isDefault && (
                               <div className="bg-[#8B1D1D] text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
                                 Most Popular Plan
                               </div>
                             )}
-
                             <div className="bg-white">
-                              {/* Plan Header Row */}
                               <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-4 border-b border-gray-100 ${variant.isDefault ? "bg-[#8B1D1D]/5" : "bg-gray-50"}`}>
                                 <div>
                                   <h3 className="text-xl font-bold text-gray-900">{variant.name}</h3>
@@ -792,19 +834,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                     </div>
                                     <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : '/month'}</div>
                                   </div>
-                                  <Button
-                                    size="lg"
-                                    className="h-12 px-8 font-semibold text-base whitespace-nowrap rounded-xl bg-[#8B1D1D] hover:bg-[#7A1919] text-white shadow-md"
-                                    asChild
-                                  >
+                                  <Button size="lg" className="h-12 px-8 font-semibold text-base whitespace-nowrap rounded-xl bg-[#8B1D1D] hover:bg-[#7A1919] text-white shadow-md" asChild>
                                     <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                                       Get Started <ArrowRight className="h-4 w-4 ml-2" />
                                     </Link>
                                   </Button>
                                 </div>
                               </div>
-
-                              {/* Specifications Grid */}
                               {allSpecs.length > 0 && (
                                 <div className="px-4 py-4 border-t border-gray-100">
                                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Specifications</p>
@@ -828,6 +864,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         );
                       })}
                     </div>
+                    )
                   ) : product.configs && product.configs.length > 0 ? (
                     <div className="space-y-6">
                       <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
