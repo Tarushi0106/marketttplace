@@ -742,65 +742,85 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                   {/* Variants Pricing */}
                   {product.variants && product.variants.length > 0 ? (
                     product.slug === 'tally-cloud-server' ? (
-                      <div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                          {product.variants.map((variant: any) => {
-                            const variantAttrs = variant.attributes as Record<string, string> || {};
-                            const billingType = variantAttrs.billingType || 'RECURRING';
-                            const isOneTime = billingType === 'ONE_TIME';
-                            const reservedKeys = ['billingType','setupFee','monthlyPrice','biMonthlyPrice','quarterlyPrice','fourMonthlyPrice','semiAnnualPrice','triAnnualPrice','yearlyPrice','biennialPrice','triennialPrice','monthlySetupFee','biMonthlySetupFee','quarterlySetupFee','fourMonthlySetupFee','semiAnnualSetupFee','triAnnualSetupFee','yearlySetupFee','biennialSetupFee','triennialSetupFee'];
-                            const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
-                            const displayPrice = isOneTime ? Number(variant.price || 0) : (variant.recurringPricesObj?.monthly || Number(variant.price || 0));
-                            const shortDesc = variant.shortDescription || '';
-                            const userMatch = shortDesc.match(/(\d+[-–]\d+|\d+)\s*[Uu]sers?/);
-                            const userRange = userMatch ? userMatch[0] : variant.name;
-                            const planSubtitle = shortDesc.replace(/^For\s+[\d\-–]+\s*[Uu]sers?\s*[-–]?\s*/i, '').trim();
-                            const vcpu = variantAttrs['vCPU'] || variantAttrs['vcpu'] || variantAttrs['CPU'] || '';
-                            const ram = variantAttrs['Memory'] || variantAttrs['RAM'] || variantAttrs['memory'] || '';
-                            const disk = variantAttrs['Disk Space'] || variantAttrs['Storage'] || variantAttrs['disk'] || '';
-                            return (
-                              <div
-                                key={variant.id}
-                                className={`group relative rounded-2xl border-2 transition-all duration-300 hover:shadow-xl cursor-pointer flex flex-col ${variant.isDefault ? 'border-[#8B1D1D] shadow-lg' : 'border-gray-200 hover:border-[#8B1D1D]'}`}
-                                style={{ zIndex: 1 }}
-                                onMouseEnter={e => (e.currentTarget.style.zIndex = '50')}
-                                onMouseLeave={e => (e.currentTarget.style.zIndex = '1')}
-                              >
-                                {variant.isDefault && (
-                                  <div className="bg-[#8B1D1D] text-white text-center text-[10px] font-bold py-1 tracking-widest uppercase rounded-t-2xl">Most Popular</div>
-                                )}
-                                {/* Tile face */}
-                                <div className={`flex flex-col flex-1 px-4 pt-4 pb-4 ${variant.isDefault ? 'bg-red-50/40' : 'bg-white'} rounded-2xl`}>
-                                  <div className={`text-[10px] font-bold uppercase tracking-wide mb-1 ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-400'}`}>{variant.name}</div>
-                                  <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-3">{userRange}</h3>
-                                  {vcpu && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>vCPU</span><span className="font-semibold text-gray-800">{vcpu}</span></div>}
-                                  {ram && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>RAM</span><span className="font-semibold text-gray-800">{ram}</span></div>}
-                                  {disk && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>Storage</span><span className="font-semibold text-gray-800">{disk}</span></div>}
-                                  <div className="mt-3">
-                                    <div className={`text-xl font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</div>
-                                    <div className="text-xs text-gray-400">{isOneTime ? 'one-time' : 'per month'}</div>
-                                  </div>
+                      <div className="space-y-3">
+                        {product.variants.map((variant: any) => {
+                          const variantAttrs = variant.attributes as Record<string, string> || {};
+                          const billingType = variantAttrs.billingType || 'RECURRING';
+                          const isOneTime = billingType === 'ONE_TIME';
+                          const reservedKeys = ['billingType','setupFee','monthlyPrice','biMonthlyPrice','quarterlyPrice','fourMonthlyPrice','semiAnnualPrice','triAnnualPrice','yearlyPrice','biennialPrice','triennialPrice','monthlySetupFee','biMonthlySetupFee','quarterlySetupFee','fourMonthlySetupFee','semiAnnualSetupFee','triAnnualSetupFee','yearlySetupFee','biennialSetupFee','triennialSetupFee','shortDesc','annualSavings','quarterlySavings','semiAnnualSavings','users','description','annualPrice'];
+                          const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
+                          const displayPrice = isOneTime ? Number(variant.price || 0) : (variant.recurringPricesObj?.monthly || Number(variant.price || 0));
+                          const shortDesc = (variantAttrs.shortDesc || variant.shortDescription || '').replace(/\*/g, '').trim();
+                          const userCount = variantAttrs.users || '';
+                          // Extract tagline only — strip leading "For X Users - " prefix so we don't repeat what's already shown
+                          const tagline = shortDesc.replace(/^For\s+[\d\-–]+\s*[Uu]sers?\s*[-–]?\s*/i, '').trim();
+                          return (
+                            <div
+                              key={variant.id}
+                              className={`rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-px ${
+                                variant.isDefault
+                                  ? 'shadow-lg ring-2 ring-[#8B1D1D]'
+                                  : 'shadow-sm border border-gray-200 hover:border-[#8B1D1D]/30'
+                              }`}
+                            >
+                              <div className="flex items-stretch bg-white">
+                                {/* Left: User count panel */}
+                                <div className={`flex flex-col items-center justify-center px-6 py-6 min-w-[110px] ${
+                                  variant.isDefault ? 'bg-[#8B1D1D] text-white' : 'bg-gray-50 text-gray-900'
+                                }`}>
+                                  {variant.isDefault && (
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-200 mb-2">Popular</span>
+                                  )}
+                                  <span className="text-3xl font-black leading-none">{userCount || '—'}</span>
+                                  <span className={`text-[10px] font-semibold uppercase tracking-widest mt-1.5 ${variant.isDefault ? 'text-red-200' : 'text-gray-400'}`}>Users</span>
                                 </div>
-                                {/* Dropdown on hover */}
-                                <div className="absolute top-full left-0 w-full mt-1 bg-[#8B1D1D] text-white rounded-2xl shadow-2xl px-4 py-4 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-all duration-200 translate-y-1 group-hover:translate-y-0">
-                                  <div className="font-bold text-sm mb-2">{userRange}</div>
-                                  <ul className="space-y-1.5 mb-4">
-                                    {allSpecs.map(([key, value]) => (
-                                      <li key={key} className="flex items-start gap-1.5 text-xs">
-                                        <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/70" />
-                                        <span><span className="font-semibold">{key}:</span> {value}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                  <Link href={`/products/${product.slug}/configure?variant=${variant.id}`} className="block text-center bg-white text-[#8B1D1D] text-xs font-bold py-2 rounded-xl hover:bg-gray-100 transition-colors">
+
+                                {/* Middle: Plan info + description + specs */}
+                                <div className="flex-1 px-6 py-5 border-l border-gray-100">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-bold text-gray-900 text-lg leading-tight">{variant.name}</h3>
+                                  </div>
+                                  {tagline && (
+                                    <p className="text-sm text-gray-500 leading-relaxed mb-3">{tagline}</p>
+                                  )}
+                                  {allSpecs.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {allSpecs.map(([key, value]) => (
+                                        <span key={key} className={`inline-flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 font-medium border ${
+                                          variant.isDefault
+                                            ? 'bg-red-50 text-[#8B1D1D] border-red-100'
+                                            : 'bg-gray-50 text-gray-700 border-gray-200'
+                                        }`}>
+                                          <span className="opacity-60">{key}</span>
+                                          <span className="font-bold">{String(value).replace(/\*/g, '').trim()}</span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Right: Price + CTA */}
+                                <div className={`flex flex-col items-end justify-center gap-4 px-6 py-5 border-l min-w-[190px] ${
+                                  variant.isDefault ? 'bg-red-50/40 border-[#8B1D1D]/10' : 'bg-gray-50/80 border-gray-100'
+                                }`}>
+                                  <div className="text-right">
+                                    <div className="flex items-baseline justify-end gap-1 whitespace-nowrap">
+                                      <span className={`text-3xl font-black tracking-tight ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</span>
+                                      <span className="text-sm text-gray-400 font-medium">{isOneTime ? '' : '/mo'}</span>
+                                    </div>
+                                    {!isOneTime && <p className="text-xs text-gray-400 mt-0.5">Billed monthly</p>}
+                                  </div>
+                                  <Link
+                                    href={`/products/${product.slug}/configure?variant=${variant.id}`}
+                                    className="w-full text-center text-sm font-bold px-5 py-2.5 rounded-xl transition-all bg-[#8B1D1D] hover:bg-[#C62828] text-white shadow-sm whitespace-nowrap"
+                                  >
                                     Get Started →
                                   </Link>
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                        <p className="text-xs text-gray-400 text-center pt-3">All plans · Managed Backup · Enterprise Firewall · 24×7 SysAdmin · SSL · SSD · Dedicated IP · India Cloud Mumbai · 99.95% SLA</p>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                     <div className="space-y-4">
