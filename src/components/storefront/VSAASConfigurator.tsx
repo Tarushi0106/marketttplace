@@ -206,6 +206,8 @@ export function VSAASConfigurator({
   const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
 
   const [showCreditWarning, setShowCreditWarning] = useState(false);
+  const [renewalStreamAdded, setRenewalStreamAdded] = useState(false);
+  const [renewalAIAdded, setRenewalAIAdded] = useState(false);
 
   // ----------------------------------------
   // STATE: Deployment Type
@@ -747,8 +749,8 @@ export function VSAASConfigurator({
       });
     }
 
-    // Add AMC Cyber+ Pack (Stream OS) - charged once every 3 years
-    if (isOnPrem && streamOSQuantity > 0) {
+    // Add AMC Cyber+ Pack (Stream OS) - charged once every 3 years (not renewal, added manually there)
+    if (deploymentType === 'onPremise' && streamOSQuantity > 0) {
       const cyberPackStreamItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' },
         variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' },
@@ -765,8 +767,8 @@ export function VSAASConfigurator({
       addToCart(cyberPackStreamItem as any);
     }
 
-    // Add AMC Cyber+ Pack (AI-Box & AI License) - charged once every 3 years
-    if (isOnPrem && aiBoxQuantity > 0) {
+    // Add AMC Cyber+ Pack (AI-Box & AI License) - charged once every 3 years (not renewal, added manually there)
+    if (deploymentType === 'onPremise' && aiBoxQuantity > 0) {
       const cyberPackAIItem = {
         product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' },
         variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' },
@@ -1689,9 +1691,10 @@ export function VSAASConfigurator({
                           <h4 className="font-semibold text-gray-900">Cyber + Pack (Stream OS)</h4>
                           <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">per camera</span>
                         </div>
-                        <p className="text-sm text-gray-500 mb-3">
+                        <p className="text-sm text-gray-500 mb-1">
                           1 year Cyber Security Pack for Stream
                         </p>
+                        <div className="text-xs text-gray-500 mb-3">{formatPrice(644)} / year</div>
                         
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
@@ -1722,14 +1725,20 @@ export function VSAASConfigurator({
                         </ul>
                       </div>
                       
-                      {/* Right: Price */}
-                      <div className="text-right min-w-[120px]">
-                        <div className="text-xs text-gray-500">
-                          {formatPrice(644)} / year
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {formatPrice(644)}
-                        </div>
+                      {/* Right: Add to Cart */}
+                      <div className="ml-4 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          className="bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs"
+                          onClick={() => {
+                            if (!currentProduct) return;
+                            addToCart({ product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' }, variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' }, quantity: 1, selectedAddons: [], billingCycle: 'ONE_TIME', isRecurring: false, unitPrice: 644, totalPrice: 644, deploymentType: deploymentType, baseProductPrice: 644, productPrice: 644 } as any);
+                            setRenewalStreamAdded(true);
+                          }}
+                        >
+                          <ShoppingCart className="w-3 h-3 mr-1" />
+                          Add to Cart
+                        </Button>
                       </div>
                     </div>
 
@@ -1738,9 +1747,10 @@ export function VSAASConfigurator({
                       {/* Left: Info */}
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-900">Cyber + Pack (AI-Box & AI License)</h4>
-                        <p className="text-sm text-gray-500 mt-1 mb-3">
+                        <p className="text-sm text-gray-500 mt-1 mb-1">
                           1 year Cyber Security Pack for AI-Box
                         </p>
+                        <div className="text-xs text-gray-500 mb-3">{formatPrice(73600)} / year</div>
 
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
@@ -1783,14 +1793,20 @@ export function VSAASConfigurator({
                         </ul>
                       </div>
                       
-                      {/* Right: Price */}
-                      <div className="text-right min-w-[120px]">
-                        <div className="text-xs text-gray-500">
-                          {formatPrice(73600)} / year
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {formatPrice(73600 * Math.ceil(cameraCount / 16))}
-                        </div>
+                      {/* Right: Add to Cart */}
+                      <div className="ml-4 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          className="bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs"
+                          onClick={() => {
+                            if (!currentProduct) return;
+                            addToCart({ product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' }, variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' }, quantity: 1, selectedAddons: [], billingCycle: 'ONE_TIME', isRecurring: false, unitPrice: 73600, totalPrice: 73600, deploymentType: deploymentType, baseProductPrice: 73600, productPrice: 73600 } as any);
+                            setRenewalAIAdded(true);
+                          }}
+                        >
+                          <ShoppingCart className="w-3 h-3 mr-1" />
+                          Add to Cart
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -2078,10 +2094,37 @@ export function VSAASConfigurator({
                   </div>
                 )}
 
+                {/* Renewal: show manually added cyber packs */}
+                {deploymentType === 'renewal' && (renewalStreamAdded || renewalAIAdded) && (
+                  <div className="px-6 py-4 border-b border-gray-100">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Added to Cart</h4>
+                    <div className="space-y-3">
+                      {renewalStreamAdded && (
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm">Cyber + Pack (Stream OS)</div>
+                            <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack</div>
+                          </div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)} / year</div>
+                        </div>
+                      )}
+                      {renewalAIAdded && (
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 text-sm">Cyber + Pack (AI-Box & AI License)</div>
+                            <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack</div>
+                          </div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)} / year</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Selected Items */}
-                <div className="px-6 py-4 border-b border-gray-100">
+                {deploymentType !== 'renewal' && <div className="px-6 py-4 border-b border-gray-100">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Add {deploymentType === 'cloud' ? 'VSaaS on Cloud' : deploymentType === 'renewal' ? 'VSaaS On-Prem Renewal' : isOnPrem ? 'VSaaS On-Premise' : 'VSaaS AI Solutions'}
+                    Add {deploymentType === 'cloud' ? 'VSaaS on Cloud' : isOnPrem ? 'VSaaS On-Premise' : 'VSaaS AI Solutions'}
                   </h4>
                   
                   <div className="space-y-3">
@@ -2213,8 +2256,8 @@ export function VSAASConfigurator({
                       </div>
                     )}
                     
-                    {/* Cyber + Pack (Stream OS) - On-Premise Only */}
-                    {isOnPrem && (
+                    {/* Cyber + Pack (Stream OS) - On-Premise Only (not renewal, added manually there) */}
+                    {deploymentType === 'onPremise' && (
                       <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
                         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Annual Maintenance</div>
                         <div className="flex justify-between items-start">
@@ -2272,7 +2315,7 @@ export function VSAASConfigurator({
                       </div>
                     )}
                   </div>
-                </div>
+                </div>}
 
                 {/* Total */}
                 <div className="px-6 py-4 bg-gray-50/50">
@@ -2280,7 +2323,9 @@ export function VSAASConfigurator({
                     <span className="text-base font-semibold text-gray-900">Total</span>
                     <div className="text-right">
                       <div className="text-xl font-bold text-gray-900">
-                        {formatPrice(total)}{getBillingSuffix()}
+                        {deploymentType === 'renewal'
+                          ? formatPrice((renewalStreamAdded ? 644 : 0) + (renewalAIAdded ? 73600 : 0))
+                          : formatPrice(total)}{deploymentType === 'renewal' ? ' / year' : getBillingSuffix()}
                       </div>
                     </div>
                   </div>
