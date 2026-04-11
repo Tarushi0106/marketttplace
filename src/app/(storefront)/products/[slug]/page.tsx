@@ -742,93 +742,69 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                   {/* Variants Pricing */}
                   {product.variants && product.variants.length > 0 ? (
                     product.slug === 'tally-cloud-server' ? (
-                      <div className="space-y-3">
-                        {/* Column headers */}
-                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-3 px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-200">
-                          <div>Plan</div>
-                          <div className="text-center">Users</div>
-                          <div className="text-center">vCPU</div>
-                          <div className="text-center">RAM</div>
-                          <div className="text-center">Storage</div>
-                          <div className="text-right">Price / mo</div>
-                          <div></div>
-                        </div>
-                        {product.variants.map((variant: any) => {
-                          const variantAttrs = variant.attributes as Record<string, string> || {};
-                          const billingType = variantAttrs.billingType || 'RECURRING';
-                          const isOneTime = billingType === 'ONE_TIME';
-                          const reservedKeys = ['billingType','setupFee','monthlyPrice','biMonthlyPrice','quarterlyPrice','fourMonthlyPrice','semiAnnualPrice','triAnnualPrice','yearlyPrice','biennialPrice','triennialPrice','monthlySetupFee','biMonthlySetupFee','quarterlySetupFee','fourMonthlySetupFee','semiAnnualSetupFee','triAnnualSetupFee','yearlySetupFee','biennialSetupFee','triennialSetupFee'];
-                          const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
-                          const displayPrice = isOneTime ? Number(variant.price || 0) : (variant.recurringPricesObj?.monthly || Number(variant.price || 0));
-                          // Extract user range from short description (e.g. "For 1-2 Users - Entry Level")
-                          const shortDesc = variant.shortDescription || '';
-                          const userMatch = shortDesc.match(/(\d+[-–]\d+|\d+)\s*[Uu]sers?/);
-                          const userRange = userMatch ? userMatch[0] : '—';
-                          const planSubtitle = shortDesc.replace(/^For\s+[\d\-–]+\s*[Uu]sers?\s*[-–]?\s*/i, '').trim();
-                          // Pull key specs from attributes
-                          const vcpu = variantAttrs['vCPU'] || variantAttrs['vcpu'] || variantAttrs['CPU'] || '—';
-                          const ram = variantAttrs['Memory'] || variantAttrs['RAM'] || variantAttrs['memory'] || '—';
-                          const disk = variantAttrs['Disk Space'] || variantAttrs['Storage'] || variantAttrs['disk'] || '—';
-                          const remainingSpecs = allSpecs.filter(([k]) => !['vCPU','vcpu','CPU','Memory','RAM','memory','Disk Space','Storage','disk','Server Type'].includes(k));
-                          return (
-                            <div
-                              key={variant.id}
-                              className={`group relative rounded-xl border transition-all duration-200 overflow-hidden ${variant.isDefault ? 'border-[#8B1D1D] shadow-md bg-[#8B1D1D]/3' : 'border-gray-200 bg-white hover:border-[#8B1D1D] hover:shadow-lg'}`}
-                            >
-                              {variant.isDefault && (
-                                <div className="absolute top-0 right-0 bg-[#8B1D1D] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-wider uppercase">Most Popular</div>
-                              )}
-                              {/* Main row */}
-                              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-3 items-center px-4 py-4">
-                                {/* Plan name + subtitle */}
-                                <div>
-                                  <div className="font-bold text-gray-900 text-sm">{variant.name}</div>
-                                  {planSubtitle && <div className="text-xs text-gray-400 mt-0.5">{planSubtitle}</div>}
-                                </div>
-                                {/* Users */}
-                                <div className="text-center">
-                                  <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">{userRange}</span>
-                                </div>
-                                {/* vCPU */}
-                                <div className="text-center text-sm font-semibold text-gray-700">{vcpu}</div>
-                                {/* RAM */}
-                                <div className="text-center text-sm font-semibold text-gray-700">{ram}</div>
-                                {/* Storage */}
-                                <div className="text-center text-sm font-semibold text-gray-700">{disk}</div>
-                                {/* Price */}
-                                <div className="text-right">
-                                  <div className={`text-base font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>
-                                    ₹{displayPrice.toLocaleString('en-IN')}
+                      <div>
+                        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                          {product.variants.map((variant: any) => {
+                            const variantAttrs = variant.attributes as Record<string, string> || {};
+                            const billingType = variantAttrs.billingType || 'RECURRING';
+                            const isOneTime = billingType === 'ONE_TIME';
+                            const reservedKeys = ['billingType','setupFee','monthlyPrice','biMonthlyPrice','quarterlyPrice','fourMonthlyPrice','semiAnnualPrice','triAnnualPrice','yearlyPrice','biennialPrice','triennialPrice','monthlySetupFee','biMonthlySetupFee','quarterlySetupFee','fourMonthlySetupFee','semiAnnualSetupFee','triAnnualSetupFee','yearlySetupFee','biennialSetupFee','triennialSetupFee'];
+                            const allSpecs = Object.entries(variantAttrs).filter(([key]) => !reservedKeys.includes(key));
+                            const displayPrice = isOneTime ? Number(variant.price || 0) : (variant.recurringPricesObj?.monthly || Number(variant.price || 0));
+                            const shortDesc = variant.shortDescription || '';
+                            const userMatch = shortDesc.match(/(\d+[-–]\d+|\d+)\s*[Uu]sers?/);
+                            const userRange = userMatch ? userMatch[0] : variant.name;
+                            const planSubtitle = shortDesc.replace(/^For\s+[\d\-–]+\s*[Uu]sers?\s*[-–]?\s*/i, '').trim();
+                            const vcpu = variantAttrs['vCPU'] || variantAttrs['vcpu'] || variantAttrs['CPU'] || '';
+                            const ram = variantAttrs['Memory'] || variantAttrs['RAM'] || variantAttrs['memory'] || '';
+                            const disk = variantAttrs['Disk Space'] || variantAttrs['Storage'] || variantAttrs['disk'] || '';
+                            return (
+                              <div
+                                key={variant.id}
+                                className={`group relative flex-shrink-0 w-52 snap-start rounded-2xl border-2 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer flex flex-col ${variant.isDefault ? 'border-[#8B1D1D] shadow-lg' : 'border-gray-200 hover:border-[#8B1D1D]'}`}
+                              >
+                                {variant.isDefault && (
+                                  <div className="bg-[#8B1D1D] text-white text-center text-[10px] font-bold py-1 tracking-widest uppercase">Most Popular</div>
+                                )}
+                                {/* Default state */}
+                                <div className={`flex flex-col flex-1 px-5 pt-5 pb-5 transition-all duration-300 group-hover:opacity-0 group-hover:invisible ${variant.isDefault ? 'bg-red-50/40' : 'bg-white'}`}>
+                                  <div className="mb-3">
+                                    <div className={`text-xs font-bold uppercase tracking-wide mb-1 ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-400'}`}>{variant.name}</div>
+                                    <h3 className="text-lg font-extrabold text-gray-900 leading-tight">{userRange}</h3>
+                                    {planSubtitle && <p className="text-xs text-gray-400 mt-1">{planSubtitle}</p>}
                                   </div>
-                                  <div className="text-xs text-gray-400">{isOneTime ? 'one-time' : '/mo'}</div>
+                                  <div className="mt-auto">
+                                    {vcpu && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>vCPU</span><span className="font-semibold text-gray-800">{vcpu}</span></div>}
+                                    {ram && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>RAM</span><span className="font-semibold text-gray-800">{ram}</span></div>}
+                                    {disk && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>Storage</span><span className="font-semibold text-gray-800">{disk}</span></div>}
+                                    <div className="mt-3">
+                                      <div className={`text-2xl font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</div>
+                                      <div className="text-xs text-gray-400">{isOneTime ? 'one-time' : 'per month'}</div>
+                                    </div>
+                                  </div>
                                 </div>
-                                {/* CTA */}
-                                <div>
-                                  <Link
-                                    href={`/products/${product.slug}/configure?variant=${variant.id}`}
-                                    className={`whitespace-nowrap text-xs font-bold px-4 py-2 rounded-lg transition-colors ${variant.isDefault ? 'bg-[#8B1D1D] text-white hover:bg-[#7A1919]' : 'bg-gray-100 text-gray-700 hover:bg-[#8B1D1D] hover:text-white'}`}
-                                  >
-                                    Get Started
+                                {/* Hover state */}
+                                <div className="absolute inset-0 bg-[#8B1D1D] text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex flex-col px-5 py-5">
+                                  <div className="text-xs font-bold uppercase tracking-wide text-white/60 mb-1">{variant.name}</div>
+                                  <h3 className="text-base font-extrabold leading-tight mb-1">{userRange}</h3>
+                                  <div className="text-xl font-extrabold mb-3">₹{displayPrice.toLocaleString('en-IN')}<span className="text-xs font-normal ml-1 text-white/70">{isOneTime ? 'one-time' : '/mo'}</span></div>
+                                  <ul className="space-y-1.5 flex-1 overflow-auto">
+                                    {allSpecs.map(([key, value]) => (
+                                      <li key={key} className="flex items-start gap-1.5 text-xs">
+                                        <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/70" />
+                                        <span><span className="font-semibold">{key}:</span> {value}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <Link href={`/products/${product.slug}/configure?variant=${variant.id}`} className="mt-4 block text-center bg-white text-[#8B1D1D] text-xs font-bold py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
+                                    Get Started →
                                   </Link>
                                 </div>
                               </div>
-                              {/* Hover expanded specs row */}
-                              {remainingSpecs.length > 0 && (
-                                <div className="max-h-0 overflow-hidden group-hover:max-h-24 transition-all duration-300 border-t border-gray-100 group-hover:border-gray-200 bg-gray-50">
-                                  <div className="px-4 py-3 flex flex-wrap gap-x-6 gap-y-1">
-                                    {remainingSpecs.map(([key, value]) => (
-                                      <span key={key} className="text-xs text-gray-500">
-                                        <span className="font-semibold text-gray-700">{key}:</span> {value}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                        {/* Footer note */}
-                        <p className="text-xs text-gray-400 text-center pt-2">All plans include managed backup, enterprise firewall, SysAdmin support, SSL, SSD storage & dedicated IP · India Cloud Mumbai · 99.95% SLA</p>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-gray-400 text-center pt-3">All plans · Managed Backup · Enterprise Firewall · 24×7 SysAdmin · SSL · SSD · Dedicated IP · India Cloud Mumbai · 99.95% SLA</p>
                       </div>
                     ) : (
                     <div className="space-y-4">
