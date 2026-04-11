@@ -482,7 +482,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <p className="text-sm text-gray-500">Deploy in minutes</p>
                     </div>
                   </div>
-                  {product.slug !== 'tally-cloud' && (
+                  {product.slug !== 'tally-cloud-server' && (
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
                       <Sparkles className="h-6 w-6 text-amber-600" />
@@ -509,9 +509,9 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     {/* Description */}
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-4">
-                        {product.slug === 'tally-cloud' ? 'About Tally on Cloud Server' : `About ${product.name}`}
+                        {product.slug === 'tally-cloud-server' ? 'About Tally on Cloud Server' : `About ${product.name}`}
                       </h3>
-                      {product.slug === 'tally-cloud' ? (
+                      {product.slug === 'tally-cloud-server' ? (
                         <div className="space-y-5">
                           <p className="text-gray-600 leading-relaxed">
                             Tally on Cloud Server enables you to access your Tally anytime, anywhere, on any device with secure, high-speed cloud infrastructure. It ensures seamless performance, real-time collaboration, and zero dependency on local systems—making your accounting smarter and more flexible.
