@@ -743,7 +743,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                   {product.variants && product.variants.length > 0 ? (
                     product.slug === 'tally-cloud-server' ? (
                       <div>
-                        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           {product.variants.map((variant: any) => {
                             const variantAttrs = variant.attributes as Record<string, string> || {};
                             const billingType = variantAttrs.billingType || 'RECURRING';
@@ -761,34 +761,30 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             return (
                               <div
                                 key={variant.id}
-                                className={`group relative flex-shrink-0 w-52 snap-start rounded-2xl border-2 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer flex flex-col ${variant.isDefault ? 'border-[#8B1D1D] shadow-lg' : 'border-gray-200 hover:border-[#8B1D1D]'}`}
+                                className={`group relative rounded-2xl border-2 transition-all duration-300 hover:shadow-xl cursor-pointer flex flex-col ${variant.isDefault ? 'border-[#8B1D1D] shadow-lg' : 'border-gray-200 hover:border-[#8B1D1D]'}`}
+                                style={{ zIndex: 1 }}
+                                onMouseEnter={e => (e.currentTarget.style.zIndex = '50')}
+                                onMouseLeave={e => (e.currentTarget.style.zIndex = '1')}
                               >
                                 {variant.isDefault && (
-                                  <div className="bg-[#8B1D1D] text-white text-center text-[10px] font-bold py-1 tracking-widest uppercase">Most Popular</div>
+                                  <div className="bg-[#8B1D1D] text-white text-center text-[10px] font-bold py-1 tracking-widest uppercase rounded-t-2xl">Most Popular</div>
                                 )}
-                                {/* Default state */}
-                                <div className={`flex flex-col flex-1 px-5 pt-5 pb-5 transition-all duration-300 group-hover:opacity-0 group-hover:invisible ${variant.isDefault ? 'bg-red-50/40' : 'bg-white'}`}>
-                                  <div className="mb-3">
-                                    <div className={`text-xs font-bold uppercase tracking-wide mb-1 ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-400'}`}>{variant.name}</div>
-                                    <h3 className="text-lg font-extrabold text-gray-900 leading-tight">{userRange}</h3>
-                                    {planSubtitle && <p className="text-xs text-gray-400 mt-1">{planSubtitle}</p>}
-                                  </div>
-                                  <div className="mt-auto">
-                                    {vcpu && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>vCPU</span><span className="font-semibold text-gray-800">{vcpu}</span></div>}
-                                    {ram && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>RAM</span><span className="font-semibold text-gray-800">{ram}</span></div>}
-                                    {disk && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>Storage</span><span className="font-semibold text-gray-800">{disk}</span></div>}
-                                    <div className="mt-3">
-                                      <div className={`text-2xl font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</div>
-                                      <div className="text-xs text-gray-400">{isOneTime ? 'one-time' : 'per month'}</div>
-                                    </div>
+                                {/* Tile face */}
+                                <div className={`flex flex-col flex-1 px-4 pt-4 pb-4 ${variant.isDefault ? 'bg-red-50/40' : 'bg-white'} rounded-2xl`}>
+                                  <div className={`text-[10px] font-bold uppercase tracking-wide mb-1 ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-400'}`}>{variant.name}</div>
+                                  <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-3">{userRange}</h3>
+                                  {vcpu && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>vCPU</span><span className="font-semibold text-gray-800">{vcpu}</span></div>}
+                                  {ram && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>RAM</span><span className="font-semibold text-gray-800">{ram}</span></div>}
+                                  {disk && <div className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-100"><span>Storage</span><span className="font-semibold text-gray-800">{disk}</span></div>}
+                                  <div className="mt-3">
+                                    <div className={`text-xl font-extrabold ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</div>
+                                    <div className="text-xs text-gray-400">{isOneTime ? 'one-time' : 'per month'}</div>
                                   </div>
                                 </div>
-                                {/* Hover state */}
-                                <div className="absolute inset-0 bg-[#8B1D1D] text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex flex-col px-5 py-5">
-                                  <div className="text-xs font-bold uppercase tracking-wide text-white/60 mb-1">{variant.name}</div>
-                                  <h3 className="text-base font-extrabold leading-tight mb-1">{userRange}</h3>
-                                  <div className="text-xl font-extrabold mb-3">₹{displayPrice.toLocaleString('en-IN')}<span className="text-xs font-normal ml-1 text-white/70">{isOneTime ? 'one-time' : '/mo'}</span></div>
-                                  <ul className="space-y-1.5 flex-1 overflow-auto">
+                                {/* Dropdown on hover */}
+                                <div className="absolute top-full left-0 w-full mt-1 bg-[#8B1D1D] text-white rounded-2xl shadow-2xl px-4 py-4 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                                  <div className="font-bold text-sm mb-2">{userRange}</div>
+                                  <ul className="space-y-1.5 mb-4">
                                     {allSpecs.map(([key, value]) => (
                                       <li key={key} className="flex items-start gap-1.5 text-xs">
                                         <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/70" />
@@ -796,7 +792,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                       </li>
                                     ))}
                                   </ul>
-                                  <Link href={`/products/${product.slug}/configure?variant=${variant.id}`} className="mt-4 block text-center bg-white text-[#8B1D1D] text-xs font-bold py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
+                                  <Link href={`/products/${product.slug}/configure?variant=${variant.id}`} className="block text-center bg-white text-[#8B1D1D] text-xs font-bold py-2 rounded-xl hover:bg-gray-100 transition-colors">
                                     Get Started →
                                   </Link>
                                 </div>
