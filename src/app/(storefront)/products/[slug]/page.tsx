@@ -482,6 +482,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <p className="text-sm text-gray-500">Deploy in minutes</p>
                     </div>
                   </div>
+                  {product.slug !== 'tally-cloud' && (
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
                       <Sparkles className="h-6 w-6 text-amber-600" />
@@ -491,6 +492,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <p className="text-sm text-gray-500">Advanced AI analytics</p>
                     </div>
                   </div>
+                  )}
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                       <Headphones className="h-6 w-6 text-purple-600" />
@@ -506,8 +508,34 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                   <div className="lg:col-span-2 space-y-10">
                     {/* Description */}
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">About {product.name}</h3>
-                      {product.slug === 'vsaas' ? (
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">
+                        {product.slug === 'tally-cloud' ? 'About Tally on Cloud Server' : `About ${product.name}`}
+                      </h3>
+                      {product.slug === 'tally-cloud' ? (
+                        <div className="space-y-5">
+                          <p className="text-gray-600 leading-relaxed">
+                            Tally on Cloud Server enables you to access your Tally anytime, anywhere, on any device with secure, high-speed cloud infrastructure. It ensures seamless performance, real-time collaboration, and zero dependency on local systems—making your accounting smarter and more flexible.
+                          </p>
+                          <div>
+                            <h4 className="text-base font-bold text-gray-900 mb-3">Benefits</h4>
+                            <ul className="space-y-2.5">
+                              {[
+                                { title: "Work from Anywhere", desc: "Access Tally on any device, anytime" },
+                                { title: "Cost Saving", desc: "No hardware or IT maintenance required" },
+                                { title: "High Speed Performance", desc: "Smooth and lag-free operations" },
+                                { title: "Data Security", desc: "Encrypted environment with regular backups" },
+                                { title: "Multi-User Access", desc: "Collaborate in real-time" },
+                                { title: "Scalable", desc: "Easily upgrade as your business grows" },
+                              ].map((item, i) => (
+                                <li key={i} className="flex items-start gap-2.5">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <span className="text-gray-600 text-sm"><span className="font-semibold text-gray-800">{item.title}</span> – {item.desc}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ) : product.slug === 'vsaas' ? (
                         <div className="space-y-5">
                           <p className="text-gray-600 leading-relaxed">
                             NetNxt VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
