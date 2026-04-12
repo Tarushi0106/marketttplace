@@ -1,66 +1,14 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { ChevronRight, ArrowLeft, Building2, Cloud, Shield, Server, Database, Lock, Globe } from "lucide-react";
-import Image from "next/image";
-import { ProductConfigurator } from "@/components/storefront/ProductConfigurator";
 import { TallyCloudConfigurator } from "@/components/storefront/TallyCloudConfigurator";
-
-// Render icon based on icon name
-function renderProductIcon(iconName?: string | null) {
-  const props = { size: 32, className: "text-[#C62828]" };
-
-  switch (iconName) {
-    case "Cloud":
-      return <Cloud {...props} />;
-    case "Shield":
-      return <Shield {...props} />;
-    case "Server":
-      return <Server {...props} />;
-    case "Database":
-      return <Database {...props} />;
-    case "Lock":
-      return <Lock {...props} />;
-    case "Globe":
-      return <Globe {...props} />;
-    default:
-      return <Cloud {...props} />;
-  }
-}
-
-// Type for recurring prices with per-billing-frequency setup fees
-interface RecurringPricesWithSetupFees {
-  monthlyPrice?: number;
-  monthlySetupFee?: number;
-  biMonthlyPrice?: number;
-  biMonthlySetupFee?: number;
-  fourMonthlyPrice?: number;
-  fourMonthlySetupFee?: number;
-  quarterlyPrice?: number;
-  quarterlySetupFee?: number;
-  triMonthlyPrice?: number;
-  triMonthlySetupFee?: number;
-  semiAnnualPrice?: number;
-  semiAnnualSetupFee?: number;
-  triAnnualPrice?: number;
-  triAnnualSetupFee?: number;
-  yearlyPrice?: number;
-  yearlySetupFee?: number;
-  biennialPrice?: number;
-  biennialSetupFee?: number;
-  triennialPrice?: number;
-  triennialSetupFee?: number;
-  monthlySavings?: number;
-  quarterlySavings?: number;
-  yearlySavings?: number;
-}
+import { AcronisOrderConfigurator } from "@/components/storefront/AcronisOrderConfigurator";
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ variant?: string }>;
+  searchParams: Promise<{ variant?: string; category?: string }>;
 }
 
 async function getProduct(slug: string) {
@@ -190,17 +138,87 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
   const { slug } = await params;
   const resolvedSearchParams = await searchParams;
   const selectedVariantId = resolvedSearchParams?.variant || null;
-  console.log("[ConfigurePage] Selected variant from URL:", selectedVariantId);
-  
+  const category = resolvedSearchParams?.category || null;
+
   const product = await getProduct(slug);
 
   if (!product) {
     notFound();
   }
 
+  // Category → variant name keyword mapping for Acronis
+  const ACRONIS_CATEGORY_KEYWORDS: Record<string, string> = {
+    workstation: 'workstation',
+    vm: '- vm',
+    server: '- server',
+    virtualhost: 'virtual host',
+    mailbox: 'mailbox',
+    mobile: 'mobile',
+    install: 'setup',
+    core: 'windows 2019',
+    storage: 'storage',
+  };
+
+  const ACRONIS_CATEGORY_LABELS: Record<string, string> = {
+    device: 'Per Device',
+    workstation: 'Workstation',
+    vm: 'Virtual Machine',
+    server: 'Physical Server',
+    virtualhost: 'Virtual Host',
+    mailbox: 'Office 365 Mailbox',
+    mobile: 'Mobile Device',
+    install: 'Setup / Install',
+    core: 'Windows License',
+    storage: 'Cloud Storage',
+  };
+
+  // For Acronis, render its own configurator
+  if (product.slug === 'acronis-backup-advanced-spla') {
+    const getVariantPrice = (v: any): number => {
+      if (Number(v.price) > 0) return Number(v.price);
+      const rp = v.recurringPrices?.[0] || v.recurringPricesObj;
+      if (!rp) return 0;
+      const name = (v.name || "").toLowerCase();
+      if (name.includes("3 year"))   return Number(rp.triennialPrice || rp.triennial) || 0;
+      if (name.includes("2 year"))   return Number(rp.biennialPrice  || rp.biennial)  || 0;
+      if (name.includes("1 year"))   return Number(rp.yearlyPrice    || rp.yearly)    || 0;
+      return Number(rp.monthlyPrice || rp.monthly) || 0;
+    };
+
+    // "device" = combined workstation + mobile
+    let acronisVariants: any[];
+    if (category === 'device') {
+      acronisVariants = product.variants
+        .filter((v: any) => v.name?.toLowerCase().includes('workstation') || v.name?.toLowerCase().includes('mobile'))
+        .map((v: any) => ({ id: v.id, name: v.name, price: getVariantPrice(v) }));
+    } else {
+      const keyword = category && ACRONIS_CATEGORY_KEYWORDS[category] ? ACRONIS_CATEGORY_KEYWORDS[category] : '';
+      acronisVariants = keyword
+        ? product.variants.filter((v: any) => v.name?.toLowerCase().includes(keyword)).map((v: any) => ({ id: v.id, name: v.name, price: getVariantPrice(v) }))
+        : product.variants.map((v: any) => ({ id: v.id, name: v.name, price: getVariantPrice(v) }));
+    }
+    const acronisAddons = product.addons.map((a: any) => ({ id: a.id, name: a.name, price: Number(a.price) || 0, unit: a.unit || undefined }));
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AcronisOrderConfigurator
+          productId={product.id}
+          productSlug={product.slug}
+          productName={product.name}
+          category={category || undefined}
+          categoryLabel={category ? (ACRONIS_CATEGORY_LABELS[category] || category) : 'All'}
+          variants={acronisVariants}
+          addons={acronisAddons}
+        />
+      </div>
+    );
+  }
+
+  // For all other products
+  const filteredAddons = product.addons;
+
   // Show modern configurator for all products with recurring pricing
   // Transform database addons to the format expected by TallyCloudConfigurator
-  const transformedAddons = product.addons.map(addon => ({
+  const transformedAddons = filteredAddons.map(addon => ({
     id: addon.id,
     name: addon.name,
     description: addon.description || undefined,
@@ -212,8 +230,13 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     options: addon.options as any || undefined,
   }));
 
+  // For Acronis, filter variants by the selected category
+  const filteredVariants = product.slug === 'acronis-backup-advanced-spla' && category && ACRONIS_CATEGORY_KEYWORDS[category]
+    ? product.variants.filter((v: any) => v.name.toLowerCase().includes(ACRONIS_CATEGORY_KEYWORDS[category]))
+    : product.variants;
+
   // Transform variants for the configurator
-  const transformedVariants = product.variants.map((variant: any) => ({
+  const transformedVariants = filteredVariants.map((variant: any) => ({
     id: variant.id,
     name: variant.name,
     price: Number(variant.price) || 0,

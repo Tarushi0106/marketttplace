@@ -59,6 +59,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { formatPrice } from "@/lib/utils";
+import { AcronisConfigurator } from "@/components/storefront/AcronisConfigurator";
 
 // Render icon based on icon name
 function renderIcon(iconName?: string | null) {
@@ -277,10 +278,27 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
     "Scalable Architecture - Easily expand across locations without infrastructure limitations.",
   ];
 
+  const ACRONIS_FEATURES = [
+    "Active Protection - Real-time AI-based ransomware and cryptojacking protection for all backed-up workloads.",
+    "Multi-Platform Support - Backup for Windows, macOS, Linux, VMware, Hyper-V, Office 365, and mobile devices.",
+    "Flexible Subscription Terms - Choose Monthly, 1 Year, 2 Year, or 3 Year licensing to match your budget.",
+    "Incremental & Differential Backup - Only changed data is backed up after the first full backup, saving time and storage.",
+    "Bare-Metal Recovery - Restore an entire system to the same or dissimilar hardware in minutes.",
+    "Cloud & Local Storage - Back up to Acronis Cloud, on-premise appliances, or both simultaneously.",
+    "Centralised Management Console - Monitor and manage all protected devices from a single web-based dashboard.",
+    "Automated Backup Scheduling - Set and forget — backups run automatically on your defined schedule.",
+    "Encryption & Compliance - AES-256 encryption in transit and at rest with compliance-ready audit logs.",
+    "Instant Restore - Mount backups as live virtual machines to minimise downtime during recovery.",
+    "Office 365 Backup - Full mailbox, OneDrive, SharePoint, and Teams backup with granular item recovery.",
+    "Mobile Device Backup - Protect Android and iOS device data including contacts, photos, and app data.",
+  ];
+
   const dbFeatures = (product.features as string[]) || [];
-  // For VSaaS: always use hardcoded list so hosted and local stay in sync
-  // regardless of what the DB has stored
-  const features = product.slug === 'vsaas' ? VSAAS_FALLBACK_FEATURES : dbFeatures;
+  const features = product.slug === 'vsaas'
+    ? VSAAS_FALLBACK_FEATURES
+    : product.slug === 'acronis-backup-advanced-spla'
+    ? ACRONIS_FEATURES
+    : dbFeatures;
 
   const hasDiscount =
     product.compareAtPrice && Number(product.compareAtPrice) > Number(product.basePrice);
@@ -564,6 +582,64 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
                           </p>
                         </div>
+                      ) : product.slug === 'acronis-backup-advanced-spla' ? (
+                        <div className="space-y-6">
+                          <p className="text-gray-600 leading-relaxed">
+                            XcellBackup powered by Acronis delivers enterprise-grade backup with Active Protection — safeguarding workstations, servers, virtual machines, Office 365 mailboxes, and mobile devices with flexible subscription terms.
+                          </p>
+
+                          {/* Subscription Licenses */}
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Subscription Licenses</h4>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              {[
+                                { label: "Workstations", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
+                                { label: "Virtual Machines", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
+                                { label: "Physical Servers", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
+                                { label: "Virtual Hosts", terms: "1 Year · 2 Year · 3 Year" },
+                                { label: "Office 365 Mailboxes", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
+                                { label: "Mobile Devices", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
+                              ].map((item, i) => (
+                                <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <div>
+                                    <div className="text-sm font-semibold text-gray-800">{item.label}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{item.terms}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Managed Services */}
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Managed Backup Services</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {["Cloud Storage", "Per Virtual Host", "Per Server / VM", "Per Workstation", "Per Office 365"].map((s, i) => (
+                                <span key={i} className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 rounded-full">{s}</span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Contract Terms */}
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Contract Terms</h4>
+                            <ul className="space-y-2">
+                              {[
+                                "Advance payment with one-time setup charges",
+                                "30 days advance termination notice required upon completion of subscription term",
+                                "Delivery within 2 working days from PO + advance payment receipt",
+                                "Overage billing charged as actuals",
+                                "18% GST applicable · No TDS to be deducted on software licenses",
+                              ].map((term, i) => (
+                                <li key={i} className="flex items-start gap-2.5 text-sm text-gray-600">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                                  {term}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       ) : product.description ? (
                         <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
                       ) : (
@@ -739,8 +815,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     </p>
                   </div>
 
+                  {/* Acronis custom configurator */}
+                  {product.slug === 'acronis-backup-advanced-spla' && (
+                    <AcronisConfigurator productSlug={product.slug} />
+                  )}
+
                   {/* Variants Pricing */}
-                  {product.variants && product.variants.length > 0 ? (
+                  {product.slug !== 'acronis-backup-advanced-spla' && product.variants && product.variants.length > 0 ? (
                     product.slug === 'tally-cloud-server' ? (
                       <div className="space-y-3">
                         {product.variants.map((variant: any) => {
@@ -948,6 +1029,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       ))}
                     </div>
                   ) : (
+                    product.slug !== 'acronis-backup-advanced-spla' ? (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
                       <p className="text-2xl font-semibold text-white mb-2">{formatPrice(startingPrice)}</p>
                       <p className="text-gray-400 mb-8">Simple, straightforward pricing</p>
@@ -955,6 +1037,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         <Link href="/contact"><MessageCircle className="h-5 w-5 mr-2" /> Contact Us</Link>
                       </Button>
                     </div>
+                    ) : null
                   )}
 
                   {/* Add-ons */}
@@ -1169,37 +1252,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
         </div>
       </div>
 
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <section className="bg-gray-50 py-16">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
-              <Link href="/products" className="text-[#8B1D1D] font-medium flex items-center gap-1 hover:gap-2 transition-all">
-                View all <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((related: any) => (
-                <Link key={related.id} href={`/products/${related.slug}`} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all">
-                  <div className="aspect-square bg-gray-50 relative">
-                    {related.images[0]?.url ? (
-                      <Image src={related.images[0].url} alt={related.name} fill className="object-contain p-6 group-hover:scale-105 transition-transform" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center"><Building2 className="h-16 w-16 text-gray-300" /></div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <p className="text-sm text-gray-500 mb-1">{related.category?.name}</p>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-2">{related.name}</h3>
-                    <p className="text-lg font-bold text-gray-900">{formatPrice(Number(related.basePrice))}<span className="text-sm font-normal text-gray-500">/mo</span></p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
