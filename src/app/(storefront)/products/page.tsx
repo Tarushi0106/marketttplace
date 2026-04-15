@@ -599,6 +599,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </section>
 
+      {/* Category Products Section */}
+      <CategoryProductsSection products={products} />
+
       {/* Quick Filters Bar - Horizontal */}
       <section className="bg-gray-50 border-b border-gray-200">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
@@ -667,6 +670,96 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
     </div>
+  );
+}
+
+// Category Products Section with Category Links
+function CategoryProductsSection({ 
+  products
+}: { 
+  products: any[]; 
+}) {
+  const targetCategories = [
+    { key: "tally-on-cloud", label: "Software as a Service - Tally on Cloud", parent: "Software as a Service - Business Applications" },
+    { key: "microsoft", label: "Software as a Service - Microsoft", parent: "Software as a Service" },
+    { key: "sdwan", label: "Connectivity - SDWAN", parent: "Connectivity" },
+    { key: "cyber-security", label: "Security - CyberSecurity", parent: "Security" },
+    { key: "acronis", label: "Security - Acronis", parent: "Security" },
+    { key: "surveillance", label: "Managed Infrastructure Services - Surveillance & AI Analytics", parent: "Managed Infrastructure Services" },
+    { key: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service", parent: "Managed Infrastructure Services" },
+    { key: "mobility", label: "Mobility & IoT", parent: "Mobility & IoT" },
+    { key: "iot", label: "Mobility & IoT", parent: "Mobility & IoT" },
+    { key: "ai", label: "AI", parent: "AI" },
+    { key: "hardware", label: "Hardware & Logistics", parent: "Hardware & Logistics" },
+  ];
+
+  // Group products by category - check both category slug and product slug
+  const productsByCategory = targetCategories.map(cat => {
+    const catProducts = products.filter(p => {
+      const catSlug = p.category?.slug || "";
+      const prodSlug = p.slug || "";
+      return catSlug === cat.key || 
+        prodSlug === cat.key ||
+        catSlug.includes(cat.key) || 
+        prodSlug.includes(cat.key);
+    });
+    return { ...cat, products: catProducts };
+  }).filter(cat => cat.products.length > 0);
+
+  if (productsByCategory.length === 0) return null;
+
+  return (
+    <section className="py-8 bg-white">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8">
+        {productsByCategory.map((cat) => (
+          <div key={cat.key} className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">{cat.label}</h2>
+              <Link 
+                href={`/products?category=${cat.key}`}
+                className="text-sm text-[#8B1D1D] hover:underline flex items-center gap-1"
+              >
+                View All <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {cat.products.slice(0, 5).map((product) => (
+                <Link 
+                  key={product.id}
+                  href={`/products/${product.slug}`}
+                  className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all"
+                >
+                  <div className="aspect-[4/3] relative bg-gray-50 flex items-center justify-center p-4">
+                    {product.images?.[0]?.url ? (
+                      <img 
+                        src={product.images[0].url} 
+                        alt={product.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <Package className="h-12 w-12 text-gray-300" />
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-medium text-gray-900 text-sm leading-tight group-hover:text-[#8B1D1D] transition-colors line-clamp-2">
+                      {product.name}
+                    </h3>
+                    {product.shortDescription && (
+                      <p className="mt-1 text-xs text-gray-500 line-clamp-1">
+                        {product.shortDescription}
+                      </p>
+                    )}
+                    <p className="mt-2 font-semibold text-gray-900">
+                      {product.displayPrice ? `₹${Number(product.displayPrice).toLocaleString('en-IN')}` : 'Price on request'}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
