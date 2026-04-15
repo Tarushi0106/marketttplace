@@ -114,7 +114,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
+<div className="container mx-auto px-4 py-4">
         <Breadcrumbs items={[{ label: "Cart" }]} className="mb-6" />
 
         <div className="flex flex-col items-center justify-center py-16">
@@ -152,11 +152,11 @@ export default function CartPage() {
     <div className="container mx-auto px-4 py-8">
       <Breadcrumbs items={[{ label: "Cart" }]} className="mb-6" />
 
-      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+      <h1 className="text-2xl font-bold mb-4">Shopping Cart</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between mb-4">
             <span className="text-muted-foreground">
               {items.length} item(s) in cart
@@ -174,8 +174,8 @@ export default function CartPage() {
 
           {items.map((item) => (
             <Card key={item.id}>
-              <CardContent className="p-4">
-                <div className="flex gap-4">
+              <CardContent className="p-3">
+                <div className="flex gap-3">
                   {/* Product icon */}
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-[#FDECEC] flex items-center justify-center">
                     {item.product?.icon ? (
@@ -296,14 +296,14 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div>
-          <Card className="sticky top-24">
+          <Card className="sticky top-20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
                 Order Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {/* Coupon Code */}
               {!discountCode ? (
                 <div>
@@ -352,7 +352,7 @@ export default function CartPage() {
               <Separator />
 
               {/* Itemized Order Summary - matching configure page format */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {items.map((item) => (
                   <div key={item.id}>
                     {/* Product/Bundle name - show recurring price for recurring products */}
@@ -364,9 +364,9 @@ export default function CartPage() {
                     {/* For configurable products with instances - only show for ONE_TIME products */}
                     {/* For recurring products, configs are included in recurringAmount */}
                     {item.instances && item.instances.length > 0 && !item.isRecurring && (
-                      <div className="ml-2">
+                      <div className="ml-2 mt-1">
                         {item.instances.map((instance) => (
-                          <div key={instance.instanceId} className="mb-2">
+                          <div key={instance.instanceId}>
                             {/* Config options - show dynamically with groupName: optionName format */}
                             {instance.selectedConfigs?.map((config) => (
                               <div key={config.configId} className="flex justify-between text-sm">
@@ -391,7 +391,7 @@ export default function CartPage() {
 
                     {/* Show config names for recurring products (without prices since they're included in recurringAmount) */}
                     {item.instances && item.instances.length > 0 && item.isRecurring && (
-                      <div className="ml-2">
+                      <div className="ml-2 mt-1">
                         {item.instances.map((instance) => (
                           <div key={instance.instanceId} className="mb-1">
                             {/* Config options - show names only for recurring products */}
@@ -471,7 +471,7 @@ export default function CartPage() {
 
                 {/* Recurring info */}
                 {Number(recurringTotal) > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                  <div className="bg-gray-50 rounded-lg p-2 mt-2">
                     <p className="text-sm text-gray-600">
                       You will be charged <span className="font-medium">{formatPrice(Number(recurringTotal))}</span> every {getRecurringInterval(billingCycle)} after purchase.
                     </p>

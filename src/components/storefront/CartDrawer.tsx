@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, ShoppingBag, Trash2, CreditCard } from "lucide-react";
+import { X, ShoppingBag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
 
@@ -23,23 +22,6 @@ const getBillingCycleLabel = (cycle?: string): string => {
     YEARLY: "/year",
     BIENNIAL: "/2 years",
     TRIENNIAL: "/3 years",
-  };
-  return labels[cycle || ""] || cycle || "";
-};
-
-// Helper to get billing cycle name (full format for badges)
-const getBillingCycleName = (cycle?: string): string => {
-  const labels: Record<string, string> = {
-    ONE_TIME: "One-time",
-    MONTHLY: "Monthly",
-    BIMONTHLY: "Bi-Monthly",
-    QUARTERLY: "Quarterly",
-    FOUR_MONTHLY: "Four-Monthly",
-    SEMI_ANNUAL: "Semi-Annual",
-    TRI_ANNUAL: "Tri-Annual",
-    YEARLY: "Yearly",
-    BIENNIAL: "Biennial",
-    TRIENNIAL: "Triennial",
   };
   return labels[cycle || ""] || cycle || "";
 };
@@ -152,18 +134,12 @@ export function CartDrawer() {
                           </Button>
                         </div>
 
-                        {/* Billing cycle and setup fee for recurring items */}
-                        {item.isRecurring && item.billingCycle && (
+                        {/* Setup fee for recurring items */}
+                        {item.isRecurring && item.billingCycle && item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
                           <div className="mt-1 flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              <CreditCard className="h-3 w-3 mr-1" />
-                              {getBillingCycleName(item.billingCycle)}
-                            </Badge>
-                            {item.recurringData?.setupFee != null && item.recurringData.setupFee > 0 && (
-                              <span className="text-xs text-amber-600">
-                                + {formatPrice(item.recurringData.setupFee)} setup
-                              </span>
-                            )}
+                            <span className="text-xs text-amber-600">
+                              + {formatPrice(item.recurringData.setupFee)} setup
+                            </span>
                           </div>
                         )}
 
@@ -172,7 +148,11 @@ export function CartDrawer() {
                           <p className="font-medium">
                             {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
                               <>
-                                {formatPrice(item.recurringAmount || 0)}
+                                {formatPrice(
+                                  item.quantityLocked
+                                    ? (item.recurringAmount || 0)
+                                    : (item.recurringAmount || 0) * (Number(item.quantity) || 1)
+                                )}
                                 <span className="text-sm text-muted-foreground ml-1">
                                   {getBillingCycleLabel(item.billingCycle)}
                                 </span>

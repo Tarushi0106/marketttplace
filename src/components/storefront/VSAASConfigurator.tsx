@@ -207,6 +207,8 @@ export function VSAASConfigurator({
 
   const [showCreditWarning, setShowCreditWarning] = useState(false);
   const [renewalStreamAdded, setRenewalStreamAdded] = useState(false);
+  const [hasVisitedAITab, setHasVisitedAITab] = useState(false);
+  const [showAIFeaturesPrompt, setShowAIFeaturesPrompt] = useState(false);
   const [renewalAIAdded, setRenewalAIAdded] = useState(false);
 
   // ----------------------------------------
@@ -235,7 +237,7 @@ export function VSAASConfigurator({
   // ----------------------------------------
   // STATE: Configuration (Single Source of Truth)
   // ----------------------------------------
-  const [cameraCount, setCameraCount] = useState(8);
+  const [cameraCount, setCameraCount] = useState(1);
   const [selectedLicense, setSelectedLicense] = useState<LicenseType>('core');
   const [licenseQuantities, setLicenseQuantities] = useState<Record<LicenseType, number>>({
     core: 0,
@@ -546,8 +548,14 @@ export function VSAASConfigurator({
     };
   }, [isLicenseDropdownOpen]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (skipAIPrompt = false) => {
     if (!currentProduct) return;
+
+    // When cloud-only flow: prompt user about AI features if they haven't visited the AI tab yet
+    if (!skipAIPrompt && showOnly === 'cloud' && deploymentType === 'cloud' && !hasVisitedAITab) {
+      setShowAIFeaturesPrompt(true);
+      return;
+    }
 
     // Block on-premise cart additions if AI-Box or AI Licenses selected but no Credit Utilization items chosen
     if (isOnPrem && (aiBoxQuantity > 0 || aiLicenseQuantity > 0)) {
@@ -727,6 +735,15 @@ export function VSAASConfigurator({
         category.features.forEach(feature => {
           const qty = selectedAIFeatures[feature.name] || 0;
           if (qty > 0) {
+            // Calculate price adjusted for billing cycle
+            const monthlyPrice = feature.price;
+            let priceForCycle = monthlyPrice;
+            switch (billingCycle) {
+              case 'monthly': priceForCycle = monthlyPrice; break;
+              case 'quarterly': priceForCycle = monthlyPrice * 3 * 0.94; break;
+              case 'semiAnnual': priceForCycle = monthlyPrice * 6 * 0.90; break;
+              case 'yearly': priceForCycle = monthlyPrice * 12 * 0.80; break;
+            }
             // Note: Don't include 'id' field - let cart store generate consistent ID based on product/variant/config
             const aiFeatureItem = {
               product: { id: currentProduct.id, slug: currentProduct.slug, name: feature.name },
@@ -734,14 +751,14 @@ export function VSAASConfigurator({
               quantity: qty,
               selectedAddons: [{
                 name: feature.name,
-                price: feature.price,
+                price: priceForCycle,
               } as any],
               billingCycle: billingCycle.toUpperCase(),
               isRecurring: true,
-              unitPrice: feature.price,
-              totalPrice: feature.price * qty,
+              unitPrice: priceForCycle,
+              totalPrice: priceForCycle * qty,
               deploymentType: deploymentType,
-              recurringAmount: feature.price,
+              recurringAmount: priceForCycle,
             };
             addToCart(aiFeatureItem as any);
           }
@@ -928,7 +945,7 @@ export function VSAASConfigurator({
 
             {aiProduct && (
               <button
-                onClick={() => setDeploymentType('ai')}
+                onClick={() => { setDeploymentType('ai'); setHasVisitedAITab(true); }}
                 className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'ai'
                     ? 'border-[#DC2626] bg-red-50'
@@ -951,7 +968,7 @@ export function VSAASConfigurator({
       {/* ======================================== */}
       {/* CAMERA COUNT QUESTION BOX (Cloud only)  */}
       {/* ======================================== */}
-      {(deploymentType === 'cloud' || showOnly === 'cloud') && (
+      {(deploymentType === 'cloud' || (showOnly === 'cloud' && deploymentType !== 'ai')) && (
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-5 py-3 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 whitespace-nowrap">How many cameras do you need VSaaS for?</p>
@@ -1076,7 +1093,7 @@ export function VSAASConfigurator({
                     </div>
                     <div className="text-right min-w-[120px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(connectCloudUnitPrice)}/camera{getBillingSuffix()}
+                        {formatPrice(connectCloudUnitPrice)}{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(licenseTotal)}{getBillingSuffix()}
@@ -1237,7 +1254,7 @@ export function VSAASConfigurator({
                     {/* Unit Price */}
                     <div className="text-right min-w-[100px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()} / device
+                        {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(gatewayTotal)}{getBillingSuffix()}
@@ -1694,7 +1711,7 @@ export function VSAASConfigurator({
                         <p className="text-sm text-gray-500 mb-1">
                           1 year Cyber Security Pack for Stream
                         </p>
-                        <div className="text-xs text-gray-500 mb-3">{formatPrice(644)} / year</div>
+                        <div className="text-xs text-gray-500 mb-3">{formatPrice(644)}/year</div>
                         
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
@@ -1750,7 +1767,7 @@ export function VSAASConfigurator({
                         <p className="text-sm text-gray-500 mt-1 mb-1">
                           1 year Cyber Security Pack for AI-Box
                         </p>
-                        <div className="text-xs text-gray-500 mb-3">{formatPrice(73600)} / year</div>
+                        <div className="text-xs text-gray-500 mb-3">{formatPrice(73600)}/year</div>
 
                         {/* Feature Bullets */}
                         <ul className="space-y-1 text-sm text-gray-600">
@@ -1876,14 +1893,36 @@ export function VSAASConfigurator({
             <div className="border border-gray-200 rounded-lg bg-white">
               {/* Section Header */}
               <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                    AI Features
-                  </h3>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                    Per Camera
-                  </span>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                      AI Features
+                    </h3>
+                    <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                      Per Camera
+                    </span>
+                  </div>
+                  {/* Billing cycle toggle — prices update instantly */}
+                  <div className="flex items-center gap-1.5">
+                    {BILLING_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setBillingCycle(option.value)}
+                        className={`px-2.5 py-1 rounded text-xs font-medium border transition-all ${
+                          billingCycle === option.value
+                            ? 'bg-[#DC2626] border-[#DC2626] text-white'
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                        }`}
+                      >
+                        {option.label}
+                        {option.discount > 0 && billingCycle === option.value && (
+                          <span className="ml-1 opacity-80">−{option.discount}%</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               
@@ -1936,9 +1975,11 @@ export function VSAASConfigurator({
                               </label>
                               <div className="flex-1 min-w-0">
                                 <span className="text-sm font-medium text-gray-900 block">{feature.name}</span>
-                                <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
-                                  {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
-                                </span>
+                                {showOnly !== 'cloud' && (
+                                  <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
+                                    {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             
@@ -2105,7 +2146,7 @@ export function VSAASConfigurator({
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (Stream OS)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)} / year</div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)}/year</div>
                         </div>
                       )}
                       {renewalAIAdded && (
@@ -2114,7 +2155,7 @@ export function VSAASConfigurator({
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (AI-Box & AI License)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)} / year</div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)}/year</div>
                         </div>
                       )}
                     </div>
@@ -2201,11 +2242,11 @@ export function VSAASConfigurator({
                             <div className="font-medium text-gray-900 text-sm">Connect Cloud – Platform Fee (Base License)</div>
                           </div>
                           <div className="font-medium text-gray-900 text-sm">
-                            {formatPrice(licensePricePerCamera * cameraCount)}{getBillingSuffix()}
-                          </div>
+{formatPrice(licensePricePerCamera * cameraCount)}{getBillingSuffix()}
+                        </div>
                         </div>
                         <div className="text-xs text-gray-500 mt-1 pl-0">
-                          {formatPrice(licensePricePerCamera)}/camera × {cameraCount} cameras
+                          × {cameraCount} cameras
                         </div>
                         {/* Additional License Types */}
                         {licenseQuantities.core > 0 && (
@@ -2265,14 +2306,14 @@ export function VSAASConfigurator({
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (Stream OS)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for Stream</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)} / year</div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)}/year</div>
                         </div>
                         <div className="flex justify-between items-start mt-2">
                           <div>
                             <div className="font-medium text-gray-900 text-sm">Cyber + Pack (AI-Box & AI License)</div>
                             <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for AI-Box</div>
                           </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)} / year</div>
+                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)}/year</div>
                         </div>
                       </div>
                     )}
@@ -2325,7 +2366,7 @@ export function VSAASConfigurator({
                       <div className="text-xl font-bold text-gray-900">
                         {deploymentType === 'renewal'
                           ? formatPrice((renewalStreamAdded ? 644 : 0) + (renewalAIAdded ? 73600 : 0))
-                          : formatPrice(total)}{deploymentType === 'renewal' ? ' / year' : getBillingSuffix()}
+                          : formatPrice(total)}{deploymentType === 'renewal' ? '/year' : getBillingSuffix()}
                       </div>
                     </div>
                   </div>
@@ -2340,7 +2381,7 @@ export function VSAASConfigurator({
                 {/* CTA Button */}
                 <div className="px-6 py-4">
                   <Button
-                    onClick={handleAddToCart}
+                    onClick={() => handleAddToCart()}
                     className="w-full h-12 text-base font-semibold bg-[#DC2626] hover:bg-[#B91C1C] transition-colors rounded-lg"
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
@@ -2354,6 +2395,48 @@ export function VSAASConfigurator({
 
       </div>
     </div>
+
+    {/* AI Features Prompt Modal (Cloud-only flow) */}
+    {showAIFeaturesPrompt && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-[#DC2626]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Would you like to buy AI features?</h3>
+              <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                Enhance your VSaaS Cloud plan with intelligent AI analytics — motion detection, ANPR, facial recognition, and more.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C] text-white"
+              onClick={() => {
+                setShowAIFeaturesPrompt(false);
+                setHasVisitedAITab(true); // mark as visited so returning to cloud tab doesn't re-prompt
+                setDeploymentType('ai');
+              }}
+            >
+              Yes, explore AI features
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowAIFeaturesPrompt(false);
+                handleAddToCart(true);
+                router.push('/checkout');
+              }}
+            >
+              No, proceed to checkout
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Credit Utilization Warning Modal */}
     {showCreditWarning && (
