@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { marked } from "marked";
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
@@ -60,6 +61,7 @@ import {
 } from "@/components/ui/accordion";
 import { formatPrice } from "@/lib/utils";
 import { AcronisConfigurator } from "@/components/storefront/AcronisConfigurator";
+import { Microsoft365Configurator } from "@/components/storefront/Microsoft365Configurator";
 
 // Render icon based on icon name
 function renderIcon(iconName?: string | null) {
@@ -500,17 +502,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <p className="text-sm text-gray-500">Deploy in minutes</p>
                     </div>
                   </div>
-                  {product.slug !== 'tally-cloud-server' && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                      <Sparkles className="h-6 w-6 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">AI Intelligence</p>
-                      <p className="text-sm text-gray-500">Advanced AI analytics</p>
-                    </div>
-                  </div>
-                  )}
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
                       <Headphones className="h-6 w-6 text-purple-600" />
@@ -640,8 +631,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             </ul>
                           </div>
                         </div>
+                      ) : product.slug === 'microsoft-365-services' ? (
+                        <Microsoft365Description />
                       ) : product.description ? (
-                        <div className="prose prose-gray max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+                        <div
+                          className="prose prose-gray prose-headings:font-semibold prose-headings:text-gray-900 prose-strong:text-gray-900 prose-li:text-gray-600 prose-p:text-gray-600 max-w-none"
+                          dangerouslySetInnerHTML={{ __html: marked(product.description) as string }}
+                        />
                       ) : (
                         <p className="text-gray-600">{product.shortDescription || "No description available."}</p>
                       )}
@@ -820,8 +816,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     <AcronisConfigurator productSlug={product.slug} />
                   )}
 
+                  {/* Microsoft 365 custom configurator */}
+                  {product.slug === 'microsoft-365-services' && (
+                    <Microsoft365Configurator productSlug={product.slug} />
+                  )}
+
                   {/* Variants Pricing */}
-                  {product.slug !== 'acronis-backup-advanced-spla' && product.variants && product.variants.length > 0 ? (
+                  {product.slug !== 'acronis-backup-advanced-spla' && product.slug !== 'microsoft-365-services' && product.variants && product.variants.length > 0 ? (
                     product.slug === 'tally-cloud-server' ? (
                       <div className="space-y-3">
                         {product.variants.map((variant: any) => {
@@ -1029,7 +1030,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       ))}
                     </div>
                   ) : (
-                    product.slug !== 'acronis-backup-advanced-spla' ? (
+                    product.slug !== 'acronis-backup-advanced-spla' && product.slug !== 'microsoft-365-services' ? (
                     <div className="max-w-md mx-auto bg-gray-900 rounded-3xl p-10 text-center">
                       <p className="text-2xl font-semibold text-white mb-2">{formatPrice(startingPrice)}</p>
                       <p className="text-gray-400 mb-8">Simple, straightforward pricing</p>
@@ -1252,6 +1253,150 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
         </div>
       </div>
 
+    </div>
+  );
+}
+
+// ─── Microsoft 365 Services — custom rich description ────────────────────────
+function Microsoft365Description() {
+  const smbPlans = [
+    {
+      name: "Business Basic",
+      features: ["Microsoft Teams", "1 TB OneDrive cloud storage", "Web versions of Office apps", "Business email (Exchange Online)"],
+    },
+    {
+      name: "Business Standard",
+      features: ["Everything in Basic", "Full desktop Office apps (Word, Excel, PowerPoint)", "HD video meetings", "Webinar hosting"],
+    },
+    {
+      name: "Business Premium",
+      features: ["Everything in Standard", "Enterprise-grade security", "Intune device management", "Azure AD Premium P1"],
+    },
+  ];
+
+  const enterprisePlans = [
+    { name: "Microsoft 365 E1", desc: "Cloud productivity & collaboration without desktop apps" },
+    { name: "Microsoft 365 E3", desc: "Full Office suite, compliance tools & advanced security" },
+    { name: "Microsoft 365 E5", desc: "Complete enterprise security, analytics & voice capabilities" },
+    { name: "Apps for Enterprise", desc: "Always up-to-date Office apps across five devices per user" },
+  ];
+
+  const securityFeatures = [
+    { name: "Microsoft Defender", desc: "Advanced threat protection against malware, phishing & ransomware" },
+    { name: "Azure Active Directory", desc: "Centralised identity & access management with Multi-Factor Authentication" },
+    { name: "Enterprise Mobility + Security", desc: "Unified endpoint management and data loss prevention" },
+  ];
+
+  const backupOptions = [
+    { name: "Office 365 Backup", desc: "Automated, point-in-time mailbox and OneDrive backups" },
+    { name: "DropSuite Email Archiving", desc: "Tamper-proof, searchable email archive for compliance" },
+    { name: "XcellArchive", desc: "Long-term archiving with rapid eDiscovery and audit trail support" },
+  ];
+
+  return (
+    <div className="space-y-10">
+      {/* Lead */}
+      <p className="text-gray-600 leading-relaxed text-base">
+        Microsoft 365 Services delivers a complete suite of cloud-powered productivity and security tools designed to keep your business running at its best — from anywhere, on any device.
+      </p>
+
+      {/* SMB Plans */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">SMB Plans</span>
+          <span className="text-xs text-gray-400">· Up to 300 users</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Flexible plans built for small and medium businesses.</p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {smbPlans.map((plan) => (
+            <div key={plan.name} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">{plan.name}</p>
+              <ul className="space-y-1.5">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                    <Check className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Enterprise Plans */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Enterprise Plans</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Scalable solutions for larger organisations.</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {enterprisePlans.map((plan) => (
+            <div key={plan.name} className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+              <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Building2 className="h-3.5 w-3.5 text-gray-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{plan.name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{plan.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Security & Identity */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Security & Identity</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Protect your organisation with built-in intelligent security.</p>
+        <div className="space-y-3">
+          {securityFeatures.map((f) => (
+            <div key={f.name} className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+              <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Shield className="h-3.5 w-3.5 text-gray-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{f.name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Exchange Online */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Exchange Online</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Professional business email hosted in Microsoft's secure cloud.</p>
+        <div className="flex flex-wrap gap-2">
+          {["Scalable mailbox storage (50 GB – unlimited)", "Built-in anti-virus & anti-spam filtering", "99.9% uptime SLA", "Globally distributed infrastructure"].map((item) => (
+            <span key={item} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full text-xs font-medium text-gray-600">
+              <Check className="h-3 w-3 text-gray-400" />
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Backup & Archiving */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Email Backup & Archiving</span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Never lose critical business communications.</p>
+        <div className="grid sm:grid-cols-3 gap-3">
+          {backupOptions.map((opt) => (
+            <div key={opt.name} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+              <p className="font-semibold text-gray-900 text-sm mb-1">{opt.name}</p>
+              <p className="text-xs text-gray-500">{opt.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
