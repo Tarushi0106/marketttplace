@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Wifi, Shield, Cloud, Settings, Brain, Share2 } from "lucide-react";
+import { Wifi, Shield, Cloud, Brain, Smartphone, Package, Server } from "lucide-react";
 
 interface TrendingCategory {
   id: string;
@@ -19,66 +19,86 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
   wifi: Wifi,
   shield: Shield,
   cloud: Cloud,
-  settings: Settings,
   brain: Brain,
-  share2: Share2,
-  // Add more icons as needed
+  smartphone: Smartphone,
+  package: Package,
+  server: Server,
 };
 
-// Default trending categories (fallback if none marked as trending in DB)
+// Sidebar slugs — same order as navbar dropdown
+const sidebarSlugs = [
+  "software-as-a-service",
+  "connectivity",
+  "security",
+  "managed-infrastructure",
+  "mobility-iot",
+  "ai",
+  "hardware-logistics",
+];
+
+// Fallback categories matching the 7 navbar categories
 const defaultCategories: TrendingCategory[] = [
   {
     id: "1",
-    name: "Wi-Fi",
-    slug: "wifi",
-    description: "Reliable enterprise connectivity built for speed, stability, & seamless performance.",
-    icon: "wifi",
-    iconBgColor: "#000000",
+    name: "Software as a Service",
+    slug: "software-as-a-service",
+    description: "Cloud-based software solutions for business productivity and collaboration.",
+    icon: "cloud",
+    iconBgColor: "#DBEAFE",
     image: null,
   },
   {
     id: "2",
-    name: "Security",
-    slug: "security",
-    description: "Protecting networks with intelligent threat detection for unmatched digital safety.",
-    icon: "shield",
-    iconBgColor: "#D4A574",
+    name: "Connectivity",
+    slug: "connectivity",
+    description: "Network connectivity and communication solutions for modern enterprises.",
+    icon: "wifi",
+    iconBgColor: "#D1FAE5",
     image: null,
   },
   {
     id: "3",
-    name: "Cloud",
-    slug: "cloud-services",
-    description: "Scalable cloud technology powering simplified workflows across modern businesses.",
-    icon: "cloud",
-    iconBgColor: "#E5E5E5",
+    name: "Security",
+    slug: "security",
+    description: "Cybersecurity and protection solutions to safeguard your business.",
+    icon: "shield",
+    iconBgColor: "#FFE4E4",
     image: null,
   },
   {
     id: "4",
-    name: "Automation",
-    slug: "automation",
-    description: "Streamlining complex operations using intelligent automated processes for efficiency.",
-    icon: "settings",
-    iconBgColor: "#FFE4E4",
+    name: "Managed Infrastructure Services",
+    slug: "managed-infrastructure",
+    description: "Fully managed IT infrastructure and support for seamless operations.",
+    icon: "server",
+    iconBgColor: "#F5F5F5",
     image: null,
   },
   {
     id: "5",
-    name: "AI-Core",
-    slug: "ai-core",
-    description: "Advanced artificial intelligence enabling smart decisions across your network.",
-    icon: "brain",
-    iconBgColor: "#FFE4E4",
+    name: "Mobility & IOT",
+    slug: "mobility-iot",
+    description: "Mobile solutions and Internet of Things for connected enterprises.",
+    icon: "smartphone",
+    iconBgColor: "#E9D5FF",
     image: null,
   },
   {
     id: "6",
-    name: "IoT",
-    slug: "iot",
-    description: "Connecting devices intelligently to automate tasks and enhance productivity.",
-    icon: "share2",
-    iconBgColor: "#F5F5F5",
+    name: "AI",
+    slug: "ai",
+    description: "Artificial intelligence and machine learning solutions for smarter business.",
+    icon: "brain",
+    iconBgColor: "#FEF3C7",
+    image: null,
+  },
+  {
+    id: "7",
+    name: "Hardware & Logistics",
+    slug: "hardware-logistics",
+    description: "Hardware procurement and logistics services for enterprise needs.",
+    icon: "package",
+    iconBgColor: "#D4A574",
     image: null,
   },
 ];
@@ -90,26 +110,18 @@ export function TrendingProducts() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        // First try to fetch categories marked as trending
-        const response = await fetch("/api/categories/trending");
+        const response = await fetch("/api/categories?includeSubCategories=false");
         const data = await response.json();
-
         if (data.data && data.data.length > 0) {
-          setCategories(data.data);
+          const filtered = (data.data as TrendingCategory[]).filter((c) =>
+            sidebarSlugs.includes(c.slug)
+          );
+          filtered.sort(
+            (a, b) => sidebarSlugs.indexOf(a.slug) - sidebarSlugs.indexOf(b.slug)
+          );
+          setCategories(filtered.length > 0 ? filtered : defaultCategories);
         } else {
-          // Fallback to old trending-categories API
-          const fallbackResponse = await fetch("/api/trending-categories");
-          const fallbackData = await fallbackResponse.json();
-
-          if (fallbackData.data && fallbackData.data.length > 0) {
-            // Map to TrendingCategory format
-            setCategories(fallbackData.data.map((cat: any) => ({
-              ...cat,
-              slug: cat.name.toLowerCase().replace(/\s+/g, '-'),
-            })));
-          } else {
-            setCategories(defaultCategories);
-          }
+          setCategories(defaultCategories);
         }
       } catch (error) {
         console.error("Error fetching trending categories:", error);
@@ -127,7 +139,7 @@ export function TrendingProducts() {
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Our Trending Products
+              Our Trending Categories
             </h2>
             <p className="mt-3 text-gray-500 text-lg max-w-2xl">
               Explore our most popular enterprise solutions
@@ -146,23 +158,19 @@ export function TrendingProducts() {
     );
   }
 
-  if (categories.length === 0) {
-    return null;
-  }
-
   return (
     <section className="py-16 md:py-20 bg-white">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
         <div className="mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Our Trending Products
+            Our Trending Categories
           </h2>
           <p className="mt-3 text-gray-500 text-lg max-w-2xl">
             Explore our most popular enterprise solutions trusted by businesses worldwide
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
           {categories.map((category) => {
             const IconComponent = iconMap[category.icon?.toLowerCase() || "cloud"] || Cloud;
             const bgColor = category.iconBgColor || "#E5E5E5";
