@@ -429,6 +429,16 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
   }
 }
 
+const fallbackCategories = [
+  { value: "software-as-a-service", label: "Software as a Service", count: 0 },
+  { value: "connectivity", label: "Connectivity", count: 0 },
+  { value: "security", label: "Security", count: 0 },
+  { value: "managed-infrastructure", label: "Managed Infrastructure Services", count: 0 },
+  { value: "mobility-iot", label: "Mobility & IOT", count: 0 },
+  { value: "ai", label: "AI", count: 0 },
+  { value: "hardware-logistics", label: "Hardware & Logistics", count: 0 },
+];
+
 async function getCategories() {
   try {
     const categories = await prisma.category.findMany({
@@ -445,14 +455,56 @@ async function getCategories() {
       orderBy: { sortOrder: "asc" },
     });
 
-    return categories.map((cat) => ({
-      value: cat.slug,
-      label: cat.name,
-      count: cat._count.products,
-    }));
+    if (categories.length > 0) {
+      return categories.map((cat) => ({
+        value: cat.slug,
+        label: cat.name,
+        count: cat._count.products,
+      }));
+    }
+
+    return fallbackCategories;
   } catch (error) {
     console.error("Error fetching categories:", error);
-    return [];
+    return fallbackCategories;
+  }
+}
+
+async function getSubCategoriesForSidebar() {
+  try {
+    const slugsToFetch = ["software-as-a-service", "managed-infrastructure", "connectivity", "security"];
+
+    const cats = await prisma.category.findMany({
+      where: { slug: { in: slugsToFetch } },
+      include: {
+        subCategories: {
+          where: { isActive: true },
+          include: {
+            _count: {
+              select: { products: { where: { status: "ACTIVE" } } },
+            },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    return cats.flatMap((cat) =>
+      cat.subCategories.map((sub) => ({
+        parentValue: cat.slug,
+        value: sub.slug,
+        label: sub.name,
+        count: sub._count.products,
+      }))
+    );
+  } catch (error) {
+    console.error("Error fetching sidebar subcategories:", error);
+    return [
+      { parentValue: "software-as-a-service", value: "business-applications-saas", label: "Business Applications", count: 0 },
+      { parentValue: "managed-infrastructure", value: "surveillance-ai-analytics", label: "Surveillance & AI Analytics", count: 0 },
+      { parentValue: "managed-infrastructure", value: "wifi-as-a-service", label: "WiFi as a Service", count: 0 },
+      { parentValue: "security", value: "cybersecurity-sub", label: "CyberSecurity", count: 0 },
+    ];
   }
 }
 
@@ -517,12 +569,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const viewMode = params.view || "grid";
 
   // Fetch all data in parallel
-  const [{ products, pagination }, categories, priceRange, productTypes, featuredCount] = await Promise.all([
+  const [{ products, pagination }, categories, priceRange, productTypes, featuredCount, sidebarSubCategories] = await Promise.all([
     getProducts(params),
     getCategories(),
     getPriceRange(),
     getProductTypeCounts(),
     getFeaturedCount(),
+    getSubCategoriesForSidebar(),
   ]);
 
   // Get current filter display info
@@ -533,8 +586,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     : [];
 
   const categoryNames = categories
-    .filter((c) => selectedCategories.includes(c.value))
-    .map((c) => c.label);
+    .filter((c: { value: string; label: string }) => selectedCategories.includes(c.value))
+    .map((c: { value: string; label: string }) => c.label);
 
   // Build breadcrumb items
   const breadcrumbItems = [{ label: "Products" }];
@@ -614,7 +667,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           <ProductFilters
-            categories={categories}
+            categories={categories.filter((c: { value: string; label: string; count: number }) => ["software-as-a-service", "connectivity", "security", "managed-infrastructure", "managed-infrastructure-services", "mobility-iot", "ai", "hardware-logistics"].includes(c.value))}
+            subCategories={sidebarSubCategories}
             productTypes={productTypes}
             minPrice={priceRange.min}
             maxPrice={priceRange.max}
@@ -681,10 +735,7 @@ function CategoryProductsSection({
 }) {
   const targetCategories = [
     { key: "tally-on-cloud", label: "Software as a Service - Tally on Cloud", parent: "Software as a Service - Business Applications" },
-    { key: "microsoft", label: "Software as a Service - Microsoft", parent: "Software as a Service" },
-    { key: "sdwan", label: "Connectivity - SDWAN", parent: "Connectivity" },
     { key: "cyber-security", label: "Security - CyberSecurity", parent: "Security" },
-    { key: "acronis", label: "Security - Acronis", parent: "Security" },
     { key: "surveillance", label: "Managed Infrastructure Services - Surveillance & AI Analytics", parent: "Managed Infrastructure Services" },
     { key: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service", parent: "Managed Infrastructure Services" },
     { key: "mobility", label: "Mobility & IoT", parent: "Mobility & IoT" },
@@ -790,11 +841,20 @@ function SearchForm({ initialSearch }: { initialSearch?: string }) {
 
 // Quick Filter Bar Component
 function QuickFilterBar({ categories }: { categories: { value: string; label: string; count: number }[] }) {
-  const productTypes = [
-    { value: "", label: "All Solution Types" },
-    { value: "STANDALONE", label: "Standalone Solutions" },
-    { value: "WITH_ADDONS", label: "Solutions with Add-ons" },
-    { value: "CONFIGURABLE", label: "Configurable Solutions" },
+  const customCategories = [
+    { value: "", label: "All Categories" },
+    { value: "tally-on-cloud", label: "Software as a Service - Tally on Cloud" },
+    { value: "business-applications", label: "Software as a Service - Business Applications" },
+    { value: "connectivity", label: "Connectivity" },
+    { value: "sdwan", label: "Connectivity - SDWAN" },
+    { value: "security", label: "Security" },
+    { value: "cyber-security", label: "Security - CyberSecurity" },
+    { value: "managed-infrastructure-services", label: "Managed Infrastructure Services" },
+    { value: "surveillance", label: "Managed Infrastructure Services - Surveillance & AI Analytics" },
+    { value: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service" },
+    { value: "mobility-iot", label: "Mobility & IoT" },
+    { value: "ai", label: "AI" },
+    { value: "hardware-logistics", label: "Hardware & Logistics" },
   ];
 
   return (
@@ -802,25 +862,12 @@ function QuickFilterBar({ categories }: { categories: { value: string; label: st
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <span className="text-sm font-medium text-gray-700 whitespace-nowrap">I am looking for:</span>
         <select
-          name="type"
-          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#8B1D1D] focus:ring-2 focus:ring-[#8B1D1D]/20 focus:outline-none cursor-pointer min-w-[200px]"
-        >
-          {productTypes.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
-
-        <span className="text-sm font-medium text-gray-700 whitespace-nowrap">That helps with:</span>
-        <select
           name="category"
-          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#8B1D1D] focus:ring-2 focus:ring-[#8B1D1D]/20 focus:outline-none cursor-pointer min-w-[200px]"
+          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#8B1D1D] focus:ring-2 focus:ring-[#8B1D1D]/20 focus:outline-none cursor-pointer min-w-[280px]"
         >
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
+          {customCategories.map((cat) => (
             <option key={cat.value} value={cat.value}>
-              {cat.label} ({cat.count})
+              {cat.label}
             </option>
           ))}
         </select>

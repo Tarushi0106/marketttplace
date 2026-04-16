@@ -21,9 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useUIStore } from "@/store/ui-store";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 interface FilterOption {
   value: string;
@@ -31,8 +30,13 @@ interface FilterOption {
   count?: number;
 }
 
+interface SubFilterOption extends FilterOption {
+  parentValue: string;
+}
+
 interface ProductFiltersProps {
   categories?: FilterOption[];
+  subCategories?: SubFilterOption[];
   productTypes?: FilterOption[];
   minPrice?: number;
   maxPrice?: number;
@@ -41,6 +45,7 @@ interface ProductFiltersProps {
 
 export function ProductFilters({
   categories = [],
+  subCategories = [],
   productTypes = [
     { value: "STANDALONE", label: "Standalone", count: 45 },
     { value: "WITH_ADDONS", label: "With Add-ons", count: 23 },
@@ -51,20 +56,37 @@ export function ProductFilters({
   totalProducts = 0,
 }: ProductFiltersProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const sp = useSearchParams();
   const { isFiltersOpen, setFiltersOpen } = useUIStore();
 
+  // Null-safe helpers for useSearchParams (can be null during static rendering)
+  const spGet = (key: string) => sp?.get(key) ?? null;
+  const spGetAll = (key: string) => sp?.getAll(key) ?? [];
+  const spToString = () => sp?.toString() ?? "";
+
   const [priceRange, setPriceRange] = useState<[number, number]>([
-    Number(searchParams.get("minPrice")) || minPrice,
-    Number(searchParams.get("maxPrice")) || maxPrice,
+    Number(spGet("minPrice")) || minPrice,
+    Number(spGet("maxPrice")) || maxPrice,
   ]);
 
-  const selectedCategories = searchParams.getAll("category");
-  const selectedTypes = searchParams.getAll("type");
-  const sortBy = searchParams.get("sortBy") || "popularity";
+  // Track which category rows have their subcategory dropdown open
+  const [expandedSubs, setExpandedSubs] = useState<Set<string>>(new Set());
+
+  const toggleSubExpand = (categoryValue: string) => {
+    setExpandedSubs((prev) => {
+      const next = new Set(prev);
+      next.has(categoryValue) ? next.delete(categoryValue) : next.add(categoryValue);
+      return next;
+    });
+  };
+
+  const selectedCategories = spGetAll("category");
+  const selectedSubCategories = spGetAll("subcategory");
+  const selectedTypes = spGetAll("type");
+  const sortBy = spGet("sortBy") || "popularity";
 
   const updateFilters = (key: string, value: string | string[] | null) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(spToString());
 
     if (value === null) {
       params.delete(key);
@@ -75,12 +97,12 @@ export function ProductFilters({
       params.set(key, value);
     }
 
-    params.set("page", "1"); // Reset to first page
+    params.set("page", "1");
     router.push(`?${params.toString()}`);
   };
 
   const toggleArrayFilter = (key: string, value: string) => {
-    const current = searchParams.getAll(key);
+    const current = spGetAll(key);
     const newValues = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
@@ -94,6 +116,7 @@ export function ProductFilters({
 
   const activeFilterCount =
     selectedCategories.length +
+    selectedSubCategories.length +
     selectedTypes.length +
     (priceRange[0] !== minPrice || priceRange[1] !== maxPrice ? 1 : 0);
 
@@ -122,29 +145,82 @@ export function ProductFilters({
           <AccordionItem value="categories">
             <AccordionTrigger>Categories</AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-3">
-                {categories.map((category) => (
-                  <div key={category.value} className="flex items-center">
-                    <Checkbox
-                      id={`category-${category.value}`}
-                      checked={selectedCategories.includes(category.value)}
-                      onCheckedChange={() =>
-                        toggleArrayFilter("category", category.value)
-                      }
-                    />
-                    <Label
-                      htmlFor={`category-${category.value}`}
-                      className="ml-2 flex-1 text-sm cursor-pointer"
-                    >
-                      {category.label}
-                    </Label>
-                    {category.count !== undefined && (
-                      <span className="text-xs text-muted-foreground">
-                        ({category.count})
-                      </span>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-1">
+                {categories.map((category) => {
+                  const catSubs = subCategories.filter(
+                    (s) => s.parentValue === category.value
+                  );
+                  const isExpanded = expandedSubs.has(category.value);
+
+                  return (
+                    <div key={category.value}>
+                      {/* Category row */}
+                      <div className="flex items-center gap-1 py-1.5">
+                        <Checkbox
+                          id={`category-${category.value}`}
+                          checked={selectedCategories.includes(category.value)}
+                          onCheckedChange={() =>
+                            toggleArrayFilter("category", category.value)
+                          }
+                        />
+                        <Label
+                          htmlFor={`category-${category.value}`}
+                          className="ml-1.5 flex-1 text-sm cursor-pointer font-medium"
+                        >
+                          {category.label}
+                        </Label>
+                        {category.count !== undefined && (
+                          <span className="text-xs text-muted-foreground mr-1">
+                            ({category.count})
+                          </span>
+                        )}
+                        {/* Expand toggle — only shown if subcategories exist */}
+                        {catSubs.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleSubExpand(category.value)}
+                            className="p-0.5 rounded hover:bg-gray-100 transition-colors"
+                            aria-label={isExpanded ? "Collapse" : "Expand"}
+                          >
+                            <ChevronDown
+                              className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${
+                                isExpanded ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Subcategory dropdown */}
+                      {catSubs.length > 0 && isExpanded && (
+                        <div className="ml-5 mb-1 space-y-1 border-l-2 border-gray-200 pl-3">
+                          {catSubs.map((sub) => (
+                            <div key={sub.value} className="flex items-center py-1">
+                              <Checkbox
+                                id={`subcategory-${sub.value}`}
+                                checked={selectedSubCategories.includes(sub.value)}
+                                onCheckedChange={() =>
+                                  toggleArrayFilter("subcategory", sub.value)
+                                }
+                              />
+                              <Label
+                                htmlFor={`subcategory-${sub.value}`}
+                                className="ml-2 flex-1 text-sm cursor-pointer text-gray-600"
+                              >
+                                {sub.label}
+                              </Label>
+                              {sub.count !== undefined && (
+                                <span className="text-xs text-muted-foreground">
+                                  ({sub.count})
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -211,7 +287,7 @@ export function ProductFilters({
               <div className="flex items-center">
                 <Checkbox
                   id="in-stock"
-                  checked={searchParams.get("inStock") === "true"}
+                  checked={spGet("inStock") === "true"}
                   onCheckedChange={(checked) =>
                     updateFilters("inStock", checked ? "true" : null)
                   }
@@ -223,7 +299,7 @@ export function ProductFilters({
               <div className="flex items-center">
                 <Checkbox
                   id="featured"
-                  checked={searchParams.get("featured") === "true"}
+                  checked={spGet("featured") === "true"}
                   onCheckedChange={(checked) =>
                     updateFilters("featured", checked ? "true" : null)
                   }
@@ -313,11 +389,11 @@ export function ProductFilters({
 
 export function ProductSortSelect() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sortBy = searchParams.get("sortBy") || "popularity";
+  const sp = useSearchParams();
+  const sortBy = sp?.get("sortBy") || "popularity";
 
   const updateSort = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(sp?.toString() ?? "");
     params.set("sortBy", value);
     router.push(`?${params.toString()}`);
   };
