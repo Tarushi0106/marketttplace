@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Check, Users } from "lucide-react";
+import { ShoppingCart, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/store/cart-store";
 
@@ -37,14 +37,21 @@ const SMB_PLANS = [
   },
 ];
 
-// Billing cycle options — M365 only supports Monthly & Annual
 const BILLING_OPTIONS = [
-  { value: "monthly", label: "Monthly",  suffix: "/mo",   discount: 0,  billingCycle: "MONTHLY" },
-  { value: "annual",  label: "Annual",   suffix: "/year", discount: 5,  billingCycle: "YEARLY"  },
+  { value: "monthly",    label: "Monthly",     suffix: "/mo",       discount: 0,  billingCycle: "MONTHLY"     },
+  { value: "quarterly",  label: "Quarterly",   suffix: "/quarter",  discount: 6,  billingCycle: "QUARTERLY"   },
+  { value: "semiAnnual", label: "Semi-Annual", suffix: "/6 months", discount: 10, billingCycle: "SEMI_ANNUAL" },
+  { value: "annual",     label: "Annual",      suffix: "/year",     discount: 5,  billingCycle: "YEARLY"      },
 ];
 
 function getPrice(plan: typeof SMB_PLANS[0], cycle: string): number {
-  return cycle === "annual" ? plan.annualPerUser : plan.monthlyPerUser;
+  switch (cycle) {
+    case "monthly":    return plan.monthlyPerUser;
+    case "quarterly":  return plan.monthlyPerUser * 3  * 0.94;
+    case "semiAnnual": return plan.monthlyPerUser * 6  * 0.90;
+    case "annual":     return plan.annualPerUser;
+    default:           return plan.monthlyPerUser;
+  }
 }
 
 function formatINR(n: number) {
@@ -192,67 +199,6 @@ export function Microsoft365SMBConfigurator({ productId }: { productId: string }
             </div>
           </div>
 
-          {/* Plan comparison hint */}
-          <div className="border border-gray-200 rounded-lg bg-white">
-            <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50 flex items-center gap-2">
-              <Check className="w-4 h-4 text-gray-500" />
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                What's Included
-              </h3>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {[
-                {
-                  feature: "Business Email (Exchange Online)",
-                  basic: true, standard: true, premium: true, apps: false,
-                },
-                {
-                  feature: "Microsoft Teams",
-                  basic: true, standard: true, premium: true, apps: false,
-                },
-                {
-                  feature: "Web & Mobile Office Apps",
-                  basic: true, standard: true, premium: true, apps: true,
-                },
-                {
-                  feature: "Desktop Office Apps (Word, Excel, PowerPoint)",
-                  basic: false, standard: true, premium: true, apps: true,
-                },
-                {
-                  feature: "1 TB OneDrive per user",
-                  basic: true, standard: true, premium: true, apps: true,
-                },
-                {
-                  feature: "Advanced Security & Defender",
-                  basic: false, standard: false, premium: true, apps: false,
-                },
-                {
-                  feature: "Intune Device Management",
-                  basic: false, standard: false, premium: true, apps: false,
-                },
-              ].map((row) => (
-                <div key={row.feature} className="grid grid-cols-5 px-5 py-3 text-xs">
-                  <div className="col-span-2 text-gray-600 pr-4">{row.feature}</div>
-                  {(["basic", "standard", "premium", "apps"] as const).map((k) => (
-                    <div key={k} className="flex justify-center">
-                      {row[k] ? (
-                        <Check className="w-3.5 h-3.5 text-green-500" />
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-              {/* Column headers */}
-              <div className="grid grid-cols-5 px-5 py-2 bg-gray-50/50 border-t border-gray-100">
-                <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Feature</div>
-                {["Basic", "Standard", "Premium", "Apps"].map((h) => (
-                  <div key={h} className="text-center text-xs font-bold text-gray-500">{h}</div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ── RIGHT (30%) — Order Summary ──────────────────────────── */}
