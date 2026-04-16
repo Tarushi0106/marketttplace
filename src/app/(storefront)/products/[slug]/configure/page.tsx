@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { TallyCloudConfigurator } from "@/components/storefront/TallyCloudConfigurator";
 import { AcronisOrderConfigurator } from "@/components/storefront/AcronisOrderConfigurator";
-import { Microsoft365SMBConfigurator } from "@/components/storefront/Microsoft365SMBConfigurator";
+import { Microsoft365CombinedConfigurator } from "@/components/storefront/Microsoft365CombinedConfigurator";
 
 export const dynamic = 'force-dynamic';
 
@@ -214,9 +214,15 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
     );
   }
 
-  // For Microsoft 365 SMB plans
-  if (product.slug === 'microsoft-365-services' && category === 'smb') {
-    return <Microsoft365SMBConfigurator productId={product.id} />;
+  // For Microsoft 365 — combined SMB + Enterprise configurator with toggle
+  if (product.slug === 'microsoft-365-services') {
+    const initialTab = category === 'enterprise' ? 'enterprise' : 'smb';
+    return (
+      <Microsoft365CombinedConfigurator
+        productId={product.id}
+        initialTab={initialTab}
+      />
+    );
   }
 
   // For all other products
