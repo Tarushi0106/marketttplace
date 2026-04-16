@@ -4,6 +4,17 @@ import Link from "next/link";
 import { ChevronRight, ChevronLeft, Wifi, Shield, Cloud, Settings, Brain, Share2, Box, Server, Database, Cpu, Briefcase, Headphones, Smartphone, Package } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
+// Same 7 categories as the navbar sidebar — in sidebar order
+const SIDEBAR_SLUGS = [
+  "software-as-a-service",
+  "connectivity",
+  "security",
+  "managed-infrastructure",
+  "mobility-iot",
+  "ai",
+  "hardware-logistics",
+];
+
 interface Category {
   id: string;
   name: string;
@@ -54,7 +65,16 @@ export function FeaturedCategories() {
         const response = await fetch("/api/categories?includeSubCategories=false");
         const data = await response.json();
         if (data.data && data.data.length > 0) {
-          setCategories(data.data);
+          const filtered = (data.data as Category[]).filter((c) =>
+            SIDEBAR_SLUGS.includes(c.slug)
+          );
+          filtered.sort(
+            (a, b) => SIDEBAR_SLUGS.indexOf(a.slug) - SIDEBAR_SLUGS.indexOf(b.slug)
+          );
+          if (filtered.length > 0) {
+            setCategories(filtered);
+            return;
+          }
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
