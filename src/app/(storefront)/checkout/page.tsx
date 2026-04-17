@@ -742,7 +742,11 @@ export default function CheckoutPage() {
                     <p className="text-sm text-gray-600">
                       You will be charged <span className="font-medium">
                         {formatPrice(
-                          items.reduce((sum: number, item: any) => sum + (item.recurringAmount || 0), 0)
+                          items.reduce((sum: number, item: any) => {
+                            const amount = item.recurringAmount || 0;
+                            if (item.quantityLocked) return sum + amount;
+                            return sum + amount * (Number(item.quantity) || 1);
+                          }, 0)
                         )}
                       </span> every {
                         items[0]?.billingCycle === 'MONTHLY' ? '1 month' :

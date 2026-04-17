@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Check, ShoppingCart, ChevronDown, Server, Shield, Database, AlertCircle, X } from "lucide-react";
+import { Check, ShoppingCart, ChevronDown, Server, Shield, Database, AlertCircle, X, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
@@ -192,8 +192,13 @@ export function VSAASConfigurator({
   // Connect Cloud / Gateway in a previous step (they stay in cart across sessions)
   const cartItems = useCartStore((state) => state.items);
 
+  // Credit limit error for on-prem (max 16 credits)
+  const [showCreditLimitError, setShowCreditLimitError] = useState(false);
+
   // Show warning popup when user tries to select AI features without Connect Cloud + Gateway in cart
   const [showAIPrereqPopup, setShowAIPrereqPopup] = useState(false);
+  // Show warning popup on on-prem page when AI features selected without AI Box
+  const [showAIBoxReqPopup, setShowAIBoxReqPopup] = useState(false);
 
   const hasConnectCloud = cartItems?.some((item: any) => {
     const n = (item.product?.name || item.bundle?.name || item.name || item.productName || '').toLowerCase();
@@ -205,10 +210,10 @@ export function VSAASConfigurator({
   });
   const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
 
-  const [showCreditWarning, setShowCreditWarning] = useState(false);
   const [renewalStreamAdded, setRenewalStreamAdded] = useState(false);
   const [hasVisitedAITab, setHasVisitedAITab] = useState(false);
   const [showAIFeaturesPrompt, setShowAIFeaturesPrompt] = useState(false);
+  const [showOnPremAIPrompt, setShowOnPremAIPrompt] = useState(false);
   const [renewalAIAdded, setRenewalAIAdded] = useState(false);
 
   // ----------------------------------------
@@ -264,6 +269,19 @@ export function VSAASConfigurator({
       setShowAIPrereqPopup(true);
       return;
     }
+    if (showOnly === 'onPremise' && aiBoxQuantity === 0) {
+      setShowAIBoxReqPopup(true);
+      return;
+    }
+    if (showOnly === 'onPremise') {
+      const category = AIFEATURES.find(c => c.features.some(f => f.name === featureName));
+      const credits = category ? getFeatureCredits(category.category) : 1;
+      const isCurrentlySelected = (selectedAIFeatures[featureName] || 0) > 0;
+      if (!isCurrentlySelected && totalCreditsUsed + credits > 16) {
+        setShowCreditLimitError(true);
+        return;
+      }
+    }
     setSelectedAIFeatures(prev => {
       if (prev[featureName]) {
         const newState = { ...prev };
@@ -281,6 +299,18 @@ export function VSAASConfigurator({
       setShowAIPrereqPopup(true);
       return;
     }
+    if (delta > 0 && showOnly === 'onPremise' && aiBoxQuantity === 0) {
+      setShowAIBoxReqPopup(true);
+      return;
+    }
+    if (delta > 0 && showOnly === 'onPremise') {
+      const category = AIFEATURES.find(c => c.features.some(f => f.name === featureName));
+      const credits = category ? getFeatureCredits(category.category) : 1;
+      if (totalCreditsUsed + credits > 16) {
+        setShowCreditLimitError(true);
+        return;
+      }
+    }
     setSelectedAIFeatures(prev => {
       const currentQty = prev[featureName] || 0;
       const newQty = Math.max(0, currentQty + delta);
@@ -294,6 +324,19 @@ export function VSAASConfigurator({
   };
 
   // Calculate AI features total
+  const getFeatureCredits = (categoryName: string): number => {
+    if (categoryName === 'ANPR') return 4;
+    if (categoryName === 'Facial Recognition') return 8;
+    return 1;
+  };
+
+  const totalCreditsUsed = AIFEATURES.reduce((total, category) => {
+    const credits = getFeatureCredits(category.category);
+    return total + category.features.reduce((cat, feature) => {
+      return cat + (selectedAIFeatures[feature.name] || 0) * credits;
+    }, 0);
+  }, 0);
+
   const aiFeaturesTotal = AIFEATURES.reduce((total, category) => {
     return total + category.features.reduce((catTotal, feature) => {
       const qty = selectedAIFeatures[feature.name] || 0;
@@ -492,14 +535,7 @@ export function VSAASConfigurator({
   // Add setup fee to total for cloud and on-premise deployments
   const setupFeeForTotal = (() => {
     if (deploymentType === 'cloud') {
-      const baseSetupFee = 9999;
-      switch (billingCycle) {
-        case 'monthly': return baseSetupFee;
-        case 'quarterly': return Math.round(baseSetupFee * 1.5);
-        case 'semiAnnual': return Math.round(baseSetupFee * 2);
-        case 'yearly': return Math.round(baseSetupFee * 3);
-        default: return baseSetupFee;
-      }
+      return 9999;
     } else if (isOnPrem) {
       return 46000;
     }
@@ -551,34 +587,19 @@ export function VSAASConfigurator({
   const handleAddToCart = (skipAIPrompt = false) => {
     if (!currentProduct) return;
 
-    // When cloud-only flow: prompt user about AI features if they haven't visited the AI tab yet
-    if (!skipAIPrompt && showOnly === 'cloud' && deploymentType === 'cloud' && !hasVisitedAITab) {
+    // When cloud flow: prompt user about AI features if they haven't visited the AI tab yet
+    if (!skipAIPrompt && deploymentType === 'cloud' && !hasVisitedAITab) {
       setShowAIFeaturesPrompt(true);
       return;
     }
 
-    // Block on-premise cart additions if AI-Box or AI Licenses selected but no Credit Utilization items chosen
-    if (isOnPrem && (aiBoxQuantity > 0 || aiLicenseQuantity > 0)) {
-      const hasCreditItems = Object.values(selectedAIFeatures).some((qty) => (qty as number) > 0);
-      if (!hasCreditItems) {
-        setShowCreditWarning(true);
-        return;
-      }
+    // On on-prem page: prompt user to explore AI features before proceeding (once)
+    if (!skipAIPrompt && showOnly === 'onPremise' && !hasVisitedAITab) {
+      setShowOnPremAIPrompt(true);
+      return;
     }
 
-    // Setup fee for cloud deployment - varies by billing cycle
-    const getSetupFeeForCycle = (cycle: BillingCycle): number => {
-      const baseSetupFee = 9999;
-      switch (cycle) {
-        case 'monthly': return baseSetupFee;
-        case 'quarterly': return Math.round(baseSetupFee * 1.5); // 14,999
-        case 'semiAnnual': return Math.round(baseSetupFee * 2); // 19,998
-        case 'yearly': return Math.round(baseSetupFee * 3); // 29,997
-        default: return baseSetupFee;
-      }
-    };
-    
-    const setupFee = deploymentType === 'cloud' ? getSetupFeeForCycle(billingCycle) : 0;
+    const setupFee = deploymentType === 'cloud' ? 9999 : 0;
     
     // For on-premise, use separate quantities; for cloud, use cameraCount
     const effectiveStreamOSQty = isOnPrem ? streamOSQuantity : cameraCount;
@@ -839,6 +860,74 @@ export function VSAASConfigurator({
     <>
     <div className="max-w-7xl mx-auto">
 
+      {/* Credit Limit Error Popup (On-Premise: max 16 credits) */}
+      {showCreditLimitError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-[#DC2626]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Credit Limit Reached</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  You have used all <span className="font-semibold text-gray-900">16 AI feature credits</span> included with your on-premise setup.
+                </p>
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Credits used</span>
+                    <span className="font-semibold text-[#DC2626]">{totalCreditsUsed} / 16</span>
+                  </div>
+                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-[#DC2626] h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(100, (totalCreditsUsed / 16) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-gray-400">
+                  Remove an existing AI feature to free up credits before adding a new one.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCreditLimitError(false)}
+              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Box Required Popup (On-Premise) */}
+      {showAIBoxReqPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6 text-[#DC2626]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">AI Box Required</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  To enable AI features, you must first select an <span className="font-semibold text-gray-900">AI Box</span> from the AI Devices section above.
+                </p>
+                <p className="mt-3 text-xs text-gray-400">
+                  Add at least one AI Box before selecting AI feature licenses.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAIBoxReqPopup(false)}
+              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* AI Prerequisite Warning Popup */}
       {showAIPrereqPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -1017,9 +1106,6 @@ export function VSAASConfigurator({
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
                     Licences to be Procured
                   </h3>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                    per camera
-                  </span>
                 </div>
               </div>
 
@@ -1382,16 +1468,7 @@ export function VSAASConfigurator({
                   {/* Right: Price */}
                   <div className="text-right min-w-[120px]">
                     <div className="text-lg font-bold text-gray-900">
-                      {formatPrice(deploymentType === 'cloud' ? (() => {
-                        const baseSetupFee = 9999;
-                        switch (billingCycle) {
-                          case 'monthly': return baseSetupFee;
-                          case 'quarterly': return Math.round(baseSetupFee * 1.5);
-                          case 'semiAnnual': return Math.round(baseSetupFee * 2);
-                          case 'yearly': return Math.round(baseSetupFee * 3);
-                          default: return baseSetupFee;
-                        }
-                      })() : 0)}
+                      {formatPrice(deploymentType === 'cloud' ? 9999 : 0)}
                     </div>
                   </div>
                 </div>
@@ -1609,12 +1686,6 @@ export function VSAASConfigurator({
                     <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
                       AI Licenses
                     </h3>
-                    <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                      Capex
-                    </span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-                      One Time
-                    </span>
                   </div>
                 </div>
                 
@@ -1623,7 +1694,7 @@ export function VSAASConfigurator({
                   <div className="flex items-start justify-between">
                     {/* Left: Info */}
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">Licenses</h4>
+                      <h4 className="font-semibold text-gray-900">AI Licenses</h4>
                       <p className="text-sm text-gray-500 mt-1">
                         License which can be used to enable any AI alerts/analytics
                       </p>
@@ -1893,36 +1964,14 @@ export function VSAASConfigurator({
             <div className="border border-gray-200 rounded-lg bg-white">
               {/* Section Header */}
               <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-gray-500" />
-                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                      AI Features
-                    </h3>
-                    <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                      Per Camera
-                    </span>
-                  </div>
-                  {/* Billing cycle toggle — prices update instantly */}
-                  <div className="flex items-center gap-1.5">
-                    {BILLING_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setBillingCycle(option.value)}
-                        className={`px-2.5 py-1 rounded text-xs font-medium border transition-all ${
-                          billingCycle === option.value
-                            ? 'bg-[#DC2626] border-[#DC2626] text-white'
-                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                        }`}
-                      >
-                        {option.label}
-                        {option.discount > 0 && billingCycle === option.value && (
-                          <span className="ml-1 opacity-80">−{option.discount}%</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-gray-500" />
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                    AI Features
+                  </h3>
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                    Per Camera
+                  </span>
                 </div>
               </div>
               
@@ -2025,12 +2074,18 @@ export function VSAASConfigurator({
                               
                               {/* Price */}
                               <div className="text-right min-w-[80px]">
-                                <div className="text-sm font-semibold text-gray-900">
-                                  {qty > 0 ? formatPrice(featurePriceForCycle * qty) : formatPrice(featurePriceForCycle)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {getBillingSuffix()}
-                                </div>
+                                {showOnly === 'onPremise' ? (
+                                  <div className="text-sm font-semibold text-green-600">Free</div>
+                                ) : (
+                                  <>
+                                    <div className="text-sm font-semibold text-gray-900">
+                                      {qty > 0 ? formatPrice(featurePriceForCycle * qty) : formatPrice(featurePriceForCycle)}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {getBillingSuffix()}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -2041,7 +2096,7 @@ export function VSAASConfigurator({
                 ))}
                 
                 {/* Selected AI Features Summary */}
-                {aiFeaturesTotal > 0 && (
+                {showOnly !== 'onPremise' && aiFeaturesTotal > 0 && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
@@ -2115,21 +2170,7 @@ export function VSAASConfigurator({
                         <div className="text-xs text-gray-500 mt-0.5">One-time implementation cost</div>
                       </div>
                       <div className="font-medium text-gray-900 text-sm">
-                        {formatPrice((() => {
-                          if (deploymentType === 'cloud') {
-                            const baseSetupFee = 9999;
-                            switch (billingCycle) {
-                              case 'monthly': return baseSetupFee;
-                              case 'quarterly': return Math.round(baseSetupFee * 1.5);
-                              case 'semiAnnual': return Math.round(baseSetupFee * 2);
-                              case 'yearly': return Math.round(baseSetupFee * 3);
-                              default: return baseSetupFee;
-                            }
-                          } else {
-                            // On-premise setup fee
-                            return 46000;
-                          }
-                        })())}
+                        {formatPrice(deploymentType === 'cloud' ? 9999 : 46000)}
                       </div>
                     </div>
                   </div>
@@ -2297,26 +2338,6 @@ export function VSAASConfigurator({
                       </div>
                     )}
                     
-                    {/* Cyber + Pack (Stream OS) - On-Premise Only (not renewal, added manually there) */}
-                    {deploymentType === 'onPremise' && (
-                      <div className="mb-4 pb-3 border-b border-gray-100 last:border-0">
-                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Annual Maintenance</div>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">Cyber + Pack (Stream OS)</div>
-                            <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for Stream</div>
-                          </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(644)}/year</div>
-                        </div>
-                        <div className="flex justify-between items-start mt-2">
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">Cyber + Pack (AI-Box & AI License)</div>
-                            <div className="text-xs text-gray-500 mt-0.5">1 year Cyber Security Pack for AI-Box</div>
-                          </div>
-                          <div className="font-medium text-gray-900 text-sm whitespace-nowrap">{formatPrice(73600)}/year</div>
-                        </div>
-                      </div>
-                    )}
                     
                     {/* AI Features */}
                     {deploymentType === 'ai' && aiFeaturesTotal > 0 && (
@@ -2438,48 +2459,64 @@ export function VSAASConfigurator({
       </div>
     )}
 
-    {/* Credit Utilization Warning Modal */}
-    {showCreditWarning && (
+    {/* On-Premise AI Features Promotion Popup */}
+    {showOnPremAIPrompt && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">Credit Utilization Required</h3>
+          <div className="flex items-start gap-4 mb-2">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <Brain className="w-5 h-5 text-amber-600" />
             </div>
-            <button
-              onClick={() => setShowCreditWarning(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Unlock AI Features — It's Free!</h3>
+              <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                Your on-premise setup comes with <span className="font-semibold text-gray-900">16 AI feature credits</span> that you can use to enable powerful <span className="font-semibold text-gray-900">AI Analytics</span> at no extra cost.
+              </p>
+            </div>
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed mb-6">
-            You must select at least one AI Analytic product from <span className="font-semibold text-gray-900">VSaaS AI Features Credit Utilization</span> before adding On-Premise items to your cart.
-          </p>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowCreditWarning(false)}
-            >
-              Cancel
-            </Button>
+          <div className="mt-4 mx-0 p-4 bg-amber-50 rounded-xl border border-amber-100">
+            <p className="text-sm text-amber-800 font-medium mb-2">What you can enable:</p>
+            <ul className="space-y-1.5 text-sm text-amber-700">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                ANPR — Automatic Number Plate Recognition (4 credits)
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                Facial Recognition (8 credits)
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                Motion Detection, Intrusion & more (1 credit each)
+              </li>
+            </ul>
+          </div>
+          <div className="flex gap-3 mt-5">
             <Button
               className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C] text-white"
               onClick={() => {
-                setShowCreditWarning(false);
+                setShowOnPremAIPrompt(false);
+                setHasVisitedAITab(true);
                 setDeploymentType('ai');
               }}
             >
-              Go to Credit Utilization
+              Explore AI Features
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowOnPremAIPrompt(false);
+                handleAddToCart(true);
+              }}
+            >
+              No, add to cart
             </Button>
           </div>
         </div>
       </div>
     )}
+
     </>
   );
 }

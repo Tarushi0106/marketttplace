@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ChevronLeft, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
+import { FeaturedCategories } from "@/components/storefront/FeaturedCategories";
 import { TrendingProducts } from "@/components/storefront/TrendingProducts";
 import { Testimonials } from "@/components/storefront/Testimonials";
 
 export default async function HomePage() {
   return (
-    <div className="bg-white">
+    <div className="bg-white">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
       {/* Hero Banner Section */}
       <section className="relative">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
@@ -37,7 +37,7 @@ export default async function HomePage() {
                 
                 {/* Subheading */}
                 <p className="mt-6 text-base md:text-lg text-gray-300 leading-relaxed max-w-xl">
-                  Get started with digital transformation solution
+                  Get started with digital transformation solutions
                 </p>
                 
                 {/* Buttons */}
@@ -70,8 +70,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products Section - From Backend */}
-      <FeaturedProducts />
+      {/* Featured Categories Section - From Backend */}
+      <FeaturedCategories />
 
       {/* VSaaS Banner Section */}
       <section className="py-10 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">

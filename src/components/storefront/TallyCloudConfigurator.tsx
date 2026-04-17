@@ -1036,9 +1036,9 @@ export function TallyCloudConfigurator({
           )}
 
           {/* Variants - Show if variants are provided AND not locked (i.e., on pricing page, not configure page) */}
-          {variants && variants.length > 0 && !isVariantLocked && (
+          {variants && variants.length > 0 && !isVariantLocked && productSlug !== 'acronis-backup-advanced-spla' && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-5">Add VSaaS on Cloud</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-5">Select Plan</h3>
               <div className="space-y-3">
                 {variants.map((variant) => {
                   // Use variant's own recurring prices - check both recurringPricesObj and recurringPrices

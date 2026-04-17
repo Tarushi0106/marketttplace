@@ -28,6 +28,7 @@ import {
   Lock,
   Folder,
   Package,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +108,8 @@ const iconOptions = [
   { value: "monitor", label: "Monitor / Display", icon: Monitor },
   { value: "lock", label: "Lock / Privacy", icon: Lock },
   { value: "folder", label: "Folder / General", icon: Folder },
-  { value: "package", label: "Package / Products", icon: Package },
+  { value: "package", label: "Package / Hardware", icon: Package },
+  { value: "smartphone", label: "Smartphone / Mobility", icon: Smartphone },
 ];
 
 const colorPresets = [
@@ -125,7 +127,22 @@ const colorPresets = [
 ];
 
 const getIconComponent = (iconName: string) => {
-  const found = iconOptions.find((opt) => opt.value === iconName);
+  const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+    wifi: Wifi,
+    shield: Shield,
+    cloud: Cloud,
+    settings: Settings,
+    brain: Brain,
+    share2: Share2,
+    database: Database,
+    server: Server,
+    monitor: Monitor,
+    lock: Lock,
+    folder: Folder,
+    package: Package,
+    smartphone: Smartphone,
+  };
+  const found = iconMap[iconName];
   return found ? found.icon : Package;
 };
 
