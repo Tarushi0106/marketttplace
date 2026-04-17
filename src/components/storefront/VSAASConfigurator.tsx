@@ -201,12 +201,14 @@ export function VSAASConfigurator({
   const [showAIBoxReqPopup, setShowAIBoxReqPopup] = useState(false);
 
   const hasConnectCloud = cartItems?.some((item: any) => {
-    const n = (item.product?.name || item.bundle?.name || item.name || item.productName || '').toLowerCase();
-    return n.includes('connect') || n.includes('cloud') || n.includes('platform') || n.includes('licence') || n.includes('license') || n.includes('base');
+    const n = [item.product?.name, item.variant?.name, item.bundle?.name, item.name, item.productName]
+      .filter(Boolean).join(' ').toLowerCase();
+    return n.includes('connect') || n.includes('platform') || n.includes('base license') || n.includes('base licence');
   });
   const hasGateway = cartItems?.some((item: any) => {
-    const n = (item.product?.name || item.bundle?.name || item.name || item.productName || '').toLowerCase();
-    return n.includes('gateway') || n.includes('network') || n.includes('link') || n.includes('nld') || n.includes('device');
+    const n = [item.product?.name, item.variant?.name, item.bundle?.name, item.name, item.productName]
+      .filter(Boolean).join(' ').toLowerCase();
+    return n.includes('gateway') || n.includes('network link') || n.includes('nld');
   });
   const hasAIPrereqs = (hasConnectCloud && hasGateway) || (cartItems && cartItems.length >= 2);
 
@@ -253,6 +255,8 @@ export function VSAASConfigurator({
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('yearly');
   const [isLicenseDropdownOpen, setIsLicenseDropdownOpen] = useState(false);
   
+  const [hardwareQuantity, setHardwareQuantity] = useState(1);
+
   // Separate quantities for on-premise items (independent of cameraCount)
   const [streamOSQuantity, setStreamOSQuantity] = useState(0);
   const [aiBoxQuantity, setAiBoxQuantity] = useState(0);
@@ -506,8 +510,7 @@ export function VSAASConfigurator({
   const cyberPackAIPrice = 73600;   // Fixed AMC price, billed once every 3 years
 
   // DERIVED quantities
-  const hardwareQuantity = Math.max(1, Math.ceil(cameraCount / 8));                  // physical NLD devices needed
-  const connectCloudQuantity = hardwareQuantity;                                     // 1 for 1-8 cameras, 2 for 9-16, 3 for 17-24...
+  const connectCloudQuantity = hardwareQuantity;
   const storageQuantity = cameraCount;
 
   // LICENSE: Sum all license types (users can select multiple)
@@ -548,7 +551,10 @@ export function VSAASConfigurator({
   // ----------------------------------------
   
   const handleCameraCountChange = (newCount: number) => {
-    setCameraCount(Math.max(1, Math.min(512, newCount)));
+    const clamped = Math.max(1, Math.min(512, newCount));
+    setCameraCount(clamped);
+    const minHardware = Math.max(1, Math.ceil(clamped / 8));
+    setHardwareQuantity(q => Math.max(q, minHardware));
   };
 
   const handleLicenseChange = (license: LicenseType) => {
@@ -1328,12 +1334,20 @@ export function VSAASConfigurator({
 
                   {/* Right: Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* Auto-calculated device count */}
+                    {/* User-controlled device count (min = ceil(cameraCount/8)) */}
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                        <button disabled className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-300 cursor-not-allowed">-</button>
+                        <button
+                          onClick={() => setHardwareQuantity(q => Math.max(Math.ceil(cameraCount / 8), q - 1))}
+                          disabled={hardwareQuantity <= Math.max(1, Math.ceil(cameraCount / 8))}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
+                        >−</button>
                         <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
-                        <button disabled className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-300 cursor-not-allowed">+</button>
+                        <button
+                          onClick={() => setHardwareQuantity(q => Math.min(100, q + 1))}
+                          disabled={hardwareQuantity >= 100}
+                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
+                        >+</button>
                       </div>
                       <p className="text-[10px] text-gray-400 text-center leading-tight">quantity of network device</p>
                     </div>
