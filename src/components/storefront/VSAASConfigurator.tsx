@@ -553,8 +553,7 @@ export function VSAASConfigurator({
   const handleCameraCountChange = (newCount: number) => {
     const clamped = Math.max(1, Math.min(512, newCount));
     setCameraCount(clamped);
-    const minHardware = Math.max(1, Math.ceil(clamped / 8));
-    setHardwareQuantity(q => Math.max(q, minHardware));
+    setHardwareQuantity(Math.max(1, Math.ceil(clamped / 8)));
   };
 
   const handleLicenseChange = (license: LicenseType) => {
@@ -1339,14 +1338,22 @@ export function VSAASConfigurator({
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
                         <button
                           type="button"
-                          onClick={() => { const min = Math.max(1, Math.ceil(cameraCount / 8)); if (hardwareQuantity > min) setHardwareQuantity(hardwareQuantity - 1); }}
-                          disabled={hardwareQuantity <= Math.max(1, Math.ceil(cameraCount / 8))}
+                          onClick={() => {
+                            const newQty = Math.max(1, hardwareQuantity - 1);
+                            setHardwareQuantity(newQty);
+                            setCameraCount(newQty * 8);
+                          }}
+                          disabled={hardwareQuantity <= 1}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
                         >−</button>
                         <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
                         <button
                           type="button"
-                          onClick={() => { if (hardwareQuantity < 100) setHardwareQuantity(hardwareQuantity + 1); }}
+                          onClick={() => {
+                            const newQty = Math.min(100, hardwareQuantity + 1);
+                            setHardwareQuantity(newQty);
+                            setCameraCount(newQty * 8);
+                          }}
                           disabled={hardwareQuantity >= 100}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
                         >+</button>
