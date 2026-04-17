@@ -73,13 +73,13 @@
     "stripe": "^20.3.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.1",
+    "@tailwindcss/typography": "^0.5.19",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
     "zod": "^4.3.6",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
     "@types/bcryptjs": "^2.4.6",
     "@types/nodemailer": "^7.0.9",
     "@types/pdfkit": "^0.17.4",
