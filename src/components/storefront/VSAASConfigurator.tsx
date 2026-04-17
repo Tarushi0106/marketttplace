@@ -1338,13 +1338,15 @@ export function VSAASConfigurator({
                     <div className="flex flex-col items-center gap-1">
                       <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
                         <button
-                          onClick={() => setHardwareQuantity(q => Math.max(Math.ceil(cameraCount / 8), q - 1))}
+                          type="button"
+                          onClick={() => { const min = Math.max(1, Math.ceil(cameraCount / 8)); if (hardwareQuantity > min) setHardwareQuantity(hardwareQuantity - 1); }}
                           disabled={hardwareQuantity <= Math.max(1, Math.ceil(cameraCount / 8))}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
                         >−</button>
                         <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
                         <button
-                          onClick={() => setHardwareQuantity(q => Math.min(100, q + 1))}
+                          type="button"
+                          onClick={() => { if (hardwareQuantity < 100) setHardwareQuantity(hardwareQuantity + 1); }}
                           disabled={hardwareQuantity >= 100}
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
                         >+</button>
