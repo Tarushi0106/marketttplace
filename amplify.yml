@@ -7,7 +7,7 @@ frontend:
         - pwd
         - ls -la
         - echo "=== Clearing ALL caches ==="
-        - rm -rf node_modules .next .cache tsconfig.tsbuildinfo package-lock.json
+        - rm -rf node_modules .next .cache tsconfig.tsbuildinfo
         - rm -rf /tmp/.npm /tmp/.cache
         - export DATABASE_URL="postgresql://neondb_owner:npg_CPbtog2S4hVN@ep-proud-fire-ai5rehvt-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
         - export NEXTAUTH_SECRET="your-nextauth-secret-here"
@@ -16,7 +16,7 @@ frontend:
         - export AUTH_URL="https://developer.d28fa2102uro78.amplifyapp.com"
         - export AUTH_TRUST_HOST="true"
         - export NEXT_PUBLIC_APP_URL="https://developer.d28fa2102uro78.amplifyapp.com"
-        - npm install --legacy-peer-deps
+        - npm ci --legacy-peer-deps
     build:
       commands:
         - echo "=== BUILD PHASE DEBUG ==="
