@@ -429,7 +429,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <Info className="h-4 w-4 mr-2" />
-                Overview
+                Overview and Benefits
               </TabsTrigger>
               <TabsTrigger
                 value="features"
@@ -458,14 +458,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               </TabsTrigger>
               )}
               <TabsTrigger
-                value="reviews"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
-              >
-                <Star className="h-4 w-4 mr-2" />
-                Reviews
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">{reviewCount}</Badge>
-              </TabsTrigger>
-              <TabsTrigger
                 value="support"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
@@ -478,6 +470,14 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               >
                 <BookOpen className="h-4 w-4 mr-2" />
                 Resources
+              </TabsTrigger>
+              <TabsTrigger
+                value="reviews"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium ml-auto"
+              >
+                <Star className="h-4 w-4 mr-2" />
+                Reviews
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">{reviewCount}</Badge>
               </TabsTrigger>
             </TabsList>
 
@@ -534,8 +534,6 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <h3 className="text-xl font-bold text-gray-900 mb-4">
                         {product.slug === 'tally-cloud-server'
                           ? 'About Tally on Cloud Server'
-                          : product.slug === 'vsaas'
-                          ? 'Overview & Customer Benefits'
                           : `About ${product.name}`}
                       </h3>
                       {product.slug === 'tally-cloud-server' ? (
