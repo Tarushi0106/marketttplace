@@ -49,6 +49,7 @@ import {
   BarChart3,
   ScrollText,
   Wifi,
+  Brain,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -511,6 +512,17 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <p className="text-sm text-gray-500">Always available</p>
                     </div>
                   </div>
+                  {product.slug === 'vsaas' && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                        <Brain className="h-6 w-6 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">AI Intelligence</p>
+                        <p className="text-sm text-gray-500">Smart analytics</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-10">
@@ -518,7 +530,11 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     {/* Description */}
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-4">
-                        {product.slug === 'tally-cloud-server' ? 'About Tally on Cloud Server' : `About ${product.name}`}
+                        {product.slug === 'tally-cloud-server'
+                          ? 'About Tally on Cloud Server'
+                          : product.slug === 'vsaas'
+                          ? 'Overview & Customer Benefits'
+                          : `About ${product.name}`}
                       </h3>
                       {product.slug === 'tally-cloud-server' ? (
                         <div className="space-y-5">
@@ -545,13 +561,19 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                           </div>
                         </div>
                       ) : product.slug === 'vsaas' ? (
-                        <div className="space-y-5">
-                          <p className="text-gray-600 leading-relaxed">
-                            NetNxt VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
-                          </p>
+                        <div className="space-y-8">
                           <div>
-                            <h4 className="text-base font-bold text-gray-900 mb-3">Customer Benefits</h4>
-                            <ul className="space-y-2.5">
+                            <h4 className="text-base font-bold text-gray-900 mb-3">Overview</h4>
+                            <p className="text-gray-600 leading-relaxed">
+                              VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
+                            </p>
+                            <p className="text-sm text-gray-500 border-l-2 border-[#8B1D1D]/30 pl-3 mt-4">
+                              👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-base font-bold text-gray-900 mb-4">Customer Benefits</h4>
+                            <div className="grid grid-cols-2 gap-3">
                               {[
                                 { title: "No CapEx Model", desc: "Eliminate upfront hardware costs with a fully managed cloud solution." },
                                 { title: "Anywhere Access", desc: "Monitor your premises from any device, anywhere in the world." },
@@ -562,16 +584,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 { title: "Scalable Solution", desc: "Easily add cameras and users as your business grows." },
                                 { title: "Compliance Ready", desc: "Meet industry regulations with encrypted, audit-ready recordings." },
                               ].map((item, i) => (
-                                <li key={i} className="flex items-start gap-2.5">
-                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
-                                  <span className="text-gray-600 text-sm"><span className="font-semibold text-gray-800">{item.title}</span> — {item.desc}</span>
-                                </li>
+                                <div key={i} className="p-4 rounded-xl border border-gray-200 bg-gray-50 hover:border-[#8B1D1D]/30 hover:bg-red-50/30 transition-colors">
+                                  <div className="font-semibold text-gray-900 text-sm mb-1">{item.title}</div>
+                                  <div className="text-xs text-gray-500 leading-relaxed">{item.desc}</div>
+                                </div>
                               ))}
-                            </ul>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-500 border-l-2 border-[#8B1D1D]/30 pl-3">
-                            👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
-                          </p>
                         </div>
                       ) : product.slug === 'acronis-backup-advanced-spla' ? (
                         <div className="space-y-6">
