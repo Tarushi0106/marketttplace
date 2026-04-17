@@ -63,6 +63,7 @@ import {
 import { formatPrice } from "@/lib/utils";
 import { AcronisConfigurator } from "@/components/storefront/AcronisConfigurator";
 import { Microsoft365Configurator } from "@/components/storefront/Microsoft365Configurator";
+import { ProductPageTracker } from "@/components/storefront/ProductPageTracker";
 
 // Render icon based on icon name
 function renderIcon(iconName?: string | null) {
@@ -325,6 +326,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
   return (
     <div className="min-h-screen bg-white">
+      <ProductPageTracker slug={product.slug} name={product.name} />
       {/* Hero Section with Background Image */}
       <section className="relative">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">

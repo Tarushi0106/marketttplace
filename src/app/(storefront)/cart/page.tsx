@@ -87,6 +87,14 @@ export default function CartPage() {
     cleanStaleData();
   }, [cleanStaleData]);
 
+  const [lastProduct, setLastProduct] = useState<{ label: string; href: string } | null>(null);
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("lastProductPage");
+      if (stored) setLastProduct(JSON.parse(stored));
+    } catch {}
+  }, []);
+
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -115,7 +123,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
 <div className="container mx-auto px-4 py-4">
-        <Breadcrumbs items={[{ label: "Cart" }]} className="mb-6" />
+        <Breadcrumbs items={[...(lastProduct ? [{ label: "Products", href: "/products" }, lastProduct] : [{ label: "Products", href: "/products" }]), { label: "Cart" }]} className="mb-6" />
 
         <div className="flex flex-col items-center justify-center py-16">
           <ShoppingBag className="h-24 w-24 text-muted-foreground mb-6" />
@@ -150,7 +158,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumbs items={[{ label: "Cart" }]} className="mb-6" />
+      <Breadcrumbs items={[...(lastProduct ? [{ label: "Products", href: "/products" }, lastProduct] : [{ label: "Products", href: "/products" }]), { label: "Cart" }]} className="mb-6" />
 
       <h1 className="text-2xl font-bold mb-4">Shopping Cart</h1>
 

@@ -1175,11 +1175,11 @@ export function VSAASConfigurator({
                           className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         >+</button>
                       </div>
-                      <p className="text-[10px] text-gray-400 text-center leading-tight">per camera</p>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">quantity of camera</p>
                     </div>
                     <div className="text-right min-w-[120px]">
                       <div className="text-xs text-gray-500">
-                        {formatPrice(connectCloudUnitPrice)}{getBillingSuffix()}
+                        {formatPrice(connectCloudUnitPrice)}{getBillingSuffix()} <span className="text-gray-400">per camera</span>
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {formatPrice(licenseTotal)}{getBillingSuffix()}
@@ -1335,6 +1335,7 @@ export function VSAASConfigurator({
                         <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
                         <button disabled className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-300 cursor-not-allowed">+</button>
                       </div>
+                      <p className="text-[10px] text-gray-400 text-center leading-tight">quantity of network device</p>
                     </div>
 
                     {/* Unit Price */}
