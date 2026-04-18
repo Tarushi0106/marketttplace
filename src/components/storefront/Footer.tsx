@@ -127,11 +127,13 @@ export function Footer() {
   }, []);
 
   const DefaultLogo = () => (
-    <img
-      src="/uploads/shaurrya_logo_dark.svg"
-      alt="Shaurrya Teleservices Logo"
-      className="h-14 w-auto object-contain"
-    />
+    <div className="inline-block bg-white rounded-xl p-2">
+      <img
+        src="/image.png"
+        alt="NetNxt – Powered by Shaurrya Teleservices"
+        className="h-20 w-auto object-contain"
+      />
+    </div>
   );
 
   const address = [settings.city, settings.state, settings.country].filter(Boolean).join(", ") || settings.address;
@@ -178,11 +180,13 @@ export function Footer() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-4 lg:col-span-2">
             <Link href="/">
-              <img 
-                src="/uploads/shaurrya_logo_dark.svg"
-                alt="Shaurray Teleservices Logo"
-                className="h-14 w-auto object-contain"
-              />
+              <div className="inline-block bg-white rounded-xl p-2 hover:opacity-90 transition-opacity">
+                <img
+                  src="/image.png"
+                  alt="NetNxt – Powered by Shaurrya Teleservices"
+                  className="h-20 w-auto object-contain"
+                />
+              </div>
             </Link>
               <p className="mt-6 text-white/50 text-sm leading-relaxed max-w-xs">
                 {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}

@@ -209,12 +209,10 @@ export function Header() {
   }, []);
 
   const DefaultLogo = () => (
-    <Image
-      src="/uploads/branding/1769779880137-5cft1s.svg"
-      alt="Shaurrya Teleservices"
-      width={200}
-      height={64}
-      className="h-14 w-auto object-contain"
+    <img
+      src="/image.png"
+      alt="NetNxt – Powered by Shaurrya Teleservices"
+      className="h-[70px] w-auto object-contain"
     />
   );
 
@@ -223,13 +221,13 @@ export function Header() {
       {/* Main Header */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex h-[70px] items-center justify-between gap-8">
+          <div className="flex h-[84px] items-center justify-between gap-8">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 hover:opacity-90 transition-opacity">
-              <img 
-                src="/uploads/branding/1769779880137-5cft1s.svg"
-                alt="Shaurrya Teleservices"
-                className="h-14 w-auto object-contain"
+              <img
+                src="/image.png"
+                alt="NetNxt – Powered by Shaurrya Teleservices"
+                className="h-[70px] w-auto object-contain"
               />
             </Link>
 
