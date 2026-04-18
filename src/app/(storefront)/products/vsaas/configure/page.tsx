@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, ArrowLeft, Building2, Cloud, Shield, Server, Database, Lock, Globe } from "lucide-react";
 import Image from "next/image";
 import { VSAASConfigurator } from "@/components/storefront/VSAASConfigurator";
+import { ConfigurePageTracker } from "@/components/storefront/ConfigurePageTracker";
 
 // Render icon based on icon name
 function renderProductIcon(iconName?: string | null) {
@@ -250,8 +251,11 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
     )
   ) : [];
 
+  const configureHref = `/products/vsaas/configure${resolvedSearchParams.showOnly ? `?showOnly=${resolvedSearchParams.showOnly}` : ""}`;
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <ConfigurePageTracker href={configureHref} label="Configure" />
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 py-4">

@@ -172,10 +172,13 @@ export default function CartPage() {
   useEffect(() => { cleanStaleData(); }, [cleanStaleData]);
 
   const [lastProduct, setLastProduct] = useState<{ label: string; href: string } | null>(null);
+  const [lastConfigure, setLastConfigure] = useState<{ label: string; href: string } | null>(null);
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem("lastProductPage");
       if (stored) setLastProduct(JSON.parse(stored));
+      const configStored = sessionStorage.getItem("lastConfigurePage");
+      if (configStored) setLastConfigure(JSON.parse(configStored));
     } catch {}
   }, []);
 
@@ -202,9 +205,9 @@ export default function CartPage() {
   };
 
   const breadcrumbItems = [
-    ...(lastProduct
-      ? [{ label: "Products", href: "/products" }, lastProduct]
-      : [{ label: "Products", href: "/products" }]),
+    { label: "Products", href: "/products" },
+    ...(lastProduct ? [lastProduct] : []),
+    ...(lastConfigure ? [lastConfigure] : []),
     { label: "Cart" },
   ];
 
