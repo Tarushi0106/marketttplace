@@ -30,6 +30,8 @@ frontend:
         - node scripts/generate-env.js
         - echo "=== Contents of generated runtime-env.ts ==="
         - cat src/runtime-env.ts
+        - echo "=== Seeding database (upserts, safe to run on every deploy) ==="
+        - npx tsx prisma/seed.ts
         - echo "=== Starting Next.js build ==="
         - npm run build
   artifacts:
