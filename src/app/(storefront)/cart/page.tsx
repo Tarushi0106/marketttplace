@@ -266,6 +266,13 @@ export default function CartPage() {
               <div className={`flex items-center gap-2 px-3 py-2 rounded-t-lg border ${category.borderColor} ${category.bgColor} ${category.textColor} font-semibold text-sm`}>
                 {category.icon}
                 {category.label}
+                {category.key === "license" && (() => {
+                  const cam = groupItems.find((i: any) => (i as any).cameraCount);
+                  const count = cam ? (cam as any).cameraCount : null;
+                  return count ? (
+                    <span className="text-xs font-normal opacity-80">— for ({count}) camera{count > 1 ? "s" : ""} you selected</span>
+                  ) : null;
+                })()}
                 <span className="ml-auto text-xs font-normal opacity-70">{groupItems.length} item{groupItems.length > 1 ? "s" : ""}</span>
               </div>
 
