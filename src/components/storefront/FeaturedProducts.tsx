@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart, Box, Wifi, Shield, Server, Database, Cloud, Cpu, Headphones, Briefcase } from "lucide-react";
+import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart, Box, Wifi, Shield, Server, Database, Cloud, Cpu, Headphones, Briefcase, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart-store";
@@ -67,15 +67,15 @@ const sampleProducts: Product[] = [
   },
   {
     id: "3",
-    name: "SD-WAN Solution",
-    slug: "sdwan-solution",
-    shortDescription: "Software-defined wide area networking",
+    name: "VSaaS – Video Surveillance as a Service",
+    slug: "vsaas",
+    shortDescription: "Cloud-based AI video surveillance for enterprises",
     basePrice: 349.99,
     compareAtPrice: 449.99,
     averageRating: 4.3,
     salesCount: 8,
     productType: "STANDALONE",
-    category: { id: "3", name: "Network Solutions", slug: "network-solutions" },
+    category: { id: "3", name: "Video Surveillance", slug: "video-surveillance" },
     images: [],
     _count: { reviews: 3 },
   },
@@ -112,6 +112,7 @@ const sampleProducts: Product[] = [
 // Function to get icon based on product name
 const getProductIcon = (productName: string) => {
   const name = productName.toLowerCase();
+  if (name.includes("vsaas") || name.includes("surveillance") || name.includes("camera") || name.includes("cctv")) return <Video className="w-10 h-10 text-red-600" />;
   if (name.includes("wifi") || name.includes("router") || name.includes("network")) return <Wifi className="w-10 h-10 text-red-600" />;
   if (name.includes("security") || name.includes("firewall") || name.includes("protect")) return <Shield className="w-10 h-10 text-red-600" />;
   if (name.includes("server") || name.includes("hosting")) return <Server className="w-10 h-10 text-red-600" />;

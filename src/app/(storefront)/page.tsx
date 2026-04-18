@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, ChevronLeft, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FeaturedCategories } from "@/components/storefront/FeaturedCategories";
+import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
 import { TrendingProducts } from "@/components/storefront/TrendingProducts";
 import { Testimonials } from "@/components/storefront/Testimonials";
 
@@ -70,8 +70,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Categories Section - From Backend */}
-      <FeaturedCategories />
+      {/* Featured Products Section - From Backend */}
+      <FeaturedProducts />
 
       {/* VSaaS Banner Section */}
       <section className="py-10 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
