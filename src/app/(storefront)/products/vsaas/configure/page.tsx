@@ -46,29 +46,34 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
-  // Fetch main VSAAS product with variants
-  const vsaasProductRaw = await prisma.product.findUnique({
-    where: {
-      slug: "vsaas",
-      status: "ACTIVE",
+  const productInclude = {
+    category: true,
+    images: { orderBy: { sortOrder: "asc" as const } },
+    variants: {
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" as const },
+      include: { recurringPrices: true },
     },
-    include: {
-      category: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        include: {
-          recurringPrices: true,
-        },
-      },
-      addons: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-      },
-      recurringPrices: true,
+    addons: {
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" as const },
     },
+    recurringPrices: true,
+  };
+
+  // Try vsaas first; fall back to vsaas-cloud-service if it has no variants
+  let vsaasProductRaw = await prisma.product.findFirst({
+    where: { slug: "vsaas", status: "ACTIVE" },
+    include: productInclude,
   });
+
+  if (!vsaasProductRaw || vsaasProductRaw.variants.length === 0) {
+    const fallback = await prisma.product.findFirst({
+      where: { slug: "vsaas-cloud-service", status: "ACTIVE" },
+      include: productInclude,
+    });
+    if (fallback) vsaasProductRaw = fallback;
+  }
 
   // Transform product to add recurringPricesObj for each variant
   let vsaasProduct = vsaasProductRaw;
@@ -269,7 +274,12 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
       </div>
 
       {/* VSAAS Configurator with Deployment Type Selector */}
-      {vsaasProduct && cloudVariants.length > 0 && onPremiseVariants.length > 0 ? (
+      {vsaasProduct && (
+        (resolvedSearchParams.showOnly === 'cloud' && cloudVariants.length > 0) ||
+        (resolvedSearchParams.showOnly === 'onprem' && onPremiseVariants.length > 0) ||
+        (resolvedSearchParams.showOnly === 'ai' && aiVariants.length > 0) ||
+        (!resolvedSearchParams.showOnly && cloudVariants.length > 0 && onPremiseVariants.length > 0)
+      ) ? (
         <VSAASConfigurator 
           cloudProduct={{
             ...vsaasProduct,

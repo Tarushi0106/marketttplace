@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import {
   ShoppingBag,
-  Minus,
-  Plus,
   Trash2,
   ArrowRight,
   Tag,
@@ -18,29 +15,23 @@ import {
   Database,
   Lock,
   Globe,
+  Brain,
+  Cpu,
 } from "lucide-react";
 
-// Render icon based on icon name
 function renderCartIcon(iconName?: string | null) {
   const props = { size: 28, className: "text-[#C62828]" };
-
   switch (iconName) {
-    case "Cloud":
-      return <Cloud {...props} />;
-    case "Shield":
-      return <Shield {...props} />;
-    case "Server":
-      return <Server {...props} />;
-    case "Database":
-      return <Database {...props} />;
-    case "Lock":
-      return <Lock {...props} />;
-    case "Globe":
-      return <Globe {...props} />;
-    default:
-      return <Cloud {...props} />;
+    case "Cloud": return <Cloud {...props} />;
+    case "Shield": return <Shield {...props} />;
+    case "Server": return <Server {...props} />;
+    case "Database": return <Database {...props} />;
+    case "Lock": return <Lock {...props} />;
+    case "Globe": return <Globe {...props} />;
+    default: return <Cloud {...props} />;
   }
 }
+
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,43 +40,136 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
 
-// Helper to get recurring interval text
 const getRecurringInterval = (billingCycle?: string): string => {
   const intervals: Record<string, string> = {
-    MONTHLY: "1 month",
-    BIMONTHLY: "2 months",
-    QUARTERLY: "3 months",
-    FOUR_MONTHLY: "4 months",
-    SEMI_ANNUAL: "6 months",
-    TRI_ANNUAL: "9 months",
-    YEARLY: "1 year",
-    BIENNIAL: "2 years",
-    TRIENNIAL: "3 years",
+    MONTHLY: "1 month", BIMONTHLY: "2 months", QUARTERLY: "3 months",
+    FOUR_MONTHLY: "4 months", SEMI_ANNUAL: "6 months", TRI_ANNUAL: "9 months",
+    YEARLY: "1 year", BIENNIAL: "2 years", TRIENNIAL: "3 years",
   };
   return intervals[billingCycle || ""] || "";
 };
 
+// ── Category definitions (order = display order) ──────────────────────────────
+const CATEGORIES = [
+  {
+    key: "license",
+    label: "Licences & Subscriptions",
+    icon: <Shield className="w-4 h-4" />,
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+    textColor: "text-red-700",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return (
+        item.isRecurring &&
+        (n.includes("connect") || n.includes("platform") || n.includes("license") || n.includes("licence") || n.includes("cloud"))
+      );
+    },
+  },
+  {
+    key: "hardware",
+    label: "Network Hardware",
+    icon: <Server className="w-4 h-4" />,
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
+    textColor: "text-green-700",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return n.includes("gateway") || n.includes("network link") || n.includes("nld");
+    },
+  },
+  {
+    key: "storage",
+    label: "Cloud Storage",
+    icon: <Database className="w-4 h-4" />,
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+    textColor: "text-purple-700",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return n.includes("storage");
+    },
+  },
+  {
+    key: "ai",
+    label: "AI Features",
+    icon: <Brain className="w-4 h-4" />,
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-200",
+    textColor: "text-amber-700",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return (
+        item.deploymentType === "ai" ||
+        n.includes("intrusion") || n.includes("loitering") || n.includes("anpr") ||
+        n.includes("facial") || n.includes("heatmap") || n.includes("overcrowding") ||
+        n.includes("ppe") || n.includes("smoke") || n.includes("queue") ||
+        n.includes("people counting") || n.includes("sabotage") || n.includes("trespassing") ||
+        n.includes("perimeter") || n.includes("zone monitoring") || n.includes("double line") ||
+        n.includes("missing staff") || n.includes("occupancy") || n.includes("person of interest") ||
+        n.includes("vehicle of interest")
+      );
+    },
+  },
+  {
+    key: "hardware_device",
+    label: "Hardware Devices",
+    icon: <Cpu className="w-4 h-4" />,
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+    textColor: "text-orange-700",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return n.includes("stream os") || n.includes("ai-box") || n.includes("ai box") || n.includes("ai license");
+    },
+  },
+  {
+    key: "onetime",
+    label: "One-time Charges",
+    icon: <Calculator className="w-4 h-4" />,
+    bgColor: "bg-gray-50",
+    borderColor: "border-gray-200",
+    textColor: "text-gray-600",
+    match: (item: any) => {
+      const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
+      return (
+        item.billingCycle === "ONE_TIME" ||
+        n.includes("setup") || n.includes("cyber") || n.includes("amc")
+      );
+    },
+  },
+  {
+    key: "other",
+    label: "Other Products",
+    icon: <ShoppingBag className="w-4 h-4" />,
+    bgColor: "bg-gray-50",
+    borderColor: "border-gray-200",
+    textColor: "text-gray-600",
+    match: () => true,
+  },
+] as const;
+
+function groupItems(items: any[]) {
+  const used = new Set<string>();
+  const groups: { category: typeof CATEGORIES[number]; items: any[] }[] = [];
+
+  for (const cat of CATEGORIES) {
+    const matched = items.filter((item) => !used.has(item.id) && cat.match(item));
+    matched.forEach((item) => used.add(item.id));
+    if (matched.length > 0) groups.push({ category: cat, items: matched });
+  }
+  return groups;
+}
+
 export default function CartPage() {
   const {
-    items,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    getSubtotal,
-    getTax,
-    getTodayTotal,
-    getSetupFeeTotal,
-    discountCode,
-    discountAmount,
-    applyDiscount,
-    removeDiscount,
+    items, removeItem, clearCart,
+    getSubtotal, getTax, getTodayTotal, getSetupFeeTotal,
+    discountCode, discountAmount, applyDiscount, removeDiscount,
     cleanStaleData,
   } = useCartStore();
 
-  // Clean any stale formatted string data on mount
-  useEffect(() => {
-    cleanStaleData();
-  }, [cleanStaleData]);
+  useEffect(() => { cleanStaleData(); }, [cleanStaleData]);
 
   const [lastProduct, setLastProduct] = useState<{ label: string; href: string } | null>(null);
   useEffect(() => {
@@ -101,14 +185,11 @@ export default function CartPage() {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-
     setIsApplyingCoupon(true);
     setCouponError("");
-
     setTimeout(() => {
       if (couponCode.toUpperCase() === "SAVE20") {
-        const discount = Number(getSubtotal()) * 0.2;
-        applyDiscount("SAVE20", discount);
+        applyDiscount("SAVE20", Number(getSubtotal()) * 0.2);
         setCouponCode("");
       } else if (couponCode.toUpperCase() === "FLAT50") {
         applyDiscount("FLAT50", 50);
@@ -120,17 +201,22 @@ export default function CartPage() {
     }, 500);
   };
 
+  const breadcrumbItems = [
+    ...(lastProduct
+      ? [{ label: "Products", href: "/products" }, lastProduct]
+      : [{ label: "Products", href: "/products" }]),
+    { label: "Cart" },
+  ];
+
   if (items.length === 0) {
     return (
-<div className="container mx-auto px-4 py-4">
-        <Breadcrumbs items={[...(lastProduct ? [{ label: "Products", href: "/products" }, lastProduct] : [{ label: "Products", href: "/products" }]), { label: "Cart" }]} className="mb-6" />
-
+      <div className="container mx-auto px-4 py-4">
+        <Breadcrumbs items={breadcrumbItems} className="mb-6" />
         <div className="flex flex-col items-center justify-center py-16">
           <ShoppingBag className="h-24 w-24 text-muted-foreground mb-6" />
           <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
           <p className="text-muted-foreground mb-8 text-center max-w-md">
-            Looks like you haven't added anything to your cart yet. Start
-            shopping to fill it up!
+            Looks like you haven't added anything yet. Start shopping to fill it up!
           </p>
           <Button size="lg" asChild>
             <Link href="/products">Browse Products</Link>
@@ -140,38 +226,32 @@ export default function CartPage() {
     );
   }
 
-  // Calculate totals for order summary - ensure all values are numbers to prevent string concatenation
   const subtotal = Number(getSubtotal());
   const tax = Number(getTax());
   const setupFeeTotal = Number(getSetupFeeTotal());
-  const todayTotal = Number(getTodayTotal());
-  // Recurring total is separate - NOT added to Total Due Today
-  // For quantityLocked VSAAS items, recurringAmount is already the full total (not per-unit)
   const recurringTotal = items
-    .filter(item => Number(item.recurringAmount) > 0)
+    .filter((item) => Number(item.recurringAmount) > 0)
     .reduce((sum, item) => {
       const amount = Number(item.recurringAmount) || 0;
-      if ((item as any).quantityLocked) return sum + amount;
-      return sum + (amount * Number(item.quantity || 1));
+      return sum + ((item as any).quantityLocked ? amount : amount * Number(item.quantity || 1));
     }, 0);
-  const billingCycle = items.find(item => item.billingCycle)?.billingCycle;
+  const billingCycle = items.find((item) => item.billingCycle && item.billingCycle !== "ONE_TIME")?.billingCycle;
+
+  const groups = groupItems(items);
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumbs items={[...(lastProduct ? [{ label: "Products", href: "/products" }, lastProduct] : [{ label: "Products", href: "/products" }]), { label: "Cart" }]} className="mb-6" />
+      <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
       <h1 className="text-2xl font-bold mb-4">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-muted-foreground">
-              {items.length} item(s) in cart
-            </span>
+        {/* ── Cart Items ── */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">{items.length} item(s) in cart</span>
             <Button
-              variant="ghost"
-              size="sm"
+              variant="ghost" size="sm"
               className="text-destructive hover:text-destructive"
               onClick={clearCart}
             >
@@ -180,129 +260,93 @@ export default function CartPage() {
             </Button>
           </div>
 
-          {items.map((item) => (
-            <Card key={item.id}>
-              <CardContent className="p-3">
-                <div className="flex gap-3">
-                  {/* Product icon */}
-                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-[#FDECEC] flex items-center justify-center">
-                    {item.product?.icon ? (
-                      renderCartIcon(item.product.icon)
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-muted-foreground">
-                        <ShoppingBag className="h-8 w-8 text-[#C62828]" />
-                      </div>
-                    )}
-                  </div>
+          {groups.map(({ category, items: groupItems }) => (
+            <div key={category.key}>
+              {/* Category Header */}
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-t-lg border ${category.borderColor} ${category.bgColor} ${category.textColor} font-semibold text-sm`}>
+                {category.icon}
+                {category.label}
+                <span className="ml-auto text-xs font-normal opacity-70">{groupItems.length} item{groupItems.length > 1 ? "s" : ""}</span>
+              </div>
 
-                  {/* Product info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Link
-                          href={`/products/${item.product?.slug || item.bundle?.slug}`}
-                          className="font-medium hover:text-primary"
-                        >
-                          {item.product?.name || item.bundle?.name}
-                        </Link>
-                        {item.variant && (
-                          <p className="text-sm text-muted-foreground">
-                            Plan: {item.variant.name}
-                          </p>
-                        )}
+              <div className="border border-t-0 border-gray-200 rounded-b-lg divide-y divide-gray-100 overflow-hidden">
+                {groupItems.map((item) => (
+                  <div key={item.id} className="p-4 bg-white">
+                    <div className="flex gap-3">
+                      {/* Icon */}
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-[#FDECEC] flex items-center justify-center">
+                        {item.product?.icon
+                          ? renderCartIcon(item.product.icon)
+                          : <ShoppingBag className="h-6 w-6 text-[#C62828]" />}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
 
-                    {/* Selected configs (flat structure) */}
-                    {item.selectedConfigs && item.selectedConfigs.length > 0 && (
-                      <div className="mt-2">
-                        <ul className="text-sm">
-                          {item.selectedConfigs.map((config) => (
-                            <li key={config.configId} className="text-muted-foreground flex justify-between">
-                              <span>
-                                {config.configName}: {config.value}
-                              </span>
-                              <span>{formatPrice(config.price || 0)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Instance configurations */}
-                    {item.instances && item.instances.length > 0 && (
-                      <div className="mt-2">
-                        {item.instances.map((instance) => (
-                          <div key={instance.instanceId} className="mb-2">
-                            {/* Instance configs */}
-                            {instance.selectedConfigs && instance.selectedConfigs.length > 0 && (
-                              <ul className="text-sm ml-2">
-                                {instance.selectedConfigs.map((config) => (
-                                  <li key={config.configId} className="text-muted-foreground flex justify-between">
-                                    <span>
-                                      {config.configName || config.configId}
-                                    </span>
-                                    <span>{formatPrice(config.price ?? 0)}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <Link
+                              href={`/products/${item.product?.slug || item.bundle?.slug}`}
+                              className="font-medium hover:text-primary text-gray-900"
+                            >
+                              {item.product?.name || item.bundle?.name}
+                            </Link>
+                            {item.variant?.name && item.variant.name !== item.product?.name && (
+                              <p className="text-sm text-muted-foreground">
+                                Plan: {item.variant.name}
+                              </p>
                             )}
-                            {/* Instance addons */}
-                            {instance.selectedAddons && instance.selectedAddons.length > 0 && (
-                              <ul className="text-sm ml-2">
-                                {instance.selectedAddons.filter((addon) => addon.addon?.name).map((addon) => (
-                                  <li key={addon.addon?.id} className="text-muted-foreground flex justify-between">
-                                    <span>+ {addon.addon?.name}</span>
-                                    <span>{formatPrice(addon.addon?.price || 0)}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                            {(item as any).cameraCount && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                For {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? "s" : ""}
+                              </p>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <Button
+                            variant="ghost" size="icon"
+                            className="text-muted-foreground hover:text-destructive -mt-1"
+                            onClick={() => removeItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
 
-                    {/* Quantity & Price — read only */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Qty:</span>
-                        <span className="font-medium text-sm">{item.quantity ?? 1}</span>
-                        {(item as any).cameraCount && (
-                          <span className="text-xs text-gray-400">
-                            (for {(item as any).cameraCount} camera{(item as any).cameraCount > 1 ? 's' : ''})
-                          </span>
+                        {/* Configs */}
+                        {item.selectedConfigs && item.selectedConfigs.length > 0 && (
+                          <ul className="mt-1 text-sm">
+                            {item.selectedConfigs.map((config: any) => (
+                              <li key={config.configId} className="text-muted-foreground flex justify-between">
+                                <span>{config.configName}: {config.value}</span>
+                                <span>{formatPrice(config.price || 0)}</span>
+                              </li>
+                            ))}
+                          </ul>
                         )}
+
+                        {/* Price */}
+                        <div className="mt-2 flex justify-end">
+                          <p className="font-semibold text-gray-900">
+                            {item.isRecurring && item.billingCycle && item.billingCycle !== "ONE_TIME" ? (
+                              <>
+                                {formatPrice(item.recurringAmount || 0)}
+                                <span className="text-xs font-normal text-gray-400 ml-1">
+                                  {item.billingCycle === "YEARLY" ? "/yr" : item.billingCycle === "QUARTERLY" ? "/qtr" : "/mo"}
+                                </span>
+                              </>
+                            ) : (
+                              formatPrice(item.baseProductPrice || 0)
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <p className="font-semibold text-gray-900">
-                        {item.isRecurring && item.billingCycle && item.billingCycle !== 'ONE_TIME' ? (
-                          <>
-                            {formatPrice(item.recurringAmount || 0)}
-                            <span className="text-xs font-normal text-gray-400 ml-1">
-                              {item.billingCycle === 'YEARLY' ? '/yr' : item.billingCycle === 'QUARTERLY' ? '/qtr' : '/mo'}
-                            </span>
-                          </>
-                        ) : (
-                          formatPrice(item.baseProductPrice || 0)
-                        )}
-                      </p>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Order Summary */}
+        {/* ── Order Summary ── */}
         <div>
           <Card className="sticky top-20">
             <CardHeader>
@@ -312,7 +356,7 @@ export default function CartPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Coupon Code */}
+              {/* Coupon */}
               {!discountCode ? (
                 <div>
                   <div className="flex gap-2">
@@ -325,20 +369,10 @@ export default function CartPage() {
                         onChange={(e) => setCouponCode(e.target.value)}
                       />
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={handleApplyCoupon}
-                      disabled={isApplyingCoupon}
-                    >
-                      Apply
-                    </Button>
+                    <Button variant="outline" onClick={handleApplyCoupon} disabled={isApplyingCoupon}>Apply</Button>
                   </div>
-                  {couponError && (
-                    <p className="text-sm text-destructive mt-1">{couponError}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Try: SAVE20 or FLAT50
-                  </p>
+                  {couponError && <p className="text-sm text-destructive mt-1">{couponError}</p>}
+                  <p className="text-xs text-muted-foreground mt-2">Try: SAVE20 or FLAT50</p>
                 </div>
               ) : (
                 <div className="flex items-center justify-between bg-success/10 text-success p-3 rounded-md">
@@ -346,12 +380,7 @@ export default function CartPage() {
                     <p className="font-medium">{discountCode}</p>
                     <p className="text-sm">-{formatPrice(discountAmount)}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-success hover:text-success"
-                    onClick={removeDiscount}
-                  >
+                  <Button variant="ghost" size="icon" className="text-success hover:text-success" onClick={removeDiscount}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -359,117 +388,24 @@ export default function CartPage() {
 
               <Separator />
 
-              {/* Itemized Order Summary - matching configure page format */}
+              {/* Itemized */}
               <div className="space-y-2">
                 {items.map((item) => (
-                  <div key={item.id}>
-                    {/* Product/Bundle name - show recurring price for recurring products */}
-                    <div className="flex justify-between text-sm font-medium">
-                      <span className="text-gray-900">{item.product?.name || item.bundle?.name || "Product"}</span>
-                      <span>{formatPrice(item.isRecurring ? (item.recurringAmount || item.unitPrice || 0) : (item.baseProductPrice || 0))}</span>
-                    </div>
-
-                    {/* For configurable products with instances - only show for ONE_TIME products */}
-                    {/* For recurring products, configs are included in recurringAmount */}
-                    {item.instances && item.instances.length > 0 && !item.isRecurring && (
-                      <div className="ml-2 mt-1">
-                        {item.instances.map((instance) => (
-                          <div key={instance.instanceId}>
-                            {/* Config options - show dynamically with groupName: optionName format */}
-                            {instance.selectedConfigs?.map((config) => (
-                              <div key={config.configId} className="flex justify-between text-sm">
-                                <span className="text-gray-500">
-                                  {config.configName}: {config.optionLabel || config.value}
-                                </span>
-                                <span>{formatPrice(config.price || 0)}</span>
-                              </div>
-                            ))}
-                            
-                            {/* Addons */}
-                            {instance.selectedAddons?.filter((addon) => addon.addon?.name).map((addon) => (
-                              <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
-                                <span className="text-gray-500">+ {addon.addon?.name}</span>
-                                <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Show config names for recurring products (without prices since they're included in recurringAmount) */}
-                    {item.instances && item.instances.length > 0 && item.isRecurring && (
-                      <div className="ml-2 mt-1">
-                        {item.instances.map((instance) => (
-                          <div key={instance.instanceId} className="mb-1">
-                            {/* Config options - show names only for recurring products */}
-                            {instance.selectedConfigs?.map((config) => (
-                              <div key={config.configId} className="flex justify-between text-sm">
-                                <span className="text-gray-500">
-                                  {config.configName}: {config.optionLabel || config.value}
-                                </span>
-                                <span className="text-gray-400 text-xs">included</span>
-                              </div>
-                            ))}
-                            
-                            {/* Addons - these are one-time charges */}
-                            {instance.selectedAddons?.filter((addon) => addon.addon?.name).map((addon) => (
-                              <div key={addon.addon?.id} className="flex justify-between text-sm ml-4">
-                                <span className="text-gray-500">+ {addon.addon?.name}</span>
-                                <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Legacy flat configs - only for ONE_TIME products */}
-                    {item.selectedConfigs && item.selectedConfigs.length > 0 && !item.instances && !item.isRecurring && (
-                      <div className="ml-2">
-                        {item.selectedConfigs.map((config) => (
-                          <div key={config.configId} className="flex justify-between text-sm">
-                            <span className="text-gray-600">
-                              {config.configName || config.configId}: {config.optionLabel || config.value}
-                            </span>
-                            <span>{formatPrice(config.price || 0)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Legacy flat addons */}
-                    {item.selectedAddons && item.selectedAddons.length > 0 && !item.instances && (
-                      <div className="ml-2">
-                        {item.selectedAddons.filter((addon) => addon.addon?.name).map((addon) => (
-                          <div key={addon.addon?.id} className="flex justify-between text-sm">
-                            <span className="text-gray-600">+ {addon.addon?.name}</span>
-                            <span>{formatPrice((addon.addon?.price || 0) * addon.quantity)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-
-                    {/* Setup Fee */}
-                    {Number(item.recurringData?.setupFee) > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Setup Fee</span>
-                        <span className="text-gray-500">{formatPrice(Number(item.recurringData?.setupFee))}</span>
-                      </div>
-                    )}
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span className="text-gray-700 truncate pr-2">{item.product?.name || item.bundle?.name || "Product"}</span>
+                    <span className="flex-shrink-0 font-medium">
+                      {formatPrice(item.isRecurring ? (item.recurringAmount || item.unitPrice || 0) : (item.baseProductPrice || 0))}
+                    </span>
                   </div>
                 ))}
 
                 <Separator />
 
-                {/* Product Price (Due Today) */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Product Price (Due Today)</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
 
-                {/* Tax (18% GST) */}
                 {Number(tax) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax (18% GST)</span>
@@ -477,18 +413,16 @@ export default function CartPage() {
                   </div>
                 )}
 
-                {/* Recurring info */}
                 {Number(recurringTotal) > 0 && (
                   <div className="bg-gray-50 rounded-lg p-2 mt-2">
                     <p className="text-sm text-gray-600">
-                      You will be charged <span className="font-medium">{formatPrice(Number(recurringTotal))}</span> every {getRecurringInterval(billingCycle)} after purchase.
+                      Charged <span className="font-medium">{formatPrice(Number(recurringTotal))}</span> every {getRecurringInterval(billingCycle)} after purchase.
                     </p>
                   </div>
                 )}
 
                 <Separator />
 
-                {/* Total Due Today */}
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
                   <span className="text-2xl font-bold text-[#8B1D1D]">

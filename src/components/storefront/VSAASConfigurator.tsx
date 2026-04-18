@@ -589,20 +589,8 @@ export function VSAASConfigurator({
     };
   }, [isLicenseDropdownOpen]);
 
-  const handleAddToCart = (skipAIPrompt = false) => {
+  const handleAddToCart = () => {
     if (!currentProduct) return;
-
-    // When cloud flow: prompt user about AI features if they haven't visited the AI tab yet
-    if (!skipAIPrompt && deploymentType === 'cloud' && !hasVisitedAITab) {
-      setShowAIFeaturesPrompt(true);
-      return;
-    }
-
-    // On on-prem page: prompt user to explore AI features before proceeding (once)
-    if (!skipAIPrompt && showOnly === 'onPremise' && !hasVisitedAITab) {
-      setShowOnPremAIPrompt(true);
-      return;
-    }
 
     const setupFee = deploymentType === 'cloud' ? 9999 : 0;
     
@@ -848,6 +836,14 @@ export function VSAASConfigurator({
       addToCart(setupFeeItem as any);
     }
 
+    // After adding items: show AI upsell popup on cloud tab (once), else open cart
+    if (deploymentType === 'cloud' && !hasVisitedAITab) {
+      setShowAIFeaturesPrompt(true);
+    } else if (showOnly === 'onPremise' && !hasVisitedAITab) {
+      setShowOnPremAIPrompt(true);
+    } else {
+      setIsOpen(true);
+    }
   };
 
   // ----------------------------------------
@@ -2472,11 +2468,10 @@ export function VSAASConfigurator({
               className="flex-1"
               onClick={() => {
                 setShowAIFeaturesPrompt(false);
-                handleAddToCart(true);
-                router.push('/checkout');
+                setIsOpen(true);
               }}
             >
-              No, proceed to checkout
+              No, view cart
             </Button>
           </div>
         </div>
@@ -2531,10 +2526,10 @@ export function VSAASConfigurator({
               className="flex-1"
               onClick={() => {
                 setShowOnPremAIPrompt(false);
-                handleAddToCart(true);
+                setIsOpen(true);
               }}
             >
-              No, add to cart
+              No, view cart
             </Button>
           </div>
         </div>
