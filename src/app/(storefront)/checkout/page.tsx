@@ -203,19 +203,23 @@ export default function CheckoutPage() {
         console.error("Checkout API error:", data);
         console.error("Response status:", response.status);
         
-        // Provide more user-friendly error messages
-        let errorMessage = data.error || data.details || data.message || "Checkout failed";
-        
+        // Show the actual underlying error so we can diagnose
+        const underlyingMsg = data.message || "";
+        let errorMessage = data.error || data.details || underlyingMsg || "Checkout failed";
+        if (underlyingMsg && underlyingMsg !== errorMessage) {
+          errorMessage = `${errorMessage}: ${underlyingMsg}`;
+        }
+
         if (response.status === 500) {
-          if (errorMessage.includes("Stripe") || errorMessage.includes("Razorpay") || errorMessage.includes("payment")) {
-            errorMessage = "Payment system is not available. Please try again later or contact support.";
+          if (errorMessage.includes("Razorpay") || errorMessage.includes("payment")) {
+            errorMessage = "Payment system is not available. Please contact support.";
           } else if (errorMessage.includes("Database") || errorMessage.includes("database")) {
             errorMessage = "Server error. Please try again.";
           } else if (errorMessage.includes("empty")) {
             errorMessage = "Your cart is empty. Please add items before checking out.";
           }
         }
-        
+
         throw new Error(errorMessage);
       }
 

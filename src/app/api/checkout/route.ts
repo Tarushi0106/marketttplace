@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
         
         orderItems.push({
           product: { connect: { id: product.id } },
-          variantId: validatedVariantId || null,
+          ...(validatedVariantId ? { variant: { connect: { id: validatedVariantId } } } : {}),
           name: itemName,
           sku,
           quantity: item.quantity || 1,
