@@ -471,6 +471,25 @@ async function main() {
     ],
   });
 
+  // Fix featured products: remove 0-price / SD-WAN products, ensure VSaaS is featured
+  await prisma.product.updateMany({
+    where: {
+      OR: [
+        { slug: { contains: 'sdwan' } },
+        { slug: { contains: 'sd-wan' } },
+        { name: { contains: 'SD-WAN', mode: 'insensitive' } },
+        { name: { contains: 'SDWAN', mode: 'insensitive' } },
+        { AND: [{ isFeatured: true }, { basePrice: 0 }] },
+      ],
+    },
+    data: { isFeatured: false },
+  });
+
+  await prisma.product.updateMany({
+    where: { slug: 'vsaas-cloud-service' },
+    data: { isFeatured: true },
+  });
+
   console.log("Database seeded successfully!");
 }
 
