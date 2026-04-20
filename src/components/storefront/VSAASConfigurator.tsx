@@ -859,7 +859,7 @@ export function VSAASConfigurator({
 
   return (
     <>
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pt-8 pb-16">
 
       {/* Credit Limit Error Popup (On-Premise: max 16 credits) */}
       {showCreditLimitError && (
@@ -1060,7 +1060,7 @@ export function VSAASConfigurator({
       {/* ======================================== */}
       {(deploymentType === 'cloud' || (showOnly === 'cloud' && deploymentType !== 'ai')) && (
         <div className="flex justify-center">
-          <div className="inline-flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-5 py-3 shadow-sm">
+          <div className="inline-flex items-center gap-4 bg-white border border-gray-200 rounded-lg px-5 py-3 shadow-sm mb-6">
             <p className="text-sm font-semibold text-gray-700 whitespace-nowrap">How many cameras do you need VSaaS for?</p>
             <div className="flex items-center gap-1.5">
               <button
@@ -1421,7 +1421,7 @@ export function VSAASConfigurator({
           {/* SECTION 4: ONE TIME SETUP & IMPLEMENTATION */}
           {/* ======================================== */}
           {deploymentType === 'cloud' && (
-            <div className="border border-gray-200 rounded-lg bg-white">
+            <div className="border border-gray-200 rounded-lg bg-white mb-6">
               {/* Section Header */}
               <div className="border-b border-gray-100 px-5 py-3 bg-gray-50/50">
                 <div className="flex items-center gap-2">
