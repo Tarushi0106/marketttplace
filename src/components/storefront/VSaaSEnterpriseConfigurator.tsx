@@ -247,23 +247,10 @@ export function VSaaSEnterpriseConfigurator({
                     {formatPrice(hardware.unitPrice)}
                   </div>
                   
-                  {/* Quantity Selector */}
-                  <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-1">
-                    <button
-                      onClick={() => handleHardwareChange(-1)}
-                      disabled={hardwareQty <= 1}
-                      className="w-7 h-7 rounded border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="w-7 text-center font-semibold text-gray-900 text-sm">{hardwareQty}</span>
-                    <button
-                      onClick={() => handleHardwareChange(1)}
-                      disabled={hardwareQty >= 10}
-                      className="w-7 h-7 rounded border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
+                  {/* Quantity Display */}
+                  <div className="flex items-center justify-end gap-1.5 bg-gray-50 rounded-lg px-3 py-1.5">
+                    <span className="text-xs text-gray-500">Qty:</span>
+                    <span className="font-semibold text-gray-900 text-sm">{hardwareQty}</span>
                   </div>
                 </div>
               </div>

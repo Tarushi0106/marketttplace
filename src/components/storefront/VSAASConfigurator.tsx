@@ -650,7 +650,7 @@ export function VSAASConfigurator({
         recurringData: {
           enabled: true,
           billingCycle: billingCycle.toUpperCase() as any,
-          setupFee: 0, // Setup fee is handled separately at order level
+          setupFee: 0,
           pricePerCycle: gatewayTotal,
           baseProductPrice: 0,
           totalForPeriod: gatewayTotal,
@@ -1327,37 +1327,14 @@ export function VSAASConfigurator({
                     </ul>
                   </div>
 
-                  {/* Right: Quantity & Price */}
+                  {/* Quantity & Price */}
                   <div className="flex items-center gap-6">
-                    {/* User-controlled device count (min = ceil(cameraCount/8)) */}
                     <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-2 rounded-lg border border-gray-200 p-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newQty = Math.max(1, hardwareQuantity - 1);
-                            setHardwareQuantity(newQty);
-                            setCameraCount(newQty * 8);
-                          }}
-                          disabled={hardwareQuantity <= 1}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
-                        >−</button>
-                        <span className="w-12 text-center font-semibold text-gray-900 text-sm">{hardwareQuantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newQty = Math.min(100, hardwareQuantity + 1);
-                            setHardwareQuantity(newQty);
-                            setCameraCount(newQty * 8);
-                          }}
-                          disabled={hardwareQuantity >= 100}
-                          className="w-8 h-8 rounded bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
-                        >+</button>
-                      </div>
-                      <p className="text-[10px] text-gray-400 text-center leading-tight">quantity of network device</p>
+                      <span className="text-xs text-gray-500">Quantity</span>
+                      <span className="px-3 text-center font-semibold text-gray-900 text-sm bg-gray-50 rounded-lg border border-gray-200 py-1">
+                        {hardwareQuantity} hardware
+                      </span>
                     </div>
-
-                    {/* Unit Price */}
                     <div className="text-right min-w-[100px]">
                       <div className="text-xs text-gray-500">
                         {formatPrice(gatewayPricePerUnit)}{getBillingSuffix()}
