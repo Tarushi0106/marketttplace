@@ -44,10 +44,20 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sameAsShipping, setSameAsShipping] = useState(true);
+  const [sameAsInstallation, setSameAsInstallation] = useState(true);
 
   const subtotal = getSubtotal();
   const tax = getTax();
   const setupFeeTotal = getSetupFeeTotal();
+
+  const [installationAddress, setInstallationAddress] = useState({
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "IN",
+  });
 
   const [shippingAddress, setShippingAddress] = useState({
     firstName: "",
@@ -96,6 +106,10 @@ export default function CheckoutPage() {
 
   const handleShippingAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingAddress((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleInstallationAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInstallationAddress((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -185,6 +199,16 @@ export default function CheckoutPage() {
                 country: shippingAddress.country,
               },
           discountCode,
+          installationAddress: sameAsInstallation
+            ? {
+                address1: formData.address1,
+                address2: formData.address2,
+                city: formData.city,
+                state: formData.state,
+                postalCode: formData.postalCode,
+                country: formData.country,
+              }
+            : installationAddress,
         }),
       });
 
@@ -570,6 +594,108 @@ export default function CheckoutPage() {
                           value={shippingAddress.country}
                           onValueChange={(value) =>
                             setShippingAddress((prev) => ({ ...prev, country: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country.code} value={country.code}>
+                                {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Installation Address */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Installation Address</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="sameAsInstallation"
+                    checked={sameAsInstallation}
+                    onCheckedChange={(checked) => setSameAsInstallation(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="sameAsInstallation"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Same as billing address
+                  </label>
+                </div>
+
+                {!sameAsInstallation && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="installationAddress1">Address *</Label>
+                      <Input
+                        id="installationAddress1"
+                        name="address1"
+                        placeholder="Street address"
+                        value={installationAddress.address1}
+                        onChange={handleInstallationAddressChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="installationAddress2">Address Line 2</Label>
+                      <Input
+                        id="installationAddress2"
+                        name="address2"
+                        placeholder="Apartment, suite, floor, etc."
+                        value={installationAddress.address2}
+                        onChange={handleInstallationAddressChange}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="space-y-2 col-span-2 sm:col-span-1">
+                        <Label htmlFor="installationCity">City *</Label>
+                        <Input
+                          id="installationCity"
+                          name="city"
+                          value={installationAddress.city}
+                          onChange={handleInstallationAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="installationState">State *</Label>
+                        <Input
+                          id="installationState"
+                          name="state"
+                          value={installationAddress.state}
+                          onChange={handleInstallationAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="installationPostalCode">ZIP Code *</Label>
+                        <Input
+                          id="installationPostalCode"
+                          name="postalCode"
+                          value={installationAddress.postalCode}
+                          onChange={handleInstallationAddressChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2 sm:col-span-1">
+                        <Label htmlFor="installationCountry">Country *</Label>
+                        <Select
+                          value={installationAddress.country}
+                          onValueChange={(value) =>
+                            setInstallationAddress((prev) => ({ ...prev, country: value }))
                           }
                         >
                           <SelectTrigger>

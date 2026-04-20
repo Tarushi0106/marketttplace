@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Wifi, Shield, Cloud, Brain, Smartphone, Package, Server } from "lucide-react";
+import { Wifi, Shield, Cloud, Brain, Smartphone, Package, Server, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TrendingCategory {
   id: string;
@@ -14,7 +14,6 @@ interface TrendingCategory {
   image: string | null;
 }
 
-// Icon mapping for dynamic icon rendering
 const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
   wifi: Wifi,
   shield: Shield,
@@ -25,7 +24,6 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
   server: Server,
 };
 
-// Sidebar slugs — same order as navbar dropdown
 const sidebarSlugs = [
   "software-as-a-service",
   "connectivity",
@@ -36,7 +34,6 @@ const sidebarSlugs = [
   "hardware-logistics",
 ];
 
-// Fallback categories matching the 7 navbar categories
 const defaultCategories: TrendingCategory[] = [
   {
     id: "1",
@@ -106,6 +103,9 @@ const defaultCategories: TrendingCategory[] = [
 export function TrendingProducts() {
   const [categories, setCategories] = useState<TrendingCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -132,6 +132,19 @@ export function TrendingProducts() {
     }
     fetchCategories();
   }, []);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
+  };
 
   if (loading) {
     return (
@@ -161,16 +174,42 @@ export function TrendingProducts() {
   return (
     <section className="py-16 md:py-20 bg-white">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Our Trending Categories
-          </h2>
-          <p className="mt-3 text-gray-500 text-lg max-w-2xl">
-            Explore our most popular enterprise solutions trusted by businesses worldwide
-          </p>
+        <div className="flex items-center justify-between mb-12">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Our Trending Categories
+            </h2>
+            <p className="mt-3 text-gray-500 text-lg max-w-2xl">
+              Explore our most popular enterprise solutions trusted by businesses worldwide
+            </p>
+          </div>
+
+          {/* Scroll Arrows */}
+          <div className="flex gap-2 flex-shrink-0 ml-4">
+            <button
+              onClick={() => scroll("left")}
+              disabled={!canScrollLeft}
+              className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              disabled={!canScrollRight}
+              className="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+        {/* Scrollable Row */}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {categories.map((category) => {
             const IconComponent = iconMap[category.icon?.toLowerCase() || "cloud"] || Cloud;
             const bgColor = category.iconBgColor || "#E5E5E5";
@@ -181,7 +220,7 @@ export function TrendingProducts() {
               <Link
                 key={category.id}
                 href={`/categories/${category.slug}`}
-                className="flex flex-col items-center text-center group cursor-pointer"
+                className="flex flex-col items-center text-center group cursor-pointer flex-shrink-0 w-44"
               >
                 {/* Icon Circle */}
                 <div
