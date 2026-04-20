@@ -2,20 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
-  Facebook,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Mail,
-  Phone,
-  MapPin,
-  ArrowUpRight,
-  Zap,
-  Youtube,
-  Github,
-  LucideIcon,
+  Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin,
+  Zap, Youtube, Github, LucideIcon, ArrowRight, ExternalLink,
 } from "lucide-react";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -28,272 +17,252 @@ interface MenuItem {
   isActive: boolean;
 }
 
-interface FooterMenu {
-  title: string;
-  items: MenuItem[];
-}
-
-// Default footer links if no menus configured
 const defaultFooterLinks = {
   solutions: [
-    { label: "Cloud Infrastructure", href: "/categories/cloud-services" },
-    { label: "Connectivity", href: "/categories/connectivity" },
-    { label: "Security Solutions", href: "/categories/security" },
-    { label: "SaaS Products", href: "/categories/saas-products" },
+    { label: "Cloud Infrastructure",  href: "/categories/cloud-services"  },
+    { label: "Connectivity",          href: "/categories/connectivity"     },
+    { label: "Security Solutions",    href: "/categories/security"         },
+    { label: "SaaS Products",         href: "/categories/saas-products"    },
   ],
   company: [
-    { label: "About Us", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "About Us",  href: "/about"   },
+    { label: "Contact",   href: "/contact" },
   ],
   support: [
     { label: "My Orders", href: "/orders" },
   ],
 };
 
-// Social icon mapping
 const socialIconMap: Record<string, LucideIcon> = {
-  facebook: Facebook,
-  twitter: Twitter,
-  linkedin: Linkedin,
-  instagram: Instagram,
-  youtube: Youtube,
-  github: Github,
+  facebook: Facebook, twitter: Twitter, linkedin: Linkedin,
+  instagram: Instagram, youtube: Youtube, github: Github,
 };
 
 const defaultSocialLinks = [
-  { label: "Facebook", icon: "facebook", href: "#" },
-  { label: "Twitter", icon: "twitter", href: "#" },
-  { label: "LinkedIn", icon: "linkedin", href: "#" },
+  { label: "Facebook",  icon: "facebook",  href: "#" },
+  { label: "Twitter",   icon: "twitter",   href: "#" },
+  { label: "LinkedIn",  icon: "linkedin",  href: "#" },
   { label: "Instagram", icon: "instagram", href: "#" },
+];
+
+const marqueeItems = [
+  "Cloud Infrastructure", "VSaaS", "Cybersecurity", "SD-WAN",
+  "Microsoft 365", "Managed Services", "AI Solutions", "IoT & Mobility",
+  "Tally on Cloud", "Backup & Recovery", "Network Hardware", "Connectivity",
 ];
 
 export function Footer() {
   const settings = useSiteSettings();
   const [solutionsLinks, setSolutionsLinks] = useState<MenuItem[]>([]);
-  const [companyLinks, setCompanyLinks] = useState<MenuItem[]>([]);
-  const [supportLinks, setSupportLinks] = useState<MenuItem[]>([]);
-  const [socialLinks, setSocialLinks] = useState<MenuItem[]>([]);
+  const [companyLinks,   setCompanyLinks]   = useState<MenuItem[]>([]);
+  const [supportLinks,   setSupportLinks]   = useState<MenuItem[]>([]);
+  const [socialLinks,    setSocialLinks]    = useState<MenuItem[]>([]);
+  const [email,          setEmail]          = useState("");
+  const [subscribed,     setSubscribed]     = useState(false);
 
-  // Fetch footer menus
   useEffect(() => {
     async function fetchFooterMenus() {
       try {
-        // Fetch all menus in parallel
-        const [solutionsRes, companyRes, supportRes, socialRes] = await Promise.all([
+        const [s, c, su, so] = await Promise.all([
           fetch("/api/menus?location=footer_solutions").then(r => r.json()).catch(() => null),
           fetch("/api/menus?location=footer_company").then(r => r.json()).catch(() => null),
           fetch("/api/menus?location=footer_support").then(r => r.json()).catch(() => null),
           fetch("/api/menus?location=footer_social").then(r => r.json()).catch(() => null),
         ]);
-
-        // Set solutions links
-        if (solutionsRes?.data?.items?.length > 0) {
-          setSolutionsLinks(solutionsRes.data.items);
-        } else {
-          setSolutionsLinks(defaultFooterLinks.solutions as MenuItem[]);
-        }
-
-        // Set company links
-        if (companyRes?.data?.items?.length > 0) {
-          setCompanyLinks(companyRes.data.items);
-        } else {
-          setCompanyLinks(defaultFooterLinks.company as MenuItem[]);
-        }
-
-        // Set support links
-        if (supportRes?.data?.items?.length > 0) {
-          setSupportLinks(supportRes.data.items);
-        } else {
-          setSupportLinks(defaultFooterLinks.support as MenuItem[]);
-        }
-
-        // Set social links
-        if (socialRes?.data?.items?.length > 0) {
-          setSocialLinks(socialRes.data.items);
-        } else {
-          setSocialLinks(defaultSocialLinks as MenuItem[]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch footer menus:", error);
-        // Use defaults on error
+        setSolutionsLinks(s?.data?.items?.length  > 0 ? s.data.items  : defaultFooterLinks.solutions as MenuItem[]);
+        setCompanyLinks(c?.data?.items?.length    > 0 ? c.data.items  : defaultFooterLinks.company   as MenuItem[]);
+        setSupportLinks(su?.data?.items?.length   > 0 ? su.data.items : defaultFooterLinks.support   as MenuItem[]);
+        setSocialLinks(so?.data?.items?.length    > 0 ? so.data.items : defaultSocialLinks            as MenuItem[]);
+      } catch {
         setSolutionsLinks(defaultFooterLinks.solutions as MenuItem[]);
-        setCompanyLinks(defaultFooterLinks.company as MenuItem[]);
-        setSupportLinks(defaultFooterLinks.support as MenuItem[]);
-        setSocialLinks(defaultSocialLinks as MenuItem[]);
+        setCompanyLinks(defaultFooterLinks.company     as MenuItem[]);
+        setSupportLinks(defaultFooterLinks.support     as MenuItem[]);
+        setSocialLinks(defaultSocialLinks              as MenuItem[]);
       }
     }
-
     fetchFooterMenus();
   }, []);
-
-  const DefaultLogo = () => (
-    <div className="inline-block bg-white rounded-xl p-2">
-      <img
-        src="/image.png"
-        alt="NetNxt – Powered by Shaurrya Teleservices"
-        className="h-20 w-auto object-contain"
-      />
-    </div>
-  );
 
   const address = [settings.city, settings.state, settings.country].filter(Boolean).join(", ") || settings.address;
 
   return (
-    <footer className="relative">
-      {/* Main Footer */}
-      <div className="bg-gray-900">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-20">
-          {/* Top Section - Big CTA */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-white/80 text-sm mb-6">
-              <Zap className="h-4 w-4" />
-              <span>Start your journey today</span>
+    <footer className="relative overflow-hidden bg-[#0A0A0A]">
+
+      {/* ── Decorative background ── */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Grid lines */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+        {/* Red glow top-left */}
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#DC2626]/20 blur-[120px]" />
+        {/* Red glow bottom-right */}
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-[#DC2626]/15 blur-[100px]" />
+      </div>
+
+      {/* ── Marquee strip ── */}
+      <div className="relative border-b border-white/10 py-4 overflow-hidden">
+        <div className="flex animate-marquee whitespace-nowrap gap-0">
+          {[...marqueeItems, ...marqueeItems].map((item, i) => (
+            <span key={i} className="inline-flex items-center gap-3 px-6 text-sm font-medium text-white/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626] flex-shrink-0" />
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── CTA Banner ── */}
+      <div className="relative border-b border-white/10">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-20">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div>
+              <p className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest mb-3">Ready to transform?</p>
+              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight max-w-xl">
+                Let's build something <span className="text-[#DC2626]">amazing</span> together
+              </h2>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white max-w-3xl mx-auto leading-tight">
-              Let's build something amazing together
-            </h2>
-            <p className="mt-6 text-lg text-white/60 max-w-xl mx-auto">
-              Join thousands of businesses transforming their operations with our solutions.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/contact"
-                className="h-14 px-8 bg-[#8B1D1D] text-white font-bold rounded-full flex items-center gap-2 hover:bg-[#7A1919] transition-all hover:scale-105"
-              >
-                Get Started Free
-                <ArrowUpRight className="h-5 w-5" />
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <Link href="/contact"
+                className="inline-flex items-center gap-2 px-7 py-4 bg-[#DC2626] hover:bg-[#b91c1c] text-white font-bold rounded-2xl transition-all hover:scale-105 text-sm">
+                Get Started
+                <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                href="/products"
-                className="h-14 px-8 bg-white/10 text-white font-semibold rounded-full flex items-center gap-2 border border-white/20 hover:bg-white/20 transition-all"
-              >
+              <Link href="/products"
+                className="inline-flex items-center gap-2 px-7 py-4 border border-white/20 hover:border-white/40 text-white font-semibold rounded-2xl transition-all text-sm hover:bg-white/5">
                 Browse Products
+                <ExternalLink className="h-4 w-4" />
               </Link>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-white/10 mb-16" />
-
-          {/* Links Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-4 lg:col-span-2">
-            <Link href="/">
-              <div className="inline-block bg-white rounded-xl p-2 hover:opacity-90 transition-opacity">
-                <img
-                  src="/image.png"
-                  alt="NetNxt – Powered by Shaurrya Teleservices"
-                  className="h-20 w-auto object-contain"
-                />
-              </div>
-            </Link>
-              <p className="mt-6 text-white/50 text-sm leading-relaxed max-w-xs">
-                {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
-              </p>
-
-              {/* Contact */}
-              <div className="mt-8 flex flex-wrap gap-6">
-                {settings.phone && (
-                  <a href={`tel:${settings.phone}`} className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors">
-                    <Phone className="h-4 w-4" />
-                    {settings.phone}
-                  </a>
-                )}
-                {settings.email && (
-                  <a href={`mailto:${settings.email}`} className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors">
-                    <Mail className="h-4 w-4" />
-                    {settings.email}
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Solutions */}
-            <div>
-              <h4 className="font-bold text-white mb-5">Solutions</h4>
-              <ul className="space-y-3">
-                {solutionsLinks.map((link, index) => (
-                  <li key={link.id || index}>
-                    <Link
-                      href={link.href || "#"}
-                      target={link.target === "_blank" ? "_blank" : undefined}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4 className="font-bold text-white mb-5">Company</h4>
-              <ul className="space-y-3">
-                {companyLinks.map((link, index) => (
-                  <li key={link.id || index}>
-                    <Link
-                      href={link.href || "#"}
-                      target={link.target === "_blank" ? "_blank" : undefined}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="font-bold text-white mb-5">Support</h4>
-              <ul className="space-y-3">
-                {supportLinks.map((link, index) => (
-                  <li key={link.id || index}>
-                    <Link
-                      href={link.href || "#"}
-                      target={link.target === "_blank" ? "_blank" : undefined}
-                      className="text-sm text-white/50 hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="bg-gray-950">
+      {/* ── Main content ── */}
+      <div className="relative container mx-auto px-4 md:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+          {/* Brand col */}
+          <div className="lg:col-span-4">
+            <Link href="/">
+              <div className="inline-block bg-white rounded-xl p-2 hover:opacity-90 transition-opacity mb-6">
+                <img src="/image.png" alt="NetNxt" className="h-14 w-auto object-contain" />
+              </div>
+            </Link>
+            <p className="text-white/40 text-sm leading-relaxed mb-8 max-w-xs">
+              {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
+            </p>
+
+            {/* Contact */}
+            <div className="space-y-3">
+              {settings.phone && (
+                <a href={`tel:${settings.phone}`}
+                  className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#DC2626] group-hover:bg-[#DC2626]/10 flex items-center justify-center transition-all flex-shrink-0">
+                    <Phone className="h-4 w-4 text-[#DC2626]" />
+                  </span>
+                  {settings.phone}
+                </a>
+              )}
+              {settings.email && (
+                <a href={`mailto:${settings.email}`}
+                  className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#DC2626] group-hover:bg-[#DC2626]/10 flex items-center justify-center transition-all flex-shrink-0">
+                    <Mail className="h-4 w-4 text-[#DC2626]" />
+                  </span>
+                  {settings.email}
+                </a>
+              )}
+              {address && (
+                <div className="flex items-start gap-3 text-sm text-white/50">
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="h-4 w-4 text-[#DC2626]" />
+                  </span>
+                  {address}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Nav cols */}
+          <div className="lg:col-span-5 grid grid-cols-3 gap-8">
+            {[
+              { title: "Solutions", links: solutionsLinks },
+              { title: "Company",   links: companyLinks   },
+              { title: "Support",   links: supportLinks   },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <h4 className="text-xs font-bold text-white/25 uppercase tracking-widest mb-5">{title}</h4>
+                <ul className="space-y-3">
+                  {links.map((link, i) => (
+                    <li key={link.id || i}>
+                      <Link href={link.href || "#"}
+                        target={link.target === "_blank" ? "_blank" : undefined}
+                        className="text-sm text-white/45 hover:text-white transition-colors flex items-center gap-2 group">
+                        <span className="w-0 group-hover:w-2 h-px bg-[#DC2626] transition-all duration-200 flex-shrink-0" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Newsletter col */}
+          <div className="lg:col-span-3">
+            <h4 className="text-xs font-bold text-white/25 uppercase tracking-widest mb-5">Newsletter</h4>
+            <p className="text-sm text-white/40 mb-5 leading-relaxed">
+              Get new products and enterprise insights delivered to your inbox.
+            </p>
+            {subscribed ? (
+              <div className="flex items-center gap-2 text-green-400 text-sm font-medium py-3">
+                <div className="w-5 h-5 rounded-full bg-green-400/20 flex items-center justify-center text-xs">✓</div>
+                You're subscribed — thanks!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 focus:border-[#DC2626] rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors"
+                />
+                <button
+                  onClick={() => { if (email) setSubscribed(true); }}
+                  className="w-full py-3 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Zap className="h-4 w-4" />
+                  Subscribe
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom bar ── */}
+      <div className="relative border-t border-white/5">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-white/50">
-              {settings.footerCopyright 
+            <p className="text-xs text-white/25">
+              {settings.footerCopyright
                 ? settings.footerCopyright.replace("{year}", new Date().getFullYear().toString())
                 : `© ${new Date().getFullYear()} ${settings.legalName || settings.name}. All rights reserved.`}
             </p>
-
-            <div className="flex items-center gap-6">
-              <Link href="/privacy" className="text-sm text-white/50 hover:text-white transition-colors">Privacy</Link>
-              <Link href="/terms" className="text-sm text-white/50 hover:text-white transition-colors">Terms</Link>
-
-              {/* social */}
-              <div className="flex items-center gap-1 ml-4">
-                {socialLinks.map((social, index) => {
-                  const IconComponent = social.icon ? socialIconMap[social.icon.toLowerCase()] : null;
-                  if (!IconComponent) return null;
+            <div className="flex items-center gap-5">
+              <Link href="/privacy" className="text-xs text-white/25 hover:text-white/60 transition-colors">Privacy Policy</Link>
+              <Link href="/terms"   className="text-xs text-white/25 hover:text-white/60 transition-colors">Terms of Service</Link>
+              <div className="flex items-center gap-1.5 ml-1">
+                {socialLinks.map((social, i) => {
+                  const Icon = social.icon ? socialIconMap[social.icon.toLowerCase()] : null;
+                  if (!Icon) return null;
                   return (
-                    <a
-                      key={social.id || index}
-                      href={social.href || "#"}
+                    <a key={social.id || i} href={social.href || "#"}
                       target={social.target === "_blank" ? "_blank" : undefined}
-                      className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"
                       aria-label={social.label}
-                    >
-                      <IconComponent className="h-4 w-4" />
+                      className="w-8 h-8 rounded-lg border border-white/10 hover:border-[#DC2626] hover:bg-[#DC2626]/10 flex items-center justify-center text-white/30 hover:text-white transition-all">
+                      <Icon className="h-3.5 w-3.5" />
                     </a>
                   );
                 })}
@@ -302,6 +271,12 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Marquee keyframe */}
+      <style jsx>{`
+        @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+        .animate-marquee { animation: marquee 30s linear infinite; }
+      `}</style>
     </footer>
   );
 }
