@@ -89,51 +89,51 @@ export const AIFEATURES = [
   {
     category: 'Security Essentials AI',
     features: [
-      { name: 'Intrusion Detection', price: 161 },
-      { name: 'Zone Monitoring', price: 161 },
-      { name: 'Camera Sabotage', price: 161 },
-      { name: 'Activity Detection', price: 161 },
-      { name: 'Trespassing', price: 161 },
-      { name: 'Perimeter Fence Jumping', price: 161 },
+      { name: 'Intrusion Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/tpqdq9v7yGM' },
+      { name: 'Zone Monitoring', price: 161, videoUrl: 'https://www.youtube.com/embed/jsubJY4D1z0' },
+      { name: 'Camera Sabotage', price: 161, videoUrl: 'https://www.youtube.com/embed/7I8ZGgxh-Qg' },
+      { name: 'Activity Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/dU6SBJLSbKY' },
+      { name: 'Trespassing', price: 161, videoUrl: 'https://www.youtube.com/embed/6qfiSh7FLhw' },
+      { name: 'Perimeter Fence Jumping', price: 161, videoUrl: 'https://www.youtube.com/embed/Ypu6-X3T8X8' },
     ],
   },
   {
     category: 'Business Efficiency & Security Advanced AI',
     features: [
-      { name: 'Double Line Crossing', price: 782 },
-      { name: 'Loitering', price: 782 },
-      { name: 'Overcrowding', price: 782 },
-      { name: 'People Counting', price: 782 },
-      { name: 'Missing Staff', price: 782 },
-      { name: 'Occupancy Statistics', price: 782 },
-      { name: 'Queue Management', price: 782 },
-      { name: 'Heatmap', price: 782 },
+      { name: 'Double Line Crossing', price: 782, videoUrl: 'https://www.youtube.com/embed/ZkPebMyVcPc' },
+      { name: 'Loitering', price: 782, videoUrl: 'https://www.youtube.com/embed/4pSg15q47RA' },
+      { name: 'Overcrowding', price: 782, videoUrl: 'https://www.youtube.com/embed/upc4KKhs-dc' },
+      { name: 'People Counting', price: 782, videoUrl: 'https://www.youtube.com/embed/pJoIK5Tk9Z4' },
+      { name: 'Missing Staff', price: 782, videoUrl: 'https://www.youtube.com/embed/1swemkD-Ko4' },
+      { name: 'Occupancy Statistics', price: 782, videoUrl: 'https://www.youtube.com/embed/-NjASSc3ckc' },
+      { name: 'Queue Management', price: 782, videoUrl: 'https://www.youtube.com/embed/Bz94XJOg26I' },
+      { name: 'Heatmap', price: 782, videoUrl: 'https://www.youtube.com/embed/b1qe0cMBzhc' },
     ],
   },
   {
     category: 'Safety & Hazard Advanced AI',
     features: [
-      { name: 'PPE/Safety Kit Detection', price: 920 },
-      { name: 'Smoke & Fire Detection', price: 920 },
+      { name: 'PPE/Safety Kit Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/ZSOzckVHks8' },
+      { name: 'Smoke & Fire Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/cWUathb5ERE' },
     ],
   },
   {
     category: 'Investigation Advanced AI',
     features: [
-      { name: 'Person of Interest (Appearance Search)', price: 1242 },
-      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242 },
+      { name: 'Person of Interest (Appearance Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/wkjErD3Ja7s' },
+      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/bCTNRQtiEoc' },
     ],
   },
   {
     category: 'ANPR',
     features: [
-      { name: 'Automatic Number Plate Recognition', price: 2231 },
+      { name: 'Automatic Number Plate Recognition', price: 2231, videoUrl: 'https://www.youtube.com/embed/UxrOHCH5SdQ' },
     ],
   },
   {
     category: 'Facial Recognition',
     features: [
-      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312 },
+      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312, videoUrl: 'https://www.youtube.com/embed/B7-z9MDDQyk' },
     ],
   },
 ];
@@ -217,6 +217,7 @@ export function VSAASConfigurator({
   const [showAIFeaturesPrompt, setShowAIFeaturesPrompt] = useState(false);
   const [showOnPremAIPrompt, setShowOnPremAIPrompt] = useState(false);
   const [renewalAIAdded, setRenewalAIAdded] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<{ name: string; url: string } | null>(null);
 
   // ----------------------------------------
   // STATE: Deployment Type
@@ -2020,7 +2021,19 @@ export function VSAASConfigurator({
                                 </div>
                               </label>
                               <div className="flex-1 min-w-0">
-                                <span className="text-sm font-medium text-gray-900 block">{feature.name}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-sm font-medium text-gray-900">{feature.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setActiveVideo({ name: feature.name, url: feature.videoUrl }); }}
+                                    className="flex-shrink-0 w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center transition-colors"
+                                    title={`Watch: ${feature.name}`}
+                                  >
+                                    <svg className="w-2.5 h-2.5 text-[#DC2626] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                  </button>
+                                </div>
                                 {showOnly !== 'cloud' && (
                                   <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
                                     {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
@@ -2508,6 +2521,63 @@ export function VSAASConfigurator({
             >
               No, view cart
             </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* AI Feature Video Modal */}
+    {activeVideo && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        onClick={() => setActiveVideo(null)}
+      >
+        <div
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center">
+                <svg className="w-3 h-3 text-[#DC2626] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">{activeVideo.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveVideo(null)}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Video */}
+          <div className="aspect-video w-full bg-gray-900">
+            {activeVideo.url ? (
+              <iframe
+                className="w-full h-full"
+                src={activeVideo.url}
+                title={activeVideo.name}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-white/60">
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M4 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" />
+                </svg>
+                <p className="text-sm">Video coming soon</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+            <p className="text-xs text-gray-500">Learn how <span className="font-medium text-gray-700">{activeVideo.name}</span> can enhance your surveillance setup.</p>
           </div>
         </div>
       </div>
