@@ -89,51 +89,51 @@ export const AIFEATURES = [
   {
     category: 'Security Essentials AI',
     features: [
-      { name: 'Intrusion Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/tpqdq9v7yGM' },
-      { name: 'Zone Monitoring', price: 161, videoUrl: 'https://www.youtube.com/embed/jsubJY4D1z0' },
-      { name: 'Camera Sabotage', price: 161, videoUrl: 'https://www.youtube.com/embed/7I8ZGgxh-Qg' },
-      { name: 'Activity Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/dU6SBJLSbKY' },
-      { name: 'Trespassing', price: 161, videoUrl: 'https://www.youtube.com/embed/6qfiSh7FLhw' },
-      { name: 'Perimeter Fence Jumping', price: 161, videoUrl: 'https://www.youtube.com/embed/Ypu6-X3T8X8' },
+      { name: 'Intrusion Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/tpqdq9v7yGM', description: 'Detects unauthorized entry into restricted zones and triggers real-time alerts the moment an intruder is identified.' },
+      { name: 'Zone Monitoring', price: 161, videoUrl: 'https://www.youtube.com/embed/jsubJY4D1z0', description: 'Continuously monitors defined zones and sends alerts when unexpected activity is detected within or near restricted areas.' },
+      { name: 'Camera Sabotage', price: 161, videoUrl: 'https://www.youtube.com/embed/7I8ZGgxh-Qg', description: 'Identifies tampering, obstruction, or vandalism attempts on cameras to ensure uninterrupted surveillance coverage.' },
+      { name: 'Activity Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/dU6SBJLSbKY', description: 'Recognizes and alerts on unusual or predefined activity patterns within camera coverage areas in real time.' },
+      { name: 'Trespassing', price: 161, videoUrl: 'https://www.youtube.com/embed/6qfiSh7FLhw', description: 'Detects individuals entering off-limits or restricted areas and sends instant alerts to security personnel.' },
+      { name: 'Perimeter Fence Jumping', price: 161, videoUrl: 'https://www.youtube.com/embed/Ypu6-X3T8X8', description: 'Identifies and alerts when someone climbs over or jumps a perimeter fence, preventing unauthorized access.' },
     ],
   },
   {
     category: 'Business Efficiency & Security Advanced AI',
     features: [
-      { name: 'Double Line Crossing', price: 782, videoUrl: 'https://www.youtube.com/embed/ZkPebMyVcPc' },
-      { name: 'Loitering', price: 782, videoUrl: 'https://www.youtube.com/embed/4pSg15q47RA' },
-      { name: 'Overcrowding', price: 782, videoUrl: 'https://www.youtube.com/embed/upc4KKhs-dc' },
-      { name: 'People Counting', price: 782, videoUrl: 'https://www.youtube.com/embed/pJoIK5Tk9Z4' },
-      { name: 'Missing Staff', price: 782, videoUrl: 'https://www.youtube.com/embed/1swemkD-Ko4' },
-      { name: 'Occupancy Statistics', price: 782, videoUrl: 'https://www.youtube.com/embed/-NjASSc3ckc' },
-      { name: 'Queue Management', price: 782, videoUrl: 'https://www.youtube.com/embed/Bz94XJOg26I' },
-      { name: 'Heatmap', price: 782, videoUrl: 'https://www.youtube.com/embed/b1qe0cMBzhc' },
+      { name: 'Double Line Crossing', price: 782, videoUrl: 'https://www.youtube.com/embed/ZkPebMyVcPc', description: 'Detects when individuals cross two defined virtual lines, ideal for tracking directional entry and exit flows.' },
+      { name: 'Loitering', price: 782, videoUrl: 'https://www.youtube.com/embed/4pSg15q47RA', description: 'Identifies individuals lingering in a specific area beyond a configurable time threshold and raises an alert.' },
+      { name: 'Overcrowding', price: 782, videoUrl: 'https://www.youtube.com/embed/upc4KKhs-dc', description: 'Monitors crowd density in real time and alerts when the number of people in an area exceeds safe or permitted limits.' },
+      { name: 'People Counting', price: 782, videoUrl: 'https://www.youtube.com/embed/pJoIK5Tk9Z4', description: 'Accurately counts the number of people entering or exiting a defined area, providing real-time footfall analytics.' },
+      { name: 'Missing Staff', price: 782, videoUrl: 'https://www.youtube.com/embed/1swemkD-Ko4', description: 'Detects the absence of staff from their assigned positions or zones during operational hours and notifies managers.' },
+      { name: 'Occupancy Statistics', price: 782, videoUrl: 'https://www.youtube.com/embed/-NjASSc3ckc', description: 'Generates detailed analytics on area occupancy trends over time, helping optimize space utilization and staffing.' },
+      { name: 'Queue Management', price: 782, videoUrl: 'https://www.youtube.com/embed/Bz94XJOg26I', description: 'Monitors queue lengths and average wait times to help optimize staffing levels and improve customer experience.' },
+      { name: 'Heatmap', price: 782, videoUrl: 'https://www.youtube.com/embed/b1qe0cMBzhc', description: 'Generates visual heatmaps highlighting movement patterns and dwell time across monitored areas for operational insights.' },
     ],
   },
   {
     category: 'Safety & Hazard Advanced AI',
     features: [
-      { name: 'PPE/Safety Kit Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/ZSOzckVHks8' },
-      { name: 'Smoke & Fire Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/cWUathb5ERE' },
+      { name: 'PPE/Safety Kit Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/ZSOzckVHks8', description: 'Ensures workplace safety compliance by automatically detecting whether workers are wearing required personal protective equipment.' },
+      { name: 'Smoke & Fire Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/cWUathb5ERE', description: 'Provides early visual detection of smoke and fire hazards, enabling rapid emergency response before incidents escalate.' },
     ],
   },
   {
     category: 'Investigation Advanced AI',
     features: [
-      { name: 'Person of Interest (Appearance Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/wkjErD3Ja7s' },
-      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/bCTNRQtiEoc' },
+      { name: 'Person of Interest (Appearance Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/wkjErD3Ja7s', description: 'Searches across video footage to locate a specific person based on their appearance, clothing, or physical attributes.' },
+      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/bCTNRQtiEoc', description: 'Identifies and tracks specific vehicles across camera feeds by filtering on vehicle color and type.' },
     ],
   },
   {
     category: 'ANPR',
     features: [
-      { name: 'Automatic Number Plate Recognition', price: 2231, videoUrl: 'https://www.youtube.com/embed/UxrOHCH5SdQ' },
+      { name: 'Automatic Number Plate Recognition', price: 2231, videoUrl: 'https://www.youtube.com/embed/UxrOHCH5SdQ', description: 'Automatically reads and logs vehicle license plates in real time, enabling access control, blacklist alerts, and audit trails.' },
     ],
   },
   {
     category: 'Facial Recognition',
     features: [
-      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312, videoUrl: 'https://www.youtube.com/embed/B7-z9MDDQyk' },
+      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312, videoUrl: 'https://www.youtube.com/embed/B7-z9MDDQyk', description: 'Recognizes registered individuals from a database of up to 50 persons of interest, triggering instant alerts on detection.' },
     ],
   },
 ];
@@ -217,7 +217,7 @@ export function VSAASConfigurator({
   const [showAIFeaturesPrompt, setShowAIFeaturesPrompt] = useState(false);
   const [showOnPremAIPrompt, setShowOnPremAIPrompt] = useState(false);
   const [renewalAIAdded, setRenewalAIAdded] = useState(false);
-  const [activeVideo, setActiveVideo] = useState<{ name: string; url: string } | null>(null);
+  const [activeVideo, setActiveVideo] = useState<{ name: string; url: string; description?: string } | null>(null);
 
   // ----------------------------------------
   // STATE: Deployment Type
@@ -2025,7 +2025,7 @@ export function VSAASConfigurator({
                                   <span className="text-sm font-medium text-gray-900">{feature.name}</span>
                                   <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setActiveVideo({ name: feature.name, url: feature.videoUrl }); }}
+                                    onClick={(e) => { e.stopPropagation(); setActiveVideo({ name: feature.name, url: feature.videoUrl, description: feature.description }); }}
                                     className="flex-shrink-0 w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center transition-colors"
                                     title={`Watch: ${feature.name}`}
                                   >
@@ -2034,6 +2034,9 @@ export function VSAASConfigurator({
                                     </svg>
                                   </button>
                                 </div>
+                                {feature.description && (
+                                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{feature.description}</p>
+                                )}
                                 {showOnly !== 'cloud' && (
                                   <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
                                     {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
@@ -2576,8 +2579,12 @@ export function VSAASConfigurator({
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-            <p className="text-xs text-gray-500">Learn how <span className="font-medium text-gray-700">{activeVideo.name}</span> can enhance your surveillance setup.</p>
+          <div className="px-5 py-4 bg-gray-50 border-t border-gray-100">
+            {activeVideo.description ? (
+              <p className="text-sm text-gray-600 leading-relaxed">{activeVideo.description}</p>
+            ) : (
+              <p className="text-xs text-gray-500">Learn how <span className="font-medium text-gray-700">{activeVideo.name}</span> can enhance your surveillance setup.</p>
+            )}
           </div>
         </div>
       </div>
