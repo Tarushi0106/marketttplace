@@ -48,11 +48,9 @@ function HeroSection() {
             </h1>
 
             <p className="text-lg text-slate-500 mb-8 max-w-xl leading-relaxed">
-              Your security challenges are unique — and so are our solutions.
-              Share what you're trying to protect, detect, or optimize,
-              and we'll configure the{' '}
-              <span className="text-slate-900 font-semibold">exact AI that solves it</span>.
-              No guesswork. Just results.
+              Plug AI into your existing cameras — no new hardware, no hassle.{' '}
+              <span className="text-slate-900 font-semibold">Detect threats, monitor behaviour, and act in real time</span>{' '}
+              with enterprise VSaaS built for every scale.
             </p>
 
             {/* Feature pills */}
@@ -62,9 +60,6 @@ function HeroSection() {
                   {f}
                 </span>
               ))}
-              <span className="px-3 py-1 text-xs font-medium bg-red-50 border border-red-200 text-red-600 rounded-full">
-                +15 more →
-              </span>
             </div>
 
             {/* CTAs */}
