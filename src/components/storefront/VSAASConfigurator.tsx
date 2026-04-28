@@ -89,51 +89,51 @@ export const AIFEATURES = [
   {
     category: 'Security Essentials AI',
     features: [
-      { name: 'Intrusion Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/tpqdq9v7yGM', description: 'Detects unauthorized entry into restricted zones and triggers real-time alerts the moment an intruder is identified.' },
-      { name: 'Zone Monitoring', price: 161, videoUrl: 'https://www.youtube.com/embed/jsubJY4D1z0', description: 'Continuously monitors defined zones and sends alerts when unexpected activity is detected within or near restricted areas.' },
-      { name: 'Camera Sabotage', price: 161, videoUrl: 'https://www.youtube.com/embed/7I8ZGgxh-Qg', description: 'Identifies tampering, obstruction, or vandalism attempts on cameras to ensure uninterrupted surveillance coverage.' },
-      { name: 'Activity Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/dU6SBJLSbKY', description: 'Recognizes and alerts on unusual or predefined activity patterns within camera coverage areas in real time.' },
-      { name: 'Trespassing', price: 161, videoUrl: 'https://www.youtube.com/embed/6qfiSh7FLhw', description: 'Detects individuals entering off-limits or restricted areas and sends instant alerts to security personnel.' },
-      { name: 'Perimeter Fence Jumping', price: 161, videoUrl: 'https://www.youtube.com/embed/Ypu6-X3T8X8', description: 'Identifies and alerts when someone climbs over or jumps a perimeter fence, preventing unauthorized access.' },
+      { name: 'Intrusion Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/tpqdq9v7yGM', description: 'Instantly alerts when unauthorised entry is detected in restricted zones.' },
+      { name: 'Zone Monitoring', price: 161, videoUrl: 'https://www.youtube.com/embed/jsubJY4D1z0', description: 'Alerts when unexpected activity occurs within user-defined zones.' },
+      { name: 'Camera Sabotage', price: 161, videoUrl: 'https://www.youtube.com/embed/7I8ZGgxh-Qg', description: 'Detects tampering or obstruction attempts to keep cameras always operational.' },
+      { name: 'Activity Detection', price: 161, videoUrl: 'https://www.youtube.com/embed/dU6SBJLSbKY', description: 'Flags unusual or predefined activity patterns in real time.' },
+      { name: 'Trespassing', price: 161, videoUrl: 'https://www.youtube.com/embed/6qfiSh7FLhw', description: 'Sends instant alerts when someone enters an off-limits area.' },
+      { name: 'Perimeter Fence Jumping', price: 161, videoUrl: 'https://www.youtube.com/embed/Ypu6-X3T8X8', description: 'Detects and alerts on fence-climbing or jumping attempts.' },
     ],
   },
   {
     category: 'Business Efficiency & Security Advanced AI',
     features: [
-      { name: 'Double Line Crossing', price: 782, videoUrl: 'https://www.youtube.com/embed/ZkPebMyVcPc', description: 'Detects when individuals cross two defined virtual lines, ideal for tracking directional entry and exit flows.' },
-      { name: 'Loitering', price: 782, videoUrl: 'https://www.youtube.com/embed/4pSg15q47RA', description: 'Identifies individuals lingering in a specific area beyond a configurable time threshold and raises an alert.' },
-      { name: 'Overcrowding', price: 782, videoUrl: 'https://www.youtube.com/embed/upc4KKhs-dc', description: 'Monitors crowd density in real time and alerts when the number of people in an area exceeds safe or permitted limits.' },
-      { name: 'People Counting', price: 782, videoUrl: 'https://www.youtube.com/embed/pJoIK5Tk9Z4', description: 'Accurately counts the number of people entering or exiting a defined area, providing real-time footfall analytics.' },
-      { name: 'Missing Staff', price: 782, videoUrl: 'https://www.youtube.com/embed/1swemkD-Ko4', description: 'Detects the absence of staff from their assigned positions or zones during operational hours and notifies managers.' },
-      { name: 'Occupancy Statistics', price: 782, videoUrl: 'https://www.youtube.com/embed/-NjASSc3ckc', description: 'Generates detailed analytics on area occupancy trends over time, helping optimize space utilization and staffing.' },
-      { name: 'Queue Management', price: 782, videoUrl: 'https://www.youtube.com/embed/Bz94XJOg26I', description: 'Monitors queue lengths and average wait times to help optimize staffing levels and improve customer experience.' },
-      { name: 'Heatmap', price: 782, videoUrl: 'https://www.youtube.com/embed/b1qe0cMBzhc', description: 'Generates visual heatmaps highlighting movement patterns and dwell time across monitored areas for operational insights.' },
+      { name: 'Double Line Crossing', price: 782, videoUrl: 'https://www.youtube.com/embed/ZkPebMyVcPc', description: 'Tracks directional entry and exit by detecting dual virtual line crossings.' },
+      { name: 'Loitering', price: 782, videoUrl: 'https://www.youtube.com/embed/4pSg15q47RA', description: 'Raises an alert when someone lingers beyond a set time threshold.' },
+      { name: 'Overcrowding', price: 782, videoUrl: 'https://www.youtube.com/embed/upc4KKhs-dc', description: 'Alerts when crowd density exceeds safe or permitted limits.' },
+      { name: 'People Counting', price: 782, videoUrl: 'https://www.youtube.com/embed/pJoIK5Tk9Z4', description: 'Real-time footfall analytics for entries and exits in any defined area.' },
+      { name: 'Missing Staff', price: 782, videoUrl: 'https://www.youtube.com/embed/1swemkD-Ko4', description: 'Notifies managers when staff are absent from assigned zones.' },
+      { name: 'Occupancy Statistics', price: 782, videoUrl: 'https://www.youtube.com/embed/-NjASSc3ckc', description: 'Tracks occupancy trends to optimise space and staffing decisions.' },
+      { name: 'Queue Management', price: 782, videoUrl: 'https://www.youtube.com/embed/Bz94XJOg26I', description: 'Monitors queue length and wait times to improve customer experience.' },
+      { name: 'Heatmap', price: 782, videoUrl: 'https://www.youtube.com/embed/b1qe0cMBzhc', description: 'Visualises movement and dwell patterns across monitored areas.' },
     ],
   },
   {
     category: 'Safety & Hazard Advanced AI',
     features: [
-      { name: 'PPE/Safety Kit Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/ZSOzckVHks8', description: 'Ensures workplace safety compliance by automatically detecting whether workers are wearing required personal protective equipment.' },
-      { name: 'Smoke & Fire Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/cWUathb5ERE', description: 'Provides early visual detection of smoke and fire hazards, enabling rapid emergency response before incidents escalate.' },
+      { name: 'PPE/Safety Kit Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/ZSOzckVHks8', description: 'Automatically verifies workers are wearing required protective equipment.' },
+      { name: 'Smoke & Fire Detection', price: 920, videoUrl: 'https://www.youtube.com/embed/cWUathb5ERE', description: 'Early visual detection of smoke and fire for rapid emergency response.' },
     ],
   },
   {
     category: 'Investigation Advanced AI',
     features: [
-      { name: 'Person of Interest (Appearance Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/wkjErD3Ja7s', description: 'Searches across video footage to locate a specific person based on their appearance, clothing, or physical attributes.' },
-      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/bCTNRQtiEoc', description: 'Identifies and tracks specific vehicles across camera feeds by filtering on vehicle color and type.' },
+      { name: 'Person of Interest (Appearance Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/wkjErD3Ja7s', description: 'Locate a person across footage by appearance, clothing, or physical attributes.' },
+      { name: 'Vehicle of Interest (Color & Type Search)', price: 1242, videoUrl: 'https://www.youtube.com/embed/bCTNRQtiEoc', description: 'Track specific vehicles across feeds by colour and type.' },
     ],
   },
   {
     category: 'ANPR',
     features: [
-      { name: 'Automatic Number Plate Recognition', price: 2231, videoUrl: 'https://www.youtube.com/embed/UxrOHCH5SdQ', description: 'Automatically reads and logs vehicle license plates in real time, enabling access control, blacklist alerts, and audit trails.' },
+      { name: 'Automatic Number Plate Recognition', price: 2231, videoUrl: 'https://www.youtube.com/embed/UxrOHCH5SdQ', description: 'Reads and logs licence plates in real time for access control and blacklist alerts.' },
     ],
   },
   {
     category: 'Facial Recognition',
     features: [
-      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312, videoUrl: 'https://www.youtube.com/embed/B7-z9MDDQyk', description: 'Recognizes registered individuals from a database of up to 50 persons of interest, triggering instant alerts on detection.' },
+      { name: 'Facial Recognition (with Up to 50 POI registration)', price: 3312, videoUrl: 'https://www.youtube.com/embed/B7-z9MDDQyk', description: 'Recognises up to 50 registered persons of interest and triggers instant alerts.' },
     ],
   },
 ];
