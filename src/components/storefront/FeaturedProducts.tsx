@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ChevronRight, ChevronLeft, Heart, Star, ShoppingCart, Box, Wifi, Shield, Server, Database, Cloud, Cpu, Headphones, Briefcase, Video } from "lucide-react";
@@ -35,93 +35,20 @@ interface Product {
   };
 }
 
-// Sample fallback products when database is empty
-const sampleProducts: Product[] = [
-  {
-    id: "1",
-    name: "Cloud Server Basic",
-    slug: "cloud-server-basic",
-    shortDescription: "Entry-level cloud server with essential features",
-    basePrice: 29.99,
-    compareAtPrice: 39.99,
-    averageRating: 4.5,
-    salesCount: 10,
-    productType: "STANDALONE",
-    category: { id: "1", name: "Cloud Services", slug: "cloud-services" },
-    images: [],
-    _count: { reviews: 5 },
-  },
-  {
-    id: "2",
-    name: "Enterprise Security Suite",
-    slug: "enterprise-security",
-    shortDescription: "Complete security solution for enterprise",
-    basePrice: 199.99,
-    compareAtPrice: 299.99,
-    averageRating: 4.8,
-    salesCount: 25,
-    productType: "STANDALONE",
-    category: { id: "2", name: "Security", slug: "security" },
-    images: [],
-    _count: { reviews: 12 },
-  },
-  {
-    id: "3",
-    name: "VSaaS – Video Surveillance as a Service",
-    slug: "vsaas",
-    shortDescription: "Cloud-based AI video surveillance for enterprises",
-    basePrice: 349.99,
-    compareAtPrice: 449.99,
-    averageRating: 4.3,
-    salesCount: 8,
-    productType: "STANDALONE",
-    category: { id: "3", name: "Video Surveillance", slug: "video-surveillance" },
-    images: [],
-    _count: { reviews: 3 },
-  },
-  {
-    id: "4",
-    name: "Microsoft 365 Business",
-    slug: "microsoft-365-business",
-    shortDescription: "Complete office productivity suite",
-    basePrice: 12.99,
-    compareAtPrice: 15.99,
-    averageRating: 4.7,
-    salesCount: 50,
-    productType: "STANDALONE",
-    category: { id: "4", name: "Software", slug: "software" },
-    images: [],
-    _count: { reviews: 20 },
-  },
-  {
-    id: "5",
-    name: "Tally on Cloud",
-    slug: "tally-on-cloud",
-    shortDescription: "Accounting software hosted on cloud",
-    basePrice: 49.99,
-    compareAtPrice: 79.99,
-    averageRating: 4.6,
-    salesCount: 30,
-    productType: "STANDALONE",
-    category: { id: "5", name: "Business Applications", slug: "business-applications" },
-    images: [],
-    _count: { reviews: 15 },
-  },
-];
 
 // Function to get icon based on product name
 const getProductIcon = (productName: string) => {
   const name = productName.toLowerCase();
-  if (name.includes("vsaas") || name.includes("surveillance") || name.includes("camera") || name.includes("cctv")) return <Video className="w-10 h-10 text-red-600" />;
-  if (name.includes("wifi") || name.includes("router") || name.includes("network")) return <Wifi className="w-10 h-10 text-red-600" />;
-  if (name.includes("security") || name.includes("firewall") || name.includes("protect")) return <Shield className="w-10 h-10 text-red-600" />;
-  if (name.includes("server") || name.includes("hosting")) return <Server className="w-10 h-10 text-red-600" />;
-  if (name.includes("database") || name.includes("data")) return <Database className="w-10 h-10 text-red-600" />;
-  if (name.includes("cloud")) return <Cloud className="w-10 h-10 text-red-600" />;
-  if (name.includes("cpu") || name.includes("processor") || name.includes("compute")) return <Cpu className="w-10 h-10 text-red-600" />;
-  if (name.includes("support") || name.includes("service") || name.includes("managed")) return <Headphones className="w-10 h-10 text-red-600" />;
-  if (name.includes("business") || name.includes("enterprise") || name.includes("solution")) return <Briefcase className="w-10 h-10 text-red-600" />;
-  return <Box className="w-10 h-10 text-red-600" />;
+  if (name.includes("vsaas") || name.includes("surveillance") || name.includes("camera") || name.includes("cctv")) return <Video className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("wifi") || name.includes("router") || name.includes("network")) return <Wifi className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("security") || name.includes("firewall") || name.includes("protect")) return <Shield className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("server") || name.includes("hosting")) return <Server className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("database") || name.includes("data")) return <Database className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("cloud")) return <Cloud className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("cpu") || name.includes("processor") || name.includes("compute")) return <Cpu className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("support") || name.includes("service") || name.includes("managed")) return <Headphones className="w-10 h-10 text-[#1E2260]" />;
+  if (name.includes("business") || name.includes("enterprise") || name.includes("solution")) return <Briefcase className="w-10 h-10 text-[#1E2260]" />;
+  return <Box className="w-10 h-10 text-[#1E2260]" />;
 };
 
 export function FeaturedProducts() {
@@ -139,10 +66,7 @@ export function FeaturedProducts() {
         console.log("API Response:", JSON.stringify(data));
         if (data.data && data.data.length > 0) {
           setProducts(data.data);
-        } else {
-          console.log("No products found, will use fallback. Response:", data);
         }
-        // Don't set fallback products here - we'll use sampleProducts as fallback in rendering
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -152,8 +76,9 @@ export function FeaturedProducts() {
     fetchProducts();
   }, []);
 
-  // Use database products if available, otherwise show fallback
-  const displayProducts = products.length > 0 ? products : sampleProducts;
+  if (!loading && products.length === 0) {
+    return null;
+  }
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -248,7 +173,7 @@ export function FeaturedProducts() {
           </div>
           <Link
             href="/products"
-            className="hidden md:flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline"
+            className="hidden md:flex items-center gap-2 text-[#1E2260] font-medium hover:underline"
           >
             See All Products
           </Link>
@@ -278,7 +203,7 @@ export function FeaturedProducts() {
             ref={scrollRef}
             className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory items-start"
           >
-            {displayProducts.map((product) => {
+            {products.map((product) => {
               const hasSales = product.salesCount > 0;
               
               const isConfigurable = product.productType === 'CONFIGURABLE' || product.productType === 'BUNDLE' || product.productType === 'WITH_ADDONS';
@@ -309,7 +234,7 @@ export function FeaturedProducts() {
                         <Heart
                           className={`h-5 w-5 ${
                             wishlist.includes(product.id)
-                              ? "fill-red-500 text-red-500"
+                              ? "fill-[#1E2260] text-[#1E2260]"
                               : "text-gray-400"
                           }`}
                         />
@@ -324,7 +249,7 @@ export function FeaturedProducts() {
                             className="max-h-32 max-w-[80%] object-contain"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-xl bg-red-50 flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-xl bg-[#EEF2FF] flex items-center justify-center">
                             {getProductIcon(product.name)}
                           </div>
                         )}
@@ -426,7 +351,7 @@ export function FeaturedProducts() {
         <div className="mt-6 text-center md:hidden">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 text-[#8B1D1D] font-medium"
+            className="inline-flex items-center gap-2 text-[#1E2260] font-medium"
           >
             See All Products
             <ChevronRight className="h-4 w-4" />

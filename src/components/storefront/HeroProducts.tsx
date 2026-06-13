@@ -138,7 +138,7 @@ export function HeroProducts() {
 
         <div className="text-center mt-8">
           <Link href="/products">
-            <Button variant="outline" className="border-[#C62828] text-[#C62828] hover:bg-[#C62828] hover:text-white">
+            <Button variant="outline" className="border-[#1E2260] text-[#1E2260] hover:bg-[#1E2260] hover:text-white">
               View All Products
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

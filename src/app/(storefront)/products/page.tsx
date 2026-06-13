@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
@@ -25,123 +25,6 @@ import { ProductsGrid } from "@/components/storefront/ProductsGrid";
 import type { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 
-// Sample fallback products when database is empty
-const sampleProducts = [
-  {
-    id: "1",
-    name: "Cloud Server Basic",
-    slug: "cloud-server-basic",
-    shortDescription: "Entry-level cloud server with essential features",
-    description: "Entry-level cloud server with essential features for small businesses",
-    basePrice: "29.99",
-    compareAtPrice: null,
-    averageRating: 4.5,
-    reviewCount: 10,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Server",
-    category: { name: "Cloud Services", slug: "cloud-services" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 5 },
-  },
-  {
-    id: "2",
-    name: "Enterprise Security Suite",
-    slug: "enterprise-security",
-    shortDescription: "Complete security solution for enterprise",
-    description: "Complete security solution for enterprise networks",
-    basePrice: "199.99",
-    compareAtPrice: "299.99",
-    averageRating: 4.8,
-    reviewCount: 25,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Shield",
-    category: { name: "Security", slug: "security" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 12 },
-  },
-  {
-    id: "3",
-    name: "SD-WAN Solution",
-    slug: "sdwan-solution",
-    shortDescription: "Software-defined wide area networking",
-    description: "Software-defined wide area networking for modern enterprises",
-    basePrice: "349.99",
-    compareAtPrice: "449.99",
-    averageRating: 4.3,
-    reviewCount: 8,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Globe",
-    category: { name: "Network Solutions", slug: "network-solutions" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 3 },
-  },
-  {
-    id: "4",
-    name: "Microsoft 365 Business",
-    slug: "microsoft-365-business",
-    shortDescription: "Complete office productivity suite",
-    description: "Complete office productivity suite for businesses",
-    basePrice: "12.99",
-    compareAtPrice: "15.99",
-    averageRating: 4.7,
-    reviewCount: 50,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Laptop",
-    category: { name: "Software", slug: "software" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 20 },
-  },
-  {
-    id: "5",
-    name: "Tally on Cloud",
-    slug: "tally-on-cloud",
-    shortDescription: "Accounting software hosted on cloud",
-    description: "Accounting software hosted on cloud for easy access",
-    basePrice: "49.99",
-    compareAtPrice: "79.99",
-    averageRating: 4.6,
-    reviewCount: 30,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Briefcase",
-    category: { name: "Business Applications", slug: "business-applications" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 15 },
-  },
-  {
-    id: "6",
-    name: "Acronis Cyber Protection",
-    slug: "acronis-cyber-protection",
-    shortDescription: "Advanced cyber protection for your business",
-    description: "Advanced cyber protection for your business data",
-    basePrice: "89.99",
-    compareAtPrice: "119.99",
-    averageRating: 4.9,
-    reviewCount: 45,
-    isFeatured: true,
-    productType: "STANDALONE" as const,
-    icon: "Shield",
-    category: { name: "Security", slug: "security" },
-    subCategory: null,
-    images: [],
-    variants: [],
-    _count: { reviews: 25 },
-  },
-];
 
 // Helper function to convert Prisma Decimal fields to plain objects
 function convertDecimalToString(obj: any): any {
@@ -376,9 +259,7 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     prisma.product.count({ where }),
   ]);
 
-  // Use database products if available, otherwise show fallback
-  const productsToTransform = products.length > 0 ? products : sampleProducts;
-  const productsWithPricing = productsToTransform.map((product: any) => {
+  const productsWithPricing = products.map((product: any) => {
     // First transform the product to include recurringPrices and billingType
     const transformedProduct = transformProduct(product);
     
@@ -407,23 +288,19 @@ async function getProducts(searchParams: Awaited<ProductsPageProps["searchParams
     pagination: {
       page,
       limit,
-      total: products.length > 0 ? total : sampleProducts.length,
-      totalPages: Math.ceil((products.length > 0 ? total : sampleProducts.length) / limit),
+      total,
+      totalPages: Math.ceil(total / limit),
     },
   };
   } catch (error) {
     console.error('Database error in getProducts:', error);
     return {
-      products: sampleProducts.map((product: any) => ({
-        ...product,
-        displayPrice: Number(product.basePrice),
-        variants: [],
-      })),
+      products: [],
       pagination: {
         page: 1,
         limit: 12,
-        total: sampleProducts.length,
-        totalPages: 1,
+        total: 0,
+        totalPages: 0,
       },
     };
   }
@@ -740,7 +617,7 @@ function CategoryProductsSection({
     { key: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service", parent: "Managed Infrastructure Services" },
     { key: "mobility", label: "Mobility & IoT", parent: "Mobility & IoT" },
     { key: "iot", label: "Mobility & IoT", parent: "Mobility & IoT" },
-    { key: "ai", label: "AI", parent: "AI" },
+    { key: "ai", label: "AI Products", parent: "AI Products" },
     { key: "hardware", label: "Hardware & Logistics", parent: "Hardware & Logistics" },
   ];
 
@@ -768,7 +645,7 @@ function CategoryProductsSection({
               <h2 className="text-xl font-bold text-gray-900">{cat.label}</h2>
               <Link 
                 href={`/products?category=${cat.key}`}
-                className="text-sm text-[#8B1D1D] hover:underline flex items-center gap-1"
+                className="text-sm text-[#1E2260] hover:underline flex items-center gap-1"
               >
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
@@ -792,7 +669,7 @@ function CategoryProductsSection({
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="font-medium text-gray-900 text-sm leading-tight group-hover:text-[#8B1D1D] transition-colors line-clamp-2">
+                    <h3 className="font-medium text-gray-900 text-sm leading-tight group-hover:text-[#1E2260] transition-colors line-clamp-2">
                       {product.name}
                     </h3>
                     {product.shortDescription && (
@@ -830,7 +707,7 @@ function SearchForm({ initialSearch }: { initialSearch?: string }) {
         <Button
           type="submit"
           size="sm"
-          className="m-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-md px-4"
+          className="m-1 bg-[#1E2260] hover:bg-[#161848] text-white rounded-md px-4"
         >
           Search
         </Button>
@@ -853,7 +730,7 @@ function QuickFilterBar({ categories }: { categories: { value: string; label: st
     { value: "surveillance", label: "Managed Infrastructure Services - Surveillance & AI Analytics" },
     { value: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service" },
     { value: "mobility-iot", label: "Mobility & IoT" },
-    { value: "ai", label: "AI" },
+    { value: "ai", label: "AI Products" },
     { value: "hardware-logistics", label: "Hardware & Logistics" },
   ];
 
@@ -863,7 +740,7 @@ function QuickFilterBar({ categories }: { categories: { value: string; label: st
         <span className="text-sm font-medium text-gray-700 whitespace-nowrap">I am looking for:</span>
         <select
           name="category"
-          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#8B1D1D] focus:ring-2 focus:ring-[#8B1D1D]/20 focus:outline-none cursor-pointer min-w-[280px]"
+          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#1E2260] focus:ring-2 focus:ring-[#1E2260]/20 focus:outline-none cursor-pointer min-w-[280px]"
         >
           {customCategories.map((cat) => (
             <option key={cat.value} value={cat.value}>
@@ -874,7 +751,7 @@ function QuickFilterBar({ categories }: { categories: { value: string; label: st
 
         <Button
           type="submit"
-          className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white h-10 px-6 rounded-lg shadow-sm"
+          className="bg-[#1E2260] hover:bg-[#161848] text-white h-10 px-6 rounded-lg shadow-sm"
         >
           <Search className="h-4 w-4 mr-2" />
           Find Solutions
@@ -913,7 +790,7 @@ function ViewToggle({
         href={buildViewUrl("grid")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "grid"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="Grid view"
@@ -924,7 +801,7 @@ function ViewToggle({
         href={buildViewUrl("compact")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "compact"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="Compact grid"
@@ -935,7 +812,7 @@ function ViewToggle({
         href={buildViewUrl("list")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "list"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="List view"
@@ -1036,7 +913,7 @@ function ActiveFilters({
 
       <Link
         href="/products"
-        className="text-sm text-[#8B1D1D] hover:underline font-medium ml-2"
+        className="text-sm text-[#1E2260] hover:underline font-medium ml-2"
       >
         Clear all
       </Link>
@@ -1086,10 +963,10 @@ function FilterBadge({
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8B1D1D]/10 text-[#8B1D1D] rounded-full text-sm font-medium hover:bg-[#8B1D1D]/20 transition-colors group"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1E2260]/10 text-[#1E2260] rounded-full text-sm font-medium hover:bg-[#1E2260]/20 transition-colors group"
     >
       {label}
-      <span className="text-[#8B1D1D]/60 group-hover:text-[#8B1D1D] transition-colors">×</span>
+      <span className="text-[#1E2260]/60 group-hover:text-[#1E2260] transition-colors">×</span>
     </Link>
   );
 }
@@ -1176,7 +1053,7 @@ function Pagination({
               variant={page === currentPage ? "default" : "outline"}
               size="sm"
               className={`min-w-[40px] rounded-xl ${
-                page === currentPage ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""
+                page === currentPage ? "bg-[#1E2260] hover:bg-[#161848]" : ""
               }`}
               asChild={page !== currentPage}
             >

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { Star, Building2, Package, Sparkles, MessageCircle, Eye, Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart } from "lucide-react";
@@ -23,7 +23,7 @@ function FallbackIcon({ name }: { name: string }) {
 function ProductIcon({ iconName, productName }: { iconName?: string | null; productName: string }) {
   if (iconName && iconMap[iconName]) {
     const IconComponent = iconMap[iconName];
-    return <IconComponent className="w-8 h-8 text-[#8B1D1D]" />;
+    return <IconComponent className="w-8 h-8 text-[#1E2260]" />;
   }
   return <FallbackIcon name={productName} />;
 }
@@ -157,7 +157,7 @@ function ProductCard({ product }: { product: Product }) {
 
   // Render icon based on icon name
   const renderIcon = (iconName?: string | null) => {
-    const props = { size: 28, className: "text-red-600" };
+    const props = { size: 28, className: "text-[#1E2260]" };
     
     switch (iconName) {
       case "Cloud":
@@ -177,12 +177,20 @@ function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
-      {/* Icon Section - Centered with light pink background */}
+      {/* Image / Icon Section */}
       <Link href={`/products/${product.slug}`}>
-        <div className="flex items-center justify-center h-28">
-          <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-red-50">
-            {renderIcon(product.icon)}
-          </div>
+        <div className="flex items-center justify-center h-28 bg-[#F8F9FF] overflow-hidden">
+          {product.images[0]?.url ? (
+            <img
+              src={product.images[0].url}
+              alt={product.images[0].alt || product.name}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-[#EEF2FF]">
+              {renderIcon(product.icon)}
+            </div>
+          )}
         </div>
       </Link>
 
@@ -191,7 +199,7 @@ function ProductCard({ product }: { product: Product }) {
         {/* Category Label */}
         {product.category && (
           <div className="mb-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#8B1D1D]/10 text-[#8B1D1D]">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1E2260]/10 text-[#1E2260]">
               {product.category.name}
             </span>
           </div>
@@ -199,7 +207,7 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Title */}
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors mb-2">
+          <h3 className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors mb-2">
             {product.name}
           </h3>
         </Link>
@@ -214,7 +222,7 @@ function ProductCard({ product }: { product: Product }) {
         {/* CTA Button */}
         <div className="mt-auto">
           <Button
-            className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white text-sm font-medium py-2"
+            className="w-full bg-[#1E2260] hover:bg-[#161848] text-white text-sm font-medium py-2"
             asChild
           >
             <Link href={`/products/${product.slug}`}>
@@ -238,7 +246,7 @@ function CompactProductCard({ product }: { product: Product }) {
     : 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#1E2260]/20 transition-all duration-300 h-full flex flex-col group">
       {/* Compact Image with Logo - Clickable */}
       <Link href={`/products/${product.slug}`}>
         <div className="relative h-32 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-4 flex items-center justify-center">
@@ -270,7 +278,7 @@ function CompactProductCard({ product }: { product: Product }) {
           {(product.isFeatured || discount > 0) && (
             <div className="absolute top-2 right-2">
               {product.isFeatured && (
-                <div className="w-6 h-6 rounded-full bg-[#8B1D1D] flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
                   <Sparkles className="h-3 w-3 text-white" />
                 </div>
               )}
@@ -295,7 +303,7 @@ function CompactProductCard({ product }: { product: Product }) {
 
         {/* Title - Clickable */}
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-medium text-sm text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mt-1 min-h-[2.5rem]">
+          <h3 className="font-medium text-sm text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-2 mt-1 min-h-[2.5rem]">
             {product.name}
           </h3>
         </Link>
@@ -315,7 +323,7 @@ function CompactProductCard({ product }: { product: Product }) {
         <div className="mt-auto pt-2">
           <Button
             size="sm"
-            className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+            className="w-full h-7 text-xs bg-[#1E2260] hover:bg-[#161848] text-white"
             asChild
           >
             <Link href={`/products/${product.slug}`}>
@@ -340,7 +348,7 @@ function ProductListItem({ product }: { product: Product }) {
     : 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 group">
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#1E2260]/20 transition-all duration-300 group">
       <div className="flex items-stretch">
         {/* Image/Logo Section - Clickable */}
         <Link href={`/products/${product.slug}`} className="w-32 sm:w-40 flex-shrink-0 relative bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -361,7 +369,7 @@ function ProductListItem({ product }: { product: Product }) {
           {/* Badges */}
           {product.isFeatured && (
             <div className="absolute top-2 left-2">
-              <div className="w-6 h-6 rounded-full bg-[#8B1D1D] flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
                 <Sparkles className="h-3 w-3 text-white" />
               </div>
             </div>
@@ -385,7 +393,7 @@ function ProductListItem({ product }: { product: Product }) {
 
             {/* Title - Clickable */}
             <Link href={`/products/${product.slug}`}>
-              <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-1">
+              <h3 className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
@@ -428,7 +436,7 @@ function ProductListItem({ product }: { product: Product }) {
             <div className="flex gap-2">
               <Button
                 size="sm"
-                className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap"
+                className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg whitespace-nowrap"
                 asChild
               >
                 <Link href={`/products/${product.slug}`}>
@@ -439,7 +447,7 @@ function ProductListItem({ product }: { product: Product }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg"
+                className="border-gray-200 hover:border-[#1E2260] hover:text-[#1E2260] rounded-lg"
                 asChild
               >
                 <Link href="/contact">

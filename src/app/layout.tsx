@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -15,36 +15,36 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Shaurrya Teleservices - Enterprise Teleservices Solutions",
-    template: "%s | Shaurrya Teleservices",
+    default: "DeWiN Solutions - IT Solutions & Services",
+    template: "%s | DeWiN Solutions",
   },
   description:
-    "Enterprise-grade teleservices marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
+    "Enterprise IT marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
   keywords: [
-    "Teleservices",
+    "IT Solutions",
     "Connectivity",
     "Cloud Services",
     "Enterprise Solutions",
     "SaaS Products",
     "Network Solutions",
   ],
-  authors: [{ name: "Shaurrya Teleservices" }],
-  creator: "Shaurrya Teleservices",
+  authors: [{ name: "DeWiN Solutions" }],
+  creator: "DeWiN Solutions",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "Shaurrya Teleservices - Enterprise Teleservices Solutions",
+    title: "DeWiN Solutions - IT Solutions & Services",
     description:
-      "Enterprise-grade teleservices marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
-    siteName: "Shaurrya Teleservices",
+      "Enterprise IT marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
+    siteName: "DeWiN Solutions",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Shaurrya Teleservices - Enterprise Teleservices Solutions",
+    title: "DeWiN Solutions - IT Solutions & Services",
     description:
-      "Enterprise-grade teleservices marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
+      "Enterprise IT marketplace. Browse connectivity, cloud services, SaaS products, and security solutions.",
   },
   robots: {
     index: true,

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${product.name} | Shaurrya Teleservices`,
+    title: `${product.name} | DeWiN Solutions`,
     description: product.shortDescription || product.heroSubtitle,
   };
 }
@@ -84,7 +84,7 @@ export default async function HeroProductPage({ params }: Props) {
           </p>
           {product.heroCtaText && product.heroCtaLink && (
             <Link href={product.heroCtaLink}>
-              <Button size="lg" className="bg-[#C62828] hover:bg-[#B71C1C]">
+              <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848]">
                 {product.heroCtaText}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -249,7 +249,7 @@ export default async function HeroProductPage({ params }: Props) {
               {product.pricing.monthly && (
                 <div className="bg-white rounded-xl p-6 shadow-sm border text-center">
                   <h3 className="text-xl font-semibold mb-2">Monthly</h3>
-                  <p className="text-4xl font-bold text-[#C62828] mb-4">
+                  <p className="text-4xl font-bold text-[#1E2260] mb-4">
                     {product.pricing.monthly}
                   </p>
                   <p className="text-gray-500 text-sm">per month</p>
@@ -262,7 +262,7 @@ export default async function HeroProductPage({ params }: Props) {
                     Best Value
                   </Badge>
                   <h3 className="text-xl font-semibold mb-2">Yearly</h3>
-                  <p className="text-4xl font-bold text-[#C62828] mb-4">
+                  <p className="text-4xl font-bold text-[#1E2260] mb-4">
                     {product.pricing.yearly}
                   </p>
                   <p className="text-gray-500 text-sm">per year</p>
@@ -296,7 +296,7 @@ export default async function HeroProductPage({ params }: Props) {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-[#C62828] text-white">
+      <section className="py-16 px-4 bg-[#1E2260] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to get started?
@@ -309,7 +309,7 @@ export default async function HeroProductPage({ params }: Props) {
               <Button
                 size="lg"
                 variant="secondary"
-                className="text-[#C62828]"
+                className="text-[#1E2260]"
               >
                 Contact Sales
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -319,7 +319,7 @@ export default async function HeroProductPage({ params }: Props) {
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-[#C62828]"
+                className="bg-transparent border-white text-white hover:bg-white hover:text-[#1E2260]"
               >
                 View Cart
               </Button>

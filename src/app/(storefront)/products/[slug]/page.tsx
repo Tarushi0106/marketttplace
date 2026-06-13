@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { marked } from "marked";
 import Link from "next/link";
@@ -67,7 +67,7 @@ import { ProductPageTracker } from "@/components/storefront/ProductPageTracker";
 
 // Render icon based on icon name
 function renderIcon(iconName?: string | null) {
-  const props = { size: 28, className: "text-[#C62828]" };
+  const props = { size: 28, className: "text-[#1E2260]" };
 
   switch (iconName) {
     case "Cloud":
@@ -245,7 +245,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: product.seoMetadata?.metaTitle || `${product.name} | Shaurrya Teleservices`,
+    title: product.seoMetadata?.metaTitle || `${product.name} | DeWiN Solutions`,
     description: product.seoMetadata?.metaDescription || product.shortDescription || product.description?.slice(0, 160),
     openGraph: {
       title: product.name,
@@ -360,7 +360,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
               <div className="flex items-start gap-4 mb-4">
                 {/* Dynamic Product Icon - Light red background with red icon */}
-                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-[#FDECEC] rounded-xl flex items-center justify-center">
+                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-[#E8F0FF] rounded-xl flex items-center justify-center">
                   {renderIcon(product.icon)}
                 </div>
 
@@ -401,11 +401,11 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
                 <div className="flex items-center gap-3">
                   {product.slug === 'vsaas' ? (
-                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                    <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848] text-white" asChild>
                       <a href="/Catalogues.zip" download="Catalogues.zip"><Download className="h-4 w-4 mr-2" />Download Catalogue</a>
                     </Button>
-                  ) : (
-                    <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                  ) : !['deco-voice', 'deco-talent', 'hr-bot'].includes(product.slug) && (
+                    <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848] text-white" asChild>
                       <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                     </Button>
                   )}
@@ -426,14 +426,14 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
             <TabsList className="h-14 w-full justify-start gap-0 bg-transparent p-0 overflow-x-auto">
               <TabsTrigger
                 value="overview"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <Info className="h-4 w-4 mr-2" />
                 Overview and Benefits
               </TabsTrigger>
               <TabsTrigger
                 value="features"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
@@ -441,16 +441,16 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               {product.slug === 'vsaas' && (
               <TabsTrigger
                 value="solutions"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <Cloud className="h-4 w-4 mr-2" />
                 Solutions
               </TabsTrigger>
               )}
-              {product.slug !== 'vsaas' && (
+              {!['vsaas', 'deco-voice', 'deco-talent', 'hr-bot'].includes(product.slug) && (
               <TabsTrigger
                 value="pricing"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
                 id="pricing"
               >
                 <CreditCard className="h-4 w-4 mr-2" />
@@ -459,21 +459,21 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               )}
               <TabsTrigger
                 value="support"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Support
               </TabsTrigger>
               <TabsTrigger
                 value="resources"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
                 <BookOpen className="h-4 w-4 mr-2" />
                 Resources
               </TabsTrigger>
               <TabsTrigger
                 value="reviews"
-                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#8B1D1D] data-[state=active]:text-[#8B1D1D] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium ml-auto"
+                className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium ml-auto"
               >
                 <Star className="h-4 w-4 mr-2" />
                 Reviews
@@ -553,7 +553,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 { title: "Scalable", desc: "Easily upgrade as your business grows" },
                               ].map((item, i) => (
                                 <li key={i} className="flex items-start gap-2.5">
-                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#1E2260] flex-shrink-0" />
                                   <span className="text-gray-600 text-sm"><span className="font-semibold text-gray-800">{item.title}</span> – {item.desc}</span>
                                 </li>
                               ))}
@@ -567,7 +567,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             <p className="text-gray-600 leading-relaxed">
                               VSaaS (Video Surveillance as a Service) is an AI-powered cloud video surveillance platform that delivers real-time monitoring, intelligent analytics, and seamless multi-site management — all without the overhead of on-premise infrastructure.
                             </p>
-                            <p className="text-sm text-gray-500 border-l-2 border-[#8B1D1D]/30 pl-3 mt-4">
+                            <p className="text-sm text-gray-500 border-l-2 border-[#1E2260]/30 pl-3 mt-4">
                               👉 Compatible with all ONVIF-standard IP cameras — works with your existing hardware.
                             </p>
                           </div>
@@ -584,7 +584,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 { title: "Scalable Solution", desc: "Easily add cameras and users as your business grows." },
                                 { title: "Compliance Ready", desc: "Meet industry regulations with encrypted, audit-ready recordings." },
                               ].map((item, i) => (
-                                <div key={i} className="p-4 rounded-xl border border-gray-200 bg-gray-50 hover:border-[#8B1D1D]/30 hover:bg-red-50/30 transition-colors">
+                                <div key={i} className="p-4 rounded-xl border border-gray-200 bg-gray-50 hover:border-[#1E2260]/30 hover:bg-[#EEF2FF]/30 transition-colors">
                                   <div className="font-semibold text-gray-900 text-sm mb-1">{item.title}</div>
                                   <div className="text-xs text-gray-500 leading-relaxed">{item.desc}</div>
                                 </div>
@@ -611,7 +611,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 { label: "Mobile Devices", terms: "Monthly · 1 Year · 2 Year · 3 Year" },
                               ].map((item, i) => (
                                 <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#8B1D1D] flex-shrink-0" />
+                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#1E2260] flex-shrink-0" />
                                   <div>
                                     <div className="text-sm font-semibold text-gray-800">{item.label}</div>
                                     <div className="text-xs text-gray-500 mt-0.5">{item.terms}</div>
@@ -683,7 +683,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         {product.category && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Category</span>
-                            <Link href={`/categories/${product.category.slug}`} className="text-[#8B1D1D] hover:underline">
+                            <Link href={`/categories/${product.category.slug}`} className="text-[#1E2260] hover:underline">
                               {product.category.name}
                             </Link>
                           </div>
@@ -702,7 +702,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               <TabsContent value="features" className="mt-0">
                 <div className="max-w-5xl mx-auto">
                   <div className="text-center mb-10">
-                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                    <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
                       <BadgeCheck className="h-4 w-4 mr-1" /> Features
                     </Badge>
                     <h2 className="text-3xl font-bold text-gray-900 mb-3">Everything you need</h2>
@@ -718,8 +718,8 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         const title = dashIdx !== -1 ? feature.slice(0, dashIdx) : feature;
                         const desc = dashIdx !== -1 ? feature.slice(dashIdx + 3) : null;
                         return (
-                          <div key={index} className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#8B1D1D]/20 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300 p-5 flex gap-4 items-start">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
+                          <div key={index} className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#1E2260]/20 hover:shadow-lg hover:shadow-[#1E2260]/5 transition-all duration-300 p-5 flex gap-4 items-start">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
                               <Icon className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -740,7 +740,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               <TabsContent value="solutions" className="mt-0">
                 <div className="max-w-5xl mx-auto">
                   <div className="text-center mb-10">
-                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                    <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
                       <Cloud className="h-4 w-4 mr-1" /> Solutions
                     </Badge>
                     <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your deployment model</h2>
@@ -780,8 +780,8 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     </div>
 
                     {/* VSaaS On-Prem */}
-                    <div className="group p-8 bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 hover:border-[#8B1D1D]/40 hover:shadow-xl transition-all duration-300">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B1D1D] to-[#C62828] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                    <div className="group p-8 bg-gradient-to-br from-[#EEF2FF] to-white rounded-2xl border border-[#E8F0FF] hover:border-[#1E2260]/40 hover:shadow-xl transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
                         <Server className="h-7 w-7" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On-Prem</h3>
@@ -798,13 +798,13 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                           "Dedicated on-site support",
                         ].map((item) => (
                           <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
-                            <CheckCircle className="h-4 w-4 text-[#8B1D1D] flex-shrink-0" />
+                            <CheckCircle className="h-4 w-4 text-[#1E2260] flex-shrink-0" />
                             {item}
                           </li>
                         ))}
                       </ul>
                       <Link href="/products/vsaas/configure?deployment=onprem&showOnly=onprem">
-                        <button className="w-full h-11 bg-[#8B1D1D] hover:bg-[#C62828] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                        <button className="w-full h-11 bg-[#1E2260] hover:bg-[#1E2260] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
                           Get Started <ArrowRight className="h-4 w-4" />
                         </button>
                       </Link>
@@ -817,7 +817,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
               <TabsContent value="pricing" className="mt-0">
                 <div className="max-w-5xl mx-auto">
                   <div className="text-center mb-6">
-                    <Badge className="mb-4 bg-[#8B1D1D]/10 text-[#8B1D1D] hover:bg-[#8B1D1D]/10">
+                    <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
                       <Rocket className="h-4 w-4 mr-1" /> Pricing
                     </Badge>
                     <h2 className="text-3xl font-bold text-gray-900 mb-3">
@@ -860,20 +860,20 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                               key={variant.id}
                               className={`rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-px ${
                                 variant.isDefault
-                                  ? 'shadow-lg ring-2 ring-[#8B1D1D]'
-                                  : 'shadow-sm border border-gray-200 hover:border-[#8B1D1D]/30'
+                                  ? 'shadow-lg ring-2 ring-[#1E2260]'
+                                  : 'shadow-sm border border-gray-200 hover:border-[#1E2260]/30'
                               }`}
                             >
                               <div className="flex items-stretch bg-white">
                                 {/* Left: User count panel */}
                                 <div className={`flex flex-col items-center justify-center px-6 py-6 min-w-[110px] ${
-                                  variant.isDefault ? 'bg-[#8B1D1D] text-white' : 'bg-gray-50 text-gray-900'
+                                  variant.isDefault ? 'bg-[#1E2260] text-white' : 'bg-gray-50 text-gray-900'
                                 }`}>
                                   {variant.isDefault && (
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-200 mb-2">Popular</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#D0DEFF] mb-2">Popular</span>
                                   )}
                                   <span className="text-3xl font-black leading-none">{userCount || '—'}</span>
-                                  <span className={`text-[10px] font-semibold uppercase tracking-widest mt-1.5 ${variant.isDefault ? 'text-red-200' : 'text-gray-400'}`}>Users</span>
+                                  <span className={`text-[10px] font-semibold uppercase tracking-widest mt-1.5 ${variant.isDefault ? 'text-[#D0DEFF]' : 'text-gray-400'}`}>Users</span>
                                 </div>
 
                                 {/* Middle: Plan info + description + specs */}
@@ -889,7 +889,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                       {allSpecs.map(([key, value]) => (
                                         <span key={key} className={`inline-flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 font-medium border ${
                                           variant.isDefault
-                                            ? 'bg-red-50 text-[#8B1D1D] border-red-100'
+                                            ? 'bg-[#EEF2FF] text-[#1E2260] border-[#E8F0FF]'
                                             : 'bg-gray-50 text-gray-700 border-gray-200'
                                         }`}>
                                           <span className="opacity-60">{key}</span>
@@ -902,18 +902,18 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
                                 {/* Right: Price + CTA */}
                                 <div className={`flex flex-col items-end justify-center gap-4 px-6 py-5 border-l min-w-[190px] ${
-                                  variant.isDefault ? 'bg-red-50/40 border-[#8B1D1D]/10' : 'bg-gray-50/80 border-gray-100'
+                                  variant.isDefault ? 'bg-[#EEF2FF]/40 border-[#1E2260]/10' : 'bg-gray-50/80 border-gray-100'
                                 }`}>
                                   <div className="text-right">
                                     <div className="flex items-baseline justify-end gap-1 whitespace-nowrap">
-                                      <span className={`text-3xl font-black tracking-tight ${variant.isDefault ? 'text-[#8B1D1D]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</span>
+                                      <span className={`text-3xl font-black tracking-tight ${variant.isDefault ? 'text-[#1E2260]' : 'text-gray-900'}`}>₹{displayPrice.toLocaleString('en-IN')}</span>
                                       <span className="text-sm text-gray-400 font-medium">{isOneTime ? '' : '/mo'}</span>
                                     </div>
                                     {!isOneTime && <p className="text-xs text-gray-400 mt-0.5">Billed monthly</p>}
                                   </div>
                                   <Link
                                     href={`/products/${product.slug}/configure?variant=${variant.id}`}
-                                    className="w-full text-center text-sm font-bold px-5 py-2.5 rounded-xl transition-all bg-[#8B1D1D] hover:bg-[#C62828] text-white shadow-sm whitespace-nowrap"
+                                    className="w-full text-center text-sm font-bold px-5 py-2.5 rounded-xl transition-all bg-[#1E2260] hover:bg-[#1E2260] text-white shadow-sm whitespace-nowrap"
                                   >
                                     Get Started →
                                   </Link>
@@ -947,28 +947,28 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             key={variant.id}
                             className={`relative rounded-2xl border-2 overflow-hidden transition-all duration-200 hover:shadow-xl ${
                               variant.isDefault
-                                ? "border-[#8B1D1D] shadow-lg"
+                                ? "border-[#1E2260] shadow-lg"
                                 : "border-gray-200 hover:border-gray-300"
                             }`}
                           >
                             {variant.isDefault && (
-                              <div className="bg-[#8B1D1D] text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
+                              <div className="bg-[#1E2260] text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
                                 Most Popular Plan
                               </div>
                             )}
                             <div className="bg-white">
-                              <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-4 border-b border-gray-100 ${variant.isDefault ? "bg-[#8B1D1D]/5" : "bg-gray-50"}`}>
+                              <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-4 border-b border-gray-100 ${variant.isDefault ? "bg-[#1E2260]/5" : "bg-gray-50"}`}>
                                 <div>
                                   <h3 className="text-xl font-bold text-gray-900">{variant.name}</h3>
                                 </div>
                                 <div className="flex items-center gap-6">
                                   <div className="text-right">
-                                    <div className={`text-3xl font-extrabold ${variant.isDefault ? "text-[#8B1D1D]" : "text-gray-900"}`}>
+                                    <div className={`text-3xl font-extrabold ${variant.isDefault ? "text-[#1E2260]" : "text-gray-900"}`}>
                                       ₹{displayPrice.toLocaleString("en-IN")}
                                     </div>
                                     <div className="text-sm text-gray-500 font-medium">{isOneTime ? 'one-time' : '/month'}</div>
                                   </div>
-                                  <Button size="lg" className="h-12 px-8 font-semibold text-base whitespace-nowrap rounded-xl bg-[#8B1D1D] hover:bg-[#7A1919] text-white shadow-md" asChild>
+                                  <Button size="lg" className="h-12 px-8 font-semibold text-base whitespace-nowrap rounded-xl bg-[#1E2260] hover:bg-[#161848] text-white shadow-md" asChild>
                                     <Link href={`/products/${product.slug}/configure?variant=${variant.id}`}>
                                       Get Started <ArrowRight className="h-4 w-4 ml-2" />
                                     </Link>
@@ -1007,9 +1007,9 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                             <h3 className="text-xl font-bold text-gray-900">Customize Your Plan</h3>
                             <p className="text-gray-500 text-sm mt-1">Select configurations that best fit your needs</p>
                           </div>
-                          <Badge className="bg-[#8B1D1D] text-white">{product.configs.length} Options Available</Badge>
+                          <Badge className="bg-[#1E2260] text-white">{product.configs.length} Options Available</Badge>
                         </div>
-                        <Button size="lg" className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white" asChild>
+                        <Button size="lg" className="w-full bg-[#1E2260] hover:bg-[#161848] text-white" asChild>
                           <Link href={`/products/${product.slug}/configure`}>
                             Configure Now <ArrowRight className="h-4 w-4 ml-2" />
                           </Link>
@@ -1037,7 +1037,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                   {config.description && <p className="text-sm text-gray-500">{config.description}</p>}
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-bold text-[#8B1D1D]">
+                                  <p className="font-bold text-[#1E2260]">
                                     {config.basePrice > 0 ? `${config.basePrice}` : 'Included'}
                                     {config.billingCycle === 'MONTHLY' && <span className="text-sm text-gray-500 font-normal">/mo</span>}
                                   </p>
@@ -1069,7 +1069,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {product.addons.length > 0 ? (
                           product.addons.map((addon: any) => (
-                            <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                            <div key={addon.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#1E2260]/30 transition-colors">
                               <div className="flex justify-between items-start mb-2">
                                 <h4 className="font-semibold text-gray-900">{addon.name}</h4>
                                 <Badge variant="outline" className="text-xs">
@@ -1077,12 +1077,12 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 </Badge>
                               </div>
                               {addon.description && <p className="text-sm text-gray-500 mb-3">{addon.description}</p>}
-                              <p className="text-2xl font-bold text-[#8B1D1D]">{formatPrice(Number(addon.price))}</p>
+                              <p className="text-2xl font-bold text-[#1E2260]">{formatPrice(Number(addon.price))}</p>
                             </div>
                           ))
                         ) : (
                           product.configs.slice(0, 9).map((config: any) => (
-                            <div key={config.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#8B1D1D]/30 transition-colors">
+                            <div key={config.id} className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-[#1E2260]/30 transition-colors">
                               <div className="flex justify-between items-start mb-2">
                                 <h4 className="font-semibold text-gray-900">{config.name}</h4>
                                 <Badge variant="outline" className="text-xs">
@@ -1090,7 +1090,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                                 </Badge>
                               </div>
                               {config.description && <p className="text-sm text-gray-500 mb-3">{config.description}</p>}
-                              <p className="text-2xl font-bold text-[#8B1D1D]">
+                              <p className="text-2xl font-bold text-[#1E2260]">
                                 {config.basePrice > 0 ? formatPrice(Number(config.basePrice)) : 'Included'}
                                 {config.isRecurring && <span className="text-sm font-normal text-gray-500">/mo</span>}
                               </p>
@@ -1253,12 +1253,12 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       { title: "FAQ", type: "Online", icon: MessageSquare, color: "red" },
                       { title: "Release Notes", type: "Online", icon: FileText, color: "cyan" },
                     ].map((resource, index) => (
-                      <a key={index} href="#" className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-[#8B1D1D]/30 hover:shadow-md transition-all group">
+                      <a key={index} href="#" className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-[#1E2260]/30 hover:shadow-md transition-all group">
                         <div className={`w-12 h-12 rounded-xl bg-${resource.color}-100 flex items-center justify-center`}>
                           <resource.icon className={`h-6 w-6 text-${resource.color}-500`} />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors">{resource.title}</p>
+                          <p className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors">{resource.title}</p>
                           <p className="text-sm text-gray-500">{resource.type}</p>
                         </div>
                         <Download className="h-5 w-5 text-gray-400" />

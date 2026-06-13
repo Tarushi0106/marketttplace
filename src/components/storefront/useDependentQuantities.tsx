@@ -157,7 +157,7 @@ export function DependentQuantityControls({
         <div className="flex-1">
           <span className="font-medium text-gray-900">{cameraName}</span>
           {cameraPrice > 0 && (
-            <span className="ml-2 text-[#C62828]">+{formatPrice(cameraPrice)}</span>
+            <span className="ml-2 text-[#1E2260]">+{formatPrice(cameraPrice)}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export function DependentQuantityControls({
         <div className="flex-1">
           <span className="font-medium text-gray-900">{gatewayName}</span>
           {gatewayPrice > 0 && (
-            <span className="ml-2 text-[#C62828]">+{formatPrice(gatewayPrice)}</span>
+            <span className="ml-2 text-[#1E2260]">+{formatPrice(gatewayPrice)}</span>
           )}
           {gatewayQty > requiredGateways && (
             <span className="ml-2 text-xs text-orange-600">

@@ -9,7 +9,7 @@ import { ConfigurePageTracker } from "@/components/storefront/ConfigurePageTrack
 
 // Render icon based on icon name
 function renderProductIcon(iconName?: string | null) {
-  const props = { size: 32, className: "text-[#C62828]" };
+  const props = { size: 32, className: "text-[#1E2260]" };
 
   switch (iconName) {
     case "Cloud":
@@ -38,7 +38,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
-    title: "Configure Your Solution | Shaurrya Teleservices",
+    title: "Configure Your Solution | DeWiN Solutions",
     description: "Configure your video surveillance solution. Choose between cloud or on-premise deployment.",
   };
 }
@@ -260,15 +260,15 @@ export default async function VSAASConfigurePage({ params, searchParams }: Props
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 py-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-gray-400">
-            <Link href="/" className="hover:text-[#8B1D1D] transition-colors">
+            <Link href="/" className="hover:text-[#1E2260] transition-colors">
               Home
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/products" className="hover:text-[#8B1D1D] transition-colors">
+            <Link href="/products" className="hover:text-[#1E2260] transition-colors">
               Products
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/products/vsaas?tab=solutions" className="hover:text-[#8B1D1D] transition-colors">
+            <Link href="/products/vsaas?tab=solutions" className="hover:text-[#1E2260] transition-colors">
               VSAAS
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />

@@ -10,11 +10,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // OJI Design Palette
+        // DeWiN Brand Palette
         primary: {
-          DEFAULT: "#B91C1C",
-          dark: "#991B1B",
-          light: "#DC2626",
+          DEFAULT: "#1E2260",
+          dark: "#161848",
+          light: "#2B3080",
           foreground: "#FFFFFF",
         },
         secondary: {
@@ -22,14 +22,14 @@ const config: Config = {
           foreground: "#FFFFFF",
         },
         accent: {
-          DEFAULT: "#6B7280",
+          DEFAULT: "#4A9FD5",
           foreground: "#FFFFFF",
         },
         background: "#FFFFFF",
         surface: "#FAFAFA",
         border: "#E5E7EB",
         input: "#E5E7EB",
-        ring: "#B91C1C",
+        ring: "#1E2260",
         foreground: "#111827",
         muted: {
           DEFAULT: "#F3F4F6",
@@ -39,10 +39,10 @@ const config: Config = {
           DEFAULT: "#FFFFFF",
           foreground: "#111827",
           // Solution card backgrounds
-          pink: "#FEE2E2",
-          beige: "#FDF6E9",
+          pink: "#E8F0FF",
+          beige: "#EEF2FF",
           gray: "#F3F4F6",
-          dark: "#1A1A1A",
+          dark: "#0D0F2B",
         },
         popover: {
           DEFAULT: "#FFFFFF",

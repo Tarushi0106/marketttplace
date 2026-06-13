@@ -216,8 +216,8 @@ export function VSaaSEnterpriseConfigurator({
                 <div className="flex-1">
                   {/* Title & Tag */}
                   <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-7 h-7 rounded bg-red-50 flex items-center justify-center">
-                      <Box className="w-3.5 h-3.5 text-red-600" />
+                    <div className="w-7 h-7 rounded bg-[#EEF2FF] flex items-center justify-center">
+                      <Box className="w-3.5 h-3.5 text-[#1E2260]" />
                     </div>
                     <h4 className="text-base font-semibold text-gray-900">{hardware.name}</h4>
                   </div>
@@ -494,7 +494,7 @@ export function VSaaSEnterpriseConfigurator({
                   {/* Grand Total */}
                   <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                     <span className="text-sm font-semibold text-gray-900">Grand Total</span>
-                    <span className="text-lg font-bold text-red-600">
+                    <span className="text-lg font-bold text-[#1E2260]">
                       {formatPrice(totals.grandTotal)}
                     </span>
                   </div>
@@ -503,7 +503,7 @@ export function VSaaSEnterpriseConfigurator({
                 {/* CTA Button */}
                 <Button
                   onClick={handleAddToCart}
-                  className="w-full mt-5 h-11 text-sm font-semibold bg-gradient-to-r from-[#C62828] to-[#B71C1C] hover:from-[#B71C1C] hover:to-[#8B1D1D] shadow-sm hover:shadow-md transition-all duration-200 rounded-lg"
+                  className="w-full mt-5 h-11 text-sm font-semibold bg-gradient-to-r from-[#1E2260] to-[#161848] hover:from-[#161848] hover:to-[#1E2260] shadow-sm hover:shadow-md transition-all duration-200 rounded-lg"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Add to Cart

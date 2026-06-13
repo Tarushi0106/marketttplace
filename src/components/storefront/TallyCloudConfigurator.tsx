@@ -725,22 +725,22 @@ export function TallyCloudConfigurator({
         <div className="lg:col-span-3">
           {/* Cloud Gateway - Primary Dependency - Shown at top as header */}
           {cloudGatewayVariant && (
-            <div className="mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="mb-3 p-3 bg-[#EEF2FF] rounded-lg border border-[#D0DEFF]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-md border-2 border-red-500 bg-red-500 flex items-center justify-center">
+                  <div className="w-4 h-4 rounded-md border-2 border-[#1E2260] bg-[#1E2260] flex items-center justify-center">
                     <Check className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <span className="text-red-800 font-medium text-sm">Cloud Gateway</span>
+                  <span className="text-[#141740] font-medium text-sm">Cloud Gateway</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-bold text-red-700 text-sm">Qty: {quantity >= 8 ? 2 : 1}</span>
+                  <span className="font-bold text-[#161848] text-sm">Qty: {quantity >= 8 ? 2 : 1}</span>
                 </div>
               </div>
-              <div className="text-red-600 text-xs mt-1 ml-6">
+              <div className="text-[#1E2260] text-xs mt-1 ml-6">
                 {quantity >= 8 ? '2 units (8+ cameras need 2 hardware)' : 'Connects up to 8 cameras in local network'}
               </div>
-              <div className="text-red-800 font-semibold text-sm mt-1 ml-6">
+              <div className="text-[#141740] font-semibold text-sm mt-1 ml-6">
                 {formatPrice(gatewayTotal)}{getBillingSuffix(billingCycle)}
               </div>
             </div>
@@ -792,7 +792,7 @@ export function TallyCloudConfigurator({
                                   key={item.id}
                                   className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
                                     isSelected 
-                                      ? "border-[#C62828] bg-red-50" 
+                                      ? "border-[#1E2260] bg-[#EEF2FF]" 
                                       : "border-gray-200 hover:border-gray-300"
                                   }`}
                                   onClick={() => {
@@ -801,7 +801,7 @@ export function TallyCloudConfigurator({
                                 >
                                   {/* Radio-style selection indicator */}
                                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center mb-2 transition-all ${
-                                    isSelected ? "border-[#C62828] bg-[#C62828]" : "border-gray-300"
+                                    isSelected ? "border-[#1E2260] bg-[#1E2260]" : "border-gray-300"
                                   }`}>
                                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                   </div>
@@ -834,7 +834,7 @@ export function TallyCloudConfigurator({
                       <div className="flex items-center gap-3">
                         <div className="font-semibold text-gray-900 uppercase text-sm tracking-wide">LICENCES</div>
                         {hasAnySelection && (
-                          <span className="px-2 py-0.5 bg-[#C62828] text-white text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-[#1E2260] text-white text-xs rounded-full">
                             {items.reduce((sum, item) => sum + (addonQuantities[item.id] || 0), 0)}
                           </span>
                         )}
@@ -858,7 +858,7 @@ export function TallyCloudConfigurator({
                                 {/* Checkbox */}
                                 <div
                                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer ${
-                                    itemQty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
+                                    itemQty > 0 ? "bg-[#1E2260] border-[#1E2260]" : "border-gray-300 bg-white"
                                   }`}
                                   onClick={() => {
                                     if (itemQty > 0) {
@@ -931,7 +931,7 @@ export function TallyCloudConfigurator({
                     <div className="flex items-center gap-4 flex-1">
                       <div
                         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer ${
-                          qty > 0 ? "bg-[#C62828] border-[#C62828]" : "border-gray-300 bg-white"
+                          qty > 0 ? "bg-[#1E2260] border-[#1E2260]" : "border-gray-300 bg-white"
                         }`}
                         onClick={() => {
                           if (qty > 0) {
@@ -1000,14 +1000,14 @@ export function TallyCloudConfigurator({
                   }}
                   className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center justify-between ${
                     billingCycle === plan.id
-                      ? "border-[#C62828] bg-red-50 text-[#C62828] shadow-sm"
+                      ? "border-[#1E2260] bg-[#EEF2FF] text-[#1E2260] shadow-sm"
                       : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-md"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       billingCycle === plan.id
-                        ? "border-[#C62828] bg-[#C62828]"
+                        ? "border-[#1E2260] bg-[#1E2260]"
                         : "border-gray-300"
                     }`}>
                       {billingCycle === plan.id && (
@@ -1069,7 +1069,7 @@ export function TallyCloudConfigurator({
                       onClick={() => setSelectedVariant(variant.id)}
                       className={`w-full p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
                         selectedVariant === variant.id
-                          ? "border-[#C62828] bg-red-50/40 shadow-sm"
+                          ? "border-[#1E2260] bg-[#EEF2FF]/40 shadow-sm"
                           : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                       }`}
                     >
@@ -1077,7 +1077,7 @@ export function TallyCloudConfigurator({
                         <div
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                             selectedVariant === variant.id 
-                              ? "bg-[#C62828] border-[#C62828]" 
+                              ? "bg-[#1E2260] border-[#1E2260]" 
                               : "border-gray-300"
                           }`}
                         >
@@ -1086,7 +1086,7 @@ export function TallyCloudConfigurator({
                         <div>
                           <div className="font-medium text-gray-900">{variant.name}</div>
                           {variant.isDefault && (
-                            <div className="text-xs text-[#C62828] font-medium">Recommended</div>
+                            <div className="text-xs text-[#1E2260] font-medium">Recommended</div>
                           )}
                         </div>
                       </div>
@@ -1195,7 +1195,7 @@ export function TallyCloudConfigurator({
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Total</span>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+                    <span className="text-2xl font-bold text-[#1E2260]">{formatPrice(totalPrice)}</span>
                     <span className="text-sm font-normal text-gray-500 ml-1">{getBillingSuffix(billingCycle)}</span>
                   </div>
                 </div>
@@ -1203,7 +1203,7 @@ export function TallyCloudConfigurator({
 
               <Button
                 onClick={handleAddToCart}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#C62828] to-[#B71C1C] hover:from-[#B71C1C] hover:to-[#8B1D1D] shadow-lg shadow-red-100 hover:shadow-xl transition-all duration-300 rounded-xl"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#1E2260] to-[#161848] hover:from-[#161848] hover:to-[#1E2260] shadow-lg shadow-[#E8F0FF] hover:shadow-xl transition-all duration-300 rounded-xl"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart

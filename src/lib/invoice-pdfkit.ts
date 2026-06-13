@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+﻿import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { prisma } from '@/lib/prisma';
 
 interface OrderItem {
@@ -199,7 +199,7 @@ function createInvoiceData(order: Order) {
       city: 'Milat Nagar, Andheri West, Mumbai, Maharashtra 400053',
       pan: 'ABCCS1234A',
       gst: '27ABCCS1234A1Z9',
-      email: 'info@shaurryatele.com',
+      email: 'info@dewintele.com',
       phone: '+91 99102 05084'
     },
     

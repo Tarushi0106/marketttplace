@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -896,7 +896,7 @@ export default function CheckoutPage() {
                 {/* Total Due Today */}
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
-                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                  <span className="text-2xl font-bold text-[#1E2260]">
                     {formatPrice(Number(subtotal) + Number(tax) + Number(setupFeeTotal))}
                   </span>
                 </div>

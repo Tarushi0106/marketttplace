@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ChevronRight, ChevronLeft, Wifi, Shield, Cloud, Settings, Brain, Share2, Box, Server, Database, Cpu, Briefcase, Headphones, Smartphone, Package } from "lucide-react";
@@ -47,7 +47,7 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
 const sampleCategories: Category[] = [
   { id: "1", name: "Software as a Service", slug: "software-as-a-service", description: "Cloud-based software solutions for business", image: null, icon: "cloud", iconBgColor: "#DBEAFE", _count: { products: 0 } },
   { id: "2", name: "Connectivity", slug: "connectivity", description: "Network connectivity and communication solutions", image: null, icon: "wifi", iconBgColor: "#D1FAE5", _count: { products: 0 } },
-  { id: "3", name: "Security", slug: "security", description: "Cybersecurity and protection solutions", image: null, icon: "shield", iconBgColor: "#FFE4E4", _count: { products: 0 } },
+  { id: "3", name: "Security", slug: "security", description: "Cybersecurity and protection solutions", image: null, icon: "shield", iconBgColor: "#E8F0FF", _count: { products: 0 } },
   { id: "4", name: "Managed Infrastructure Services", slug: "managed-infrastructure", description: "Managed IT infrastructure and support", image: null, icon: "server", iconBgColor: "#F5F5F5", _count: { products: 0 } },
   { id: "5", name: "Mobility & IOT", slug: "mobility-iot", description: "Mobile solutions and Internet of Things", image: null, icon: "smartphone", iconBgColor: "#E9D5FF", _count: { products: 0 } },
   { id: "6", name: "AI", slug: "ai", description: "Artificial intelligence and machine learning solutions", image: null, icon: "brain", iconBgColor: "#FEF3C7", _count: { products: 0 } },
@@ -137,7 +137,7 @@ export function FeaturedCategories() {
           </div>
           <Link
             href="/products"
-            className="hidden md:flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline"
+            className="hidden md:flex items-center gap-2 text-[#1E2260] font-medium hover:underline"
           >
             See All Categories
           </Link>
@@ -192,7 +192,7 @@ export function FeaturedCategories() {
                         >
                           <IconComponent
                             className={`h-10 w-10 ${
-                              isBlack ? "text-white" : isRed ? "text-[#8B1D1D]" : "text-gray-700"
+                              isBlack ? "text-white" : isRed ? "text-[#1E2260]" : "text-gray-700"
                             }`}
                           />
                         </div>
@@ -201,7 +201,7 @@ export function FeaturedCategories() {
 
                     {/* Category Info */}
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 text-lg leading-tight group-hover:text-[#8B1D1D] transition-colors">
+                      <h3 className="font-semibold text-gray-900 text-lg leading-tight group-hover:text-[#1E2260] transition-colors">
                         {category.name}
                       </h3>
                       <p className="mt-2 text-sm text-gray-500 line-clamp-2">
@@ -211,7 +211,7 @@ export function FeaturedCategories() {
                         <span className="text-xs text-gray-400">
                           {category._count.products} {category._count.products === 1 ? "product" : "products"}
                         </span>
-                        <span className="text-xs font-medium text-[#8B1D1D] group-hover:underline flex items-center gap-1">
+                        <span className="text-xs font-medium text-[#1E2260] group-hover:underline flex items-center gap-1">
                           Explore <ChevronRight className="h-3 w-3" />
                         </span>
                       </div>
@@ -226,7 +226,7 @@ export function FeaturedCategories() {
         <div className="mt-6 text-center md:hidden">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 text-[#8B1D1D] font-medium"
+            className="inline-flex items-center gap-2 text-[#1E2260] font-medium"
           >
             See All Categories
             <ChevronRight className="h-4 w-4" />

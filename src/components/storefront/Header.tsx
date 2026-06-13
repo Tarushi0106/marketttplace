@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -61,7 +61,7 @@ function WishlistBadgeInner() {
   if (!mounted) return null;
 
   return items.length > 0 ? (
-    <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm">
+    <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-[#4A9FD5] text-[10px] font-bold text-white shadow-sm">
       {items.length > 9 ? "9+" : items.length}
     </span>
   ) : null;
@@ -122,7 +122,7 @@ interface MenuItem {
 const defaultNavLinks = [
   { label: "Plans", href: "/products", badge: null, icon: "layout-grid" },
   { label: "Applications", href: "/products?category=applications", badge: null, icon: "box" },
-  { label: "Why NetNxt", href: "/about", badge: null, icon: "brain" },
+  { label: "Why DeWiN", href: "/about", badge: null, icon: "brain" },
   { label: "Comparison", href: "/comparison", badge: null, icon: "share2" },
   { label: "Industries We Serve", href: "/industries", badge: null, icon: "globe" },
   { label: "About Us", href: "/about-us", badge: null, icon: "folder" },
@@ -210,8 +210,8 @@ export function Header() {
 
   const DefaultLogo = () => (
     <img
-      src="/image.png"
-      alt="NetNxt – Powered by Shaurrya Teleservices"
+      src="/dewin-logo.jpeg"
+      alt="Dewin – DeWiN Solutions Private Limited"
       className="h-[70px] w-auto object-contain"
     />
   );
@@ -225,8 +225,8 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 hover:opacity-90 transition-opacity">
               <img
-                src="/image.png"
-                alt="NetNxt – Powered by Shaurrya Teleservices"
+                src="/dewin-logo.jpeg"
+                alt="Dewin – DeWiN Solutions Private Limited"
                 className="h-[70px] w-auto object-contain"
               />
             </Link>
@@ -240,7 +240,7 @@ export function Header() {
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#8B1D1D]/20 focus:bg-gray-50 transition-all"
+                  className="w-full h-10 pl-10 pr-4 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E2260]/20 focus:bg-gray-50 transition-all"
                 />
               </div>
             </div>
@@ -253,7 +253,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <button className="hidden md:flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all duration-200 group" suppressHydrationWarning>
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B1D1D] to-[#6B1515] flex items-center justify-center text-white text-sm font-semibold shadow-sm" suppressHydrationWarning>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1E2260] to-[#141740] flex items-center justify-center text-white text-sm font-semibold shadow-sm" suppressHydrationWarning>
                           {session.user.name?.charAt(0).toUpperCase() || "U"}
                         </div>
                         <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
@@ -299,18 +299,18 @@ export function Header() {
                         <DropdownMenuSeparator className="my-1" />
                         <DropdownMenuItem asChild>
                           <Link href="/admin" className="flex items-center gap-3 cursor-pointer rounded-lg py-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#8B1D1D]/10 flex items-center justify-center">
-                              <Shield className="h-4 w-4 text-[#8B1D1D]" />
+                            <div className="w-8 h-8 rounded-lg bg-[#1E2260]/10 flex items-center justify-center">
+                              <Shield className="h-4 w-4 text-[#1E2260]" />
                             </div>
-                            <span className="font-medium text-[#8B1D1D]">Admin Panel</span>
+                            <span className="font-medium text-[#1E2260]">Admin Panel</span>
                           </Link>
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator className="my-1" />
                     <DropdownMenuItem asChild>
-                      <Link href="/api/auth/signout" className="flex items-center gap-3 cursor-pointer rounded-lg py-2.5 text-red-600 hover:bg-red-50">
-                        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                      <Link href="/api/auth/signout" className="flex items-center gap-3 cursor-pointer rounded-lg py-2.5 text-[#1E2260] hover:bg-[#EEF2FF]">
+                        <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
                           <LogOut className="h-4 w-4" />
                         </div>
                         <span className="font-medium">Sign Out</span>
@@ -339,29 +339,29 @@ export function Header() {
               {/* Cart */}
               <button
                 onClick={() => setIsOpen(true)}
-                className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
+                className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#1E2260]/5 transition-all duration-200 group"
               >
                 <div className="relative">
-                  <ShoppingCart className="h-5 w-5 text-gray-600 group-hover:text-[#8B1D1D] transition-colors" />
+                  <ShoppingCart className="h-5 w-5 text-gray-600 group-hover:text-[#1E2260] transition-colors" />
                   {mounted && itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-[#8B1D1D] text-[10px] font-bold text-white shadow-sm">
+                    <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-[#1E2260] text-[10px] font-bold text-white shadow-sm">
                       {itemCount > 9 ? "9+" : itemCount}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#8B1D1D] transition-colors">Cart</span>
+                <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#1E2260] transition-colors">Cart</span>
               </button>
 
               {/* Wishlist */}
               <Link
                 href="/wishlist"
-                className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#8B1D1D]/5 transition-all duration-200 group"
+                className="flex flex-col items-center justify-center w-14 h-14 rounded-xl hover:bg-[#1E2260]/5 transition-all duration-200 group"
               >
                 <div className="relative">
-                  <Heart className="h-5 w-5 text-gray-600 group-hover:text-[#8B1D1D] transition-colors" />
+                  <Heart className="h-5 w-5 text-gray-600 group-hover:text-[#1E2260] transition-colors" />
                   <WishlistBadgeInner />
                 </div>
-                <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#8B1D1D] transition-colors">Wishlist</span>
+                <span className="text-[10px] font-medium text-gray-500 mt-1 group-hover:text-[#1E2260] transition-colors">Wishlist</span>
               </Link>
 
               {/* Mobile menu button */}
@@ -384,7 +384,7 @@ export function Header() {
             <div className="hidden xl:block">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#8B1D1D] hover:bg-gray-50 rounded-lg transition-colors">
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#1E2260] hover:bg-gray-50 rounded-lg transition-colors">
                     <LayoutGrid className="h-4 w-4" />
                     <span>Categories</span>
                     <ChevronDown className="h-3 w-3" />
@@ -403,9 +403,9 @@ export function Header() {
                             href={`/products?category=${cat.slug}`}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            <div className="w-7 h-7 rounded-lg bg-[#8B1D1D]/10 flex items-center justify-center flex-shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
                               {React.createElement(getIconComponent(cat.icon ?? null), {
-                                className: "h-3.5 w-3.5 text-[#8B1D1D]",
+                                className: "h-3.5 w-3.5 text-[#1E2260]",
                               })}
                             </div>
                             <span className="font-medium text-gray-900 text-sm">{cat.name}</span>
@@ -434,7 +434,7 @@ export function Header() {
                   )}
                   <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem asChild>
-                    <Link href="/products" className="justify-center text-[#8B1D1D] font-medium text-sm">
+                    <Link href="/products" className="justify-center text-[#1E2260] font-medium text-sm">
                       View All Products
                     </Link>
                   </DropdownMenuItem>
@@ -449,11 +449,11 @@ export function Header() {
 
             {/* Right side - Support */}
             <div className="flex items-center gap-6">
-              <Link href="/contact" className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#8B1D1D] transition-colors duration-200">
+              <Link href="/contact" className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#1E2260] transition-colors duration-200">
                 <Headphones className="h-4 w-4" />
                 <span>Support</span>
               </Link>
-              <a href="tel:+918698080000" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#8B1D1D] transition-colors duration-200">
+              <a href="tel:+918698080000" className="flex items-center gap-2 text-sm text-gray-700 hover:text-[#1E2260] transition-colors duration-200">
                 <Phone className="h-4 w-4" />
                 <span className="font-medium">+91 86980 80000</span>
               </a>
@@ -476,7 +476,7 @@ export function Header() {
             <input
               type="text"
               placeholder="What are you looking for?"
-              className="w-full h-12 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:border-[#8B1D1D] focus:ring-2 focus:ring-[#8B1D1D]/10"
+              className="w-full h-12 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:border-[#1E2260] focus:ring-2 focus:ring-[#1E2260]/10"
             />
           </div>
 
@@ -498,7 +498,7 @@ export function Header() {
                     >
                       <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center flex-shrink-0">
                         {React.createElement(getIconComponent(cat.icon ?? null), {
-                          className: "h-4 w-4 text-[#8B1D1D]",
+                          className: "h-4 w-4 text-[#1E2260]",
                         })}
                       </div>
                       <span className="truncate">{cat.name}</span>
@@ -524,7 +524,7 @@ export function Header() {
             )}
             <Link
               href="/products"
-              className="flex items-center justify-center gap-2 mt-3 py-2.5 text-sm font-medium text-[#8B1D1D] hover:bg-gray-50 rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 mt-3 py-2.5 text-sm font-medium text-[#1E2260] hover:bg-gray-50 rounded-xl transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               View All Products
@@ -551,7 +551,7 @@ export function Header() {
                   {link.badge && (
                     <span
                       className="px-2 py-0.5 text-white text-[10px] font-bold rounded uppercase"
-                      style={{ backgroundColor: link.badgeColor || "#8B1D1D" }}
+                      style={{ backgroundColor: link.badgeColor || "#1E2260" }}
                     >
                       {link.badge}
                     </span>
@@ -585,7 +585,7 @@ export function Header() {
                   </Link>
                   <Link
                     href="/api/auth/signout"
-                    className="flex items-center gap-3 px-4 py-3 bg-red-50 rounded-xl text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 bg-[#EEF2FF] rounded-xl text-sm font-medium text-[#1E2260] hover:bg-[#E8F0FF] transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <LogOut className="h-5 w-5" />
@@ -595,7 +595,7 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 bg-[#8B1D1D] rounded-xl text-sm font-semibold text-white hover:bg-[#7A1919] transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 bg-[#1E2260] rounded-xl text-sm font-semibold text-white hover:bg-[#161848] transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <User className="h-5 w-5" />
@@ -615,11 +615,11 @@ export function Header() {
                 </div>
                 +91 98765 43210
               </a>
-              <a href="mailto:info@shaurrya.com" className="flex items-center gap-3 text-white">
+              <a href="mailto:info@dewin.com" className="flex items-center gap-3 text-white">
                 <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                   <Mail className="h-4 w-4" />
                 </div>
-                info@shaurrya.com
+                info@dewin.com
               </a>
             </div>
           </div>

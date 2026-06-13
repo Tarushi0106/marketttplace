@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -627,7 +627,7 @@ function CheckoutSuccessContent() {
                 {/* Total Due Today */}
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
-                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                  <span className="text-2xl font-bold text-[#1E2260]">
                     {formatCurrency(order.total, order.currency)}
                   </span>
                 </div>
@@ -655,7 +655,7 @@ function CheckoutSuccessContent() {
                     order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
                     order.status === 'PROCESSING' ? 'bg-purple-100 text-purple-800' :
                     order.status === 'CONFIRMED' ? 'bg-indigo-100 text-indigo-800' :
-                    order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                    order.status === 'CANCELLED' ? 'bg-[#E8F0FF] text-[#141740]' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
                     {order.status}
@@ -665,7 +665,7 @@ function CheckoutSuccessContent() {
                   <span className="text-sm text-muted-foreground">Payment Status</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
-                    order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                    order.paymentStatus === 'FAILED' ? 'bg-[#E8F0FF] text-[#141740]' :
                     order.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
@@ -775,7 +775,7 @@ function CheckoutSuccessContent() {
                   order?.status === 'PROCESSING' ? 'bg-purple-100 text-purple-800' :
                   order?.status === 'SHIPPED' ? 'bg-indigo-100 text-indigo-800' :
                   order?.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                  order?.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                  order?.status === 'CANCELLED' ? 'bg-[#E8F0FF] text-[#141740]' :
                   'bg-gray-100 text-gray-800'
                 }>
                   {order?.status}
@@ -786,7 +786,7 @@ function CheckoutSuccessContent() {
                 <Badge variant="outline" className={
                   order?.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                   order?.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
-                  order?.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                  order?.paymentStatus === 'FAILED' ? 'bg-[#E8F0FF] text-[#141740]' :
                   order?.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-800' :
                   'bg-orange-100 text-orange-800'
                 }>

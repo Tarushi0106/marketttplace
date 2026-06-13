@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 function renderCartIcon(iconName?: string | null) {
-  const props = { size: 28, className: "text-[#C62828]" };
+  const props = { size: 28, className: "text-[#1E2260]" };
   switch (iconName) {
     case "Cloud": return <Cloud {...props} />;
     case "Shield": return <Shield {...props} />;
@@ -55,9 +55,9 @@ const CATEGORIES = [
     key: "license",
     label: "Licences & Subscriptions",
     icon: <Shield className="w-4 h-4" />,
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
-    textColor: "text-red-700",
+    bgColor: "bg-[#EEF2FF]",
+    borderColor: "border-[#D0DEFF]",
+    textColor: "text-[#161848]",
     match: (item: any) => {
       const n = [item.product?.name, item.variant?.name].filter(Boolean).join(" ").toLowerCase();
       return (
@@ -284,10 +284,10 @@ export default function CartPage() {
                   <div key={item.id} className="p-4 bg-white">
                     <div className="flex gap-3">
                       {/* Icon */}
-                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-[#FDECEC] flex items-center justify-center">
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-[#E8F0FF] flex items-center justify-center">
                         {item.product?.icon
                           ? renderCartIcon(item.product.icon)
-                          : <ShoppingBag className="h-6 w-6 text-[#C62828]" />}
+                          : <ShoppingBag className="h-6 w-6 text-[#1E2260]" />}
                       </div>
 
                       {/* Info */}
@@ -435,7 +435,7 @@ export default function CartPage() {
 
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Due Today</span>
-                  <span className="text-2xl font-bold text-[#8B1D1D]">
+                  <span className="text-2xl font-bold text-[#1E2260]">
                     {formatPrice(subtotal + tax + setupFeeTotal)}
                   </span>
                 </div>

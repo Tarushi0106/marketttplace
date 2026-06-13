@@ -310,14 +310,14 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                       onClick={() => setBillingCycle(cycle)}
                       className={`w-full p-3 rounded-lg border-2 text-left transition-all duration-200 flex items-center justify-between ${
                         billingCycle === cycle
-                          ? 'border-[#C62828] bg-red-50 text-[#C62828] shadow-sm'
+                          ? 'border-[#1E2260] bg-[#EEF2FF] text-[#1E2260] shadow-sm'
                           : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           billingCycle === cycle
-                            ? 'border-[#C62828] bg-[#C62828]'
+                            ? 'border-[#1E2260] bg-[#1E2260]'
                             : 'border-gray-300'
                         }`}>
                           {billingCycle === cycle && (
@@ -367,7 +367,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                   <div 
                     key={addon.id}
                     className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
-                      isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50'
+                      isSelected ? 'bg-[#EEF2FF]/40' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="col-span-5 flex items-center gap-3">
@@ -375,8 +375,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                         onClick={() => toggleAddon(addon.id)}
                         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                           isSelected 
-                            ? 'bg-[#C62828] border-[#C62828] text-white' 
-                            : 'border-gray-300 hover:border-[#C62828]'
+                            ? 'bg-[#1E2260] border-[#1E2260] text-white' 
+                            : 'border-gray-300 hover:border-[#1E2260]'
                         }`}
                       >
                         {isSelected && <span className="text-xs">✓</span>}
@@ -464,7 +464,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                   <div
                     key={addon.id}
                     className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
-                      isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50'
+                      isSelected ? 'bg-[#EEF2FF]/40' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="col-span-5 flex items-center gap-3">
@@ -472,8 +472,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                         onClick={() => toggleAddon(addon.id)}
                         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                           isSelected
-                            ? 'bg-[#C62828] border-[#C62828] text-white'
-                            : 'border-gray-300 hover:border-[#C62828]'
+                            ? 'bg-[#1E2260] border-[#1E2260] text-white'
+                            : 'border-gray-300 hover:border-[#1E2260]'
                         }`}
                       >
                         {isSelected && <span className="text-xs">✓</span>}
@@ -550,7 +550,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                   <div 
                     key={addon.id}
                     className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 last:border-b-0 transition-colors ${
-                      isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50'
+                      isSelected ? 'bg-[#EEF2FF]/40' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="col-span-5 flex items-center gap-3">
@@ -558,8 +558,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                         onClick={() => toggleAddon(addon.id)}
                         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                           isSelected 
-                            ? 'bg-[#C62828] border-[#C62828] text-white' 
-                            : 'border-gray-300 hover:border-[#C62828]'
+                            ? 'bg-[#1E2260] border-[#1E2260] text-white' 
+                            : 'border-gray-300 hover:border-[#1E2260]'
                         }`}
                       >
                         {isSelected && <span className="text-xs">✓</span>}
@@ -625,8 +625,8 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                     onClick={() => toggleAddon(setupAddon.id)}
                     className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                       (addonQuantities[setupAddon.id] || 0) > 0
-                        ? 'bg-[#C62828] border-[#C62828] text-white' 
-                        : 'border-gray-300 hover:border-[#C62828]'
+                        ? 'bg-[#1E2260] border-[#1E2260] text-white' 
+                        : 'border-gray-300 hover:border-[#1E2260]'
                     }`}
                   >
                     {(addonQuantities[setupAddon.id] || 0) > 0 && <span className="text-xs">✓</span>}
@@ -644,7 +644,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
                       onClick={() => toggleAddon(setupAddon.id)}
                       className={`w-7 h-7 rounded-full border flex items-center justify-center text-sm transition-colors ${
                         (addonQuantities[setupAddon.id] || 0) > 0
-                          ? 'border-[#C62828] bg-[#C62828] text-white'
+                          ? 'border-[#1E2260] bg-[#1E2260] text-white'
                           : 'border-gray-300 hover:bg-gray-100 text-gray-700'
                       }`}
                     >
@@ -711,7 +711,7 @@ export function OnPremiseConfigurator({ onPremiseProduct }: OnPremiseConfigurato
             <Button
               onClick={handleAddToCart}
               disabled={totalPrice === 0}
-              className="w-full bg-[#C62828] hover:bg-[#B71C1C] text-white"
+              className="w-full bg-[#1E2260] hover:bg-[#161848] text-white"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart

@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
+﻿import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 
 interface InvoiceItem {
   name: string;
@@ -72,7 +72,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   const y = (fromTop: number) => height - fromTop;
 
   // ── Header accent bar ─────────────────────────────────────────
-  page.drawRectangle({ x: 0, y: height - 6, width, height: 6, color: hex('#b91c1c') });
+  page.drawRectangle({ x: 0, y: height - 6, width, height: 6, color: hex('#161848') });
 
   // ── Company info (left) ───────────────────────────────────────
   page.drawText(company.name, { x: 50, y: y(44), font: bold, size: 18, color: hex('#1a2744') });
@@ -83,7 +83,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   // ── Invoice meta (right) ──────────────────────────────────────
   const invTitle = 'INVOICE';
   const invTitleW = bold.widthOfTextAtSize(invTitle, 24);
-  page.drawText(invTitle, { x: width - 50 - invTitleW, y: y(42), font: bold, size: 24, color: hex('#b91c1c') });
+  page.drawText(invTitle, { x: width - 50 - invTitleW, y: y(42), font: bold, size: 24, color: hex('#161848') });
 
   const invNum = `# ${invoiceNumber}`;
   const invNumW = bold.widthOfTextAtSize(invNum, 10);
@@ -183,14 +183,14 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   page.drawText('Total Due', { x: 363, y: y(totY + 17), font: bold, size: 12, color: hex('#ffffff') });
   const totalStr = fmt(total);
   const totalStrW = bold.widthOfTextAtSize(totalStr, 13);
-  page.drawText(totalStr, { x: width - 56 - totalStrW, y: y(totY + 17), font: bold, size: 13, color: hex('#fca5a5') });
+  page.drawText(totalStr, { x: width - 56 - totalStrW, y: y(totY + 17), font: bold, size: 13, color: hex('#93C5FD') });
 
   // ── Recurring info ────────────────────────────────────────────
   if (recurring?.hasRecurring && recurring.items.length > 0) {
     totY += 38;
-    page.drawRectangle({ x: 50, y: y(totY + 22), width: 495, height: 22, color: hex('#fff1f2') });
+    page.drawRectangle({ x: 50, y: y(totY + 22), width: 495, height: 22, color: hex('#E8F0FF') });
     const recText = `Recurring: ${recurring.items.map(i => `${i.name}: Rs. ${i.amount.toLocaleString('en-IN')}/${i.period}`).join(' | ')}`;
-    page.drawText(recText, { x: 58, y: y(totY + 13), font: regular, size: 9, color: hex('#991b1b') });
+    page.drawText(recText, { x: 58, y: y(totY + 13), font: regular, size: 9, color: hex('#141740') });
   }
 
   // ── Footer ────────────────────────────────────────────────────
@@ -245,11 +245,11 @@ export function transformOrderToInvoiceData(order: any): InvoiceData {
     date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
     status: order.paymentStatus || 'PENDING',
     company: {
-      name: 'Shaurrya Teleservices',
+      name: 'DeWiN Solutions',
       address: 'Laxmi Plaza, 213, Off New Link Rd, Laxmi Industrial Estate',
       city: 'Andheri West, Mumbai, Maharashtra 400053',
       gst: '27ABCCS1234A1Z9',
-      email: 'info@shaurryatele.com',
+      email: 'info@dewintele.com',
       phone: '+91 99102 05084'
     },
     customer: {

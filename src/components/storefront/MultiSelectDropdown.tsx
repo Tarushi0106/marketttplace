@@ -185,7 +185,7 @@ export function MultiSelectDropdown({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <button className="mt-1 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-full min-w-[200px] justify-between">
+        <button className="mt-1 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#1E2260]/20 w-full min-w-[200px] justify-between">
             <span className={selectedIds.length > 0 ? 'text-gray-900' : 'text-gray-400'}>
               {selectedIds.length === 0 
                 ? `Select ${label}` 
@@ -219,17 +219,17 @@ export function MultiSelectDropdown({
                     type="button"
                     onClick={() => handleToggle(option.id)}
                     className={`w-full grid grid-cols-[3fr_1fr_1fr_1fr] gap-1 items-center px-2 py-1.5 cursor-pointer outline-none transition-all rounded ${
-                      isSelected ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-100'
+                      isSelected ? 'bg-[#EEF2FF] hover:bg-[#E8F0FF]' : 'hover:bg-gray-100'
                     }`}
                   >
                     {/* Column 1: Name with checkbox */}
                     <div className="flex items-center gap-2 min-w-0">
                       <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all flex-shrink-0 ${
-                        isSelected ? 'bg-[#C62828] border-[#C62828]' : 'border-gray-300 bg-white'
+                        isSelected ? 'bg-[#1E2260] border-[#1E2260]' : 'border-gray-300 bg-white'
                       }`}>
                         {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                       </div>
-                      <span className={`font-medium text-xs ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                      <span className={`font-medium text-xs ${isSelected ? 'text-[#1E2260]' : 'text-gray-900'}`}>
                         {option.name}
                       </span>
                     </div>
@@ -273,7 +273,7 @@ export function MultiSelectDropdown({
                     
                     {/* Right: Price */}
                     <div className="text-right">
-                      <span className={`font-semibold text-xs ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                      <span className={`font-semibold text-xs ${isSelected ? 'text-[#1E2260]' : 'text-gray-900'}`}>
                         {isSelected ? formatPrice(option.price * qty) : formatPrice(option.price)}
                       </span>
                     </div>
@@ -291,7 +291,7 @@ export function MultiSelectDropdown({
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-[10px] text-[#C62828] hover:underline"
+                  className="text-[10px] text-[#1E2260] hover:underline"
                 >
                   Clear
                 </button>
@@ -308,7 +308,7 @@ export function MultiSelectDropdown({
                       <button
                         type="button"
                         onClick={() => removeOption(option.id)}
-                        className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                        className="text-gray-400 hover:text-[#1E2260] flex-shrink-0"
                       >
                         <X className="w-2.5 h-2.5" />
                       </button>
@@ -337,7 +337,7 @@ export function MultiSelectDropdown({
               {/* Total */}
               <div className="flex justify-between items-center mt-1 pt-1 border-t border-gray-200">
                 <span className="text-xs font-medium text-gray-600">Total</span>
-                <span className="text-xs font-bold text-[#C62828]">{formatPrice(totalPrice)}</span>
+                <span className="text-xs font-bold text-[#1E2260]">{formatPrice(totalPrice)}</span>
               </div>
             </div>
           )}

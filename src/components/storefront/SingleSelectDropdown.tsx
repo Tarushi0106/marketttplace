@@ -53,13 +53,13 @@ export default function SingleSelectDropdown({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <button className="mt-2 flex items-center gap-2 px-4 py-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#C62828]/20 w-full min-w-[320px] justify-between">
+        <button className="mt-2 flex items-center gap-2 px-4 py-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all outline-none focus:ring-2 focus:ring-[#1E2260]/20 w-full min-w-[320px] justify-between">
           <span className={selectedOption ? 'text-gray-900 font-medium' : 'text-gray-400'}>
             {selectedOption ? selectedOption.name : `Select ${label}`}
           </span>
           <div className="flex items-center gap-2">
             {selectedOption && (
-              <span className="text-[#C62828] font-semibold">
+              <span className="text-[#1E2260] font-semibold">
                 {formatPrice(selectedOption.price)}
               </span>
             )}
@@ -85,12 +85,12 @@ export default function SingleSelectDropdown({
                   onClick={() => handleSelect(option.id)}
                   className={`w-full flex items-center justify-between px-4 py-4 rounded-lg cursor-pointer outline-none transition-all mb-1 ${
                     isSelected 
-                      ? 'bg-[#fff1f1] border-l-4 border-[#C62828]' 
+                      ? 'bg-[#fff1f1] border-l-4 border-[#1E2260]' 
                       : 'hover:bg-gray-50 border-l-4 border-transparent'
                   }`}
                 >
                   <div className="flex flex-col text-left">
-                    <span className={`font-bold text-base ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                    <span className={`font-bold text-base ${isSelected ? 'text-[#1E2260]' : 'text-gray-900'}`}>
                       {title}
                     </span>
                     {subtitle && (
@@ -99,7 +99,7 @@ export default function SingleSelectDropdown({
                       </span>
                     )}
                   </div>
-                  <span className={`font-semibold text-base ml-4 ${isSelected ? 'text-[#C62828]' : 'text-gray-900'}`}>
+                  <span className={`font-semibold text-base ml-4 ${isSelected ? 'text-[#1E2260]' : 'text-gray-900'}`}>
                     {formatPrice(option.price)}
                   </span>
                 </button>

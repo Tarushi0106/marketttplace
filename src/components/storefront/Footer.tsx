@@ -86,17 +86,17 @@ export function Footer() {
   const address = [settings.city, settings.state, settings.country].filter(Boolean).join(", ") || settings.address;
 
   return (
-    <footer className="relative overflow-hidden bg-[#0A0A0A]">
+    <footer className="relative overflow-hidden bg-[#0D0F2B]">
 
       {/* ── Decorative background ── */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Grid lines */}
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: "linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
-        {/* Red glow top-left */}
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#DC2626]/20 blur-[120px]" />
-        {/* Red glow bottom-right */}
-        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-[#DC2626]/15 blur-[100px]" />
+        {/* Navy glow top-left */}
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#1E2260]/40 blur-[120px]" />
+        {/* Blue glow bottom-right */}
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-[#4A9FD5]/20 blur-[100px]" />
       </div>
 
       {/* ── Marquee strip ── */}
@@ -104,7 +104,7 @@ export function Footer() {
         <div className="flex animate-marquee whitespace-nowrap gap-0">
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
             <span key={i} className="inline-flex items-center gap-3 px-6 text-sm font-medium text-white/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626] flex-shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4A9FD5] flex-shrink-0" />
               {item}
             </span>
           ))}
@@ -116,14 +116,14 @@ export function Footer() {
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <p className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest mb-3">Ready to transform?</p>
+              <p className="text-[#4A9FD5] text-sm font-semibold uppercase tracking-widest mb-3">Ready to transform?</p>
               <h2 className="text-3xl md:text-5xl font-black text-white leading-tight max-w-xl">
-                Let's build something <span className="text-[#DC2626]">amazing</span> together
+                Let's build something <span className="text-[#4A9FD5]">amazing</span> together
               </h2>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
               <Link href="/contact"
-                className="inline-flex items-center gap-2 px-7 py-4 bg-[#DC2626] hover:bg-[#b91c1c] text-white font-bold rounded-2xl transition-all hover:scale-105 text-sm">
+                className="inline-flex items-center gap-2 px-7 py-4 bg-[#1E2260] hover:bg-[#2B3080] text-white font-bold rounded-2xl transition-all hover:scale-105 text-sm border border-[#4A9FD5]/30">
                 Get Started
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -145,11 +145,11 @@ export function Footer() {
           <div className="lg:col-span-4">
             <Link href="/">
               <div className="inline-block bg-white rounded-xl p-2 hover:opacity-90 transition-opacity mb-6">
-                <img src="/image.png" alt="NetNxt" className="h-14 w-auto object-contain" />
+                <img src="/dewin-logo.jpeg" alt="DeWiN Solutions" className="h-14 w-auto object-contain" />
               </div>
             </Link>
             <p className="text-white/40 text-sm leading-relaxed mb-8 max-w-xs">
-              {settings.footerTagline || settings.siteTagline || "Enterprise-grade solutions for modern businesses. Trusted worldwide."}
+              {settings.footerTagline || settings.siteTagline || "Enterprise-grade IT solutions for modern businesses. Trusted nationwide."}
             </p>
 
             {/* Contact */}
@@ -157,8 +157,8 @@ export function Footer() {
               {settings.phone && (
                 <a href={`tel:${settings.phone}`}
                   className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
-                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#DC2626] group-hover:bg-[#DC2626]/10 flex items-center justify-center transition-all flex-shrink-0">
-                    <Phone className="h-4 w-4 text-[#DC2626]" />
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#4A9FD5] group-hover:bg-[#4A9FD5]/10 flex items-center justify-center transition-all flex-shrink-0">
+                    <Phone className="h-4 w-4 text-[#4A9FD5]" />
                   </span>
                   {settings.phone}
                 </a>
@@ -166,8 +166,8 @@ export function Footer() {
               {settings.email && (
                 <a href={`mailto:${settings.email}`}
                   className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
-                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#DC2626] group-hover:bg-[#DC2626]/10 flex items-center justify-center transition-all flex-shrink-0">
-                    <Mail className="h-4 w-4 text-[#DC2626]" />
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:border-[#4A9FD5] group-hover:bg-[#4A9FD5]/10 flex items-center justify-center transition-all flex-shrink-0">
+                    <Mail className="h-4 w-4 text-[#4A9FD5]" />
                   </span>
                   {settings.email}
                 </a>
@@ -175,7 +175,7 @@ export function Footer() {
               {address && (
                 <div className="flex items-start gap-3 text-sm text-white/50">
                   <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <MapPin className="h-4 w-4 text-[#DC2626]" />
+                    <MapPin className="h-4 w-4 text-[#4A9FD5]" />
                   </span>
                   {address}
                 </div>
@@ -198,7 +198,7 @@ export function Footer() {
                       <Link href={link.href || "#"}
                         target={link.target === "_blank" ? "_blank" : undefined}
                         className="text-sm text-white/45 hover:text-white transition-colors flex items-center gap-2 group">
-                        <span className="w-0 group-hover:w-2 h-px bg-[#DC2626] transition-all duration-200 flex-shrink-0" />
+                        <span className="w-0 group-hover:w-2 h-px bg-[#4A9FD5] transition-all duration-200 flex-shrink-0" />
                         {link.label}
                       </Link>
                     </li>
@@ -226,11 +226,11 @@ export function Footer() {
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 focus:border-[#DC2626] rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/10 focus:border-[#4A9FD5] rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 outline-none transition-colors"
                 />
                 <button
                   onClick={() => { if (email) setSubscribed(true); }}
-                  className="w-full py-3 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3 bg-[#1E2260] hover:bg-[#2B3080] text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-[#4A9FD5]/30"
                 >
                   <Zap className="h-4 w-4" />
                   Subscribe
@@ -248,7 +248,7 @@ export function Footer() {
             <p className="text-xs text-white/25">
               {settings.footerCopyright
                 ? settings.footerCopyright.replace("{year}", new Date().getFullYear().toString())
-                : `© ${new Date().getFullYear()} ${settings.legalName || settings.name}. All rights reserved.`}
+                : `© ${new Date().getFullYear()} ${settings.legalName || settings.name || "DeWiN Solutions Private Limited"}. All rights reserved.`}
             </p>
             <div className="flex items-center gap-5">
               <Link href="/privacy" className="text-xs text-white/25 hover:text-white/60 transition-colors">Privacy Policy</Link>
@@ -261,7 +261,7 @@ export function Footer() {
                     <a key={social.id || i} href={social.href || "#"}
                       target={social.target === "_blank" ? "_blank" : undefined}
                       aria-label={social.label}
-                      className="w-8 h-8 rounded-lg border border-white/10 hover:border-[#DC2626] hover:bg-[#DC2626]/10 flex items-center justify-center text-white/30 hover:text-white transition-all">
+                      className="w-8 h-8 rounded-lg border border-white/10 hover:border-[#4A9FD5] hover:bg-[#4A9FD5]/10 flex items-center justify-center text-white/30 hover:text-white transition-all">
                       <Icon className="h-3.5 w-3.5" />
                     </a>
                   );

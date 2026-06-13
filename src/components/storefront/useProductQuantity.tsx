@@ -317,7 +317,7 @@ export function QuantityControl({
           </div>
         </div>
         <div className="text-right">
-          <span className="text-lg font-bold text-[#C62828]">
+          <span className="text-lg font-bold text-[#1E2260]">
             {formatPrice(totalPrice)}
           </span>
         </div>
