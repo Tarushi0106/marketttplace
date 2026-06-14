@@ -287,7 +287,7 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-10">
-        <TallyCloudConfigurator 
+        <TallyCloudConfigurator
           productId={product.id}
           productSlug={product.slug}
           productName={product.name}
@@ -298,6 +298,83 @@ export default async function ConfigureProductPage({ params, searchParams }: Pro
           selectedVariantId={selectedVariantId}
           lockedVariantId={selectedVariantId}
         />
+
+        {/* Deco Talent — pricing & features info */}
+        {product.slug === 'deco-talent' && (
+          <div className="max-w-3xl mx-auto mt-12 space-y-6">
+
+            {/* End client rates table */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">End Client Rates</h3>
+              <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#1E2260] text-white">
+                      <th className="text-left px-5 py-3 font-semibold">Tier</th>
+                      <th className="text-left px-5 py-3 font-semibold">Monthly Minutes</th>
+                      <th className="text-right px-5 py-3 font-semibold">Rate (INR / min)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { tier: "Low",        minutes: "< 2,000 min",           rate: "₹8" },
+                      { tier: "Moderator",  minutes: "2,000 – 10,000 min",    rate: "₹7" },
+                      { tier: "High",       minutes: "10,000 – 50,000 min",   rate: "₹6" },
+                      { tier: "Enterprise", minutes: "> 50,000 min",           rate: "₹5" },
+                    ].map((row, i) => (
+                      <tr key={row.tier} className={i % 2 === 1 ? "bg-[#F8F9FF]" : "bg-white"}>
+                        <td className="px-5 py-3.5 font-medium text-gray-900">{row.tier}</td>
+                        <td className="px-5 py-3.5 text-gray-600">{row.minutes}</td>
+                        <td className="px-5 py-3.5 text-right font-bold text-[#1E2260]">{row.rate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Setup + Features row */}
+            <div className="grid sm:grid-cols-2 gap-5">
+
+              {/* One-time Setup */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">One-time Setup</p>
+                <p className="text-lg font-black text-[#1E2260] mb-3">₹75,000 – ₹3,00,000</p>
+                <p className="text-xs text-gray-500 mb-3">Depending on use case complexity. Includes:</p>
+                <ul className="space-y-1.5">
+                  {["Telephony integration", "Use case setup & scripting", "Dashboard for outbound & inbound"].map(item => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1E2260] shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Inclusions */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">What's Included</p>
+                <ul className="space-y-2">
+                  {[
+                    "1 Year Validity",
+                    "Unlimited Job Postings",
+                    "Unlimited Candidate Data",
+                    "Unlimited Seats / HR Users",
+                    "Taxes as applicable",
+                  ].map(item => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="w-4 h-4 rounded-full bg-[#EEF2FF] border border-[#1E2260]/20 flex items-center justify-center shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#1E2260]" />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        )}
       </div>
     </div>
   );

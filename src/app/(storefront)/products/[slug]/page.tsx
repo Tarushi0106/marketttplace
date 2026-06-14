@@ -50,6 +50,7 @@ import {
   ScrollText,
   Wifi,
   Brain,
+  Mic,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,206 @@ function renderIcon(iconName?: string | null) {
       return <Cloud {...props} />;
   }
 }
+
+// ─── Deco Talent — custom rich overview ──────────────────────────────────────
+function DecoTalentDescription() {
+  const stats = [
+    { value: "3x", label: "Faster shortlisting" },
+    { value: "100+", label: "Resumes scored / min" },
+    { value: "10", label: "Evaluation parameters" },
+    { value: "30+", label: "Supported languages" },
+  ];
+  const steps = [
+    { num: "01", title: "Define evaluation criteria", desc: "Set skills, weightages, and scoring rubric for the role — once, reused forever." },
+    { num: "02", title: "Upload resumes in bulk", desc: "PDF/DOCX batch upload; AI parses, deduplicates, and scores every profile instantly." },
+    { num: "03", title: "AI scores every profile", desc: "Ranked against your rubric in seconds — shortlist ready with zero manual effort." },
+    { num: "04", title: "Schedule screening call", desc: "Automated 5-minute AI screening call dispatched to top-ranked candidates." },
+    { num: "05", title: "Conduct AI interview", desc: "Full voice interview with adaptive questions, recorded and transcribed in real time." },
+    { num: "06", title: "Review 10-parameter report", desc: "Comprehensive evaluation report with video playback and one-click ATS export." },
+  ];
+  const parameters = [
+    "Communication", "Technical Depth", "Problem-solving", "Confidence", "Clarity of Thought",
+    "Domain Knowledge", "Active Listening", "Leadership Signals", "Culture Fit", "Overall Hire Fit",
+  ];
+  const advantages = [
+    { title: "AI handles first round entirely", desc: "HR steps in only when the shortlist is ready — zero Round 1 effort." },
+    { title: "100+ resumes per minute", desc: "No manual CV screening — every profile scored in seconds at any volume." },
+    { title: "Bias-free evaluation", desc: "Rubric-bound scoring removes interviewer subjectivity and variation." },
+    { title: "Any hiring volume", desc: "5 or 500 candidates simultaneously — no extra headcount needed." },
+    { title: "30+ interview languages", desc: "Screen and interview globally without language specialist recruiters." },
+    { title: "ATS-ready reports", desc: "Push shortlists and evaluation data directly to your HR system in one click." },
+  ];
+  return (
+    <div className="space-y-10">
+      <p className="text-gray-600 leading-relaxed text-base">
+        Deco Talent is a fully automated AI talent screening platform that handles resume scoring, AI-conducted voice interviews, and 10-parameter candidate evaluation — delivering a ranked shortlist with zero recruiter effort until you need to act.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-[#1E2260] rounded-2xl p-4 text-center">
+            <p className="text-2xl font-black text-white">{s.value}</p>
+            <p className="text-xs text-[#4A9FD5] mt-1 font-medium">{s.label}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">How It Works</h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {steps.map((s) => (
+            <div key={s.num} className="flex gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1E2260]/20 hover:shadow-sm transition-all bg-white">
+              <span className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#1E2260] text-xs font-black flex items-center justify-center shrink-0">{s.num}</span>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{s.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">10 Evaluated Parameters</h4>
+        <div className="flex flex-wrap gap-2">
+          {parameters.map((p, i) => (
+            <span key={p} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F8F9FF] border border-[#E8EEFF] text-xs font-medium text-gray-700">
+              <span className="w-4 h-4 rounded-full bg-[#1E2260] text-white text-[9px] font-bold flex items-center justify-center">{i + 1}</span>
+              {p}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">Key Advantages</h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {advantages.map((a) => (
+            <div key={a.title} className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F9FF] border border-[#E8EEFF]">
+              <div className="w-5 h-5 rounded-full bg-[#1E2260] flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{a.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{a.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Deco Voice — custom rich overview ───────────────────────────────────────
+function DecoVoiceDescription() {
+  const stats = [
+    { value: "10+", label: "Languages supported" },
+    { value: "Faster", label: "Response time" },
+    { value: "24/7", label: "Business availability" },
+    { value: "∞", label: "Unlimited scalability" },
+  ];
+  const steps = [
+    { num: "01", title: "Import Leads", desc: "Upload or sync your lead list from your CRM or spreadsheet instantly." },
+    { num: "02", title: "AI Initiates Conversations", desc: "DECO Voice dials out with a natural, human-like voice — personalised per lead." },
+    { num: "03", title: "Intelligent Conversation Handling", desc: "Understands responses, handles objections, and advances the conversation goal." },
+    { num: "04", title: "Human Escalation When Needed", desc: "Seamlessly transfers to a live agent with full call context — no repeat required." },
+    { num: "05", title: "Real-Time CRM Updates", desc: "Every call outcome, transcript, and disposition synced to your CRM automatically." },
+  ];
+  const useCases = [
+    "Lead Qualification & Follow-Ups",
+    "Appointment Booking & Reminders",
+    "Payment Collection Calls",
+    "Customer Support Automation",
+    "Surveys & Feedback Collection",
+    "AI Receptionist / IVR Replacement",
+    "Order Confirmation Calls",
+    "Customer Re-Engagement Campaigns",
+  ];
+  const advantages = [
+    { title: "Faster Response Time", desc: "Instant AI responses — no hold music, no waiting in queue." },
+    { title: "Unlimited Scalability", desc: "Handle hundreds of simultaneous calls with no extra headcount." },
+    { title: "10+ Language Support", desc: "Serve customers in their native language across India and globally." },
+    { title: "Human-Like Conversations", desc: "Natural dialogue flow that sounds nothing like a traditional IVR." },
+    { title: "Real-Time CRM Sync", desc: "Zoho, HubSpot, LeadSquared, Salesforce — every call logged instantly." },
+    { title: "24/7 Business Availability", desc: "Never miss a lead or a support request — your AI works all day, every day." },
+  ];
+  return (
+    <div className="space-y-10">
+      <p className="text-gray-600 leading-relaxed text-base">
+        DECO Voice automates your business conversations end-to-end — inbound and outbound. From lead qualification and appointment booking to payment collection and customer support, DECO handles it all with human-like AI voice, real-time CRM sync, and intelligent escalation.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-[#1E2260] rounded-2xl p-4 text-center">
+            <p className="text-2xl font-black text-white">{s.value}</p>
+            <p className="text-xs text-[#4A9FD5] mt-1 font-medium">{s.label}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">How DECO Voice Works</h4>
+        <div className="flex flex-col sm:flex-row gap-2 overflow-x-auto pb-2">
+          {steps.map((s, i) => (
+            <div key={s.num} className="flex sm:flex-col items-start sm:items-center gap-3 sm:gap-2 p-4 rounded-xl border border-gray-100 bg-white flex-1 min-w-[160px]">
+              <span className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#1E2260] text-xs font-black flex items-center justify-center shrink-0">{s.num}</span>
+              <div className="sm:text-center">
+                <p className="text-sm font-semibold text-gray-900">{s.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{s.desc}</p>
+              </div>
+              {i < steps.length - 1 && <div className="hidden sm:block w-full h-px bg-gradient-to-r from-[#1E2260]/20 to-transparent absolute" />}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">Where DECO Can Help</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {useCases.map((uc, i) => (
+            <div key={uc} className="flex items-start gap-2 p-3 rounded-xl bg-[#F8F9FF] border border-[#E8EEFF]">
+              <span className="w-5 h-5 rounded-full bg-[#1E2260] text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <p className="text-xs font-medium text-gray-700 leading-relaxed">{uc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">Key Advantages</h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {advantages.map((a) => (
+            <div key={a.title} className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F9FF] border border-[#E8EEFF]">
+              <div className="w-5 h-5 rounded-full bg-[#1E2260] flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-3 h-3 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{a.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{a.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h4 className="text-base font-bold text-gray-900 mb-4">Integrations</h4>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Telephony</p>
+            <div className="flex flex-wrap gap-2">
+              {["Exotel", "Airtel", "VOIP", "Tata Communications"].map((t) => (
+                <span key={t} className="px-3 py-1.5 rounded-full bg-[#EEF2FF] text-[#1E2260] text-xs font-semibold">{t}</span>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">CRM</p>
+            <div className="flex flex-wrap gap-2">
+              {["Zoho", "HubSpot", "LeadSquared", "Salesforce", "Custom CRM"].map((c) => (
+                <span key={c} className="px-3 py-1.5 rounded-full bg-[#EEF2FF] text-[#1E2260] text-xs font-semibold">{c}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -360,8 +561,12 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
 
               <div className="flex items-start gap-4 mb-4">
                 {/* Dynamic Product Icon - Light red background with red icon */}
-                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-[#E8F0FF] rounded-xl flex items-center justify-center">
-                  {renderIcon(product.icon)}
+                <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-[#E8F0FF] rounded-xl flex items-center justify-center overflow-hidden">
+                  {product.images[0]?.url ? (
+                    <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    renderIcon(product.icon)
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -404,7 +609,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                     <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848] text-white" asChild>
                       <a href="/Catalogues.zip" download="Catalogues.zip"><Download className="h-4 w-4 mr-2" />Download Catalogue</a>
                     </Button>
-                  ) : !['deco-voice', 'deco-talent', 'hr-bot'].includes(product.slug) && (
+                  ) : !['deco-voice', 'deco-talent'].includes(product.slug) && (
                     <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848] text-white" asChild>
                       <Link href={`#pricing`}><ShoppingBag className="h-4 w-4 mr-2" />Pricing</Link>
                     </Button>
@@ -438,7 +643,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Features
               </TabsTrigger>
-              {product.slug === 'vsaas' && (
+              {['vsaas', 'deco-voice', 'deco-talent'].includes(product.slug) && (
               <TabsTrigger
                 value="solutions"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -447,7 +652,7 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 Solutions
               </TabsTrigger>
               )}
-              {!['vsaas', 'deco-voice', 'deco-talent', 'hr-bot'].includes(product.slug) && (
+              {!['vsaas', 'deco-voice', 'deco-talent'].includes(product.slug) && (
               <TabsTrigger
                 value="pricing"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
@@ -652,6 +857,10 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                         </div>
                       ) : product.slug === 'microsoft-365-services' ? (
                         <Microsoft365Description />
+                      ) : product.slug === 'deco-talent' ? (
+                        <DecoTalentDescription />
+                      ) : product.slug === 'deco-voice' ? (
+                        <DecoVoiceDescription />
                       ) : product.description ? (
                         <div
                           className="prose prose-gray prose-headings:font-semibold prose-headings:text-gray-900 prose-strong:text-gray-900 prose-li:text-gray-600 prose-p:text-gray-600 max-w-none"
@@ -736,9 +945,154 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 </div>
               </TabsContent>
 
-              {/* Solutions Tab — VSaaS only */}
+              {/* Solutions Tab */}
               <TabsContent value="solutions" className="mt-0">
                 <div className="max-w-5xl mx-auto">
+
+                  {/* ── Deco Voice Solutions ── */}
+                  {product.slug === 'deco-voice' && (
+                    <>
+                    <div className="text-center mb-10">
+                      <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
+                        <Mic className="h-4 w-4 mr-1" /> Shared LLM Pricing
+                      </Badge>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-3">Your Business Conversations. Fully Automated.</h2>
+                      <p className="text-gray-500 max-w-xl mx-auto">Scalable AI Voice Infrastructure — secure, cost-effective, built for inbound &amp; outbound.</p>
+                    </div>
+
+                    {/* Pricing tiers */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-10">
+                      {[
+                        { tier: "Starter",         price: "₹8",  unit: "/min", desc: "Small teams starting with AI voice" },
+                        { tier: "Growth",          price: "₹7",  unit: "/min", desc: "Growing teams with regular call volume" },
+                        { tier: "Business",        price: "₹6",  unit: "/min", desc: "Businesses needing priority infrastructure" },
+                        { tier: "Enterprise",      price: "₹5",  unit: "/min", desc: "Large-scale private AI deployment" },
+                        { tier: "Enterprise Plus", price: "₹75K",unit: "",     desc: "Custom setup, CRM, security & voice infra", highlight: true },
+                      ].map((t) => (
+                        <div key={t.tier} className={`rounded-2xl border p-4 text-center flex flex-col gap-1 ${t.highlight ? "bg-[#1E2260] border-[#1E2260] text-white" : "bg-white border-gray-200"}`}>
+                          <p className={`text-xs font-bold uppercase tracking-wide ${t.highlight ? "text-[#4A9FD5]" : "text-gray-500"}`}>{t.tier}</p>
+                          <p className={`text-2xl font-black ${t.highlight ? "text-white" : "text-[#1E2260]"}`}>{t.price}<span className={`text-sm font-semibold ${t.highlight ? "text-[#4A9FD5]" : "text-gray-400"}`}>{t.unit}</span></p>
+                          <p className={`text-[10px] leading-relaxed ${t.highlight ? "text-blue-200" : "text-gray-500"}`}>{t.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Enterprise benefits */}
+                    <div className="mb-10 p-4 rounded-xl bg-[#F8F9FF] border border-[#E8EEFF]">
+                      <span className="text-xs font-bold text-gray-700 mr-2">Enterprise benefits:</span>
+                      <span className="text-xs text-gray-500">Private deployment · Dedicated infrastructure · SLA support · Custom reporting · Security configuration · CRM integration</span>
+                    </div>
+
+                    {/* Deployment options */}
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Deployment Options</h3>
+                    <div className="grid sm:grid-cols-2 gap-6 mb-10">
+                      {/* Private LLM */}
+                      <div className="p-6 rounded-2xl border border-[#E8EEFF] bg-gradient-to-br from-[#EEF2FF] to-white">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[#1E2260] font-black text-lg">01</span>
+                          <h4 className="font-bold text-gray-900">PRIVATE LLM</h4>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-4">Your AI. Your Infrastructure. <span className="inline-block ml-1 px-2 py-0.5 rounded-full bg-[#1E2260] text-white text-[10px] font-semibold">Operating on NVIDIA GPU</span></p>
+                        <ul className="space-y-2">
+                          {["Complete Data Privacy", "Internal Infrastructure Hosting", "Custom AI Training", "Enterprise-Grade Security"].map((b) => (
+                            <li key={b} className="flex items-center gap-2 text-xs text-gray-700">
+                              <CheckCircle className="h-3.5 w-3.5 text-[#1E2260] shrink-0" />{b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {/* Shared Cloud */}
+                      <div className="p-6 rounded-2xl border border-gray-200 bg-white">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[#1E2260] font-black text-lg">02</span>
+                          <h4 className="font-bold text-gray-900">SHARED CLOUD</h4>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-1">Deploy Faster. Scale Smarter. <span className="inline-block ml-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-semibold">Hosted on GCP</span></p>
+                        <p className="text-[10px] text-[#4A9FD5] font-medium mb-4">Best For: Startups · SMBs · D2C Brands · Retail Businesses</p>
+                        <ul className="space-y-2">
+                          {["Instant Deployment", "No Infrastructure Investment", "Flexible Pay-As-You-Go Model", "Instant Scalability"].map((b) => (
+                            <li key={b} className="flex items-center gap-2 text-xs text-gray-700">
+                              <CheckCircle className="h-3.5 w-3.5 text-[#1E2260] shrink-0" />{b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <Link href={`/products/deco-voice/configure`}>
+                      <button className="w-full sm:w-auto mx-auto flex h-11 px-10 bg-[#1E2260] hover:bg-[#161848] text-white font-semibold rounded-xl items-center justify-center gap-2 transition-colors shadow-lg shadow-[#1E2260]/20">
+                        Get Started <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </Link>
+                    </>
+                  )}
+
+                  {/* ── Deco Talent Solutions ── */}
+                  {product.slug === 'deco-talent' && (
+                    <>
+                    <div className="text-center mb-10">
+                      <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
+                        <Brain className="h-4 w-4 mr-1" /> AI Interview Bot
+                      </Badge>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-3">Pre-Paid Plans</h2>
+                      <p className="text-gray-500 max-w-xl mx-auto">Pay per candidate — no monthly commitment, no seat restrictions, 1 year validity.</p>
+                    </div>
+
+                    <div className="max-w-2xl mx-auto">
+                      <div className="group p-8 bg-gradient-to-br from-[#EEF2FF] to-white rounded-2xl border border-[#E8F0FF] hover:border-[#1E2260]/40 hover:shadow-xl transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-8">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E2260] to-[#2B3080] flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                            <Brain className="h-7 w-7" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-gray-900">AI Interview Bot</h3>
+                            <p className="text-[#4A9FD5] font-semibold text-sm">Pre-Paid · 1 Year Validity</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3 mb-8">
+                          {[
+                            { name: "Profile Scoring", price: "₹20", unit: "per profile" },
+                            { name: "Screening Call", price: "₹60", unit: "per call (5 min)" },
+                            { name: "AI Interview", price: "₹500", unit: "per interview" },
+                          ].map((item) => (
+                            <div key={item.name} className="rounded-xl bg-white border border-[#E8EEFF] p-4 text-center shadow-sm">
+                              <p className="text-xs font-semibold text-gray-600 mb-1">{item.name}</p>
+                              <p className="text-2xl font-black text-[#1E2260]">{item.price}</p>
+                              <p className="text-[10px] text-[#4A9FD5] font-medium mt-0.5">{item.unit}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <ul className="space-y-3 mb-8">
+                          {[
+                            "End client rates: Low (<2,000 min) ₹8/min · Moderator ₹7 · High ₹6 · Enterprise ₹5",
+                            "One-time setup ₹75,000 – ₹3,00,000 (Telephony, Use case, Dashboard)",
+                            "CRM integration — Custom pricing",
+                            "1 Year Validity on all pre-paid packs",
+                            "Unlimited job postings",
+                            "Unlimited candidate data & HR seats",
+                            "Taxes as applicable · Starter packs from ₹5,000",
+                          ].map((item) => (
+                            <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
+                              <CheckCircle className="h-4 w-4 text-[#1E2260] flex-shrink-0 mt-0.5" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+
+                        <Link href={`/products/deco-talent/configure`}>
+                          <button className="w-full h-11 bg-[#1E2260] hover:bg-[#2B3080] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                            Buy Now <ArrowRight className="h-4 w-4" />
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                    </>
+                  )}
+
+                  {/* ── VSaaS Solutions ── */}
+                  {product.slug === 'vsaas' && (<>
                   <div className="text-center mb-10">
                     <Badge className="mb-4 bg-[#1E2260]/10 text-[#1E2260] hover:bg-[#1E2260]/10">
                       <Cloud className="h-4 w-4 mr-1" /> Solutions
@@ -810,6 +1164,8 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                       </Link>
                     </div>
                   </div>
+                  </>)}
+
                 </div>
               </TabsContent>
 

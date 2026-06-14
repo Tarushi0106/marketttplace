@@ -717,11 +717,14 @@ export function TallyCloudConfigurator({
     router.push("/cart");
   };
 
+  const hasAddons = addons.length > 0 || !!cloudGatewayVariant;
+
   return (
     <div className="max-w-5xl mx-auto">
       {/* Two Column Layout */}
-      <div className="grid lg:grid-cols-5 gap-8">
-        {/* Left Column: Add-ons (3 columns) */}
+      <div className={`grid gap-8 ${hasAddons ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}>
+        {/* Left Column: Add-ons (3 columns) — hidden when no add-ons */}
+        {hasAddons && (
         <div className="lg:col-span-3">
           {/* Cloud Gateway - Primary Dependency - Shown at top as header */}
           {cloudGatewayVariant && (
@@ -983,9 +986,10 @@ export function TallyCloudConfigurator({
             </div>
           )}
         </div>
+        )} {/* end hasAddons */}
 
-        {/* Right Column: Billing Plans + Order Summary (2 columns) */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Right Column: Billing Plans + Order Summary */}
+        <div className={`${hasAddons ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-6`}>
           {/* Billing Plans - Vertical Layout - Show when there are recurring prices */}
           {generatedBillingPlans.length > 1 && (
           <div>

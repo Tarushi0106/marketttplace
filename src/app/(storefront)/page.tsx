@@ -1,5 +1,5 @@
-﻿import Link from "next/link";
-import { ArrowRight, Check, Video, Users, Mic, Brain } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Check, Video, Users, Mic, Brain, Zap, Shield, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeaturedProducts } from "@/components/storefront/FeaturedProducts";
 import { TrendingProducts } from "@/components/storefront/TrendingProducts";
@@ -12,7 +12,7 @@ export default async function HomePage() {
       {/* Hero Banner Section */}
       <section className="relative">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-          <div className="relative h-[500px] md:h-[600px] rounded-2xl overflow-hidden">
+          <div className="relative h-[540px] md:h-[620px] rounded-2xl overflow-hidden">
             {/* Background Image */}
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -20,25 +20,29 @@ export default async function HomePage() {
                 backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')`,
               }}
             />
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/60 to-transparent" />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/65 to-transparent" />
+            {/* Subtle navy glow from bottom-left */}
+            <div className="absolute bottom-0 left-0 w-[480px] h-[320px] bg-[#1E2260]/40 blur-[80px] rounded-full pointer-events-none" />
 
             {/* Content */}
-            <div className="relative h-full flex items-center pb-12 md:pb-16 px-8 md:px-12 lg:px-16">
+            <div className="relative h-full flex items-center pb-10 md:pb-14 px-8 md:px-12 lg:px-16">
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-6">
-                  Choose. Click. Subscribe.
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4A9FD5] animate-pulse" />
+                  Enterprise-Grade · AI-Powered · India-Built
                 </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Enterprise IT Solutions for Growing Business
+                <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-white leading-[1.12] tracking-tight">
+                  Enterprise IT Solutions for <br />
+                  <span className="text-[#4A9FD5]">Growing Business</span>
                 </h1>
-                <p className="mt-6 text-base md:text-lg text-gray-300 leading-relaxed max-w-xl">
-                  Get started with digital transformation — powered by DeWiN Solutions
+                <p className="mt-5 text-base md:text-lg text-gray-300 leading-relaxed max-w-xl">
+                  From AI-powered hiring to enterprise video surveillance — DeWiN delivers complete digital transformation under one roof, at a click.
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"
-                    className="bg-[#1E2260] hover:bg-[#2B3080] text-white rounded-lg h-12 px-8 border border-[#4A9FD5]/30"
+                    className="bg-[#1E2260] hover:bg-[#2B3080] text-white rounded-lg h-12 px-8 border border-[#4A9FD5]/30 shadow-lg shadow-[#1E2260]/50"
                     asChild
                   >
                     <Link href="/products">
@@ -58,14 +62,62 @@ export default async function HomePage() {
                     </Link>
                   </Button>
                 </div>
+
+                {/* Stats row */}
+                <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+                  {[
+                    { val: "500+", label: "Enterprise Clients" },
+                    { val: "99.9%", label: "Uptime SLA" },
+                    { val: "24/7", label: "Expert Support" },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-baseline gap-2">
+                      <span className="text-xl font-black text-white">{s.val}</span>
+                      <span className="text-xs text-gray-400 font-medium">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Trust Strip */}
+      <section className="bg-[#1E2260] py-3.5">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs font-semibold text-white/70 tracking-wide uppercase">
+            {[
+              { icon: <Shield className="w-3.5 h-3.5" />, text: "ISO-Grade Security" },
+              { icon: <Zap className="w-3.5 h-3.5" />, text: "Instant Deployment" },
+              { icon: <Star className="w-3.5 h-3.5" />, text: "₹0 Setup Fees" },
+              { icon: <Clock className="w-3.5 h-3.5" />, text: "Same-Day Onboarding" },
+              { icon: <Check className="w-3.5 h-3.5" />, text: "No Lock-in Contracts" },
+            ].map((item, i) => (
+              <span key={i} className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors">
+                {item.icon} {item.text}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Featured Products Section */}
-      <FeaturedProducts />
+      <section className="pt-14 pb-2">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 mb-6">
+          <div className="text-center">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#EEF2FF] text-[#1E2260] text-xs font-semibold tracking-wide uppercase mb-3">
+              Our Product Suite
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Tools That Actually Move the Needle
+            </h2>
+            <p className="mt-2 text-gray-500 text-sm max-w-lg mx-auto">
+              Purpose-built AI and IT products for enterprises that refuse to stand still.
+            </p>
+          </div>
+        </div>
+        <FeaturedProducts />
+      </section>
 
       {/* VSaaS Banner Section */}
       <section className="py-4 bg-white">
@@ -87,10 +139,10 @@ export default async function HomePage() {
                 VSaaS — <span className="text-slate-300">Video Surveillance as a Service</span>
               </p>
               <h2 className="text-2xl md:text-3xl font-bold mb-4 leading-snug">
-                Enterprise-Grade CCTV &amp; AI Video Surveillance
+                See Everything. <span className="text-[#4A9FD5]">Miss Nothing.</span> Act Instantly.
               </h2>
               <p className="text-slate-400 text-sm mb-6 max-w-lg leading-relaxed">
-                Our VSaaS platform powers complete video surveillance deployments — from single-site CCTV to multi-location enterprise networks. Monitor every corner, detect threats instantly, and manage it all from one cloud dashboard.
+                One cloud dashboard for every camera, every site, every threat. Real-time AI alerts so your security team acts before damage is done — not after.
               </p>
               <div className="grid grid-cols-2 gap-3 mb-6 text-xs text-slate-300">
                 <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-[#4A9FD5] shrink-0" /> HD &amp; 4K Camera Support</div>
@@ -132,7 +184,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Deco Talent — HR Bot Banner Section */}
+      {/* Deco Talent Banner Section */}
       <section className="py-4 bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 py-12 md:py-16 px-8 md:px-14 lg:px-20">
@@ -152,10 +204,11 @@ export default async function HomePage() {
                   Deco Talent — <span className="text-slate-300">by DeWiN Digital Infrastructure & AI Solutions</span>
                 </p>
                 <h2 className="text-2xl md:text-3xl font-bold mb-4 leading-snug">
-                  Hire Smarter with AI-Powered Talent Screening
+                  Your Best Hire is One{" "}
+                  <span className="text-indigo-400">AI Conversation</span> Away.
                 </h2>
                 <p className="text-slate-400 text-sm mb-6 max-w-lg leading-relaxed">
-                  Deco Talent automates your entire hiring pipeline — from AI resume scoring to voice interviews and 10-parameter candidate reports. Screen hundreds of candidates instantly, in 30+ languages, with zero recruiter fatigue.
+                  Stop drowning in CVs. Deco Talent scores every resume, conducts the first round, and hands you a 10-parameter report — before your morning coffee.
                 </p>
                 <div className="grid grid-cols-2 gap-3 mb-6 text-xs text-slate-300">
                   <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" /> AI Resume Screening</div>
@@ -204,8 +257,23 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trending Categories Section */}
-      <TrendingProducts />
+      {/* Trending Section */}
+      <section className="pt-12 pb-2">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 mb-6">
+          <div className="text-center">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#EEF2FF] text-[#1E2260] text-xs font-semibold tracking-wide uppercase mb-3">
+              What&apos;s Trending
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Most-Adopted Solutions This Quarter
+            </h2>
+            <p className="mt-2 text-gray-500 text-sm max-w-lg mx-auto">
+              See what other enterprises are deploying right now.
+            </p>
+          </div>
+        </div>
+        <TrendingProducts />
+      </section>
 
       {/* Testimonials Section */}
       <Testimonials />
