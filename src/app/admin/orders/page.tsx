@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -82,14 +82,14 @@ const statusColors: Record<string, string> = {
   PROCESSING: "bg-purple-100 text-purple-800",
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-800",
+  CANCELLED: "bg-[#E8F0FF] text-[#141740]",
   REFUNDED: "bg-gray-100 text-gray-800",
 };
 
 const paymentColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   PAID: "bg-green-100 text-green-800",
-  FAILED: "bg-red-100 text-red-800",
+  FAILED: "bg-[#E8F0FF] text-[#141740]",
   REFUNDED: "bg-gray-100 text-gray-800",
   PARTIALLY_REFUNDED: "bg-orange-100 text-orange-800",
 };

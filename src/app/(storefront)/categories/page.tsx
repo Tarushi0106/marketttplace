@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
@@ -37,7 +37,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "All Categories | Shaurrya Teleservices",
+  title: "All Categories | DeWiN Solutions",
   description: "Explore our comprehensive range of enterprise solutions and services. Find cloud infrastructure, security, networking, and more.",
 };
 
@@ -79,7 +79,7 @@ function getCategoryColor(categoryName: string) {
   const name = categoryName.toLowerCase();
   
   if (name.includes("cloud")) return "bg-blue-100 text-blue-600";
-  if (name.includes("security") || name.includes("secure")) return "bg-red-100 text-red-600";
+  if (name.includes("security") || name.includes("secure")) return "bg-[#E8F0FF] text-[#1E2260]";
   if (name.includes("network") || name.includes("wifi")) return "bg-cyan-100 text-cyan-600";
   if (name.includes("server") || name.includes("database")) return "bg-indigo-100 text-indigo-600";
   if (name.includes("storage")) return "bg-purple-100 text-purple-600";

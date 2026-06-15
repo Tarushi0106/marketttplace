@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, GripVertical, Loader2 } from "lucide-react";
@@ -55,7 +55,7 @@ const colorPresets = [
   { value: "#000000", label: "Black" },
   { value: "#D4A574", label: "Bronze" },
   { value: "#E5E5E5", label: "Light Gray" },
-  { value: "#FFE4E4", label: "Light Pink" },
+  { value: "#E8F0FF", label: "Light Pink" },
   { value: "#F5F5F5", label: "Off White" },
   { value: "#DBEAFE", label: "Light Blue" },
   { value: "#D1FAE5", label: "Light Green" },
@@ -286,7 +286,7 @@ export default function TrendingCategoriesPage() {
                         size="icon"
                         onClick={() => handleDelete(category.id)}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Trash2 className="h-4 w-4 text-[#1E2260]" />
                       </Button>
                     </div>
                   </TableCell>

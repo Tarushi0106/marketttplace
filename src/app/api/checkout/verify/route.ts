@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { generateInvoiceNumber } from "@/lib/invoice-pdfkit";
@@ -142,8 +142,8 @@ export async function POST(request: NextRequest) {
         console.log("[Verify] Sending order confirmation email to:", fullOrder.email);
         try {
           const companyInfo = await prisma.companyInfo.findFirst() || {
-            name: 'Shaurrya Teleservices',
-            email: 'info@shaurryatele.com',
+            name: 'DeWiN Solutions',
+            email: 'info@dewintele.com',
             phone: '+91 99102 05084',
           };
           

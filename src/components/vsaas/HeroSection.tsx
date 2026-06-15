@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ArrowRight, Play, Eye, Shield, Cpu, Activity, Bell } from "lucide-react";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-red-950">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-[#080B2E]">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(220,38,38,0.3),transparent_50%)]" />
@@ -16,8 +16,8 @@ export function HeroSection() {
       </div>
 
       {/* Animated Gradient Orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-red-600/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-red-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#1E2260]/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#1E2260]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -38,7 +38,7 @@ export function HeroSection() {
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
+                className="bg-[#1E2260] hover:bg-[#2B3080] text-white px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
               >
                 <Link href="#use-cases">
                   <Play className="w-5 h-5 mr-2" />
@@ -49,7 +49,7 @@ export function HeroSection() {
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-transparent border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
+                className="bg-transparent border-2 border-[#1E2260] text-[#1E2260] hover:bg-[#1E2260] hover:text-white px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
               >
                 <Link href="/products">
                   View Solutions
@@ -78,9 +78,9 @@ export function HeroSection() {
           <div className="hidden lg:block relative">
             <div className="relative">
               {/* Main Image Container with Glow */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-red-500/20">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[#1E2260]/20">
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-transparent to-red-900/30 z-10" />
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-transparent to-[#0D1040]/30 z-10" />
                 
                 {/* Main CCTV/Monitoring Image - User uploaded (second image) */}
                 <img 
@@ -90,18 +90,18 @@ export function HeroSection() {
                 />
                 
                 {/* Scan Line Effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/5 to-transparent animate-pulse" style={{ animationDuration: '3s' }} />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#1E2260]/5 to-transparent animate-pulse" style={{ animationDuration: '3s' }} />
                 
                 {/* Corner Accents */}
-                <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-500/60 rounded-tl" />
-                <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-red-500/60 rounded-tr" />
-                <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-red-500/60 rounded-bl" />
-                <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-red-500/60 rounded-br" />
+                <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#1E2260]/60 rounded-tl" />
+                <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#1E2260]/60 rounded-tr" />
+                <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#1E2260]/60 rounded-bl" />
+                <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#1E2260]/60 rounded-br" />
               </div>
 
               {/* Floating UI Elements */}
               {/* AI Detection Box 1 */}
-              <div className="absolute top-1/4 -left-4 bg-slate-900/90 backdrop-blur-sm border border-red-500/40 rounded-lg p-3 shadow-lg animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <div className="absolute top-1/4 -left-4 bg-slate-900/90 backdrop-blur-sm border border-[#1E2260]/40 rounded-lg p-3 shadow-lg animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   <span className="text-xs text-green-400 font-medium">Face Detected</span>
@@ -119,10 +119,10 @@ export function HeroSection() {
               </div>
 
               {/* Stats Overlay */}
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-sm border border-red-500/30 rounded-xl px-4 py-2 shadow-lg">
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-sm border border-[#1E2260]/30 rounded-xl px-4 py-2 shadow-lg">
                 <div className="flex items-center gap-4 text-xs">
                   <div className="flex items-center gap-1">
-                    <Eye className="w-3 h-3 text-red-400" />
+                    <Eye className="w-3 h-3 text-[#4A9FD5]" />
                     <span className="text-slate-300">24 Cameras</span>
                   </div>
                   <div className="w-px h-4 bg-slate-600" />
@@ -139,7 +139,7 @@ export function HeroSection() {
               </div>
 
               {/* Glow Effect Behind */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-red-600/20 via-red-500/10 to-blue-600/20 rounded-3xl blur-2xl -z-10" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#1E2260]/20 via-[#1E2260]/10 to-blue-600/20 rounded-3xl blur-2xl -z-10" />
             </div>
           </div>
         </div>

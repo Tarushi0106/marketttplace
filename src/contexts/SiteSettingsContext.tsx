@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
@@ -37,9 +37,9 @@ interface SiteSettings {
 }
 
 const defaultSettings: SiteSettings = {
-  name: "Shaurrya Teleservices",
+  name: "DeWiN Solutions",
   legalName: null,
-  email: "contact@shaurryatele.com",
+  email: "contact@dewintele.com",
   phone: "+91-8698080000",
   address: "Mumbai",
   city: "Mumbai",
@@ -47,8 +47,8 @@ const defaultSettings: SiteSettings = {
   country: "India",
   currency: "INR",
   currencySymbol: "₹",
-  siteTitle: "Shaurrya Teleservices",
-  siteTagline: "Enterprise Teleservices Solutions",
+  siteTitle: "DeWiN Solutions",
+  siteTagline: "IT Solutions & Services",
   siteLogo: null,
   logoDark: null,
   logoLight: null,

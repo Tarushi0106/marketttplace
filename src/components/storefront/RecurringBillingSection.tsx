@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -357,10 +357,10 @@ export function RecurringBillingSection({
   console.log("[RecurringBillingSection] Rendering the component");
 
   return (
-    <Card className="border-2 border-[#8B1D1D]/20">
-      <CardHeader className="bg-[#8B1D1D]/05 pb-4">
+    <Card className="border-2 border-[#1E2260]/20">
+      <CardHeader className="bg-[#1E2260]/05 pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <RefreshCw className="h-5 w-5 text-[#8B1D1D]" />
+          <RefreshCw className="h-5 w-5 text-[#1E2260]" />
           Recurring Billing
           <Badge variant="default" className="bg-green-600">
             Required
@@ -387,7 +387,7 @@ export function RecurringBillingSection({
                   onClick={() => setBillingCycle(cycle)}
                   className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:border-gray-400 ${
                     billingCycle === cycle
-                      ? "border-[#8B1D1D] bg-[#8B1D1D]/5"
+                      ? "border-[#1E2260] bg-[#1E2260]/5"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
@@ -402,7 +402,7 @@ export function RecurringBillingSection({
                     </Label>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-[#8B1D1D]">
+                    <span className="text-lg font-bold text-[#1E2260]">
                       {formatPrice(cyclePrice)}
                     </span>
                     <span className="text-sm text-gray-500 ml-1">
@@ -451,7 +451,7 @@ export function RecurringBillingSection({
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium">Total per {BILLING_CYCLE_LABELS[billingCycle].toLowerCase()}</span>
-            <span className="text-2xl font-bold text-[#8B1D1D]">
+            <span className="text-2xl font-bold text-[#1E2260]">
               {formatPrice(pricing.pricePerCycle)}
               {pricing.periodLabel}
             </span>

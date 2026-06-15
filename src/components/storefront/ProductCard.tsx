@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/store/cart-store";
 import { useUIStore } from "@/store/ui-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { formatCurrency, calculateDiscount, cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
@@ -24,6 +25,19 @@ export function ProductCard({
 }: ProductCardProps) {
   const { addItem } = useCartStore();
   const { setQuickViewProduct, addToComparison, comparisonItems } = useUIStore();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, items: wishlistItems } = useWishlistStore();
+
+  const wishlistId = `${product.id}-default-null`;
+  const isWishlisted = wishlistItems.some((i) => i.id === wishlistId);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isWishlisted) {
+      removeFromWishlist(wishlistId);
+    } else {
+      addToWishlist({ product, unitPrice: displayPrice });
+    }
+  };
 
   const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
 
@@ -81,10 +95,10 @@ export function ProductCard({
           variant="secondary"
           size="icon"
           className="h-8 w-8 rounded-full shadow-subtle"
-          onClick={() => {}}
-          title="Add to wishlist"
+          onClick={handleWishlistToggle}
+          title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className="h-4 w-4" />
+          <Heart className={cn("h-4 w-4", isWishlisted && "fill-red-500 text-red-500")} />
         </Button>
         {showQuickView && (
           <Button

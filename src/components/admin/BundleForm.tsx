@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -466,7 +466,7 @@ export function BundleForm({ bundleId, isEdit = false }: BundleFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">
-                      Bundle Name <span className="text-red-500">*</span>
+                      Bundle Name <span className="text-[#1E2260]">*</span>
                     </Label>
                     <Input
                       id="name"
@@ -714,7 +714,7 @@ export function BundleForm({ bundleId, isEdit = false }: BundleFormProps) {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">
-                    Bundle Price (₹) <span className="text-red-500">*</span>
+                    Bundle Price (₹) <span className="text-[#1E2260]">*</span>
                   </Label>
                   <Input
                     id="price"

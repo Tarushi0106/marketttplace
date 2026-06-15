@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -85,7 +85,7 @@ export default function SettingsPage() {
   const footerLogoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<SiteSettings>({
-    name: "Shaurrya Teleservices",
+    name: "DeWiN Solutions",
     legalName: null,
     email: null,
     phone: null,
@@ -96,7 +96,7 @@ export default function SettingsPage() {
     postalCode: null,
     currency: "INR",
     currencySymbol: "₹",
-    siteTitle: "Shaurrya Teleservices",
+    siteTitle: "DeWiN Solutions",
     siteTagline: "Enterprise Solutions",
     metaDescription: "",
     siteLogo: null,
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("siteLogo"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -357,7 +357,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("logoDark"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("logoLight"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -494,7 +494,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("headerLogo"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -561,7 +561,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("footerLogo"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -628,7 +628,7 @@ export default function SettingsPage() {
                         />
                         <button
                           onClick={(e) => { e.stopPropagation(); clearImage("siteFavicon"); }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute -top-2 -right-2 bg-[#1E2260] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3 w-3" />
                         </button>

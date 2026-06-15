@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { 
   Factory, 
@@ -31,7 +31,7 @@ const industries = [
       "Heat mapping for layout optimization",
       "Queue management alerts",
     ],
-    color: "bg-pink-500",
+    color: "bg-[#4A9FD5]",
   },
   {
     icon: Truck,
@@ -79,7 +79,7 @@ export function IndustrySection() {
           {industries.map((industry, index) => (
             <div 
               key={index}
-              className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8 hover:border-red-500/30 transition-all duration-300"
+              className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8 hover:border-[#1E2260]/30 transition-all duration-300"
             >
               {/* Header */}
               <div className="flex items-start gap-4 mb-6">

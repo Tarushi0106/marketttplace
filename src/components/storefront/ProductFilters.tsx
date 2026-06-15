@@ -255,29 +255,6 @@ export function ProductFilters({
           </AccordionContent>
         </AccordionItem>
 
-        {/* Price Range */}
-        <AccordionItem value="price">
-          <AccordionTrigger>Price Range</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4">
-              <Slider
-                value={priceRange}
-                min={minPrice}
-                max={maxPrice}
-                step={10}
-                onValueChange={(value) => setPriceRange(value as [number, number])}
-                onValueCommit={(value) => {
-                  updateFilters("minPrice", String(value[0]));
-                  updateFilters("maxPrice", String(value[1]));
-                }}
-              />
-              <div className="flex items-center justify-between text-sm">
-                <span>{formatCurrency(priceRange[0])}</span>
-                <span>{formatCurrency(priceRange[1])}</span>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
 
         {/* Availability */}
         <AccordionItem value="availability">

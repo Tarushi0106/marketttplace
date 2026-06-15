@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { BundleCard } from "@/components/storefront/BundleCard";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Package, Percent, Sparkles, Zap } from "lucide-react";
@@ -291,7 +291,7 @@ export default function BundlesPage() {
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-white">Bundles</span>
               </nav>
-              <Badge className="w-fit mb-3 bg-[#8B1D1D] hover:bg-[#7A1919]">
+              <Badge className="w-fit mb-3 bg-[#1E2260] hover:bg-[#161848]">
                 <Percent className="h-3 w-3 mr-1" />
                 Save up to 40%
               </Badge>
@@ -326,8 +326,8 @@ export default function BundlesPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-[#8B1D1D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Percent className="h-6 w-6 text-[#8B1D1D]" />
+              <div className="w-12 h-12 bg-[#1E2260]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Percent className="h-6 w-6 text-[#1E2260]" />
               </div>
               <h3 className="font-semibold mb-2">Save Money</h3>
               <p className="text-sm text-gray-600">
@@ -335,8 +335,8 @@ export default function BundlesPage() {
               </p>
             </div>
             <div className="text-center bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-[#8B1D1D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Package className="h-6 w-6 text-[#8B1D1D]" />
+              <div className="w-12 h-12 bg-[#1E2260]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="h-6 w-6 text-[#1E2260]" />
               </div>
               <h3 className="font-semibold mb-2">Curated Selection</h3>
               <p className="text-sm text-gray-600">
@@ -344,8 +344,8 @@ export default function BundlesPage() {
               </p>
             </div>
             <div className="text-center bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-[#8B1D1D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-6 w-6 text-[#8B1D1D]" />
+              <div className="w-12 h-12 bg-[#1E2260]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-6 w-6 text-[#1E2260]" />
               </div>
               <h3 className="font-semibold mb-2">Quick Setup</h3>
               <p className="text-sm text-gray-600">
@@ -360,7 +360,7 @@ export default function BundlesPage() {
       <section className="py-12">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="bg-gray-900 rounded-2xl p-8 md:p-12 text-center">
-            <Sparkles className="h-10 w-10 text-[#8B1D1D] mx-auto mb-4" />
+            <Sparkles className="h-10 w-10 text-[#1E2260] mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
               Need a Custom Bundle?
             </h2>
@@ -369,7 +369,7 @@ export default function BundlesPage() {
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center h-11 px-8 rounded-lg bg-[#8B1D1D] text-white font-medium hover:bg-[#7A1919] transition-colors"
+              className="inline-flex items-center justify-center h-11 px-8 rounded-lg bg-[#1E2260] text-white font-medium hover:bg-[#161848] transition-colors"
             >
               Contact Sales
             </Link>

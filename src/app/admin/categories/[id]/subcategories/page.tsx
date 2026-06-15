@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -80,7 +80,7 @@ const iconOptions = [
 const colorPresets = [
   { value: "#DBEAFE", label: "Blue" },
   { value: "#D1FAE5", label: "Green" },
-  { value: "#FEE2E2", label: "Red" },
+  { value: "#E8F0FF", label: "Red" },
   { value: "#FEF3C7", label: "Amber" },
   { value: "#E9D5FF", label: "Purple" },
   { value: "#CFFAFE", label: "Cyan" },

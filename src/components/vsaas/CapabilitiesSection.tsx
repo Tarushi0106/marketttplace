@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { 
   Brain, 
@@ -14,7 +14,7 @@ const capabilities = [
     icon: Brain,
     title: "Anomaly Detection",
     description: "AI-powered detection of unusual behavior, movements, and events in real-time. Automatically alert security personnel when anomalies are detected.",
-    color: "bg-red-500",
+    color: "bg-[#1E2260]",
   },
   {
     icon: Users,
@@ -68,7 +68,7 @@ export function CapabilitiesSection() {
           {capabilities.map((capability, index) => (
             <div 
               key={index}
-              className="group relative bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-red-500/50 transition-all duration-300 hover:transform hover:-translate-y-1"
+              className="group relative bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-[#1E2260]/50 transition-all duration-300 hover:transform hover:-translate-y-1"
             >
               {/* Icon */}
               <div className={`w-14 h-14 ${capability.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
@@ -86,7 +86,7 @@ export function CapabilitiesSection() {
               </p>
 
               {/* Hover Glow Effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1E2260]/0 via-[#1E2260]/5 to-[#1E2260]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </div>
           ))}
         </div>

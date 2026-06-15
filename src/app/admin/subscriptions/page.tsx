@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import React from "react";
@@ -147,7 +147,7 @@ export default function SubscriptionsPage() {
       case "PAUSED":
         return <Badge className="bg-yellow-600">Paused</Badge>;
       case "SUSPENDED":
-        return <Badge className="bg-red-600">Suspended</Badge>;
+        return <Badge className="bg-[#1E2260]">Suspended</Badge>;
       case "CANCELLED":
         return <Badge variant="secondary">Cancelled</Badge>;
       case "PENDING":
@@ -224,10 +224,10 @@ export default function SubscriptionsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
+            <XCircle className="h-4 w-4 text-[#1E2260]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
+            <div className="text-2xl font-bold text-[#1E2260]">{stats.cancelled}</div>
           </CardContent>
         </Card>
         <Card>
@@ -282,11 +282,11 @@ export default function SubscriptionsPage() {
               {upcomingBillings.map((sub) => (
                 <div key={sub.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-[#8B1D1D]/10 rounded-lg">
-                      <span className="text-lg font-bold text-[#8B1D1D]">
+                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-[#1E2260]/10 rounded-lg">
+                      <span className="text-lg font-bold text-[#1E2260]">
                         {new Date(sub.nextBillingDate).getDate()}
                       </span>
-                      <span className="text-xs text-[#8B1D1D]">
+                      <span className="text-xs text-[#1E2260]">
                         {new Date(sub.nextBillingDate).toLocaleDateString("en-US", { month: "short" })}
                       </span>
                     </div>
@@ -430,7 +430,7 @@ export default function SubscriptionsPage() {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem className="text-[#1E2260]">
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete Subscription
                           </DropdownMenuItem>

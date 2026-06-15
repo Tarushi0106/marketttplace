@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -239,7 +239,7 @@ export default function MenusPage() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="text-red-600"
+                        className="text-[#1E2260]"
                         onClick={() => handleDeleteMenu(menu.id)}
                         disabled={deleting === menu.id}
                       >

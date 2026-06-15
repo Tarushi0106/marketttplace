@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+﻿import { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Solutions | NetNxt - Enterprise Digital Solutions",
+  title: "Solutions | DeWiN - Enterprise Digital Solutions",
   description: "Explore our comprehensive digital solutions for growing businesses",
 };
 
@@ -31,10 +31,10 @@ const solutions = [
   {
     id: "vsaas",
     icon: Video,
-    iconColor: "text-rose-600",
-    iconBg: "bg-rose-50",
+    iconColor: "text-[#1E2260]",
+    iconBg: "bg-[#EEF2FF]",
     badge: "Popular",
-    badgeColor: "bg-rose-100 text-rose-700",
+    badgeColor: "bg-[#E8F0FF] text-[#161848]",
     tag: "AI Surveillance",
     title: "VSAAS",
     description: "AI-powered cloud video surveillance with real-time monitoring & intelligent analytics.",
@@ -122,7 +122,7 @@ export default function SolutionsPage() {
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 py-20 lg:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#8B1D1D]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1E2260]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="container mx-auto px-6 relative">
           <div className="max-w-2xl">
             <span className="inline-block text-xs font-semibold text-[#e06060] uppercase tracking-widest mb-4">
@@ -137,7 +137,7 @@ export default function SolutionsPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/products">
-                <Button className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white px-6">
+                <Button className="bg-[#1E2260] hover:bg-[#161848] text-white px-6">
                   Explore All Products
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -151,7 +151,7 @@ export default function SolutionsPage() {
       <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="mb-12">
-            <p className="text-xs font-semibold text-[#8B1D1D] uppercase tracking-widest mb-2">Our Products</p>
+            <p className="text-xs font-semibold text-[#1E2260] uppercase tracking-widest mb-2">Our Products</p>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Our Solutions</h2>
             <p className="text-gray-500 mt-2">Choose from our portfolio of enterprise-grade products</p>
           </div>
@@ -178,7 +178,7 @@ export default function SolutionsPage() {
                 {/* Content */}
                 <div className="px-6 pb-6 flex flex-col flex-1">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-1">{s.tag}</p>
-                  <h3 className="text-base font-bold text-gray-900 group-hover:text-[#8B1D1D] transition-colors mb-2 leading-snug">
+                  <h3 className="text-base font-bold text-gray-900 group-hover:text-[#1E2260] transition-colors mb-2 leading-snug">
                     {s.title}
                   </h3>
                   <p className="text-sm text-gray-500 leading-relaxed mb-4">{s.description}</p>
@@ -194,7 +194,7 @@ export default function SolutionsPage() {
                   </ul>
 
                   {/* CTA */}
-                  <div className="flex items-center gap-1 text-sm font-semibold text-[#8B1D1D]">
+                  <div className="flex items-center gap-1 text-sm font-semibold text-[#1E2260]">
                     <span>Explore</span>
                     <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
@@ -209,7 +209,7 @@ export default function SolutionsPage() {
       <section className="py-16 bg-white border-t border-gray-100">
         <div className="container mx-auto px-6">
           <div className="mb-10">
-            <p className="text-xs font-semibold text-[#8B1D1D] uppercase tracking-widest mb-2">Industries</p>
+            <p className="text-xs font-semibold text-[#1E2260] uppercase tracking-widest mb-2">Industries</p>
             <h2 className="text-2xl font-bold text-gray-900">Industries We Serve</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -233,7 +233,7 @@ export default function SolutionsPage() {
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-xs font-semibold text-[#e06060] uppercase tracking-widest mb-3">Why Shaurrya</p>
+              <p className="text-xs font-semibold text-[#e06060] uppercase tracking-widest mb-3">Why DeWiN</p>
               <h2 className="text-3xl font-bold text-white mb-4">Built for performance.<br />Trusted by enterprises.</h2>
               <p className="text-gray-400 mb-8">Reliable, secure, and scalable solutions with dedicated support.</p>
               <div className="space-y-5">
@@ -262,13 +262,13 @@ export default function SolutionsPage() {
                   <Phone className="h-4 w-4 text-[#e06060]" />
                   +91 86980 80000
                 </a>
-                <a href="mailto:sales@shaurrya.com" className="flex items-center gap-3 text-gray-300 hover:text-white text-sm transition-colors">
+                <a href="mailto:sales@dewin.com" className="flex items-center gap-3 text-gray-300 hover:text-white text-sm transition-colors">
                   <Mail className="h-4 w-4 text-[#e06060]" />
-                  sales@shaurrya.com
+                  sales@dewin.com
                 </a>
               </div>
               <Link href="/contact">
-                <Button className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white">
+                <Button className="w-full bg-[#1E2260] hover:bg-[#161848] text-white">
                   Contact Sales
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

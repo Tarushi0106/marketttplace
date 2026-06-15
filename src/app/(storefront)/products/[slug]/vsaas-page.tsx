@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { VSAASLandingPage } from "@/components/storefront/VSAASLandingPage";
 import { TallyCloudConfigurator } from "@/components/storefront/TallyCloudConfigurator";
@@ -25,12 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
 
     return {
-      title: product ? `${product.name} | Configure | Shaurrya Teleservices` : 'Product Not Found',
+      title: product ? `${product.name} | Configure | DeWiN Solutions` : 'Product Not Found',
       description: product?.shortDescription || 'Configure product',
     };
   } catch (error) {
     return {
-      title: "Configure Product | Shaurrya Teleservices",
+      title: "Configure Product | DeWiN Solutions",
     };
   }
 }

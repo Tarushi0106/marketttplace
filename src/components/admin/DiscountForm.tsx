@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -421,7 +421,7 @@ export function DiscountForm({ discountId, isEdit = false }: DiscountFormProps) 
                 <div className="flex gap-2">
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="code">
-                      Code <span className="text-red-500">*</span>
+                      Code <span className="text-[#1E2260]">*</span>
                     </Label>
                     <div className="flex gap-2">
                       <Input
@@ -500,7 +500,7 @@ export function DiscountForm({ discountId, isEdit = false }: DiscountFormProps) 
                   <div className="space-y-2">
                     <Label htmlFor="value">
                       {formData.type === "PERCENTAGE" ? "Percentage (%)" : "Amount (₹)"}{" "}
-                      <span className="text-red-500">*</span>
+                      <span className="text-[#1E2260]">*</span>
                     </Label>
                     <Input
                       id="value"

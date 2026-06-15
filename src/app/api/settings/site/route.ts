@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 export const dynamic = 'force-dynamic';
 
@@ -15,9 +15,9 @@ export async function GET() {
       return NextResponse.json({
         data: {
           id: "default",
-          name: "Shaurrya Teleservices",
-          legalName: "Shaurrya Teleservices Pvt. Ltd.",
-          email: "support@shaurrya.com",
+          name: "DeWiN Solutions",
+          legalName: "DeWiN Solutions Pvt. Ltd.",
+          email: "support@dewin.com",
           phone: "+91 (999) 123-4567",
           address: "Mumbai, India",
           currency: "INR",
@@ -33,9 +33,9 @@ export async function GET() {
       try {
         companyInfo = await prisma.companyInfo.create({
           data: {
-            name: "Shaurrya Teleservices",
-            legalName: "Shaurrya Teleservices Pvt. Ltd.",
-            email: "support@shaurrya.com",
+            name: "DeWiN Solutions",
+            legalName: "DeWiN Solutions Pvt. Ltd.",
+            email: "support@dewin.com",
             phone: "+91 (999) 123-4567",
             address: "Mumbai, India",
             currency: "INR",
@@ -48,9 +48,9 @@ export async function GET() {
         return NextResponse.json({
           data: {
             id: "default",
-            name: "Shaurrya Teleservices",
-            legalName: "Shaurrya Teleservices Pvt. Ltd.",
-            email: "support@shaurrya.com",
+            name: "DeWiN Solutions",
+            legalName: "DeWiN Solutions Pvt. Ltd.",
+            email: "support@dewin.com",
             phone: "+91 (999) 123-4567",
             address: "Mumbai, India",
             currency: "INR",
@@ -194,7 +194,7 @@ export async function PUT(request: NextRequest) {
     } else {
       companyInfo = await prisma.companyInfo.create({
         data: {
-          name: name || "Shaurrya Teleservices",
+          name: name || "DeWiN Solutions",
           legalName,
           email,
           phone,

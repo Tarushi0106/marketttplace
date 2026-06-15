@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -117,13 +117,13 @@ const colorPresets = [
   { value: "#1a1a1a", label: "Dark Gray" },
   { value: "#D4A574", label: "Bronze" },
   { value: "#E5E5E5", label: "Light Gray" },
-  { value: "#FFE4E4", label: "Light Pink" },
+  { value: "#E8F0FF", label: "Light Pink" },
   { value: "#F5F5F5", label: "Off White" },
   { value: "#DBEAFE", label: "Light Blue" },
   { value: "#D1FAE5", label: "Light Green" },
   { value: "#FEF3C7", label: "Light Yellow" },
   { value: "#E9D5FF", label: "Light Purple" },
-  { value: "#8B1D1D", label: "Brand Red" },
+  { value: "#1E2260", label: "Brand Red" },
 ];
 
 const getIconComponent = (iconName: string) => {
@@ -460,7 +460,7 @@ export function CategoryForm({ categoryId, isEdit = false }: CategoryFormProps) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">
-                      Category Name <span className="text-red-500">*</span>
+                      Category Name <span className="text-[#1E2260]">*</span>
                     </Label>
                     <Input
                       id="name"
@@ -759,7 +759,7 @@ export function CategoryForm({ categoryId, isEdit = false }: CategoryFormProps) 
                               "h-8 w-8",
                               formData.iconBgColor === "#000000" ||
                                 formData.iconBgColor === "#1a1a1a" ||
-                                formData.iconBgColor === "#8B1D1D"
+                                formData.iconBgColor === "#1E2260"
                                 ? "text-white"
                                 : "text-gray-700"
                             )}

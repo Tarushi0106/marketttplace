@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { Check, ShoppingCart, ChevronDown, Server, Shield, Database, AlertCircle, X, Brain } from "lucide-react";
@@ -867,8 +867,8 @@ export function VSAASConfigurator({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-6 h-6 text-[#DC2626]" />
+              <div className="w-12 h-12 rounded-full bg-[#E8F0FF] flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-[#1E2260]" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Credit Limit Reached</h3>
@@ -878,11 +878,11 @@ export function VSAASConfigurator({
                 <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Credits used</span>
-                    <span className="font-semibold text-[#DC2626]">{totalCreditsUsed} / 16</span>
+                    <span className="font-semibold text-[#1E2260]">{totalCreditsUsed} / 16</span>
                   </div>
                   <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-[#DC2626] h-2 rounded-full transition-all"
+                      className="bg-[#1E2260] h-2 rounded-full transition-all"
                       style={{ width: `${Math.min(100, (totalCreditsUsed / 16) * 100)}%` }}
                     />
                   </div>
@@ -894,7 +894,7 @@ export function VSAASConfigurator({
             </div>
             <button
               onClick={() => setShowCreditLimitError(false)}
-              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+              className="mt-6 w-full py-2.5 bg-[#1E2260] hover:bg-[#161848] text-white text-sm font-semibold rounded-lg transition-colors"
             >
               Got it
             </button>
@@ -907,8 +907,8 @@ export function VSAASConfigurator({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-6 h-6 text-[#DC2626]" />
+              <div className="w-12 h-12 rounded-full bg-[#E8F0FF] flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6 text-[#1E2260]" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">AI Box Required</h3>
@@ -922,7 +922,7 @@ export function VSAASConfigurator({
             </div>
             <button
               onClick={() => setShowAIBoxReqPopup(false)}
-              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+              className="mt-6 w-full py-2.5 bg-[#1E2260] hover:bg-[#161848] text-white text-sm font-semibold rounded-lg transition-colors"
             >
               Got it
             </button>
@@ -935,8 +935,8 @@ export function VSAASConfigurator({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-6 h-6 text-[#DC2626]" />
+              <div className="w-12 h-12 rounded-full bg-[#E8F0FF] flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6 text-[#1E2260]" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Prerequisites Required</h3>
@@ -945,18 +945,18 @@ export function VSAASConfigurator({
                 </p>
                 <ul className="mt-3 space-y-2">
                   <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasConnectCloud ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasConnectCloud ? 'bg-green-100' : 'bg-[#E8F0FF]'}`}>
                       {hasConnectCloud
                         ? <Check className="w-3 h-3 text-green-600" />
-                        : <span className="text-red-500 text-xs font-bold">!</span>}
+                        : <span className="text-[#1E2260] text-xs font-bold">!</span>}
                     </div>
                     <span className={hasConnectCloud ? 'line-through text-gray-400' : 'font-medium'}>Connect Cloud – Platform Fee (Base License)</span>
                   </li>
                   <li className="flex items-center gap-2 text-sm text-gray-700">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasGateway ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${hasGateway ? 'bg-green-100' : 'bg-[#E8F0FF]'}`}>
                       {hasGateway
                         ? <Check className="w-3 h-3 text-green-600" />
-                        : <span className="text-red-500 text-xs font-bold">!</span>}
+                        : <span className="text-[#1E2260] text-xs font-bold">!</span>}
                     </div>
                     <span className={hasGateway ? 'line-through text-gray-400' : 'font-medium'}>Cloud Gateway Link Device (Network Link Device)</span>
                   </li>
@@ -968,7 +968,7 @@ export function VSAASConfigurator({
             </div>
             <button
               onClick={() => setShowAIPrereqPopup(false)}
-              className="mt-6 w-full py-2.5 bg-[#DC2626] hover:bg-[#b91c1c] text-white text-sm font-semibold rounded-lg transition-colors"
+              className="mt-6 w-full py-2.5 bg-[#1E2260] hover:bg-[#161848] text-white text-sm font-semibold rounded-lg transition-colors"
             >
               Got it
             </button>
@@ -985,7 +985,7 @@ export function VSAASConfigurator({
                 onClick={() => setDeploymentType('cloud')}
                 className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'cloud'
-                    ? 'border-[#DC2626] bg-red-50'
+                    ? 'border-[#1E2260] bg-[#EEF2FF]'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
@@ -1005,7 +1005,7 @@ export function VSAASConfigurator({
                 onClick={() => setDeploymentType('onPremise')}
                 className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'onPremise'
-                    ? 'border-[#DC2626] bg-red-50'
+                    ? 'border-[#1E2260] bg-[#EEF2FF]'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
@@ -1022,7 +1022,7 @@ export function VSAASConfigurator({
                 onClick={() => setDeploymentType('renewal')}
                 className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'renewal'
-                    ? 'border-[#DC2626] bg-red-50'
+                    ? 'border-[#1E2260] bg-[#EEF2FF]'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
@@ -1039,7 +1039,7 @@ export function VSAASConfigurator({
                 onClick={() => { setDeploymentType('ai'); setHasVisitedAITab(true); }}
                 className={`flex-1 p-5 rounded-xl border-2 transition-all text-center shadow-sm ${
                   deploymentType === 'ai'
-                    ? 'border-[#DC2626] bg-red-50'
+                    ? 'border-[#1E2260] bg-[#EEF2FF]'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
@@ -1078,7 +1078,7 @@ export function VSAASConfigurator({
                   const v = parseInt(e.target.value, 10);
                   if (!isNaN(v)) handleCameraCountChange(Math.max(1, Math.min(512, v)));
                 }}
-                className="w-12 h-7 text-center text-sm font-bold text-gray-900 border border-gray-200 rounded bg-white focus:outline-none focus:border-[#DC2626] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-12 h-7 text-center text-sm font-bold text-gray-900 border border-gray-200 rounded bg-white focus:outline-none focus:border-[#1E2260] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button
                 onClick={() => handleCameraCountChange(Math.min(512, cameraCount + 1))}
@@ -1234,7 +1234,7 @@ export function VSAASConfigurator({
                                         handleLicenseQuantityChange(option.value, 0);
                                       }
                                     }}
-                                    className="w-4 h-4 text-[#DC2626] border-gray-300 rounded focus:ring-[#DC2626]"
+                                    className="w-4 h-4 text-[#1E2260] border-gray-300 rounded focus:ring-[#1E2260]"
                                   />
                                   <span className="text-sm font-medium text-gray-900">{option.label}</span>
                                 </div>
@@ -1381,7 +1381,7 @@ export function VSAASConfigurator({
                       <select
                         value={selectedStorageAddonId || ''}
                         onChange={(e) => handleStorageChange(e.target.value || null)}
-                        className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 focus:border-[#DC2626]"
+                        className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2.5 pr-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1E2260]/20 focus:border-[#1E2260]"
                       >
                         <option value="">None</option>
                         {storageAddons.map((addon, idx) => {
@@ -1815,7 +1815,7 @@ export function VSAASConfigurator({
                       <div className="ml-4 flex-shrink-0">
                         <Button
                           size="sm"
-                          className="bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs"
+                          className="bg-[#1E2260] hover:bg-[#161848] text-white text-xs"
                           onClick={() => {
                             if (!currentProduct) return;
                             addToCart({ product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (Stream OS)' }, variant: { id: cyberPackStreamVariant?.id ?? null, name: 'Cyber + Pack (Stream OS)' }, quantity: 1, selectedAddons: [], billingCycle: 'ONE_TIME', isRecurring: false, unitPrice: 644, totalPrice: 644, deploymentType: deploymentType, baseProductPrice: 644, productPrice: 644 } as any);
@@ -1883,7 +1883,7 @@ export function VSAASConfigurator({
                       <div className="ml-4 flex-shrink-0">
                         <Button
                           size="sm"
-                          className="bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs"
+                          className="bg-[#1E2260] hover:bg-[#161848] text-white text-xs"
                           onClick={() => {
                             if (!currentProduct) return;
                             addToCart({ product: { id: currentProduct.id, slug: currentProduct.slug, name: 'Cyber + Pack (AI-Box & AI License)' }, variant: { id: cyberPackAIVariant?.id ?? null, name: 'Cyber + Pack (AI-Box & AI License)' }, quantity: 1, selectedAddons: [], billingCycle: 'ONE_TIME', isRecurring: false, unitPrice: 73600, totalPrice: 73600, deploymentType: deploymentType, baseProductPrice: 73600, productPrice: 73600 } as any);
@@ -1995,7 +1995,7 @@ export function VSAASConfigurator({
                             key={feature.name}
                             className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                               isSelected
-                                ? 'border-[#DC2626] bg-red-50/50'
+                                ? 'border-[#1E2260] bg-[#EEF2FF]/50'
                                 : 'border-gray-200 hover:border-gray-300 bg-white'
                             }`}
                           >
@@ -2010,7 +2010,7 @@ export function VSAASConfigurator({
                                 />
                                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                                   isSelected
-                                    ? 'bg-[#DC2626] border-[#DC2626]'
+                                    ? 'bg-[#1E2260] border-[#1E2260]'
                                     : 'border-gray-300'
                                 }`}>
                                   {isSelected && (
@@ -2026,10 +2026,10 @@ export function VSAASConfigurator({
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setActiveVideo({ name: feature.name, url: feature.videoUrl, description: feature.description }); }}
-                                    className="flex-shrink-0 w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center transition-colors"
+                                    className="flex-shrink-0 w-5 h-5 rounded-full bg-[#EEF2FF] hover:bg-[#E8F0FF] border border-[#D0DEFF] flex items-center justify-center transition-colors"
                                     title={`Watch: ${feature.name}`}
                                   >
-                                    <svg className="w-2.5 h-2.5 text-[#DC2626] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-2.5 h-2.5 text-[#1E2260] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                                       <path d="M8 5v14l11-7z" />
                                     </svg>
                                   </button>
@@ -2038,7 +2038,7 @@ export function VSAASConfigurator({
                                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">{feature.description}</p>
                                 )}
                                 {showOnly !== 'cloud' && (
-                                  <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded">
+                                  <span className="inline-block mt-0.5 px-1.5 py-0.5 text-xs font-medium bg-[#EEF2FF] text-[#1E2260] rounded">
                                     {category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1} credit{(category.category === 'ANPR' ? 4 : category.category === 'Facial Recognition' ? 8 : 1) > 1 ? 's' : ''}
                                   </span>
                                 )}
@@ -2048,7 +2048,7 @@ export function VSAASConfigurator({
                             <div className="flex items-center gap-3">
                               {/* Quantity Controls */}
                               <div className={`flex items-center gap-0 rounded border overflow-hidden ${
-                                isSelected ? 'border-[#DC2626]' : 'border-gray-200'
+                                isSelected ? 'border-[#1E2260]' : 'border-gray-200'
                               }`}>
                                 <button
                                   type="button"
@@ -2159,7 +2159,7 @@ export function VSAASConfigurator({
                         onClick={() => setBillingCycle(option.value)}
                         className={`p-2 rounded-lg border text-center transition-all ${
                           billingCycle === option.value
-                            ? 'border-[#DC2626] bg-red-50'
+                            ? 'border-[#1E2260] bg-[#EEF2FF]'
                             : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -2416,7 +2416,7 @@ export function VSAASConfigurator({
                 <div className="px-6 py-4">
                   <Button
                     onClick={() => handleAddToCart()}
-                    className="w-full h-12 text-base font-semibold bg-[#DC2626] hover:bg-[#B91C1C] transition-colors rounded-lg"
+                    className="w-full h-12 text-base font-semibold bg-[#1E2260] hover:bg-[#161848] transition-colors rounded-lg"
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     Add to Cart
@@ -2435,8 +2435,8 @@ export function VSAASConfigurator({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
           <div className="flex items-start gap-4 mb-5">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 text-[#DC2626]" />
+            <div className="w-10 h-10 rounded-full bg-[#E8F0FF] flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-[#1E2260]" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-gray-900">Would you like to buy AI features?</h3>
@@ -2447,7 +2447,7 @@ export function VSAASConfigurator({
           </div>
           <div className="flex gap-3">
             <Button
-              className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C] text-white"
+              className="flex-1 bg-[#1E2260] hover:bg-[#161848] text-white"
               onClick={() => {
                 setShowAIFeaturesPrompt(false);
                 setHasVisitedAITab(true); // mark as visited so returning to cloud tab doesn't re-prompt
@@ -2505,7 +2505,7 @@ export function VSAASConfigurator({
           </div>
           <div className="flex gap-3 mt-5">
             <Button
-              className="flex-1 bg-[#DC2626] hover:bg-[#B91C1C] text-white"
+              className="flex-1 bg-[#1E2260] hover:bg-[#161848] text-white"
               onClick={() => {
                 setShowOnPremAIPrompt(false);
                 setHasVisitedAITab(true);
@@ -2542,8 +2542,8 @@ export function VSAASConfigurator({
           {/* Modal Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center">
-                <svg className="w-3 h-3 text-[#DC2626] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-6 h-6 rounded-full bg-[#EEF2FF] flex items-center justify-center">
+                <svg className="w-3 h-3 text-[#1E2260] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>

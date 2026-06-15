@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { testSmtpConnection, sendOrderConfirmationEmail } from "@/lib/email";
 
 /**
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       recurringAmount: 200,
       recurringPeriod: "1 month",
       companyInfo: {
-        name: "Shaurrya Teleservices",
+        name: "DeWiN Solutions",
         email: "tarushich0106@gmail.com",
         phone: "+91 99999 99999",
       },

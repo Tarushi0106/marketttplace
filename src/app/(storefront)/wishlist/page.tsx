@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -147,7 +147,7 @@ export default function WishlistPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => removeItem(item.id)}
-                        className="text-muted-foreground hover:text-red-500"
+                        className="text-muted-foreground hover:text-[#1E2260]"
                       >
                         <Trash2 className="h-5 w-5" />
                       </Button>

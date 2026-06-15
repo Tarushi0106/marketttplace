@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -1607,7 +1607,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="name">
-                          Product Name <span className="text-red-500">*</span>
+                          Product Name <span className="text-[#1E2260]">*</span>
                         </Label>
                         <Input
                           id="name"
@@ -2142,7 +2142,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="basePrice">
-                        Base Price (Rs) <span className="text-red-500">*</span>
+                        Base Price (Rs) <span className="text-[#1E2260]">*</span>
                       </Label>
                       <Input
                         id="basePrice"
@@ -4060,7 +4060,7 @@ export function ProductForm({ productId, isEdit = false }: ProductFormProps) {
                                 setEditingAddon({ ...editingAddon, options: newOptions });
                               }}
                             >
-                              <Trash2 className="h-4 w-4 text-red-500" />
+                              <Trash2 className="h-4 w-4 text-[#1E2260]" />
                             </Button>
                           </TableCell>
                         </TableRow>

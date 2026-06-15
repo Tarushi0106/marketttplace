@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
@@ -124,7 +124,7 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string; s
 const subCategoryColors = [
   { bg: "#DBEAFE", text: "#1E40AF" },
   { bg: "#D1FAE5", text: "#065F46" },
-  { bg: "#FEE2E2", text: "#991B1B" },
+  { bg: "#E8F0FF", text: "#141740" },
   { bg: "#FEF3C7", text: "#92400E" },
   { bg: "#E9D5FF", text: "#6B21A8" },
   { bg: "#CFFAFE", text: "#0E7490" },
@@ -436,7 +436,7 @@ export default async function SubCategoryPage({
             <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
               <Link
                 href={`/categories/${category.slug}`}
-                className="flex-shrink-0 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-[#8B1D1D] hover:text-white transition-colors"
+                className="flex-shrink-0 px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-[#1E2260] hover:text-white transition-colors"
               >
                 All {category.name}
               </Link>
@@ -447,7 +447,7 @@ export default async function SubCategoryPage({
                   href={`/categories/${category.slug}/${sibling.slug}`}
                   className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     sibling.id === subCategory.id
-                      ? "bg-[#8B1D1D] text-white"
+                      ? "bg-[#1E2260] text-white"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -538,7 +538,7 @@ export default async function SubCategoryPage({
             </h2>
             <Link
               href={`/categories/${category.slug}`}
-              className="text-[#8B1D1D] font-medium flex items-center hover:underline text-sm"
+              className="text-[#1E2260] font-medium flex items-center hover:underline text-sm"
             >
               View All
               <ArrowRight className="h-4 w-4 ml-1" />
@@ -554,20 +554,20 @@ export default async function SubCategoryPage({
                   href={`/categories/${category.slug}/${s.slug}`}
                   className={`group p-4 rounded-xl border transition-all text-center ${
                     isActive
-                      ? "border-[#8B1D1D] bg-[#8B1D1D]/5 shadow-md"
+                      ? "border-[#1E2260] bg-[#1E2260]/5 shadow-md"
                       : "border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1"
                   }`}
                 >
                   <div
                     className="w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
-                    style={{ backgroundColor: isActive ? "#8B1D1D15" : color.bg }}
+                    style={{ backgroundColor: isActive ? "#1E226015" : color.bg }}
                   >
-                    {getSubCategoryIcon(s.icon, index, "w-6 h-6", isActive ? "#8B1D1D" : color.text)}
+                    {getSubCategoryIcon(s.icon, index, "w-6 h-6", isActive ? "#1E2260" : color.text)}
                   </div>
                   <h3 className={`font-semibold text-sm ${
                     isActive
-                      ? "text-[#8B1D1D]"
-                      : "text-gray-900 group-hover:text-[#8B1D1D]"
+                      ? "text-[#1E2260]"
+                      : "text-gray-900 group-hover:text-[#1E2260]"
                   } transition-colors line-clamp-2`}>
                     {s.name}
                   </h3>
@@ -617,7 +617,7 @@ function ViewToggle({
         href={buildViewUrl("grid")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "grid"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="Grid view"
@@ -628,7 +628,7 @@ function ViewToggle({
         href={buildViewUrl("compact")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "compact"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="Compact grid"
@@ -639,7 +639,7 @@ function ViewToggle({
         href={buildViewUrl("list")}
         className={`p-2 rounded-md transition-colors ${
           currentView === "list"
-            ? "bg-white shadow-sm text-[#8B1D1D]"
+            ? "bg-white shadow-sm text-[#1E2260]"
             : "text-gray-500 hover:text-gray-700"
         }`}
         title="List view"
@@ -701,7 +701,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
   const hasPrice = Number(product.basePrice) > 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#1E2260]/20 transition-all duration-300 h-full flex flex-col group">
       <Link href={`/products/${product.slug}`}>
         <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
           {product.images[0]?.url ? (
@@ -719,7 +719,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
           )}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {product.isFeatured && (
-              <Badge className="bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C] text-white border-0 shadow-lg">
+              <Badge className="bg-gradient-to-r from-[#1E2260] to-[#4A9FD5] text-white border-0 shadow-lg">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Featured
               </Badge>
@@ -732,7 +732,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
           </div>
           <div className="absolute bottom-3 left-3">
             <div className="w-12 h-12 rounded-xl bg-white shadow-lg flex items-center justify-center border border-gray-100">
-              <span className="text-lg font-bold text-[#8B1D1D]">{product.name.charAt(0)}</span>
+              <span className="text-lg font-bold text-[#1E2260]">{product.name.charAt(0)}</span>
             </div>
           </div>
         </div>
@@ -746,7 +746,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
           </span>
         </div>
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-2">
+          <h3 className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-2 mb-2">
             {product.name}
           </h3>
         </Link>
@@ -788,7 +788,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
               <>
                 <Button
                   size="sm"
-                  className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+                  className="flex-1 bg-[#1E2260] hover:bg-[#161848] text-white"
                   asChild
                 >
                   <Link href={`/products/${product.slug}`}>
@@ -799,7 +799,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D]"
+                  className="border-gray-200 hover:border-[#1E2260] hover:text-[#1E2260]"
                   asChild
                 >
                   <Link href="/contact">
@@ -810,7 +810,7 @@ function ProductCard({ product, category }: { product: any; category: any }) {
             ) : (
               <Button
                 size="sm"
-                className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+                className="w-full bg-[#1E2260] hover:bg-[#161848] text-white"
                 asChild
               >
                 <Link href="/contact">
@@ -838,7 +838,7 @@ function CompactProductCard({ product }: { product: any }) {
   const hasPrice = Number(product.basePrice) > 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 h-full flex flex-col group">
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#1E2260]/20 transition-all duration-300 h-full flex flex-col group">
       <Link href={`/products/${product.slug}`}>
         <div className="relative h-32 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-4 flex items-center justify-center">
           {product.images[0]?.url && (
@@ -850,11 +850,11 @@ function CompactProductCard({ product }: { product: any }) {
             {product.images[0]?.url ? (
               <img src={product.images[0].url} alt={product.name} className="w-12 h-12 object-contain" />
             ) : (
-              <span className="text-2xl font-bold text-[#8B1D1D]">{product.name.charAt(0)}</span>
+              <span className="text-2xl font-bold text-[#1E2260]">{product.name.charAt(0)}</span>
             )}
           </div>
           {product.isFeatured && (
-            <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#8B1D1D] flex items-center justify-center">
+            <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
           )}
@@ -867,7 +867,7 @@ function CompactProductCard({ product }: { product: any }) {
       </Link>
       <div className="p-3 flex-1 flex flex-col">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-medium text-sm text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 min-h-[2.5rem]">
+          <h3 className="font-medium text-sm text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-2 min-h-[2.5rem]">
             {product.name}
           </h3>
         </Link>
@@ -894,7 +894,7 @@ function CompactProductCard({ product }: { product: any }) {
           {hasPrice ? (
             <Button
               size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+              className="w-full h-7 text-xs bg-[#1E2260] hover:bg-[#161848] text-white"
               asChild
             >
               <Link href={`/products/${product.slug}`}>
@@ -905,7 +905,7 @@ function CompactProductCard({ product }: { product: any }) {
           ) : (
             <Button
               size="sm"
-              className="w-full h-7 text-xs bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+              className="w-full h-7 text-xs bg-[#1E2260] hover:bg-[#161848] text-white"
               asChild
             >
               <Link href="/contact">
@@ -932,18 +932,18 @@ function ProductListItem({ product, category }: { product: any; category: any })
   const hasPrice = Number(product.basePrice) > 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#8B1D1D]/20 transition-all duration-300 group">
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#1E2260]/20 transition-all duration-300 group">
       <div className="flex items-stretch">
         <Link href={`/products/${product.slug}`} className="w-32 sm:w-40 flex-shrink-0 relative bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
           <div className="w-20 h-20 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100">
             {product.images[0]?.url ? (
               <img src={product.images[0].url} alt={product.name} className="w-14 h-14 object-contain" />
             ) : (
-              <span className="text-2xl font-bold text-[#8B1D1D]">{product.name.charAt(0)}</span>
+              <span className="text-2xl font-bold text-[#1E2260]">{product.name.charAt(0)}</span>
             )}
           </div>
           {product.isFeatured && (
-            <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[#8B1D1D] flex items-center justify-center">
+            <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
           )}
@@ -957,7 +957,7 @@ function ProductListItem({ product, category }: { product: any; category: any })
               </span>
             </div>
             <Link href={`/products/${product.slug}`}>
-              <h3 className="font-semibold text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-1">
+              <h3 className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
@@ -1003,13 +1003,13 @@ function ProductListItem({ product, category }: { product: any; category: any })
             <div className="flex gap-2">
               {hasPrice ? (
                 <>
-                  <Button size="sm" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap" asChild>
+                  <Button size="sm" className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg whitespace-nowrap" asChild>
                     <Link href={`/products/${product.slug}`}>
                       <Eye className="h-3.5 w-3.5 mr-1.5" />
                       Product Details
                     </Link>
                   </Button>
-                  <Button size="sm" variant="outline" className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D] rounded-lg" asChild>
+                  <Button size="sm" variant="outline" className="border-gray-200 hover:border-[#1E2260] hover:text-[#1E2260] rounded-lg" asChild>
                     <Link href="/contact">
                       <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
                       Contact
@@ -1017,7 +1017,7 @@ function ProductListItem({ product, category }: { product: any; category: any })
                   </Button>
                 </>
               ) : (
-                <Button size="sm" className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg whitespace-nowrap" asChild>
+                <Button size="sm" className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg whitespace-nowrap" asChild>
                   <Link href="/contact">
                     <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
                     Contact Us
@@ -1100,7 +1100,7 @@ function Pagination({
               key={page}
               variant={page === currentPage ? "default" : "outline"}
               size="sm"
-              className={`min-w-[40px] rounded-xl ${page === currentPage ? "bg-[#8B1D1D] hover:bg-[#7A1919]" : ""}`}
+              className={`min-w-[40px] rounded-xl ${page === currentPage ? "bg-[#1E2260] hover:bg-[#161848]" : ""}`}
               asChild={page !== currentPage}
             >
               {page !== currentPage ? <Link href={buildPageUrl(page)}>{page}</Link> : <span>{page}</span>}
@@ -1141,7 +1141,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${subCategory.name} - ${subCategory.category.name} | Shaurrya Teleservices`,
+    title: `${subCategory.name} - ${subCategory.category.name} | DeWiN Solutions`,
     description:
       subCategory.description ||
       `Browse ${subCategory.name} products in ${subCategory.category.name}. Find the best solutions for your business.`,

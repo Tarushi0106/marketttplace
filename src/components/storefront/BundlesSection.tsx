@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { Check, ChevronRight } from "lucide-react";
@@ -55,7 +55,7 @@ export function BundlesSection({ bundles }: BundlesSectionProps) {
           </div>
           <Link
             href="/bundles"
-            className="hidden md:flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline"
+            className="hidden md:flex items-center gap-2 text-[#1E2260] font-medium hover:underline"
           >
             See All Bundles
             <ChevronRight className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function BundlesSection({ bundles }: BundlesSectionProps) {
                 className="bg-white rounded-2xl p-6 md:p-8 relative overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 {savings > 0 && (
-                  <span className="absolute top-6 right-6 bg-[#8B1D1D] text-white text-sm font-medium px-3 py-1 rounded-full">
+                  <span className="absolute top-6 right-6 bg-[#1E2260] text-white text-sm font-medium px-3 py-1 rounded-full">
                     Save {savingsPercent}%
                   </span>
                 )}
@@ -109,7 +109,7 @@ export function BundlesSection({ bundles }: BundlesSectionProps) {
                 </div>
 
                 <Button
-                  className="mt-5 w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg h-12"
+                  className="mt-5 w-full bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg h-12"
                   asChild
                 >
                   <Link href={`/bundles/${bundle.slug}`}>View Bundle</Link>
@@ -122,7 +122,7 @@ export function BundlesSection({ bundles }: BundlesSectionProps) {
         <div className="mt-8 text-center md:hidden">
           <Link
             href="/bundles"
-            className="inline-flex items-center gap-2 text-[#8B1D1D] font-medium"
+            className="inline-flex items-center gap-2 text-[#1E2260] font-medium"
           >
             See All Bundles
             <ChevronRight className="h-4 w-4" />

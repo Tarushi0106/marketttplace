@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -513,7 +513,7 @@ export default function ProductConfigurationsPage() {
                 <p className="text-gray-500 mt-1">
                   Add configurations using the presets above or create custom ones
                 </p>
-                <Button onClick={handleCreate} className="mt-4 bg-[#8B1D1D] hover:bg-[#7A1919]">
+                <Button onClick={handleCreate} className="mt-4 bg-[#1E2260] hover:bg-[#161848]">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Configuration
                 </Button>
@@ -525,7 +525,7 @@ export default function ProductConfigurationsPage() {
                 <h2 className="text-xl font-semibold">
                   Configurations ({configurations.length})
                 </h2>
-                <Button onClick={handleCreate} className="bg-[#8B1D1D] hover:bg-[#7A1919]">
+                <Button onClick={handleCreate} className="bg-[#1E2260] hover:bg-[#161848]">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Custom Configuration
                 </Button>
@@ -539,7 +539,7 @@ export default function ProductConfigurationsPage() {
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
-                            <Icon className="h-5 w-5 text-[#8B1D1D]" />
+                            <Icon className="h-5 w-5 text-[#1E2260]" />
                             <CardTitle className="text-lg">{config.displayName}</CardTitle>
                           </div>
                           <Badge variant="outline">{config.configType}</Badge>
@@ -890,7 +890,7 @@ export default function ProductConfigurationsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-500"
+                            className="text-[#1E2260]"
                             onClick={() => removeOption(index)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -957,7 +957,7 @@ export default function ProductConfigurationsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-500"
+                            className="text-[#1E2260]"
                             onClick={() => removeOption(index)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -974,7 +974,7 @@ export default function ProductConfigurationsPage() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} className="bg-[#8B1D1D] hover:bg-[#7A1919]">
+            <Button onClick={handleSubmit} className="bg-[#1E2260] hover:bg-[#161848]">
               {editingConfig ? "Save Changes" : "Add Configuration"}
             </Button>
           </DialogFooter>

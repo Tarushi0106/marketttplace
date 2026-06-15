@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -106,7 +106,7 @@ const colorPresets = [
   { value: "#000000", label: "Black" },
   { value: "#D4A574", label: "Bronze" },
   { value: "#E5E5E5", label: "Light Gray" },
-  { value: "#FFE4E4", label: "Light Pink" },
+  { value: "#E8F0FF", label: "Light Pink" },
   { value: "#F5F5F5", label: "Off White" },
   { value: "#DBEAFE", label: "Light Blue" },
   { value: "#D1FAE5", label: "Light Green" },

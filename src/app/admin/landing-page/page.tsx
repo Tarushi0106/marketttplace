@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -109,7 +109,7 @@ const defaultSettings: LandingPageSettings = {
     backgroundImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80",
   },
   navbar: {
-    logoText: "NetNxt",
+    logoText: "DeWiN",
     showCategories: true,
     customLinks: [],
   },
@@ -149,11 +149,11 @@ const defaultSettings: LandingPageSettings = {
   },
   footer: {
     enabled: true,
-    companyName: "NetNxt",
+    companyName: "DeWiN",
     tagline: "Enterprise Solutions for Growing Business",
     address: "123 Commerce Street, Business City, BC 12345",
     phone: "+91 98765 43210",
-    email: "support@netnxt.com",
+    email: "support@dewin.com",
     socialLinks: [
       { platform: "facebook", url: "https://facebook.com" },
       { platform: "twitter", url: "https://twitter.com" },
@@ -460,7 +460,7 @@ export default function LandingPageSettings() {
                       navbar: { ...settings.navbar, logoText: e.target.value },
                     })
                   }
-                  placeholder="e.g., NetNxt"
+                  placeholder="e.g., DeWiN"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -516,7 +516,7 @@ export default function LandingPageSettings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-500"
+                      className="text-[#1E2260]"
                       onClick={() => removeCustomLink(index)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -804,7 +804,7 @@ export default function LandingPageSettings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-500"
+                      className="text-[#1E2260]"
                       onClick={() => removeFeature(index)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -870,7 +870,7 @@ export default function LandingPageSettings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-500"
+                      className="text-[#1E2260]"
                       onClick={() => removeStat(index)}
                     >
                       <Trash2 className="h-4 w-4" />

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -189,7 +189,7 @@ export default function InvoicePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-red-600">{error || "Order not found"}</p>
+          <p className="text-[#1E2260]">{error || "Order not found"}</p>
         </div>
       </div>
     );
@@ -451,7 +451,7 @@ export default function InvoicePage() {
             <div className="text-right">
               <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Authorized Signatory</h4>
               <div className="mt-8">
-                <p className="text-sm font-medium text-gray-900">For Shaurrya Teleservices</p>
+                <p className="text-sm font-medium text-gray-900">For DeWiN Solutions</p>
                 <p className="text-xs text-gray-500 mt-6">Authorised Signatory</p>
               </div>
             </div>

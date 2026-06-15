@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
@@ -95,7 +95,7 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
 const subCategoryColors = [
   { bg: "#DBEAFE", text: "#1E40AF" }, // Blue
   { bg: "#D1FAE5", text: "#065F46" }, // Green
-  { bg: "#FEE2E2", text: "#991B1B" }, // Red
+  { bg: "#E8F0FF", text: "#141740" }, // Red
   { bg: "#FEF3C7", text: "#92400E" }, // Amber
   { bg: "#E9D5FF", text: "#6B21A8" }, // Purple
   { bg: "#CFFAFE", text: "#0E7490" }, // Cyan
@@ -230,7 +230,7 @@ export default async function CategoryPage({
                   <div className="flex items-center gap-3 mb-3">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                      style={{ backgroundColor: category.iconBgColor || '#8B1D1D' }}
+                      style={{ backgroundColor: category.iconBgColor || '#1E2260' }}
                     >
                       {getCategoryIcon(category.icon, "w-6 h-6 text-white")}
                     </div>
@@ -251,7 +251,7 @@ export default async function CategoryPage({
                 <div className="flex gap-3">
                   <Button
                     size="lg"
-                    className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg h-12 px-6"
+                    className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg h-12 px-6"
                     asChild
                   >
                     <Link href={`/products?category=${category.slug}`}>
@@ -308,7 +308,7 @@ export default async function CategoryPage({
                           getSubCategoryIcon(sub.icon, index, "w-7 h-7", color.text)
                         )}
                       </div>
-                      <h3 className="font-semibold text-sm text-gray-900 group-hover:text-[#8B1D1D] transition-colors line-clamp-2 mb-1">
+                      <h3 className="font-semibold text-sm text-gray-900 group-hover:text-[#1E2260] transition-colors line-clamp-2 mb-1">
                         {sub.name}
                       </h3>
                       <p className="text-xs text-gray-500">{sub._count.products} products</p>
@@ -335,7 +335,7 @@ export default async function CategoryPage({
             </div>
             <Link
               href={`/products?category=${category.slug}`}
-              className="hidden md:flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline text-sm"
+              className="hidden md:flex items-center gap-2 text-[#1E2260] font-medium hover:underline text-sm"
             >
               View All
               <ArrowRight className="h-4 w-4" />
@@ -349,7 +349,7 @@ export default async function CategoryPage({
                 return (
                   <div
                     key={product.id}
-                    className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#8B1D1D]/20 transition-all duration-300 h-full group flex flex-col"
+                    className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#1E2260]/20 transition-all duration-300 h-full group flex flex-col"
                   >
                     {/* Product Image - Clickable */}
                     <Link href={`/products/${product.slug}`}>
@@ -373,7 +373,7 @@ export default async function CategoryPage({
                         {/* Badges */}
                         <div className="absolute top-3 left-3 flex gap-2">
                           {product.isFeatured && (
-                            <Badge className="bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C] text-white border-0 shadow-lg">
+                            <Badge className="bg-gradient-to-r from-[#1E2260] to-[#4A9FD5] text-white border-0 shadow-lg">
                               <Sparkles className="h-3 w-3 mr-1" />
                               Featured
                             </Badge>
@@ -392,7 +392,7 @@ export default async function CategoryPage({
                         {/* Logo Overlay */}
                         <div className="absolute bottom-3 left-3">
                           <div className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center border border-gray-100">
-                            <span className="text-sm font-bold text-[#8B1D1D]">
+                            <span className="text-sm font-bold text-[#1E2260]">
                               {product.name.charAt(0)}
                             </span>
                           </div>
@@ -410,7 +410,7 @@ export default async function CategoryPage({
                       </div>
 
                       <Link href={`/products/${product.slug}`}>
-                        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-[#8B1D1D] transition-colors min-h-[3rem]">
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-[#1E2260] transition-colors min-h-[3rem]">
                           {product.name}
                         </h3>
                       </Link>
@@ -453,7 +453,7 @@ export default async function CategoryPage({
                             <>
                               <Button
                                 size="sm"
-                                className="flex-1 bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+                                className="flex-1 bg-[#1E2260] hover:bg-[#161848] text-white"
                                 asChild
                               >
                                 <Link href={`/products/${product.slug}`}>
@@ -464,7 +464,7 @@ export default async function CategoryPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-gray-200 hover:border-[#8B1D1D] hover:text-[#8B1D1D]"
+                                className="border-gray-200 hover:border-[#1E2260] hover:text-[#1E2260]"
                                 asChild
                               >
                                 <Link href="/contact">
@@ -475,7 +475,7 @@ export default async function CategoryPage({
                           ) : (
                             <Button
                               size="sm"
-                              className="w-full bg-[#8B1D1D] hover:bg-[#7A1919] text-white"
+                              className="w-full bg-[#1E2260] hover:bg-[#161848] text-white"
                               asChild
                             >
                               <Link href="/contact">
@@ -529,7 +529,7 @@ export default async function CategoryPage({
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-[#8B1D1D] hover:bg-[#7A1919] text-white rounded-lg h-12 px-8"
+                className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg h-12 px-8"
                 asChild
               >
                 <Link href="/contact">Talk to an Expert</Link>
@@ -567,7 +567,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${category.name} | Shaurrya Teleservices`,
+    title: `${category.name} | DeWiN Solutions`,
     description: category.description || `Browse ${category.name} products and solutions. Find the best enterprise-grade solutions for your business.`,
   };
 }

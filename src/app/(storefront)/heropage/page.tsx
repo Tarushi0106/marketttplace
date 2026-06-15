@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { ArrowRight, Shield, Eye, Brain, Bell, Users, Activity, Zap, Check, Building2, Target, Cpu, Camera, Monitor, AlertTriangle, Search, TrendingUp } from 'lucide-react';
@@ -11,14 +11,14 @@ function HeroSection() {
       <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
       {/* Soft colour orbs */}
-      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-red-100 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#E8F0FF] rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] bg-blue-100 rounded-full blur-[100px] pointer-events-none" />
 
       <style jsx>{`
         .float-card { animation: floatY 6s ease-in-out infinite; }
         @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
         .shimmer-text {
-          background: linear-gradient(90deg,#dc2626,#ef4444,#dc2626,#ef4444,#dc2626);
+          background: linear-gradient(90deg,#1E2260,#1E2260,#1E2260,#1E2260,#1E2260);
           background-size: 300% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -34,8 +34,8 @@ function HeroSection() {
 
           {/* ── Left ── */}
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-600 text-sm font-semibold mb-8">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#EEF2FF] border border-[#D0DEFF] text-[#1E2260] text-sm font-semibold mb-8">
+              <span className="w-2 h-2 bg-[#1E2260] rounded-full animate-pulse" />
               We're Here. Always On. Always Watching.
             </div>
 
@@ -66,7 +66,7 @@ function HeroSection() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/products/vsaas?tab=solutions"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all hover:shadow-xl hover:shadow-red-600/25 hover:scale-105 text-base"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#1E2260] text-white font-bold rounded-xl hover:bg-[#2B3080] transition-all hover:shadow-xl hover:shadow-[#1E2260]/25 hover:scale-105 text-base"
               >
                 Explore Solutions
                 <ArrowRight className="w-5 h-5" />
@@ -75,7 +75,7 @@ function HeroSection() {
                 href="/products/vsaas/configure"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 transition-all border border-slate-200 hover:border-slate-300 text-base shadow-sm"
               >
-                <Cpu className="w-5 h-5 text-red-500" />
+                <Cpu className="w-5 h-5 text-[#1E2260]" />
                 Configure System
               </a>
             </div>
@@ -92,7 +92,7 @@ function HeroSection() {
                   <div>
                     <div className="text-2xl font-black text-slate-900 tabular-nums">
                       {s.v.replace(/[+%ms<]/g, '')}
-                      <span className="text-red-600">{s.v.match(/[+%ms<]/g)?.join('') ?? ''}</span>
+                      <span className="text-[#1E2260]">{s.v.match(/[+%ms<]/g)?.join('') ?? ''}</span>
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">{s.l}</div>
                   </div>
@@ -108,10 +108,10 @@ function HeroSection() {
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/80">
                 {/* Detection overlays */}
                 <div className="absolute inset-0 z-10 pointer-events-none">
-                  <div className="absolute top-3 left-3 w-12 h-12 border-l-2 border-t-2 border-red-500/60" />
-                  <div className="absolute top-3 right-3 w-12 h-12 border-r-2 border-t-2 border-red-500/60" />
-                  <div className="absolute bottom-3 left-3 w-12 h-12 border-l-2 border-b-2 border-red-500/60" />
-                  <div className="absolute bottom-3 right-3 w-12 h-12 border-r-2 border-b-2 border-red-500/60" />
+                  <div className="absolute top-3 left-3 w-12 h-12 border-l-2 border-t-2 border-[#1E2260]/60" />
+                  <div className="absolute top-3 right-3 w-12 h-12 border-r-2 border-t-2 border-[#1E2260]/60" />
+                  <div className="absolute bottom-3 left-3 w-12 h-12 border-l-2 border-b-2 border-[#1E2260]/60" />
+                  <div className="absolute bottom-3 right-3 w-12 h-12 border-r-2 border-b-2 border-[#1E2260]/60" />
                   <div className="absolute top-1/3 left-1/4 w-16 h-20 border-2 border-cyan-500/80 rounded-sm">
                     <div className="absolute -top-5 left-0 bg-cyan-500 text-white text-[8px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">PERSON 97%</div>
                   </div>
@@ -145,7 +145,7 @@ function HeroSection() {
               <div className="absolute -left-8 bottom-10 bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-xl">
                 <div className="flex items-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <Camera className="w-3 h-3 text-red-500" />
+                    <Camera className="w-3 h-3 text-[#1E2260]" />
                     <span className="text-slate-700 font-medium">24 Cameras</span>
                   </div>
                   <div className="w-px h-3 bg-slate-200" />
@@ -156,7 +156,7 @@ function HeroSection() {
                 </div>
               </div>
 
-              <div className="absolute -inset-6 bg-gradient-to-br from-red-50 via-transparent to-blue-50 rounded-3xl -z-10" />
+              <div className="absolute -inset-6 bg-gradient-to-br from-[#EEF2FF] via-transparent to-blue-50 rounded-3xl -z-10" />
             </div>
           </div>
         </div>
@@ -175,11 +175,11 @@ function FeatureTicker() {
     'Person of Interest Search', 'Vehicle Tracking', 'ANPR', 'Facial Recognition',
   ];
   return (
-    <div className="bg-[#DC2626] py-3 overflow-hidden select-none">
+    <div className="bg-[#1E2260] py-3 overflow-hidden select-none">
       <div className="flex gap-12 whitespace-nowrap" style={{ animation: 'ticker 35s linear infinite' }}>
         {[...features, ...features].map((f, i) => (
           <span key={i} className="text-white text-sm font-semibold flex items-center gap-3 flex-shrink-0">
-            <span className="w-1.5 h-1.5 bg-red-200/70 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-[#D0DEFF]/70 rounded-full" />
             {f}
           </span>
         ))}
@@ -191,7 +191,7 @@ function FeatureTicker() {
 // ==================== STATS BAR ====================
 function StatsBar() {
   const stats = [
-    { value: '20+',    label: 'AI Detection Models',    icon: Brain,    iconBg: 'bg-red-100',    iconColor: 'text-red-600'    },
+    { value: '20+',    label: 'AI Detection Models',    icon: Brain,    iconBg: 'bg-[#E8F0FF]',    iconColor: 'text-[#1E2260]'    },
     { value: '<100ms', label: 'Inference Latency',      icon: Zap,      iconBg: 'bg-amber-100',  iconColor: 'text-amber-600'  },
     { value: '99.7%',  label: 'Detection Accuracy',     icon: Target,   iconBg: 'bg-green-100',  iconColor: 'text-green-600'  },
     { value: '50k+',   label: 'Cameras Monitored',      icon: Camera,   iconBg: 'bg-blue-100',   iconColor: 'text-blue-600'   },
@@ -222,7 +222,7 @@ function StatsBar() {
 // ==================== AI CAPABILITIES SECTION ====================
 function AICapabilitiesSection() {
   const capabilities = [
-    { icon: Bell,    title: 'Real-time Alerts',   desc: 'Sub-second notifications via SMS, email and push when anomalies occur. Zero delay between detection and response.', metric: '<1s',  metricLabel: 'response time', accent: 'from-red-500 to-rose-600',     light: 'bg-red-50 border-red-100',    metricColor: 'text-red-600'    },
+    { icon: Bell,    title: 'Real-time Alerts',   desc: 'Sub-second notifications via SMS, email and push when anomalies occur. Zero delay between detection and response.', metric: '<1s',  metricLabel: 'response time', accent: 'from-[#1E2260] to-[#1E2260]',     light: 'bg-[#EEF2FF] border-[#E8F0FF]',    metricColor: 'text-[#1E2260]'    },
     { icon: Users,   title: 'Crowd Intelligence', desc: 'Track crowd density, movement flows, and occupancy patterns with AI models trained on millions of real-world scenarios.', metric: '99%',  metricLabel: 'accuracy',      accent: 'from-blue-500 to-blue-600',    light: 'bg-blue-50 border-blue-100',  metricColor: 'text-blue-600'   },
     { icon: Shield,  title: 'Anomaly Detection',  desc: 'Deep neural networks identify unusual behavior, suspicious patterns, and policy violations the instant they happen.', metric: '24/7', metricLabel: 'always on',     accent: 'from-purple-500 to-purple-600',light: 'bg-purple-50 border-purple-100',metricColor: 'text-purple-600' },
     { icon: Eye,     title: 'Object Recognition', desc: 'Classify and track 50+ object types — vehicles, people, weapons — with enterprise-grade precision and confidence scores.', metric: '50+',  metricLabel: 'object types',  accent: 'from-cyan-500 to-cyan-600',    light: 'bg-cyan-50 border-cyan-100',  metricColor: 'text-cyan-600'   },
@@ -234,13 +234,13 @@ function AICapabilitiesSection() {
       <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #cbd5e1 1px, transparent 0)', backgroundSize: '32px 32px' }} />
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
         <div className="text-center mb-14 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEF2FF] border border-[#D0DEFF] text-[#1E2260] text-sm font-semibold mb-6">
             <Activity className="w-4 h-4" />
             Core AI Capabilities
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-5">
             AI That{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E2260] to-[#1E2260]">
               Sees, Thinks & Acts
             </span>
           </h2>
@@ -285,29 +285,29 @@ function AIFeaturesDemo() {
     {
       title: 'Real-time Alerts',
       label: 'THREAT RESPONSE',
-      cardBg: 'bg-red-50',
-      cardBorder: 'border-red-200',
-      accent: 'text-red-500',
+      cardBg: 'bg-[#EEF2FF]',
+      cardBorder: 'border-[#D0DEFF]',
+      accent: 'text-[#1E2260]',
       icon: Bell,
-      iconBg: 'from-red-500 to-rose-600',
+      iconBg: 'from-[#1E2260] to-[#1E2260]',
       animation: (
-        <div className="relative w-full h-28 bg-slate-900 rounded-xl overflow-hidden border border-red-500/20">
-          <div className="absolute top-0 left-0 right-0 h-7 bg-red-600 flex items-center justify-center gap-2">
-            <div className="w-1.5 h-1.5 bg-red-200 rounded-full animate-ping" />
+        <div className="relative w-full h-28 bg-slate-900 rounded-xl overflow-hidden border border-[#1E2260]/20">
+          <div className="absolute top-0 left-0 right-0 h-7 bg-[#1E2260] flex items-center justify-center gap-2">
+            <div className="w-1.5 h-1.5 bg-[#D0DEFF] rounded-full animate-ping" />
             <span className="text-white text-[9px] font-black tracking-widest">⚠ SECURITY ALERT</span>
           </div>
           <div className="absolute top-10 left-1/2 -translate-x-1/2">
             <div className="w-8 h-8 relative">
-              <div className="w-8 h-8 bg-red-500 rounded-full absolute top-0" style={{ animation: 'bellRing 0.5s ease-in-out infinite', transformOrigin: 'top center' }} />
-              <div className="w-1 h-3 bg-red-500 absolute top-7 left-1/2 -translate-x-1/2" />
-              <div className="w-3 h-3 bg-red-500 rounded-full absolute top-9 left-1/2 -translate-x-1/2 animate-ping" />
+              <div className="w-8 h-8 bg-[#1E2260] rounded-full absolute top-0" style={{ animation: 'bellRing 0.5s ease-in-out infinite', transformOrigin: 'top center' }} />
+              <div className="w-1 h-3 bg-[#1E2260] absolute top-7 left-1/2 -translate-x-1/2" />
+              <div className="w-3 h-3 bg-[#1E2260] rounded-full absolute top-9 left-1/2 -translate-x-1/2 animate-ping" />
             </div>
           </div>
           <div className="absolute bottom-2 left-2 right-2 h-8 overflow-hidden">
             <div className="flex flex-col gap-1" style={{ animation: 'scrollUp 3s linear infinite' }}>
               {['Motion detected', 'Face recognized', 'Zone breach', 'Intrusion alert'].map((t) => (
-                <div key={t} className="bg-red-900/60 text-red-200 text-[7px] px-2 py-0.5 rounded flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />{t}
+                <div key={t} className="bg-[#0D1040]/60 text-[#D0DEFF] text-[7px] px-2 py-0.5 rounded flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-[#4A9FD5] rounded-full" />{t}
                 </div>
               ))}
             </div>
@@ -425,12 +425,12 @@ function AIFeaturesDemo() {
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold mb-6">
-            <Monitor className="w-4 h-4 text-red-500" />
+            <Monitor className="w-4 h-4 text-[#1E2260]" />
             Live AI Demonstrations
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             See the AI{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E2260] to-[#1E2260]">
               Think in Real-Time
             </span>
           </h2>
@@ -469,7 +469,7 @@ function AIFeaturesDemo() {
 // ==================== AI USE CASES GRID ====================
 function AIUseCasesSection() {
   const useCases = [
-    { title: 'Security',     desc: 'Intrusion detection, perimeter monitoring, facial recognition, and real-time threat response.',      icon: Shield,       gradient: 'from-red-500 to-rose-600',       bg: 'bg-red-50',     border: 'border-red-100',     features: ['Intrusion Detection', 'Face Recognition', 'Perimeter Monitoring'] },
+    { title: 'Security',     desc: 'Intrusion detection, perimeter monitoring, facial recognition, and real-time threat response.',      icon: Shield,       gradient: 'from-[#1E2260] to-[#1E2260]',       bg: 'bg-[#EEF2FF]',     border: 'border-[#E8F0FF]',     features: ['Intrusion Detection', 'Face Recognition', 'Perimeter Monitoring'] },
     { title: 'Operations',   desc: 'People counting, queue management, heatmap analytics — turn camera data into business intelligence.',icon: TrendingUp,   gradient: 'from-blue-500 to-blue-600',      bg: 'bg-blue-50',    border: 'border-blue-100',    features: ['People Counting', 'Queue Management', 'Heatmap Analytics'] },
     { title: 'Safety',       desc: 'PPE compliance, smoke & fire detection, and hazard zone monitoring for zero-accident workplaces.',  icon: AlertTriangle, gradient: 'from-orange-500 to-amber-600',   bg: 'bg-orange-50',  border: 'border-orange-100',  features: ['PPE Detection', 'Smoke & Fire Alert', 'Hazard Zone Monitor'] },
     { title: 'Investigation',desc: 'ANPR, appearance-based search, vehicle tracking — forensic-grade tools built into your live feed.', icon: Search,       gradient: 'from-purple-500 to-violet-600',  bg: 'bg-purple-50',  border: 'border-purple-100',  features: ['ANPR', 'Appearance Search', 'Vehicle Tracking'] },
@@ -480,12 +480,12 @@ function AIUseCasesSection() {
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="text-center mb-14 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-semibold mb-6 shadow-sm">
-            <Target className="w-4 h-4 text-red-500" />
+            <Target className="w-4 h-4 text-[#1E2260]" />
             Industry Applications
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-5">
             One Platform.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1E2260] to-[#1E2260]">
               Every Use Case.
             </span>
           </h2>
@@ -519,9 +519,9 @@ function AIUseCasesSection() {
 
         {/* CTA banner */}
         <div className="mt-14">
-          <div className="relative bg-red-600 rounded-2xl p-10 overflow-hidden">
+          <div className="relative bg-[#1E2260] rounded-2xl p-10 overflow-hidden">
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-rose-500/30 rounded-full blur-[60px] pointer-events-none" />
+            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-[#1E2260]/30 rounded-full blur-[60px] pointer-events-none" />
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-bold mb-4">
@@ -531,7 +531,7 @@ function AIUseCasesSection() {
                 <h3 className="text-3xl font-black text-white mb-2">
                   Starting at Just ₹199/feature
                 </h3>
-                <p className="text-red-100 max-w-md">
+                <p className="text-[#E8F0FF] max-w-md">
                   Full-featured AI video analytics. No setup fees, no hardware replacement. Cancel anytime.
                 </p>
                 <div className="flex flex-wrap gap-5 mt-5">
@@ -549,7 +549,7 @@ function AIUseCasesSection() {
                   <span className="text-4xl font-black text-slate-900">₹199</span>
                   <span className="text-slate-500 text-sm">/feature</span>
                 </div>
-                <a href="/products/vsaas/configure" className="inline-flex items-center justify-center gap-1.5 w-full px-5 py-3 bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors">
+                <a href="/products/vsaas/configure" className="inline-flex items-center justify-center gap-1.5 w-full px-5 py-3 bg-[#1E2260] text-white text-sm font-bold rounded-xl hover:bg-[#2B3080] transition-colors">
                   Configure Now
                   <ArrowRight className="w-4 h-4" />
                 </a>
@@ -565,7 +565,7 @@ function AIUseCasesSection() {
 // ==================== PLATFORM ARCHITECTURE ====================
 function PlatformArchitectureSection() {
   const steps = [
-    { icon: Camera,  num: '01', label: 'Capture',  desc: 'Existing CCTV cameras — no hardware replacement needed.',    color: 'from-red-500 to-rose-600',      numColor: 'text-red-100'    },
+    { icon: Camera,  num: '01', label: 'Capture',  desc: 'Existing CCTV cameras — no hardware replacement needed.',    color: 'from-[#1E2260] to-[#1E2260]',      numColor: 'text-[#E8F0FF]'    },
     { icon: Cpu,     num: '02', label: 'Process',  desc: 'Edge or cloud processing with GPU-accelerated inference.',    color: 'from-orange-500 to-amber-600',  numColor: 'text-orange-100' },
     { icon: Brain,   num: '03', label: 'Analyze',  desc: 'Deep learning models extract intelligence from every frame.', color: 'from-blue-500 to-blue-600',     numColor: 'text-blue-100'   },
     { icon: Monitor, num: '04', label: 'Act',       desc: 'Alerts, dashboards, and automated responses in real time.',  color: 'from-purple-500 to-violet-600', numColor: 'text-purple-100' },
@@ -592,7 +592,7 @@ function PlatformArchitectureSection() {
         </div>
 
         <div className="relative">
-          <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-red-200 via-blue-200 to-purple-200" />
+          <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-[#D0DEFF] via-blue-200 to-purple-200" />
           <div className="grid md:grid-cols-4 gap-6">
             {steps.map((step, idx) => {
               const Icon = step.icon;

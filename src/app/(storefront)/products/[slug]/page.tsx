@@ -222,15 +222,14 @@ function DecoVoiceDescription() {
       </div>
       <div>
         <h4 className="text-base font-bold text-gray-900 mb-4">How DECO Voice Works</h4>
-        <div className="flex flex-col sm:flex-row gap-2 overflow-x-auto pb-2">
-          {steps.map((s, i) => (
-            <div key={s.num} className="flex sm:flex-col items-start sm:items-center gap-3 sm:gap-2 p-4 rounded-xl border border-gray-100 bg-white flex-1 min-w-[160px]">
+        <div className="grid sm:grid-cols-2 gap-3">
+          {steps.map((s) => (
+            <div key={s.num} className="flex gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1E2260]/20 hover:shadow-sm transition-all bg-white">
               <span className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#1E2260] text-xs font-black flex items-center justify-center shrink-0">{s.num}</span>
-              <div className="sm:text-center">
+              <div>
                 <p className="text-sm font-semibold text-gray-900">{s.title}</p>
                 <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{s.desc}</p>
               </div>
-              {i < steps.length - 1 && <div className="hidden sm:block w-full h-px bg-gradient-to-r from-[#1E2260]/20 to-transparent absolute" />}
             </div>
           ))}
         </div>
@@ -648,8 +647,10 @@ export default async function ProductDetailPage({ params, searchParams }: Props)
                 value="solutions"
                 className="h-14 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E2260] data-[state=active]:text-[#1E2260] data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium"
               >
-                <Cloud className="h-4 w-4 mr-2" />
-                Solutions
+                {['deco-voice', 'deco-talent'].includes(product.slug)
+                  ? <><CreditCard className="h-4 w-4 mr-2" />Pricing</>
+                  : <><Cloud className="h-4 w-4 mr-2" />Solutions</>
+                }
               </TabsTrigger>
               )}
               {!['vsaas', 'deco-voice', 'deco-talent'].includes(product.slug) && (

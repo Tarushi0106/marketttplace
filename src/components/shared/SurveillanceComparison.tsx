@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 
@@ -32,20 +32,20 @@ const SurveillanceComparison: React.FC = () => {
 
           {/* On-Premise Side Gradients */}
           <linearGradient id="onPremiseGradientRight" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7f1d1d" />
-            <stop offset="50%" stopColor="#991b1b" />
-            <stop offset="100%" stopColor="#b91c1c" />
+            <stop offset="0%" stopColor="#0D1040" />
+            <stop offset="50%" stopColor="#141740" />
+            <stop offset="100%" stopColor="#161848" />
           </linearGradient>
           
           <linearGradient id="skyGradientRight" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1a0505" />
-            <stop offset="100%" stopColor="#2a0a0a" />
+            <stop offset="0%" stopColor="#0D1040" />
+            <stop offset="100%" stopColor="#141740" />
           </linearGradient>
           
           <linearGradient id="serverGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="50%" stopColor="#dc2626" />
-            <stop offset="100%" stopColor="#b91c1c" />
+            <stop offset="0%" stopColor="#1E2260" />
+            <stop offset="50%" stopColor="#1E2260" />
+            <stop offset="100%" stopColor="#161848" />
           </linearGradient>
 
           {/* Data Stream Gradient */}
@@ -209,104 +209,104 @@ const SurveillanceComparison: React.FC = () => {
         {/* ==================== RIGHT SIDE: ON-PREMISE SURVEILLANCE ==================== */}
 
         {/* Ground */}
-        <ellipse cx="900" cy="520" rx="250" ry="40" fill="#2a0a0a" opacity="0.5" />
+        <ellipse cx="900" cy="520" rx="250" ry="40" fill="#141740" opacity="0.5" />
 
         {/* CCTV Camera - Left Right Side */}
         <g transform="translate(720, 280)">
           <rect x="0" y="0" width="40" height="25" rx="4" fill="#374151" />
-          <circle cx="40" cy="12" r="8" fill="#1f2937" stroke="#ef4444" strokeWidth="2" />
-          <circle cx="40" cy="12" r="4" fill="#fca5a5" />
+          <circle cx="40" cy="12" r="8" fill="#1f2937" stroke="#1E2260" strokeWidth="2" />
+          <circle cx="40" cy="12" r="4" fill="#93C5FD" />
           <rect x="15" y="25" width="10" height="30" fill="#4b5563" />
           <rect x="5" y="55" width="30" height="80" fill="#374151" rx="2" />
-          <circle cx="20" cy="10" r="2" fill="#ef4444" filter="url(#serverGlowFilter)" />
+          <circle cx="20" cy="10" r="2" fill="#1E2260" filter="url(#serverGlowFilter)" />
         </g>
 
         {/* CCTV Camera - Right Right Side */}
         <g transform="translate(1020, 280)">
           <rect x="0" y="0" width="40" height="25" rx="4" fill="#374151" />
-          <circle cx="0" cy="12" r="8" fill="#1f2937" stroke="#ef4444" strokeWidth="2" />
-          <circle cx="0" cy="12" r="4" fill="#fca5a5" />
+          <circle cx="0" cy="12" r="8" fill="#1f2937" stroke="#1E2260" strokeWidth="2" />
+          <circle cx="0" cy="12" r="4" fill="#93C5FD" />
           <rect x="15" y="25" width="10" height="30" fill="#4b5563" />
           <rect x="5" y="55" width="30" height="80" fill="#374151" rx="2" />
-          <circle cx="20" cy="10" r="2" fill="#dc2626" filter="url(#serverGlowFilter)" />
+          <circle cx="20" cy="10" r="2" fill="#1E2260" filter="url(#serverGlowFilter)" />
         </g>
 
         {/* Data Cables to Servers */}
         <g filter="url(#dataGlow)">
-          <path d="M740 340 Q 800 300 850 280" stroke="#ef4444" strokeWidth="2" fill="none" opacity="0.6" />
-          <path d="M1060 340 Q 1000 300 950 280" stroke="#b91c1c" strokeWidth="2" fill="none" opacity="0.6" />
+          <path d="M740 340 Q 800 300 850 280" stroke="#1E2260" strokeWidth="2" fill="none" opacity="0.6" />
+          <path d="M1060 340 Q 1000 300 950 280" stroke="#161848" strokeWidth="2" fill="none" opacity="0.6" />
         </g>
 
         {/* Server Racks / Data Center */}
         <g transform="translate(780, 180)">
           {/* Main Rack Frame */}
-          <rect x="0" y="0" width="140" height="200" rx="8" fill="#1a0505" stroke="#7f1d1d" strokeWidth="3" />
+          <rect x="0" y="0" width="140" height="200" rx="8" fill="#0D1040" stroke="#0D1040" strokeWidth="3" />
           
           {/* Server Units */}
           {/* Server 1 */}
-          <rect x="10" y="15" width="120" height="25" rx="3" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
-          <rect x="15" y="20" width="30" height="15" fill="#ef4444" opacity="0.8" rx="2" />
-          <rect x="50" y="20" width="30" height="15" fill="#dc2626" opacity="0.8" rx="2" />
-          <rect x="85" y="20" width="30" height="15" fill="#991b1b" opacity="0.8" rx="2" />
+          <rect x="10" y="15" width="120" height="25" rx="3" fill="#141740" stroke="#141740" strokeWidth="1" />
+          <rect x="15" y="20" width="30" height="15" fill="#1E2260" opacity="0.8" rx="2" />
+          <rect x="50" y="20" width="30" height="15" fill="#1E2260" opacity="0.8" rx="2" />
+          <rect x="85" y="20" width="30" height="15" fill="#141740" opacity="0.8" rx="2" />
           {/* LED lights */}
-          <circle cx="18" cy="27" r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+          <circle cx="18" cy="27" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.5s" repeatCount="indefinite" />
           </circle>
-          <circle cx="53" cy="27" r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+          <circle cx="53" cy="27" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.7s" repeatCount="indefinite" />
           </circle>
-          <circle cx="88" cy="27" r="2" fill="#dc2626" filter="url(#serverGlowFilter)" />
+          <circle cx="88" cy="27" r="2" fill="#1E2260" filter="url(#serverGlowFilter)" />
 
           {/* Server 2 */}
-          <rect x="10" y="50" width="120" height="25" rx="3" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
-          <rect x="15" y="55" width="40" height="15" fill="#b91c1c" opacity="0.8" rx="2" />
-          <rect x="60" y="55" width="40" height="15" fill="#991b1b" opacity="0.8" rx="2" />
-          <circle cx="18" cy="62" r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+          <rect x="10" y="50" width="120" height="25" rx="3" fill="#141740" stroke="#141740" strokeWidth="1" />
+          <rect x="15" y="55" width="40" height="15" fill="#161848" opacity="0.8" rx="2" />
+          <rect x="60" y="55" width="40" height="15" fill="#141740" opacity="0.8" rx="2" />
+          <circle cx="18" cy="62" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.6s" repeatCount="indefinite" />
           </circle>
-          <circle cx="63" cy="62" r="2" fill="#dc2626" filter="url(#serverGlowFilter)">
+          <circle cx="63" cy="62" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite" />
           </circle>
 
           {/* Server 3 */}
-          <rect x="10" y="85" width="120" height="25" rx="3" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
-          <rect x="15" y="90" width="25" height="15" fill="#dc2626" opacity="0.8" rx="2" />
-          <rect x="45" y="90" width="25" height="15" fill="#ef4444" opacity="0.8" rx="2" />
-          <rect x="75" y="90" width="40" height="15" fill="#b91c1c" opacity="0.8" rx="2" />
-          <circle cx="18" cy="97" r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+          <rect x="10" y="85" width="120" height="25" rx="3" fill="#141740" stroke="#141740" strokeWidth="1" />
+          <rect x="15" y="90" width="25" height="15" fill="#1E2260" opacity="0.8" rx="2" />
+          <rect x="45" y="90" width="25" height="15" fill="#1E2260" opacity="0.8" rx="2" />
+          <rect x="75" y="90" width="40" height="15" fill="#161848" opacity="0.8" rx="2" />
+          <circle cx="18" cy="97" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.4s" repeatCount="indefinite" />
           </circle>
 
           {/* Server 4 */}
-          <rect x="10" y="120" width="120" height="25" rx="3" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
-          <rect x="15" y="125" width="50" height="15" fill="#991b1b" opacity="0.8" rx="2" />
-          <rect x="70" y="125" width="50" height="15" fill="#dc2626" opacity="0.8" rx="2" />
-          <circle cx="18" cy="132" r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+          <rect x="10" y="120" width="120" height="25" rx="3" fill="#141740" stroke="#141740" strokeWidth="1" />
+          <rect x="15" y="125" width="50" height="15" fill="#141740" opacity="0.8" rx="2" />
+          <rect x="70" y="125" width="50" height="15" fill="#1E2260" opacity="0.8" rx="2" />
+          <circle cx="18" cy="132" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.9s" repeatCount="indefinite" />
           </circle>
 
           {/* Server 5 */}
-          <rect x="10" y="155" width="120" height="25" rx="3" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
-          <rect x="15" y="160" width="35" height="15" fill="#b91c1c" opacity="0.8" rx="2" />
-          <rect x="55" y="160" width="35" height="15" fill="#991b1b" opacity="0.8" rx="2" />
-          <rect x="95" y="160" width="20" height="15" fill="#7f1d1d" opacity="0.8" rx="2" />
-          <circle cx="18" cy="167" r="2" fill="#dc2626" filter="url(#serverGlowFilter)">
+          <rect x="10" y="155" width="120" height="25" rx="3" fill="#141740" stroke="#141740" strokeWidth="1" />
+          <rect x="15" y="160" width="35" height="15" fill="#161848" opacity="0.8" rx="2" />
+          <rect x="55" y="160" width="35" height="15" fill="#141740" opacity="0.8" rx="2" />
+          <rect x="95" y="160" width="20" height="15" fill="#0D1040" opacity="0.8" rx="2" />
+          <circle cx="18" cy="167" r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.3;1" dur="0.55s" repeatCount="indefinite" />
           </circle>
         </g>
 
         {/* Network Switch Panel */}
         <g transform="translate(930, 200)">
-          <rect x="0" y="0" width="60" height="100" rx="4" fill="#1a0505" stroke="#7f1d1d" strokeWidth="2" />
+          <rect x="0" y="0" width="60" height="100" rx="4" fill="#0D1040" stroke="#0D1040" strokeWidth="2" />
           
           {/* Network ports */}
           {Array.from({ length: 8 }).map((_, i) => (
-            <rect key={i} x="8" y={10 + i * 10} width="20" height="6" fill="#2a0a0a" stroke="#991b1b" strokeWidth="1" />
+            <rect key={i} x="8" y={10 + i * 10} width="20" height="6" fill="#141740" stroke="#141740" strokeWidth="1" />
           ))}
           
           {/* Status LEDs */}
           {Array.from({ length: 4 }).map((_, i) => (
-            <circle key={i} cx="48" cy={12 + i * 10} r="2" fill="#ef4444" filter="url(#serverGlowFilter)">
+            <circle key={i} cx="48" cy={12 + i * 10} r="2" fill="#1E2260" filter="url(#serverGlowFilter)">
               <animate attributeName="opacity" values="1;0.2;1" dur={`${0.3 + i * 0.2}s`} repeatCount="indefinite" />
             </circle>
           ))}
@@ -314,51 +314,51 @@ const SurveillanceComparison: React.FC = () => {
 
         {/* Network Cables */}
         <g strokeWidth="2" opacity="0.7">
-          <path d="M900 230 Q 930 210 940 210" stroke="#b91c1c" fill="none" />
-          <path d="M900 250 Q 930 240 940 240" stroke="#991b1b" fill="none" />
-          <path d="M900 270 Q 930 270 940 270" stroke="#7f1d1d" fill="none" />
+          <path d="M900 230 Q 930 210 940 210" stroke="#161848" fill="none" />
+          <path d="M900 250 Q 930 240 940 240" stroke="#141740" fill="none" />
+          <path d="M900 270 Q 930 270 940 270" stroke="#0D1040" fill="none" />
         </g>
 
         {/* Local Recording Indicator */}
         <g transform="translate(800, 420)">
-          <rect x="0" y="0" width="180" height="70" rx="6" fill="#1a0505" stroke="#991b1b" strokeWidth="2" opacity="0.9" />
+          <rect x="0" y="0" width="180" height="70" rx="6" fill="#0D1040" stroke="#141740" strokeWidth="2" opacity="0.9" />
           
           {/* Recording indicator */}
-          <circle cx="25" cy="20" r="8" fill="#dc2626" filter="url(#serverGlowFilter)">
+          <circle cx="25" cy="20" r="8" fill="#1E2260" filter="url(#serverGlowFilter)">
             <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
           </circle>
           
           {/* HDD icon */}
-          <rect x="45" y="12" width="30" height="20" rx="2" fill="#2a0a0a" stroke="#b91c1c" strokeWidth="1" />
-          <circle cx="60" cy="22" r="6" fill="none" stroke="#991b1b" strokeWidth="2" />
-          <circle cx="60" cy="22" r="2" fill="#ef4444" />
+          <rect x="45" y="12" width="30" height="20" rx="2" fill="#141740" stroke="#161848" strokeWidth="1" />
+          <circle cx="60" cy="22" r="6" fill="none" stroke="#141740" strokeWidth="2" />
+          <circle cx="60" cy="22" r="2" fill="#1E2260" />
           
           {/* Storage bars */}
-          <rect x="85" y="15" width="80" height="8" fill="#2a0a0a" rx="1" />
-          <rect x="85" y="15" width="50" height="8" fill="#991b1b" rx="1" />
+          <rect x="85" y="15" width="80" height="8" fill="#141740" rx="1" />
+          <rect x="85" y="15" width="50" height="8" fill="#141740" rx="1" />
           
-          <rect x="85" y="28" width="80" height="8" fill="#2a0a0a" rx="1" />
-          <rect x="85" y="28" width="65" height="8" fill="#b91c1c" rx="1" />
+          <rect x="85" y="28" width="80" height="8" fill="#141740" rx="1" />
+          <rect x="85" y="28" width="65" height="8" fill="#161848" rx="1" />
           
-          <rect x="85" y="41" width="80" height="8" fill="#2a0a0a" rx="1" />
-          <rect x="85" y="41" width="40" height="8" fill="#dc2626" rx="1" />
+          <rect x="85" y="41" width="80" height="8" fill="#141740" rx="1" />
+          <rect x="85" y="41" width="40" height="8" fill="#1E2260" rx="1" />
           
           {/* Label */}
-          <text x="15" y="55" fontFamily="monospace" fontSize="10" fill="#fca5a5">LOCAL STORAGE</text>
+          <text x="15" y="55" fontFamily="monospace" fontSize="10" fill="#93C5FD">LOCAL STORAGE</text>
         </g>
 
         {/* Security Shield Icon */}
         <g transform="translate(1050, 380)">
-          <path d="M20 5 L35 10 L35 30 Q 20 45 5 30 L5 10 Z" fill="#1a0505" stroke="#b91c1c" strokeWidth="2" />
-          <path d="M20 12 L28 15 L28 28 Q 20 36 12 28 L12 15 Z" fill="none" stroke="#ef4444" strokeWidth="2" />
-          <circle cx="20" cy="22" r="3" fill="#dc2626" filter="url(#serverGlowFilter)" />
+          <path d="M20 5 L35 10 L35 30 Q 20 45 5 30 L5 10 Z" fill="#0D1040" stroke="#161848" strokeWidth="2" />
+          <path d="M20 12 L28 15 L28 28 Q 20 36 12 28 L12 15 Z" fill="none" stroke="#1E2260" strokeWidth="2" />
+          <circle cx="20" cy="22" r="3" fill="#1E2260" filter="url(#serverGlowFilter)" />
         </g>
 
         {/* Lock Icon */}
         <g transform="translate(730, 400)">
-          <rect x="5" y="15" width="25" height="20" rx="3" fill="#1a0505" stroke="#991b1b" strokeWidth="2" />
-          <path d="M10 15 L10 10 Q 10 5 17.5 5 Q 25 5 25 10 L25 15" fill="none" stroke="#b91c1c" strokeWidth="3" />
-          <circle cx="17.5" cy="25" r="3" fill="#dc2626" filter="url(#serverGlowFilter)" />
+          <rect x="5" y="15" width="25" height="20" rx="3" fill="#0D1040" stroke="#141740" strokeWidth="2" />
+          <path d="M10 15 L10 10 Q 10 5 17.5 5 Q 25 5 25 10 L25 15" fill="none" stroke="#161848" strokeWidth="3" />
+          <circle cx="17.5" cy="25" r="3" fill="#1E2260" filter="url(#serverGlowFilter)" />
         </g>
 
         {/* VSaaS on Cloud Label - Left Side */}
@@ -397,39 +397,39 @@ const SurveillanceComparison: React.FC = () => {
         <text x="900" y="80" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="bold" fill="url(#onPremiseGradientRight)">
           On-Premise Solution
         </text>
-        <text x="900" y="105" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="14" fill="#fca5a5" opacity="0.9">
+        <text x="900" y="105" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="14" fill="#93C5FD" opacity="0.9">
           Host on your own servers
         </text>
-        <text x="900" y="122" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="12" fill="#ef4444" opacity="0.7">
+        <text x="900" y="122" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="12" fill="#1E2260" opacity="0.7">
           Complete data control &amp; ownership
         </text>
 
         {/* On-Premise Benefits - Right Side */}
         <g transform="translate(780, 460)">
-          <rect x="0" y="0" width="240" height="90" rx="8" fill="#1a0505" stroke="#991b1b" strokeWidth="1" opacity="0.85" />
-          <text x="120" y="22" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="11" fontWeight="600" fill="#ef4444">BENEFITS</text>
-          <line x1="15" y1="32" x2="225" y2="32" stroke="#b91c1c" strokeWidth="1" opacity="0.4" />
-          <circle cx="25" cy="48" r="4" fill="#ef4444" />
+          <rect x="0" y="0" width="240" height="90" rx="8" fill="#0D1040" stroke="#141740" strokeWidth="1" opacity="0.85" />
+          <text x="120" y="22" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="11" fontWeight="600" fill="#1E2260">BENEFITS</text>
+          <line x1="15" y1="32" x2="225" y2="32" stroke="#161848" strokeWidth="1" opacity="0.4" />
+          <circle cx="25" cy="48" r="4" fill="#1E2260" />
           <text x="38" y="52" fontFamily="system-ui, sans-serif" fontSize="10" fill="#e2e8f0">Professional Support</text>
-          <circle cx="25" cy="65" r="4" fill="#dc2626" />
+          <circle cx="25" cy="65" r="4" fill="#1E2260" />
           <text x="38" y="69" fontFamily="system-ui, sans-serif" fontSize="10" fill="#e2e8f0">Easy Setup</text>
-          <circle cx="130" cy="48" r="4" fill="#b91c1c" />
+          <circle cx="130" cy="48" r="4" fill="#161848" />
           <text x="143" y="52" fontFamily="system-ui, sans-serif" fontSize="10" fill="#e2e8f0">24/7 Monitoring</text>
-          <circle cx="130" cy="65" r="4" fill="#991b1b" />
+          <circle cx="130" cy="65" r="4" fill="#141740" />
           <text x="143" y="69" fontFamily="system-ui, sans-serif" fontSize="10" fill="#e2e8f0">Full Data Control</text>
         </g>
 
         {/* Configure Button - Right Side */}
         <g transform="translate(850, 555)">
-          <rect x="0" y="0" width="100" height="30" rx="6" fill="#991b1b" filter="url(#serverGlowFilter)" />
+          <rect x="0" y="0" width="100" height="30" rx="6" fill="#141740" filter="url(#serverGlowFilter)" />
           <text x="50" y="20" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="12" fontWeight="600" fill="#ffffff">Configure</text>
         </g>
 
         {/* Ambient particles for right side */}
         <g opacity="0.4">
-          <circle cx="750" cy="150" r="3" fill="#ef4444" filter="url(#serverGlowFilter)" />
-          <circle cx="950" cy="130" r="2" fill="#dc2626" filter="url(#serverGlowFilter)" />
-          <circle cx="1100" cy="160" r="3" fill="#b91c1c" filter="url(#serverGlowFilter)" />
+          <circle cx="750" cy="150" r="3" fill="#1E2260" filter="url(#serverGlowFilter)" />
+          <circle cx="950" cy="130" r="2" fill="#1E2260" filter="url(#serverGlowFilter)" />
+          <circle cx="1100" cy="160" r="3" fill="#161848" filter="url(#serverGlowFilter)" />
         </g>
       </svg>
     </div>

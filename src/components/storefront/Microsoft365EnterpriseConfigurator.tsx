@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { ShoppingCart, Building2 } from "lucide-react";
@@ -227,7 +227,7 @@ export function Microsoft365EnterpriseConfigurator({ productId }: { productId: s
                         onClick={() => setBillingCycle(option.value)}
                         className={`p-2 rounded-lg border text-center transition-all ${
                           billingCycle === option.value
-                            ? "border-[#DC2626] bg-red-50"
+                            ? "border-[#1E2260] bg-[#EEF2FF]"
                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                         }`}
                       >
@@ -269,7 +269,7 @@ export function Microsoft365EnterpriseConfigurator({ productId }: { productId: s
                     <div className="flex justify-between items-baseline mb-4">
                       <span className="text-base font-bold text-gray-900">Total</span>
                       <div className="text-right">
-                        <span className="text-xl font-black text-[#DC2626]">
+                        <span className="text-xl font-black text-[#1E2260]">
                           {formatINR(subtotal)}
                         </span>
                         <span className="text-xs text-gray-400 ml-1">{termSuffix}</span>
@@ -279,7 +279,7 @@ export function Microsoft365EnterpriseConfigurator({ productId }: { productId: s
                   <button
                     onClick={handleAddToCart}
                     disabled={subtotal === 0}
-                    className="w-full py-3 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-3 rounded-lg bg-[#1E2260] hover:bg-[#161848] text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     Add to Cart

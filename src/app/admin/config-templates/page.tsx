@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash, Settings, Loader2 } from "lucide-react";
@@ -157,7 +157,7 @@ export default function ConfigTemplatesPage() {
             Create reusable configuration options for your products
           </p>
         </div>
-        <Button onClick={handleCreate} className="bg-[#8B1D1D] hover:bg-[#7A1919]">
+        <Button onClick={handleCreate} className="bg-[#1E2260] hover:bg-[#161848]">
           <Plus className="h-4 w-4 mr-2" />
           Create Template
         </Button>
@@ -174,7 +174,7 @@ export default function ConfigTemplatesPage() {
           <p className="text-gray-500 mt-1">
             Create your first configuration template to get started
           </p>
-          <Button onClick={handleCreate} className="mt-4 bg-[#8B1D1D] hover:bg-[#7A1919]">
+          <Button onClick={handleCreate} className="mt-4 bg-[#1E2260] hover:bg-[#161848]">
             <Plus className="h-4 w-4 mr-2" />
             Create Template
           </Button>
@@ -186,7 +186,7 @@ export default function ConfigTemplatesPage() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-[#8B1D1D]" />
+                    <Settings className="h-5 w-5 text-[#1E2260]" />
                     <CardTitle className="text-lg">{template.name}</CardTitle>
                   </div>
                   <Badge variant="outline">{template.inputType}</Badge>
@@ -307,7 +307,7 @@ export default function ConfigTemplatesPage() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} className="bg-[#8B1D1D] hover:bg-[#7A1919]">
+            <Button onClick={handleSubmit} className="bg-[#1E2260] hover:bg-[#161848]">
               {editingTemplate ? "Save Changes" : "Create Template"}
             </Button>
           </DialogFooter>

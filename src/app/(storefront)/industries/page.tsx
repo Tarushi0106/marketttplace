@@ -1,12 +1,12 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ChevronRight, ArrowRight, Building2, ShoppingCart, Laptop, Hospital, GraduationCap, Building, Factory } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Industries We Serve | NetNxt",
-  description: "NetNxt provides tailored cloud hosting solutions for businesses across various industries.",
+  title: "Industries We Serve | DeWiN",
+  description: "DeWiN provides tailored cloud hosting solutions for businesses across various industries.",
 };
 
 const industries = [
@@ -40,7 +40,7 @@ const industries = [
     slug: "healthcare",
     description: "HIPAA-compliant hosting for patient data and medical applications.",
     features: ["HIPAA compliant", "Data encryption", "99.99% uptime"],
-    color: "from-red-500 to-red-600",
+    color: "from-[#1E2260] to-[#1E2260]",
   },
   {
     icon: GraduationCap,
@@ -72,7 +72,7 @@ export default function IndustriesPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#8B1D1D] text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#1E2260] text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-32 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
@@ -123,14 +123,14 @@ export default function IndustriesPage() {
                   <div className="space-y-2 mb-4">
                     {industry.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="flex items-center gap-2 text-sm text-gray-500">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#8B1D1D]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#1E2260]"></div>
                         {feature}
                       </div>
                     ))}
                   </div>
                   <Button
                     variant="link"
-                    className="text-[#8B1D1D] p-0 h-auto font-semibold"
+                    className="text-[#1E2260] p-0 h-auto font-semibold"
                     asChild
                   >
                     <Link href={`/contact?industry=${industry.slug}`}>
@@ -150,19 +150,19 @@ export default function IndustriesPage() {
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-[#8B1D1D] mb-2">50K+</div>
+              <div className="text-4xl font-bold text-[#1E2260] mb-2">50K+</div>
               <div className="text-gray-600">Businesses Served</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#8B1D1D] mb-2">15+</div>
+              <div className="text-4xl font-bold text-[#1E2260] mb-2">15+</div>
               <div className="text-gray-600">Industries Covered</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#8B1D1D] mb-2">99.99%</div>
+              <div className="text-4xl font-bold text-[#1E2260] mb-2">99.99%</div>
               <div className="text-gray-600">Uptime SLA</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-[#8B1D1D] mb-2">24/7</div>
+              <div className="text-4xl font-bold text-[#1E2260] mb-2">24/7</div>
               <div className="text-gray-600">Expert Support</div>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function IndustriesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C]">
+      <section className="py-20 bg-gradient-to-r from-[#1E2260] to-[#4A9FD5]">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Don't See Your Industry?
@@ -179,7 +179,7 @@ export default function IndustriesPage() {
             We work with businesses of all sizes and industries. Contact us to discuss your specific requirements.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
+            <Button size="lg" className="bg-white text-[#1E2260] hover:bg-gray-100" asChild>
               <Link href="/contact">
                 Contact Us
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -188,7 +188,7 @@ export default function IndustriesPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-[#8B1D1D] bg-transparent"
+              className="border-white text-white hover:bg-white hover:text-[#1E2260] bg-transparent"
               asChild
             >
               <Link href="/products">View All Products</Link>

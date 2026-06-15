@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -21,8 +21,8 @@ const defaultTestimonials: Testimonial[] = [
     clientName: "Rajesh Menon",
     designation: "IT Services",
     company: null,
-    quote: "Shaurrya's network infrastructure transformed our operations. The uptime and support are exceptional. We've seen a 40% improvement in connectivity across all our branches.",
-    title: "Shaurrya's Services are Unmatched",
+    quote: "DeWiN's network infrastructure transformed our operations. The uptime and support are exceptional. We've seen a 40% improvement in connectivity across all our branches.",
+    title: "DeWiN's Services are Unmatched",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     rating: 5,
   },
@@ -31,8 +31,8 @@ const defaultTestimonials: Testimonial[] = [
     clientName: "Arjun Desai",
     designation: "Bank Manager",
     company: null,
-    quote: "The security solutions provided by Shaurrya give us peace of mind. Their 24/7 monitoring and quick response time have been invaluable for our financial operations.",
-    title: "Shaurrya's Services are Unmatched",
+    quote: "The security solutions provided by DeWiN give us peace of mind. Their 24/7 monitoring and quick response time have been invaluable for our financial operations.",
+    title: "DeWiN's Services are Unmatched",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     rating: 5,
   },
@@ -41,7 +41,7 @@ const defaultTestimonials: Testimonial[] = [
     clientName: "Priya Sharma",
     designation: "CTO",
     company: "TechStart Solutions",
-    quote: "Moving to Shaurrya's cloud infrastructure was the best decision we made. Scalable, reliable, and cost-effective. Their team made the migration seamless.",
+    quote: "Moving to DeWiN's cloud infrastructure was the best decision we made. Scalable, reliable, and cost-effective. Their team made the migration seamless.",
     title: "Best Cloud Partner We've Had",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face",
     rating: 5,
@@ -227,7 +227,7 @@ export function Testimonials() {
               onClick={() => scrollToIndex(index)}
               className={`w-2.5 h-2.5 rounded-full transition-colors ${
                 index === currentIndex
-                  ? "bg-[#8B1D1D]"
+                  ? "bg-[#1E2260]"
                   : "bg-gray-300 hover:bg-gray-400"
               }`}
               aria-label={`Go to testimonial ${index + 1}`}

@@ -529,8 +529,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </section>
 
-      {/* Category Products Section */}
-      <CategoryProductsSection products={products} />
 
       {/* Quick Filters Bar - Horizontal */}
       <section className="bg-gray-50 border-b border-gray-200">
@@ -544,7 +542,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           <ProductFilters
-            categories={categories.filter((c: { value: string; label: string; count: number }) => ["software-as-a-service", "connectivity", "security", "managed-infrastructure", "managed-infrastructure-services", "mobility-iot", "ai", "hardware-logistics"].includes(c.value))}
+            categories={categories.filter((c: { value: string; label: string; count: number }) => ["ai-video-surveillance", "ai-voice-automation", "ai-talent-intelligence"].includes(c.value))}
             subCategories={sidebarSubCategories}
             productTypes={productTypes}
             minPrice={priceRange.min}

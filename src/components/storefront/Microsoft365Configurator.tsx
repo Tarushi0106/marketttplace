@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Users, Building2 } from "lucide-react";
 import Link from "next/link";
@@ -45,9 +45,9 @@ export function Microsoft365Configurator({ productSlug }: { productSlug: string 
             <Link
               key={cat.id}
               href={`/products/${productSlug}/configure?category=${cat.id}`}
-              className={`text-left p-4 rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${COLOR_MAP[cat.color]} hover:border-[#8B1D1D] group`}
+              className={`text-left p-4 rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${COLOR_MAP[cat.color]} hover:border-[#1E2260] group`}
             >
-              <Icon className={`h-6 w-6 mb-2 ${ICON_COLOR_MAP[cat.color]} group-hover:text-[#8B1D1D]`} />
+              <Icon className={`h-6 w-6 mb-2 ${ICON_COLOR_MAP[cat.color]} group-hover:text-[#1E2260]`} />
               <div className="font-bold text-gray-900 text-sm">{cat.label}</div>
               <div className="text-xs font-semibold text-gray-500">{cat.sublabel}</div>
               <div className="text-xs text-gray-400 mt-1 leading-snug">{cat.description}</div>

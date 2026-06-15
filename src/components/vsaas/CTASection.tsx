@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { ArrowRight, Calendar, CheckCircle2 } from "lucide-react";
@@ -13,10 +13,10 @@ const benefits = [
 
 export function CTASection() {
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-slate-950 via-slate-900 to-[#080B2E] relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-red-600/20 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#1E2260]/20 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -50,7 +50,7 @@ export function CTASection() {
           <Button 
             asChild 
             size="lg" 
-            className="bg-red-600 hover:bg-red-700 text-white px-10 py-7 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
+            className="bg-[#1E2260] hover:bg-[#2B3080] text-white px-10 py-7 text-lg font-semibold rounded-full transition-all duration-300 hover:scale-105"
           >
             <Link href="/products/vsaas/configure?variant=cloud">
               Configure Solution

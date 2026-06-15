@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,7 @@ function RadioGroupItem({ value, id, disabled, className, children }: RadioGroup
         checked={isChecked}
         disabled={disabled}
         onChange={() => context.onValueChange?.(value)}
-        className="w-4 h-4 text-[#8B1D1D] border-gray-300 focus:ring-[#8B1D1D]"
+        className="w-4 h-4 text-[#1E2260] border-gray-300 focus:ring-[#1E2260]"
       />
       {children && <span className="sr-only">{children}</span>}
       {children && <span className="text-sm">{children}</span>}

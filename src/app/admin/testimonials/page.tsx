@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Loader2, Quote, Star } from "lucide-react";
@@ -301,7 +301,7 @@ export default function TestimonialsPage() {
                         size="icon"
                         onClick={() => handleDelete(testimonial.id)}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Trash2 className="h-4 w-4 text-[#1E2260]" />
                       </Button>
                     </div>
                   </TableCell>
@@ -368,7 +368,7 @@ export default function TestimonialsPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                placeholder="e.g., Shaurrya's Services are Unmatched"
+                placeholder="e.g., DeWiN's Services are Unmatched"
               />
             </div>
 

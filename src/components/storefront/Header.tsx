@@ -160,13 +160,9 @@ export function Header() {
   useEffect(() => {
     async function fetchCategories() {
       const sidebarSlugs = [
-        "software-as-a-service",
-        "connectivity",
-        "security",
-        "managed-infrastructure",
-        "mobility-iot",
-        "ai",
-        "hardware-logistics",
+        "ai-video-surveillance",
+        "ai-voice-automation",
+        "ai-talent-intelligence",
       ];
       try {
         const response = await fetch("/api/categories?includeSubCategories=true");
@@ -396,11 +392,18 @@ export function Header() {
                   ) : categories.length === 0 ? (
                     <div className="py-4 text-center text-sm text-gray-500">No categories</div>
                   ) : (
-                    categories.map((cat) => (
+                    categories.map((cat) => {
+                      const catToProduct: Record<string, string> = {
+                        "ai-video-surveillance": "/products/vsaas",
+                        "ai-voice-automation": "/products/deco-voice",
+                        "ai-talent-intelligence": "/products/deco-talent",
+                      };
+                      const href = catToProduct[cat.slug] || `/products?category=${cat.slug}`;
+                      return (
                       <div key={cat.id}>
                         <DropdownMenuItem asChild>
                           <Link
-                            href={`/products?category=${cat.slug}`}
+                            href={href}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                           >
                             <div className="w-7 h-7 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
@@ -430,7 +433,7 @@ export function Header() {
                           </div>
                         )}
                       </div>
-                    ))
+                    )})
                   )}
                   <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem asChild>
@@ -489,10 +492,17 @@ export function Header() {
               <div className="py-4 text-center text-sm text-gray-500">No categories</div>
             ) : (
               <div className="space-y-1">
-                {categories.map((cat) => (
+                {categories.map((cat) => {
+                  const catToProduct: Record<string, string> = {
+                    "ai-video-surveillance": "/products/vsaas",
+                    "ai-voice-automation": "/products/deco-voice",
+                    "ai-talent-intelligence": "/products/deco-talent",
+                  };
+                  const mobileHref = catToProduct[cat.slug] || `/products?category=${cat.slug}`;
+                  return (
                   <div key={cat.id}>
                     <Link
-                      href={`/products?category=${cat.slug}`}
+                      href={mobileHref}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[0.98] transition-all duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -519,7 +529,7 @@ export function Header() {
                       </div>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             )}
             <Link

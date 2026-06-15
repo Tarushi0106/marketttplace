@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo } from "react";
 import { Check, Minus, Plus } from "lucide-react";
@@ -263,7 +263,7 @@ export function VSaaSPricingTable({
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
               <span className="font-semibold text-gray-900">Grand Total</span>
-              <span className="text-lg font-bold text-red-600">{formatPrice(totals.grandTotal)}</span>
+              <span className="text-lg font-bold text-[#1E2260]">{formatPrice(totals.grandTotal)}</span>
             </div>
           </div>
         </div>

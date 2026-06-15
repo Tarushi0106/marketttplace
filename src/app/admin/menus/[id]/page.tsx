@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
@@ -533,7 +533,7 @@ export default function MenuEditorPage({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="h-8 w-8 text-[#1E2260] hover:text-[#161848] hover:bg-[#EEF2FF]"
                               onClick={() => removeItem(index)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -611,7 +611,7 @@ export default function MenuEditorPage({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      className="h-7 w-7 text-[#1E2260] hover:text-[#161848] hover:bg-[#EEF2FF]"
                                       onClick={() => removeItem(index, childIndex)}
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
@@ -787,7 +787,7 @@ export default function MenuEditorPage({
                   <Label>Badge Color</Label>
                   <Input
                     type="color"
-                    value={editingItem.badgeColor || "#8B1D1D"}
+                    value={editingItem.badgeColor || "#1E2260"}
                     onChange={(e) =>
                       setEditingItem({ ...editingItem, badgeColor: e.target.value })
                     }

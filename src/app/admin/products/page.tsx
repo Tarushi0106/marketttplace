@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -103,7 +103,7 @@ const typeColors: Record<string, string> = {
   STANDALONE: "bg-blue-50 text-blue-700 border-blue-200",
   WITH_ADDONS: "bg-purple-50 text-purple-700 border-purple-200",
   CONFIGURABLE: "bg-orange-50 text-orange-700 border-orange-200",
-  BUNDLE: "bg-pink-50 text-pink-700 border-pink-200",
+  BUNDLE: "bg-[#EEF2FF] text-[#1E2260] border-[#D0DEFF]",
 };
 
 export default function ProductsPage() {
@@ -317,10 +317,10 @@ export default function ProductsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Low Stock</p>
-                <p className="text-2xl font-bold text-red-600">{stats.lowStock}</p>
+                <p className="text-2xl font-bold text-[#1E2260]">{stats.lowStock}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="h-12 w-12 rounded-full bg-[#E8F0FF] flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-[#1E2260]" />
               </div>
             </div>
           </CardContent>
@@ -530,7 +530,7 @@ export default function ProductsPage() {
                       <span
                         className={cn(
                           "font-medium",
-                          product.stockQuantity === 0 && "text-red-600",
+                          product.stockQuantity === 0 && "text-[#1E2260]",
                           product.stockQuantity > 0 &&
                             product.stockQuantity <= product.lowStockThreshold &&
                             "text-yellow-600"
@@ -685,7 +685,7 @@ export default function ProductsPage() {
                   <span
                     className={cn(
                       product.stockQuantity <= product.lowStockThreshold &&
-                        "text-red-600 font-medium"
+                        "text-[#1E2260] font-medium"
                     )}
                   >
                     Stock: {product.stockQuantity}

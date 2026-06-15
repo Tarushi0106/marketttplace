@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { 
   Shield, 
@@ -17,9 +17,9 @@ const useCases = [
   {
     category: "Security",
     icon: Shield,
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/20",
+    color: "text-[#1E2260]",
+    bgColor: "bg-[#1E2260]/10",
+    borderColor: "border-[#1E2260]/20",
     examples: [
       { icon: Camera, text: "Perimeter Intrusion Detection" },
       { icon: Shield, text: "Unauthorized Access Alerts" },

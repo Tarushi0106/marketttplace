@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Star, Save, Loader2, Image, Link as LinkIcon, Check, X, Cloud, Server } from "lucide-react";
@@ -239,7 +239,7 @@ export default function HeroProductsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-500 hover:text-red-600"
+                    className="text-[#1E2260] hover:text-[#1E2260]"
                     onClick={() => handleDelete(product.id)}
                   >
                     Delete

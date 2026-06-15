@@ -257,23 +257,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trending Section */}
-      <section className="pt-12 pb-2">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 mb-6">
-          <div className="text-center">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#EEF2FF] text-[#1E2260] text-xs font-semibold tracking-wide uppercase mb-3">
-              What&apos;s Trending
-            </span>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Most-Adopted Solutions This Quarter
-            </h2>
-            <p className="mt-2 text-gray-500 text-sm max-w-lg mx-auto">
-              See what other enterprises are deploying right now.
-            </p>
-          </div>
-        </div>
-        <TrendingProducts />
-      </section>
+      {/* Product Categories Section */}
+      <TrendingProducts />
 
       {/* Testimonials Section */}
       <Testimonials />

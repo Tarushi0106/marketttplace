@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef } from "react";
 import Link from "next/link";
@@ -240,7 +240,7 @@ export function SolutionsCarousel({ categories }: SolutionsCarouselProps) {
               href={`/categories/${category.slug}`}
               className="flex-shrink-0 snap-start"
             >
-              <div className="px-8 py-4 bg-white border border-gray-200 rounded-xl hover:border-red-400 hover:shadow-md transition-all duration-300">
+              <div className="px-8 py-4 bg-white border border-gray-200 rounded-xl hover:border-[#4A9FD5] hover:shadow-md transition-all duration-300">
                 <span className="text-lg font-medium text-gray-900 whitespace-nowrap">
                   {category.name}
                 </span>

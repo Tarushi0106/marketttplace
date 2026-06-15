@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // v2
 import { useState } from "react";
 import Link from "next/link";
@@ -49,8 +49,8 @@ interface BenefitCardProps {
 
 function BenefitCard({ icon, title, description }: BenefitCardProps) {
   return (
-    <div className="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-red-200 hover:shadow-xl hover:shadow-red-500/5 transition-all duration-300">
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+    <div className="group p-6 bg-white rounded-2xl border border-gray-100 hover:border-[#D0DEFF] hover:shadow-xl hover:shadow-[#1E2260]/5 transition-all duration-300">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
@@ -68,8 +68,8 @@ interface FeatureItemProps {
 
 function FeatureItem({ title, description, icon, index }: FeatureItemProps) {
   return (
-    <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-red-200 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300 p-5 flex gap-4 items-start">
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
+    <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#D0DEFF] hover:shadow-lg hover:shadow-[#1E2260]/5 transition-all duration-300 p-5 flex gap-4 items-start">
+      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white flex-shrink-0 group-hover:scale-105 transition-transform">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -126,7 +126,7 @@ function PricingCard({ monthlyPrice, yearlyPrice, isYearly, onToggle }: PricingC
             onClick={onToggle}
             className={cn(
               "w-14 h-7 rounded-full transition-colors relative",
-              isYearly ? "bg-red-500" : "bg-gray-200"
+              isYearly ? "bg-[#1E2260]" : "bg-gray-200"
             )}
           >
             <span className={cn(
@@ -135,7 +135,7 @@ function PricingCard({ monthlyPrice, yearlyPrice, isYearly, onToggle }: PricingC
             )} />
           </button>
           <span className={cn("text-sm font-medium", isYearly ? "text-gray-900" : "text-gray-500")}>
-            Yearly <span className="text-red-500 text-xs">(Save 20%)</span>
+            Yearly <span className="text-[#1E2260] text-xs">(Save 20%)</span>
           </span>
         </div>
 
@@ -168,7 +168,7 @@ function PricingCard({ monthlyPrice, yearlyPrice, isYearly, onToggle }: PricingC
         </div>
 
         <Link href="/products/vsaas/configure">
-          <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl">
+          <Button className="w-full h-12 bg-[#1E2260] hover:bg-[#2B3080] text-white font-semibold rounded-xl">
             Configure Now <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>
@@ -299,15 +299,15 @@ export function VSAASLandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 via-white to-red-50/30" />
-        <div className="absolute top-20 right-20 w-96 h-96 bg-red-100/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-72 h-72 bg-red-100/20 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#EEF2FF]/50 via-white to-[#EEF2FF]/30" />
+        <div className="absolute top-20 right-20 w-96 h-96 bg-[#E8F0FF]/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-[#E8F0FF]/20 rounded-full blur-3xl" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-20 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
-              <Badge className="bg-red-100 text-red-700 hover:bg-red-100 mb-6">
+              <Badge className="bg-[#E8F0FF] text-[#161848] hover:bg-[#E8F0FF] mb-6">
                 <Zap className="h-3 w-3 mr-1" /> AI-Powered Solution
               </Badge>
               
@@ -321,7 +321,7 @@ export function VSAASLandingPage() {
               
               <div className="flex flex-wrap gap-4">
                 <Link href="/products/vsaas/configure">
-                  <Button size="lg" className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl">
+                  <Button size="lg" className="h-14 px-8 bg-[#1E2260] hover:bg-[#2B3080] text-white font-semibold rounded-xl">
                     Configure Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -335,15 +335,15 @@ export function VSAASLandingPage() {
             <div className="relative">
               <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
                 <div className="bg-gray-100 px-4 py-3 flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-[#4A9FD5]" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
                 </div>
                 <div className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                        <Eye className="h-5 w-5 text-red-600" />
+                      <div className="w-10 h-10 rounded-lg bg-[#E8F0FF] flex items-center justify-center">
+                        <Eye className="h-5 w-5 text-[#1E2260]" />
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">24 Cameras</p>
@@ -417,13 +417,13 @@ export function VSAASLandingPage() {
               <TabsList className="bg-gray-100 p-1 rounded-xl">
                 <TabsTrigger
                   value="features"
-                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white"
+                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-[#1E2260] data-[state=active]:text-white"
                 >
                   Features
                 </TabsTrigger>
                 <TabsTrigger
                   value="solutions"
-                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white"
+                  className="px-8 py-2.5 rounded-lg font-semibold data-[state=active]:bg-[#1E2260] data-[state=active]:text-white"
                 >
                   Solutions
                 </TabsTrigger>
@@ -498,8 +498,8 @@ export function VSAASLandingPage() {
                 </div>
 
                 {/* VSaaS On-Prem */}
-                <div className="group p-8 bg-gradient-to-br from-red-50 to-white rounded-2xl border border-red-100 hover:border-red-300 hover:shadow-xl transition-all duration-300">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                <div className="group p-8 bg-gradient-to-br from-[#EEF2FF] to-white rounded-2xl border border-[#E8F0FF] hover:border-[#93C5FD] hover:shadow-xl transition-all duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
                     <Server className="h-7 w-7" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">VSaaS On-Prem</h3>
@@ -516,12 +516,12 @@ export function VSAASLandingPage() {
                       "Dedicated on-site support",
                     ].map((item) => (
                       <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
-                        <CheckCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-[#1E2260] flex-shrink-0" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl">
+                  <Button className="w-full h-11 bg-[#1E2260] hover:bg-[#2B3080] text-white font-semibold rounded-xl">
                     Contact Sales <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -545,7 +545,7 @@ export function VSAASLandingPage() {
               </p>
               
               <div className="grid md:grid-cols-2 gap-6">
-                <Card className="border-2 border-transparent hover:border-red-200 transition-colors">
+                <Card className="border-2 border-transparent hover:border-[#D0DEFF] transition-colors">
                   <CardContent className="p-6">
                     <h3 className="font-bold text-lg text-gray-900 mb-2">Starter</h3>
                     <p className="text-3xl font-bold text-gray-900 mb-1">₹4,999<span className="text-sm font-normal text-gray-500">/mo</span></p>
@@ -558,11 +558,11 @@ export function VSAASLandingPage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="border-2 border-red-500 bg-red-50">
+                <Card className="border-2 border-[#1E2260] bg-[#EEF2FF]">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-bold text-lg text-gray-900">Professional</h3>
-                      <Badge className="bg-red-500 text-white">Popular</Badge>
+                      <Badge className="bg-[#1E2260] text-white">Popular</Badge>
                     </div>
                     <p className="text-3xl font-bold text-gray-900 mb-1">₹14,999<span className="text-sm font-normal text-gray-500">/mo</span></p>
                     <p className="text-sm text-gray-500 mb-4">For growing businesses</p>
@@ -613,17 +613,17 @@ export function VSAASLandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-red-600 to-red-700">
+      <section className="py-20 bg-gradient-to-r from-[#1E2260] to-[#161848]">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Start your journey today
           </h2>
-          <p className="text-lg text-red-100 mb-8">
+          <p className="text-lg text-[#E8F0FF] mb-8">
             Get started with VSaaS today and experience the future of video surveillance.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/products/vsaas/configure">
-              <Button size="lg" className="h-14 px-8 bg-white text-red-600 hover:bg-gray-100 font-semibold rounded-xl">
+              <Button size="lg" className="h-14 px-8 bg-white text-[#1E2260] hover:bg-gray-100 font-semibold rounded-xl">
                 Configure Now <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

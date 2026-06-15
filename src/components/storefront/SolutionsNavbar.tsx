@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -83,7 +83,7 @@ export function SolutionsNavbar() {
             className={cn(
               "flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
               pathname === "/solutions"
-                ? "bg-[#8B1D1D] text-white"
+                ? "bg-[#1E2260] text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             )}
           >

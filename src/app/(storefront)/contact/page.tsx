@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+﻿import { Metadata } from "next";
 import Link from "next/link";
 import {
   Phone,
@@ -15,20 +15,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export const metadata: Metadata = {
-  title: "Contact Us | NetNxt - Shaurrya Teleservices",
-  description: "Get in touch with Shaurrya Teleservices for all your digital solution needs",
+  title: "Contact Us | DeWiN - DeWiN Solutions",
+  description: "Get in touch with DeWiN Solutions for all your digital solution needs",
 };
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#8B1D1D] py-20 lg:py-28">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#1E2260] py-20 lg:py-28">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Contact Shaurrya Teleservices
+              Contact DeWiN Solutions
             </h1>
             <p className="text-xl text-gray-300">
               We're here to help! Reach out to us for any inquiries about our digital solutions.
@@ -42,41 +42,41 @@ export default function ContactPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-              <div className="w-14 h-14 rounded-xl bg-[#8B1D1D]/10 flex items-center justify-center mx-auto mb-4">
-                <Phone className="h-7 w-7 text-[#8B1D1D]" />
+              <div className="w-14 h-14 rounded-xl bg-[#1E2260]/10 flex items-center justify-center mx-auto mb-4">
+                <Phone className="h-7 w-7 text-[#1E2260]" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone Numbers</h3>
               <div className="space-y-1">
-                <a href="tel:+919999999999" className="block text-gray-600 hover:text-[#8B1D1D]">
+                <a href="tel:+919999999999" className="block text-gray-600 hover:text-[#1E2260]">
                   +91 99999 99999
                 </a>
-                <a href="tel:+919999999998" className="block text-gray-600 hover:text-[#8B1D1D]">
+                <a href="tel:+919999999998" className="block text-gray-600 hover:text-[#1E2260]">
                   +91 99999 99998
                 </a>
               </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-              <div className="w-14 h-14 rounded-xl bg-[#8B1D1D]/10 flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-7 w-7 text-[#8B1D1D]" />
+              <div className="w-14 h-14 rounded-xl bg-[#1E2260]/10 flex items-center justify-center mx-auto mb-4">
+                <Mail className="h-7 w-7 text-[#1E2260]" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Addresses</h3>
               <div className="space-y-1">
-                <a href="mailto:info@shaurrya.com" className="block text-gray-600 hover:text-[#8B1D1D]">
-                  info@shaurrya.com
+                <a href="mailto:info@dewin.com" className="block text-gray-600 hover:text-[#1E2260]">
+                  info@dewin.com
                 </a>
-                <a href="mailto:support@shaurrya.com" className="block text-gray-600 hover:text-[#8B1D1D]">
-                  support@shaurrya.com
+                <a href="mailto:support@dewin.com" className="block text-gray-600 hover:text-[#1E2260]">
+                  support@dewin.com
                 </a>
-                <a href="mailto:sales@shaurrya.com" className="block text-gray-600 hover:text-[#8B1D1D]">
-                  sales@shaurrya.com
+                <a href="mailto:sales@dewin.com" className="block text-gray-600 hover:text-[#1E2260]">
+                  sales@dewin.com
                 </a>
               </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-              <div className="w-14 h-14 rounded-xl bg-[#8B1D1D]/10 flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-7 w-7 text-[#8B1D1D]" />
+              <div className="w-14 h-14 rounded-xl bg-[#1E2260]/10 flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-7 w-7 text-[#1E2260]" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Hours</h3>
               <div className="space-y-1 text-gray-600">
@@ -145,7 +145,7 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-[#8B1D1D] hover:bg-[#7A1919]"
+                  className="w-full bg-[#1E2260] hover:bg-[#161848]"
                 >
                   Send Message
                   <Send className="ml-2 h-5 w-5" />
@@ -163,15 +163,15 @@ export default function ContactPage() {
               {/* Address Card */}
               <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-[#8B1D1D]/10 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="h-6 w-6 text-[#8B1D1D]" />
+                  <div className="w-12 h-12 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="h-6 w-6 text-[#1E2260]" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       Head Office
                     </h3>
                     <p className="text-gray-600">
-                      Shaurrya Teleservices Pvt. Ltd.
+                      DeWiN Solutions Pvt. Ltd.
                       <br />
                       Laxmi Plaza, 213, Off New Link Rd,
                       <br />
@@ -188,8 +188,8 @@ export default function ContactPage() {
               {/* Quick Support */}
               <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-[#8B1D1D]/10 flex items-center justify-center flex-shrink-0">
-                    <Headphones className="h-6 w-6 text-[#8B1D1D]" />
+                  <div className="w-12 h-12 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
+                    <Headphones className="h-6 w-6 text-[#1E2260]" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -200,7 +200,7 @@ export default function ContactPage() {
                     </p>
                     <a
                       href="tel:+919999999999"
-                      className="inline-flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline"
+                      className="inline-flex items-center gap-2 text-[#1E2260] font-medium hover:underline"
                     >
                       <Phone className="h-4 w-4" />
                       +91 99999 99999
@@ -212,8 +212,8 @@ export default function ContactPage() {
               {/* Sales Inquiry */}
               <div className="bg-white rounded-xl p-6 shadow-lg">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-[#8B1D1D]/10 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="h-6 w-6 text-[#8B1D1D]" />
+                  <div className="w-12 h-12 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="h-6 w-6 text-[#1E2260]" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -223,18 +223,18 @@ export default function ContactPage() {
                       Interested in our enterprise solutions? Our sales team is here to help.
                     </p>
                     <a
-                      href="mailto:sales@shaurrya.com"
-                      className="inline-flex items-center gap-2 text-[#8B1D1D] font-medium hover:underline"
+                      href="mailto:sales@dewin.com"
+                      className="inline-flex items-center gap-2 text-[#1E2260] font-medium hover:underline"
                     >
                       <Mail className="h-4 w-4" />
-                      sales@shaurrya.com
+                      sales@dewin.com
                     </a>
                   </div>
                 </div>
               </div>
 
               {/* CTA */}
-              <div className="mt-8 p-6 bg-gradient-to-br from-[#8B1D1D] to-[#6B1515] rounded-xl text-white">
+              <div className="mt-8 p-6 bg-gradient-to-br from-[#1E2260] to-[#141740] rounded-xl text-white">
                 <h3 className="text-xl font-bold mb-2">
                   Looking for solutions?
                 </h3>
@@ -242,7 +242,7 @@ export default function ContactPage() {
                   Browse our complete marketplace of digital products and services.
                 </p>
                 <Link href="/products">
-                  <Button className="bg-white text-[#8B1D1D] hover:bg-gray-100">
+                  <Button className="bg-white text-[#1E2260] hover:bg-gray-100">
                     Explore Marketplace
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>

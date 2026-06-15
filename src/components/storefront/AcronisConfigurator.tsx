@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Monitor, Server, HardDrive, Mail } from "lucide-react";
 import Link from "next/link";
@@ -52,7 +52,7 @@ const COLOR_MAP: Record<string, string> = {
   purple: "bg-purple-50 border-purple-200 text-purple-700",
   orange: "bg-orange-50 border-orange-200 text-orange-700",
   green: "bg-green-50 border-green-200 text-green-700",
-  red: "bg-red-50 border-red-200 text-red-700",
+  red: "bg-[#EEF2FF] border-[#D0DEFF] text-[#161848]",
   teal: "bg-teal-50 border-teal-200 text-teal-700",
   gray: "bg-gray-50 border-gray-200 text-gray-700",
 };
@@ -62,7 +62,7 @@ const ICON_COLOR_MAP: Record<string, string> = {
   purple: "text-purple-500",
   orange: "text-orange-500",
   green: "text-green-500",
-  red: "text-red-500",
+  red: "text-[#1E2260]",
   teal: "text-teal-500",
   gray: "text-gray-500",
 };
@@ -79,9 +79,9 @@ export function AcronisConfigurator({ productSlug }: { productSlug: string }) {
             <Link
               key={cat.id}
               href={`/products/${productSlug}/configure?category=${cat.id}`}
-              className={`text-left p-4 rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${COLOR_MAP[cat.color]} hover:border-[#8B1D1D] group`}
+              className={`text-left p-4 rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5 ${COLOR_MAP[cat.color]} hover:border-[#1E2260] group`}
             >
-              <Icon className={`h-6 w-6 mb-2 ${ICON_COLOR_MAP[cat.color]} group-hover:text-[#8B1D1D]`} />
+              <Icon className={`h-6 w-6 mb-2 ${ICON_COLOR_MAP[cat.color]} group-hover:text-[#1E2260]`} />
               <div className="font-bold text-gray-900 text-sm">{cat.label}</div>
               <div className="text-xs font-semibold text-gray-500">{cat.sublabel}</div>
               <div className="text-xs text-gray-400 mt-1 leading-snug">{cat.description}</div>

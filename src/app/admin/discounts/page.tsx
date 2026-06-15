@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -63,7 +63,7 @@ interface Discount {
 const statusColors: Record<string, string> = {
   active: "bg-green-100 text-green-800",
   inactive: "bg-gray-100 text-gray-600",
-  expired: "bg-red-100 text-red-800",
+  expired: "bg-[#E8F0FF] text-[#141740]",
 };
 
 function getDiscountStatus(discount: Discount): string {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -1068,7 +1068,7 @@ export function ProductConfigurator({
                     <div className="flex items-center justify-between">
                       <Label className="text-base font-medium">
                         {config.displayName || config.name}
-                        {config.isRequired && <span className="text-red-500 ml-1">*</span>}
+                        {config.isRequired && <span className="text-[#1E2260] ml-1">*</span>}
                       </Label>
                       {config.unit && (
                         <Badge variant="outline">{config.unit}</Badge>
@@ -1114,7 +1114,7 @@ export function ProductConfigurator({
                           <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
                             <button
                               type="button"
-                              className="h-8 w-8 rounded-md flex items-center justify-center text-gray-600 hover:bg-white hover:text-red-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="h-8 w-8 rounded-md flex items-center justify-center text-gray-600 hover:bg-white hover:text-[#1E2260] hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => handleConfigQuantityChange(config.id, -1)}
                               disabled={getConfigQuantity(config.id) <= 1}
                             >
@@ -1156,7 +1156,7 @@ export function ProductConfigurator({
                                   className={`
                                     cursor-pointer p-4 rounded-xl border-2 transition-all
                                     ${isSelected 
-                                      ? "border-[#8B1D1D] bg-red-50" 
+                                      ? "border-[#1E2260] bg-[#EEF2FF]" 
                                       : "border-gray-200 hover:border-gray-300"
                                     }
                                   `}
@@ -1165,7 +1165,7 @@ export function ProductConfigurator({
                                     <div className="flex items-center gap-2">
                                       <div className={`
                                         w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
-                                        ${isSelected ? "border-[#8B1D1D] bg-[#8B1D1D]" : "border-gray-300 bg-white"}
+                                        ${isSelected ? "border-[#1E2260] bg-[#1E2260]" : "border-gray-300 bg-white"}
                                       `}>
                                         {isSelected && (
                                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -1182,7 +1182,7 @@ export function ProductConfigurator({
                                     </div>
                                     {displayPrice !== 0 && (
                                       <span className="">
-                                        <span className={isSelected ? "text-[#8B1D1D]" : "text-gray-500"}>{displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}</span>
+                                        <span className={isSelected ? "text-[#1E2260]" : "text-gray-500"}>{displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}</span>
                                         <span className="text-green-600">{billingCycle === "YEARLY" ? "/yr" : "/mo"}</span>
                                       </span>
                                     )}
@@ -1220,7 +1220,7 @@ export function ProductConfigurator({
                                   className={`
                                     cursor-pointer p-3 rounded-lg border transition-all flex items-center justify-between
                                     ${isSelected 
-                                      ? "border-[#8B1D1D] bg-red-50" 
+                                      ? "border-[#1E2260] bg-[#EEF2FF]" 
                                       : "border-gray-200 hover:border-gray-300"
                                     }
                                   `}
@@ -1243,7 +1243,7 @@ export function ProductConfigurator({
                                   </div>
                                   {displayPrice !== 0 && (
                                     <span className="text-sm">
-                                      <span className={isSelected ? "text-[#8B1D1D] font-medium" : "text-gray-500"}>
+                                      <span className={isSelected ? "text-[#1E2260] font-medium" : "text-gray-500"}>
                                         {displayPrice > 0 ? "+" : "-"}{formatPrice(Math.abs(displayPrice))}
                                       </span>
                                       <span className="text-green-600">{billingCycle === "YEARLY" ? "/yr" : "/mo"}</span>
@@ -1380,7 +1380,7 @@ export function ProductConfigurator({
                                             key={addon.uniqueId}
                                             className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
                                               isSelected
-                                                ? "border-[#8B1D1D] bg-red-50"
+                                                ? "border-[#1E2260] bg-[#EEF2FF]"
                                                 : "border-gray-200 hover:border-gray-300"
                                             }`}
                                           >
@@ -1544,7 +1544,7 @@ export function ProductConfigurator({
                                     {/* Total Due Today */}
                                     <div className="flex justify-between items-center">
                                       <span className="text-lg font-semibold">Total Due Today</span>
-                                      <span className="text-2xl font-bold text-[#8B1D1D]">
+                                      <span className="text-2xl font-bold text-[#1E2260]">
                                         {billingType === "ONE_TIME" 
                                           ? formatPrice(pricing.basePrice + pricing.setupFee + pricing.configsTotal + pricing.addonsTotal)
                                           : formatPrice(pricing.setupFee + pricing.pricePerCycle + pricing.configsTotal + pricing.addonsTotal)
@@ -1564,7 +1564,7 @@ export function ProductConfigurator({
                                       <Button
                                         size="lg"
                                         variant="outline"
-                                        className="border-red-200 hover:bg-red-50"
+                                        className="border-[#D0DEFF] hover:bg-[#EEF2FF]"
                                         onClick={handleAddToWishlist}
                                       >
                                         <Heart className="h-5 w-5 mr-2" />
@@ -1572,7 +1572,7 @@ export function ProductConfigurator({
                                       </Button>
                                       <Button
                                         size="lg"
-                                        className="bg-[#8B1D1D] hover:bg-[#7A1919]"
+                                        className="bg-[#1E2260] hover:bg-[#161848]"
                                         onClick={handleAddToCart}
                                         disabled={isAddingToCart}
                                       >

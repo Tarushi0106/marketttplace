@@ -1,4 +1,4 @@
-import { generateInvoiceNumber } from "./invoice";
+﻿import { generateInvoiceNumber } from "./invoice";
 
 interface OrderItem {
   id?: string | null;
@@ -187,7 +187,7 @@ function generateHTML(order: Order): string {
     /* ── TOP ACCENT BAR ── */
     .accent-bar {
       height: 6px;
-      background: linear-gradient(90deg, #1a2744 0%, #b91c1c 60%, #ef4444 100%);
+      background: linear-gradient(90deg, #1a2744 0%, #161848 60%, #1E2260 100%);
     }
 
     /* ── HEADER ── */
@@ -235,7 +235,7 @@ function generateHTML(order: Order): string {
     .invoice-label {
       font-size: 28px;
       font-weight: 700;
-      color: #b91c1c;
+      color: #161848;
       letter-spacing: -0.5px;
       line-height: 1;
       margin-bottom: 10px;
@@ -411,11 +411,11 @@ function generateHTML(order: Order): string {
       margin-top: 4px;
       padding: 2px 8px;
       background: #fff1f2;
-      color: #b91c1c;
+      color: #161848;
       font-size: 9px;
       font-weight: 600;
       border-radius: 10px;
-      border: 1px solid #fecaca;
+      border: 1px solid #D0DEFF;
     }
 
     .item-tag-amber {
@@ -467,7 +467,7 @@ function generateHTML(order: Order): string {
     .totals-final-value {
       font-size: 16px;
       font-weight: 700;
-      color: #fca5a5;
+      color: #93C5FD;
     }
 
     /* ── RECURRING BANNER ── */
@@ -475,10 +475,10 @@ function generateHTML(order: Order): string {
       margin: 16px 48px 0;
       padding: 10px 16px;
       background: #fff1f2;
-      border-left: 3px solid #b91c1c;
+      border-left: 3px solid #161848;
       border-radius: 0 4px 4px 0;
       font-size: 11px;
-      color: #991b1b;
+      color: #141740;
     }
 
     /* ── FOOTER ── */
@@ -705,7 +705,7 @@ function generateHTML(order: Order): string {
         </div>
       </div>
       <div style="text-align:right">
-        <div class="footer-heading">For Shaurrya Teleservices</div>
+        <div class="footer-heading">For DeWiN Solutions</div>
         <div class="sig-line" style="margin-left:auto;margin-right:0"></div>
         <div class="footer-text">Authorised Signatory</div>
       </div>

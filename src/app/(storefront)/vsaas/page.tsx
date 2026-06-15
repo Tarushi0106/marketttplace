@@ -1,4 +1,4 @@
-import {
+﻿import {
   HeroSection,
   CapabilitiesSection,
   UseCaseGrid,
@@ -16,8 +16,8 @@ export const metadata = {
 
 function BenefitCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-red-500/50 transition-all duration-300">
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+    <div className="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-[#1E2260]/50 transition-all duration-300">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1E2260] to-[#1E2260] flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-bold text-white mb-2">{title}</h3>
@@ -36,9 +36,9 @@ export default function VSAASPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-8 bg-slate-900 border border-slate-800">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">Overview</TabsTrigger>
-              <TabsTrigger value="capabilities" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">Capabilities</TabsTrigger>
-              <TabsTrigger value="industries" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">Industries</TabsTrigger>
+              <TabsTrigger value="overview" className="data-[state=active]:bg-[#1E2260] data-[state=active]:text-white">Overview</TabsTrigger>
+              <TabsTrigger value="capabilities" className="data-[state=active]:bg-[#1E2260] data-[state=active]:text-white">Capabilities</TabsTrigger>
+              <TabsTrigger value="industries" className="data-[state=active]:bg-[#1E2260] data-[state=active]:text-white">Industries</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -64,56 +64,56 @@ export default function VSAASPage() {
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">No CapEx Model</p>
                         <p className="text-slate-400 text-sm">Subscription-based, no upfront investment.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Anywhere Access</p>
                         <p className="text-slate-400 text-sm">Monitor all sites from one dashboard.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">AI Security</p>
                         <p className="text-slate-400 text-sm">Real-time threat and anomaly detection.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Lower Costs</p>
                         <p className="text-slate-400 text-sm">Reduce manpower and maintenance expenses.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Multi-Site Monitoring</p>
                         <p className="text-slate-400 text-sm">Manage multiple locations centrally.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Fast Investigations</p>
                         <p className="text-slate-400 text-sm">Find events instantly with AI search.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Scalable Solution</p>
                         <p className="text-slate-400 text-sm">Easily add or remove cameras anytime.</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Compliance Ready</p>
                         <p className="text-slate-400 text-sm">Secure, compliant, and audit-ready system.</p>
@@ -127,28 +127,28 @@ export default function VSAASPage() {
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">99.99% SLA</p>
                         <p className="text-slate-400 text-sm">Guaranteed uptime</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">Instant Setup</p>
                         <p className="text-slate-400 text-sm">Deploy in minutes</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">24/7 Support</p>
                         <p className="text-slate-400 text-sm">Always available</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-red-500 mt-1">•</span>
+                      <span className="text-[#1E2260] mt-1">•</span>
                       <div>
                         <p className="font-semibold text-white">AI Intelligence</p>
                         <p className="text-slate-400 text-sm">Advanced AI analytics for smarter surveillance</p>

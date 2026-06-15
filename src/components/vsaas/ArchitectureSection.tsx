@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { 
   Camera, 
@@ -87,7 +87,7 @@ export function ArchitectureSection() {
           <div className="hidden lg:flex items-center justify-between gap-4">
             {steps.map((step, index) => (
               <div key={index} className="flex items-center">
-                <div className="relative bg-slate-900/50 border border-slate-800 rounded-2xl p-8 min-w-[220px] text-center hover:border-red-500/30 transition-colors group">
+                <div className="relative bg-slate-900/50 border border-slate-800 rounded-2xl p-8 min-w-[220px] text-center hover:border-[#1E2260]/30 transition-colors group">
                   <div className={`w-16 h-16 ${step.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
                     <step.icon className="w-8 h-8 text-white" />
                   </div>

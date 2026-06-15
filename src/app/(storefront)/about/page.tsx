@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Image from "next/image";
 import {
   ChevronRight,
@@ -19,8 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Why Choose NetNxt | Shaurrya Teleservices",
-  description: "Discover why thousands of businesses trust NetNxt for their cloud hosting and infrastructure needs.",
+  title: "Why Choose DeWiN | DeWiN Solutions",
+  description: "Discover why thousands of businesses trust DeWiN for their cloud hosting and infrastructure needs.",
 };
 
 export default function AboutPage() {
@@ -84,7 +84,7 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#8B1D1D] text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-[#1E2260] text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-20 md:py-32 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
@@ -93,7 +93,7 @@ export default function AboutPage() {
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               Why Choose{" "}
-              <span className="text-[#FF6B6B]">NetNxt</span> for Your Cloud
+              <span className="text-[#FF6B6B]">DeWiN</span> for Your Cloud
               Infrastructure?
             </h1>
             <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
@@ -101,7 +101,7 @@ export default function AboutPage() {
               hosting solutions that scale with your business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-[#8B1D1D] hover:bg-[#7A1919]" asChild>
+              <Button size="lg" className="bg-[#1E2260] hover:bg-[#161848]" asChild>
                 <Link href="/products">
                   Explore Our Solutions
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -128,7 +128,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-[#8B1D1D] mb-2">
+                <div className="text-4xl md:text-5xl font-bold text-[#1E2260] mb-2">
                   {stat.value}
                 </div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
@@ -153,7 +153,7 @@ export default function AboutPage() {
             {values.map((value, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#8B1D1D] to-[#B91C1C] flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#1E2260] to-[#4A9FD5] flex items-center justify-center">
                     <value.icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -182,8 +182,8 @@ export default function AboutPage() {
               <div className="space-y-4">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#8B1D1D]/10 flex items-center justify-center">
-                      <feature.icon className="h-5 w-5 text-[#8B1D1D]" />
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#1E2260]/10 flex items-center justify-center">
+                      <feature.icon className="h-5 w-5 text-[#1E2260]" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">
@@ -197,14 +197,14 @@ export default function AboutPage() {
             </div>
             <div className="lg:w-1/2">
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C] rounded-3xl opacity-10 transform rotate-3"></div>
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#1E2260] to-[#4A9FD5] rounded-3xl opacity-10 transform rotate-3"></div>
                 <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden">
                   <div className="aspect-[4/3] bg-gradient-to-br from-gray-900 to-gray-800 p-8 flex items-center justify-center">
                     <Globe className="h-48 w-48 text-white opacity-50" />
                   </div>
                   <div className="p-6 bg-white">
                     <div className="flex items-center gap-2 mb-4">
-                      <Award className="h-6 w-6 text-[#8B1D1D]" />
+                      <Award className="h-6 w-6 text-[#1E2260]" />
                       <span className="font-semibold text-gray-900">
                         Award-Winning Platform
                       </span>
@@ -222,17 +222,17 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-[#8B1D1D] to-[#B91C1C]">
+      <section className="py-20 bg-gradient-to-r from-[#1E2260] to-[#4A9FD5]">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Experience the NetNxt Difference?
+            Ready to Experience the DeWiN Difference?
           </h2>
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust NetNxt for their
+            Join thousands of satisfied customers who trust DeWiN for their
             mission-critical infrastructure.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-[#8B1D1D] hover:bg-gray-100" asChild>
+            <Button size="lg" className="bg-white text-[#1E2260] hover:bg-gray-100" asChild>
               <Link href="/products">
                 Get Started
                 <ChevronRight className="ml-2 h-5 w-5" />
@@ -241,7 +241,7 @@ export default function AboutPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-[#8B1D1D] bg-transparent"
+              className="border-white text-white hover:bg-white hover:text-[#1E2260] bg-transparent"
               asChild
             >
               <Link href="/contact">Talk to Sales</Link>
