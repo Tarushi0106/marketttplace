@@ -89,22 +89,25 @@ export function ProductCard({
         )}
       </div>
 
-      {/* Quick actions */}
-      <div className="absolute right-3 top-3 z-10 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Quick actions — always visible */}
+      <div className="absolute right-3 top-3 z-10 flex flex-col gap-2">
         <Button
           variant="secondary"
           size="icon"
-          className="h-8 w-8 rounded-full shadow-subtle"
+          className={cn(
+            "h-8 w-8 rounded-full shadow-sm transition-all",
+            isWishlisted ? "bg-red-50 border border-red-200" : "bg-white/90 backdrop-blur-sm"
+          )}
           onClick={handleWishlistToggle}
           title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className={cn("h-4 w-4", isWishlisted && "fill-red-500 text-red-500")} />
+          <Heart className={cn("h-4 w-4", isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500")} />
         </Button>
         {showQuickView && (
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 rounded-full shadow-subtle"
+            className="h-8 w-8 rounded-full shadow-sm bg-white/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={() => setQuickViewProduct(product.id)}
             title="Quick view"
           >
@@ -115,7 +118,7 @@ export function ProductCard({
           <Button
             variant={isInComparison ? "default" : "secondary"}
             size="icon"
-            className="h-8 w-8 rounded-full shadow-subtle"
+            className="h-8 w-8 rounded-full shadow-sm bg-white/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={() => addToComparison(product.id)}
             title="Compare"
             disabled={comparisonItems.length >= 4 && !isInComparison}
@@ -218,15 +221,31 @@ export function ProductCard({
           </Badge>
         )}
 
-        {/* Add to cart button */}
-        <Button
-          className="mt-4 w-full"
-          disabled={product.stockQuantity === 0}
-          onClick={handleAddToCart}
-        >
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          {product.stockQuantity === 0 ? "Out of Stock" : "Add to Cart"}
-        </Button>
+        {/* Action buttons */}
+        <div className="mt-4 flex gap-2">
+          <Button
+            className="flex-1"
+            disabled={product.stockQuantity === 0}
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            {product.stockQuantity === 0 ? "Out of Stock" : "Add to Cart"}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-10 w-10 flex-shrink-0 border transition-all",
+              isWishlisted
+                ? "border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
+                : "border-gray-200 text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+            )}
+            onClick={handleWishlistToggle}
+            title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart className={cn("h-4 w-4", isWishlisted && "fill-red-500")} />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

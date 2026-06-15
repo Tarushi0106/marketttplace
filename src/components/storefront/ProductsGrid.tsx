@@ -1,9 +1,11 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { Star, Building2, Package, Sparkles, MessageCircle, Eye, Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart } from "lucide-react";
+import { Star, Building2, Package, Sparkles, Eye, Cloud, Server, Database, Shield, Lock, Globe, Wifi, Smartphone, Laptop, Monitor, HardDrive, Cpu, Network, Mail, MessageSquare, Phone, Video, Users, ShoppingCart, CreditCard, FileText, Calendar, Clock, BarChart, TrendingUp, Zap, Leaf, CloudLightning, Building, Briefcase, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useWishlistStore } from "@/store/wishlist-store";
+import { cn } from "@/lib/utils";
 
 // Map icon name to lucide-react component
 const iconMap: Record<string, React.ComponentType<any>> = {
@@ -147,6 +149,16 @@ function ListView({ products }: { products: Product[] }) {
 
 // Standard Product Card - SaaS Style with Minimal Red Outline Icons
 function ProductCard({ product }: { product: Product }) {
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, items: wishlistItems } = useWishlistStore();
+  const wishlistId = `${product.id}-default-null`;
+  const isWishlisted = wishlistItems.some((i) => i.id === wishlistId);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isWishlisted) removeFromWishlist(wishlistId);
+    else addToWishlist({ product: product as any, unitPrice: getDisplayPrice(product) });
+  };
+
   const discount = product.compareAtPrice
     ? Math.round(
         ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
@@ -178,21 +190,34 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
       {/* Image / Icon Section */}
-      <Link href={`/products/${product.slug}`}>
-        <div className="flex items-center justify-center h-28 bg-[#F8F9FF] overflow-hidden">
-          {product.images[0]?.url ? (
-            <img
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-[#EEF2FF]">
-              {renderIcon(product.icon)}
-            </div>
+      <div className="relative">
+        <Link href={`/products/${product.slug}`}>
+          <div className="flex items-center justify-center h-28 bg-[#F8F9FF] overflow-hidden">
+            {product.images[0]?.url ? (
+              <img
+                src={product.images[0].url}
+                alt={product.images[0].alt || product.name}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-[#EEF2FF]">
+                {renderIcon(product.icon)}
+              </div>
+            )}
+          </div>
+        </Link>
+        {/* Wishlist button */}
+        <button
+          onClick={handleWishlistToggle}
+          title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          className={cn(
+            "absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all",
+            isWishlisted ? "bg-red-50 border border-red-200" : "bg-white/90 border border-gray-200 hover:border-red-200 hover:bg-red-50"
           )}
-        </div>
-      </Link>
+        >
+          <Heart className={cn("h-4 w-4", isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400")} />
+        </button>
+      </div>
 
       {/* Content Section */}
       <div className="p-4 flex-1 flex flex-col">
@@ -237,6 +262,15 @@ function ProductCard({ product }: { product: Product }) {
 
 // Compact Product Card - Smaller with logo prominent
 function CompactProductCard({ product }: { product: Product }) {
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, items: wishlistItems } = useWishlistStore();
+  const wishlistId = `${product.id}-default-null`;
+  const isWishlisted = wishlistItems.some((i) => i.id === wishlistId);
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isWishlisted) removeFromWishlist(wishlistId);
+    else addToWishlist({ product: product as any, unitPrice: getDisplayPrice(product) });
+  };
+
   const discount = product.compareAtPrice
     ? Math.round(
         ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
@@ -275,13 +309,11 @@ function CompactProductCard({ product }: { product: Product }) {
           </div>
 
           {/* Badges - Small */}
-          {(product.isFeatured || discount > 0) && (
-            <div className="absolute top-2 right-2">
-              {product.isFeatured && (
-                <div className="w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
-                  <Sparkles className="h-3 w-3 text-white" />
-                </div>
-              )}
+          {product.isFeatured && (
+            <div className="absolute top-2 left-2">
+              <div className="w-6 h-6 rounded-full bg-[#1E2260] flex items-center justify-center">
+                <Sparkles className="h-3 w-3 text-white" />
+              </div>
             </div>
           )}
           {discount > 0 && (
@@ -289,6 +321,17 @@ function CompactProductCard({ product }: { product: Product }) {
               -{discount}%
             </Badge>
           )}
+          {/* Wishlist button */}
+          <button
+            onClick={handleWishlistToggle}
+            title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            className={cn(
+              "absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-all",
+              isWishlisted ? "bg-red-50 border border-red-200" : "bg-white/90 border border-gray-200 hover:border-red-200 hover:bg-red-50"
+            )}
+          >
+            <Heart className={cn("h-3.5 w-3.5", isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400")} />
+          </button>
         </div>
       </Link>
 
@@ -339,6 +382,14 @@ function CompactProductCard({ product }: { product: Product }) {
 
 // Product List Item
 function ProductListItem({ product }: { product: Product }) {
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, items: wishlistItems } = useWishlistStore();
+  const wishlistId = `${product.id}-default-null`;
+  const isWishlisted = wishlistItems.some((i) => i.id === wishlistId);
+  const handleWishlistToggle = () => {
+    if (isWishlisted) removeFromWishlist(wishlistId);
+    else addToWishlist({ product: product as any, unitPrice: getDisplayPrice(product) });
+  };
+
   const discount = product.compareAtPrice
     ? Math.round(
         ((Number(product.compareAtPrice) - getDisplayPrice(product)) /
@@ -432,30 +483,30 @@ function ProductListItem({ product }: { product: Product }) {
           </div>
 
           {/* CTA */}
-          <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg whitespace-nowrap"
-                asChild
-              >
-                <Link href={`/products/${product.slug}`}>
-                  <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  Product Details
-                </Link>
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-gray-200 hover:border-[#1E2260] hover:text-[#1E2260] rounded-lg"
-                asChild
-              >
-                <Link href="/contact">
-                  <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Contact
-                </Link>
-              </Button>
-            </div>
+          <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-2 flex-shrink-0">
+            <Button
+              size="sm"
+              className="bg-[#1E2260] hover:bg-[#161848] text-white rounded-lg whitespace-nowrap"
+              asChild
+            >
+              <Link href={`/products/${product.slug}`}>
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                View Details
+              </Link>
+            </Button>
+            <button
+              onClick={handleWishlistToggle}
+              title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all whitespace-nowrap",
+                isWishlisted
+                  ? "border-red-200 bg-red-50 text-red-500"
+                  : "border-gray-200 text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              )}
+            >
+              <Heart className={cn("h-3.5 w-3.5", isWishlisted && "fill-red-500")} />
+              {isWishlisted ? "Wishlisted" : "Wishlist"}
+            </button>
           </div>
         </div>
       </div>
