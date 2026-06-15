@@ -11,12 +11,9 @@ import {
   Globe,
   Wifi,
   BarChart3,
-  Video,
-  Server,
-  MonitorSmartphone,
-  HardDrive,
-  ShieldCheck,
-  DatabaseBackup,
+  Camera,
+  Mic,
+  Users,
   CheckCircle2,
   ChevronRight,
 } from "lucide-react";
@@ -30,81 +27,42 @@ export const metadata: Metadata = {
 const solutions = [
   {
     id: "vsaas",
-    icon: Video,
+    icon: Camera,
     iconColor: "text-[#1E2260]",
     iconBg: "bg-[#EEF2FF]",
     badge: "Popular",
     badgeColor: "bg-[#E8F0FF] text-[#161848]",
-    tag: "AI Surveillance",
-    title: "VSAAS",
-    description: "AI-powered cloud video surveillance with real-time monitoring & intelligent analytics.",
-    features: ["Real-time AI monitoring", "Cloud recording & playback", "Multi-site management"],
+    tag: "AI Video Surveillance",
+    title: "VSaaS",
+    description: "AI-powered cloud video surveillance with real-time monitoring, intelligent alerts, and multi-site management.",
+    features: ["Real-time AI threat detection", "Cloud recording & playback", "Multi-site camera management"],
     href: "/products/vsaas",
   },
   {
-    id: "tally-cloud-server",
-    icon: Server,
-    iconColor: "text-blue-600",
-    iconBg: "bg-blue-50",
-    badge: null,
-    badgeColor: "",
-    tag: "Cloud Hosting",
-    title: "Tally Cloud Server",
-    description: "Secure India-based cloud servers purpose-built for Tally hosting needs.",
-    features: ["99.9% uptime SLA", "Auto daily backups", "Multi-user access"],
-    href: "/products/tally-cloud-server",
+    id: "deco-voice",
+    icon: Mic,
+    iconColor: "text-[#0369A1]",
+    iconBg: "bg-[#E0F2FE]",
+    badge: "Trending",
+    badgeColor: "bg-[#E0F2FE] text-[#0369A1]",
+    tag: "AI Voice Automation",
+    title: "Deco Voice",
+    description: "Fully automated inbound & outbound AI voice calls — lead qualification, customer support, and CRM sync 24/7.",
+    features: ["Automated inbound & outbound calls", "CRM integration & sync", "24/7 voice bot coverage"],
+    href: "/products/deco-voice",
   },
   {
-    id: "microsoft-365-services",
-    icon: MonitorSmartphone,
-    iconColor: "text-indigo-600",
-    iconBg: "bg-indigo-50",
-    badge: "Recommended",
-    badgeColor: "bg-indigo-100 text-indigo-700",
-    tag: "Productivity",
-    title: "Microsoft 365 Services",
-    description: "Complete Microsoft 365 suite — email, Teams, and Office apps for businesses.",
-    features: ["Business email & Teams", "1 TB OneDrive storage", "Office desktop apps"],
-    href: "/products/microsoft-365-services",
-  },
-  {
-    id: "acronis-cyber-backup-cloud-india",
-    icon: HardDrive,
-    iconColor: "text-emerald-600",
-    iconBg: "bg-emerald-50",
-    badge: null,
-    badgeColor: "",
-    tag: "Cloud Backup",
-    title: "Acronis Cyber Backup Cloud",
-    description: "Secure cloud backup protecting your data against ransomware, viruses & deletion.",
-    features: ["Ransomware protection", "Instant recovery", "Encrypted cloud storage"],
-    href: "/products/acronis-cyber-backup-cloud-india",
-  },
-  {
-    id: "acronis-cyber-protect-cloud",
-    icon: ShieldCheck,
-    iconColor: "text-amber-600",
-    iconBg: "bg-amber-50",
-    badge: null,
-    badgeColor: "",
-    tag: "Cyber Security",
-    title: "Acronis Cyber Protect Cloud",
-    description: "Comprehensive endpoint protection for workstations, servers, VMs & cloud workloads.",
-    features: ["AI-based threat detection", "Endpoint protection", "Compliance reporting"],
-    href: "/products/acronis-cyber-protect-cloud",
-  },
-  {
-    id: "acronis-backup-advanced-spla",
-    icon: DatabaseBackup,
-    iconColor: "text-purple-600",
-    iconBg: "bg-purple-50",
-    badge: null,
-    badgeColor: "",
-    tag: "Advanced Backup",
-    title: "Acronis Backup Advanced SPLA",
-    description: "Advanced backup for workstations, VMs, servers, Office 365 & mobile devices.",
-    features: ["Bare-metal recovery", "VM & server backup", "Office 365 mailbox backup"],
-    href: "/products/acronis-backup-advanced-spla",
+    id: "deco-talent",
+    icon: Users,
+    iconColor: "text-[#166534]",
+    iconBg: "bg-[#F0FDF4]",
+    badge: "AI-Powered",
+    badgeColor: "bg-[#F0FDF4] text-[#166534]",
+    tag: "AI Talent Intelligence",
+    title: "Deco Talent",
+    description: "Resume scoring, AI voice interviews, and 10-parameter candidate reports — hire smarter and faster.",
+    features: ["AI resume scoring", "Automated voice interviews", "10-parameter candidate reports"],
+    href: "/products/deco-talent",
   },
 ];
 
@@ -125,12 +83,12 @@ export default function SolutionsPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1E2260]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="container mx-auto px-6 relative">
           <div className="max-w-2xl">
-            <span className="inline-block text-xs font-semibold text-[#e06060] uppercase tracking-widest mb-4">
+            <span className="inline-block text-xs font-semibold text-[#4A9FD5] uppercase tracking-widest mb-4">
               Enterprise Solutions
             </span>
             <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-5">
               Digital Infrastructure<br />
-              <span className="text-[#e06060]">Built for Business</span>
+              <span className="text-[#4A9FD5]">Built for Business</span>
             </h1>
             <p className="text-gray-400 text-lg mb-8 leading-relaxed">
               From AI surveillance to cloud backup — powerful solutions for growing enterprises.
@@ -233,7 +191,7 @@ export default function SolutionsPage() {
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-xs font-semibold text-[#e06060] uppercase tracking-widest mb-3">Why DeWiN</p>
+              <p className="text-xs font-semibold text-[#4A9FD5] uppercase tracking-widest mb-3">Why DeWiN</p>
               <h2 className="text-3xl font-bold text-white mb-4">Built for performance.<br />Trusted by enterprises.</h2>
               <p className="text-gray-400 mb-8">Reliable, secure, and scalable solutions with dedicated support.</p>
               <div className="space-y-5">
@@ -244,7 +202,7 @@ export default function SolutionsPage() {
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 items-start">
                     <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-4 w-4 text-[#e06060]" />
+                      <item.icon className="h-4 w-4 text-[#4A9FD5]" />
                     </div>
                     <div>
                       <p className="text-white font-semibold text-sm">{item.title}</p>
@@ -259,11 +217,11 @@ export default function SolutionsPage() {
               <p className="text-gray-400 text-sm mb-6">Get expert guidance and a custom quote for your business.</p>
               <div className="space-y-3 mb-6">
                 <a href="tel:+918698080000" className="flex items-center gap-3 text-gray-300 hover:text-white text-sm transition-colors">
-                  <Phone className="h-4 w-4 text-[#e06060]" />
+                  <Phone className="h-4 w-4 text-[#4A9FD5]" />
                   +91 86980 80000
                 </a>
                 <a href="mailto:sales@dewin.com" className="flex items-center gap-3 text-gray-300 hover:text-white text-sm transition-colors">
-                  <Mail className="h-4 w-4 text-[#e06060]" />
+                  <Mail className="h-4 w-4 text-[#4A9FD5]" />
                   sales@dewin.com
                 </a>
               </div>
