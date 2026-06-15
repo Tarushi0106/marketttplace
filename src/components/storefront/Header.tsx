@@ -1,8 +1,9 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Search,
@@ -162,7 +163,12 @@ export function Header() {
   const { data: session } = useSession();
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const settings = useSiteSettings();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const [navLinks, setNavLinks] = useState<MenuItem[]>([]);
 
   // Update item count when cart changes - use a callback to get current state
@@ -182,6 +188,40 @@ export function Header() {
       setItemCount(items.reduce((sum, item) => sum + item.quantity, 0));
     }
   }, [items, mounted]);
+
+  // Debounced live search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchOpen(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(searchQuery.trim())}&limit=6`);
+        const data = await res.json();
+        setSearchResults(data.data || []);
+        setSearchOpen(true);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Fetch nav menu dynamically
   useEffect(() => {
@@ -228,16 +268,75 @@ export function Header() {
             </Link>
 
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-xl">
+            <div className="hidden md:flex flex-1 max-w-xl" ref={searchRef}>
               <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && searchQuery.trim()) {
+                      setSearchOpen(false);
+                      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                    }
+                    if (e.key === "Escape") setSearchOpen(false);
+                  }}
                   className="w-full h-10 pl-10 pr-4 bg-gray-100 border-0 rounded-lg text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E2260]/20 focus:bg-gray-50 transition-all"
                 />
+                {searchLoading && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 border-2 border-[#1E2260]/30 border-t-[#1E2260] rounded-full animate-spin" />
+                )}
+
+                {/* Live results dropdown */}
+                {searchOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                    {searchResults.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-gray-500">No products found for "{searchQuery}"</div>
+                    ) : (
+                      <>
+                        <div className="px-3 pt-2 pb-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Products</p>
+                        </div>
+                        {searchResults.map((product: any) => (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.slug}`}
+                            onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                            className="flex items-center gap-3 px-3 py-2.5 hover:bg-[#EEF2FF] transition-colors"
+                          >
+                            {product.images?.[0]?.url ? (
+                              <img src={product.images[0].url} alt={product.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <Search className="h-4 w-4 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                              {product.category && (
+                                <p className="text-xs text-gray-500 truncate">{product.category.name}</p>
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-[#1E2260] flex-shrink-0">
+                              ₹{Number(product.basePrice).toLocaleString("en-IN")}
+                            </span>
+                          </Link>
+                        ))}
+                        <div className="border-t border-gray-100 px-3 py-2">
+                          <button
+                            onClick={() => { setSearchOpen(false); router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`); }}
+                            className="text-xs font-semibold text-[#1E2260] hover:underline"
+                          >
+                            View all results for "{searchQuery}" →
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -455,12 +554,28 @@ export function Header() {
         <div className="container mx-auto px-4 py-5">
           {/* Mobile Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
             <input
               type="text"
               placeholder="What are you looking for?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  setMobileMenuOpen(false);
+                  router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
               className="w-full h-12 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:border-[#1E2260] focus:ring-2 focus:ring-[#1E2260]/10"
             />
+            {searchQuery.trim() && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#1E2260]"
+              >
+                Search
+              </button>
+            )}
           </div>
 
           {/* Categories */}
