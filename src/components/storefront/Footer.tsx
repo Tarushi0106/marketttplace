@@ -173,8 +173,8 @@ export function Footer() {
                 </a>
               )}
               {address && (
-                <div className="flex items-start gap-3 text-sm text-white/50">
-                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="flex items-center gap-3 text-sm text-white/50">
+                  <span className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                     <MapPin className="h-4 w-4 text-[#4A9FD5]" />
                   </span>
                   {address}
