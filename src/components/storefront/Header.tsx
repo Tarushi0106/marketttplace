@@ -43,6 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Camera, Mic, Users } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useUIStore } from "@/store/ui-store";
@@ -118,6 +119,34 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+// Static DeWiN product categories — hardcoded so dropdown never depends on DB
+const STATIC_CATEGORIES = [
+  {
+    slug: "ai-video-surveillance",
+    name: "AI Video Surveillance",
+    href: "/products/vsaas",
+    productName: "VSaaS",
+    productDesc: "Cloud video surveillance & AI alerts",
+    Icon: Camera,
+  },
+  {
+    slug: "ai-voice-automation",
+    name: "AI Voice Automation",
+    href: "/products/deco-voice",
+    productName: "Deco Voice",
+    productDesc: "Automated inbound & outbound AI calls",
+    Icon: Mic,
+  },
+  {
+    slug: "ai-talent-intelligence",
+    name: "AI Talent Intelligence",
+    href: "/products/deco-talent",
+    productName: "Deco Talent",
+    productDesc: "AI-powered resume scoring & interviews",
+    Icon: Users,
+  },
+];
+
 // Fallback nav links if no menu is configured
 const defaultNavLinks = [
   { label: "Plans", href: "/products", badge: null, icon: "layout-grid" },
@@ -134,8 +163,6 @@ export function Header() {
   const { isMobileMenuOpen, setMobileMenuOpen } = useUIStore();
   const settings = useSiteSettings();
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [navLinks, setNavLinks] = useState<MenuItem[]>([]);
 
   // Update item count when cart changes - use a callback to get current state
@@ -156,34 +183,8 @@ export function Header() {
     }
   }, [items, mounted]);
 
-  // Fetch products and nav menu dynamically
+  // Fetch nav menu dynamically
   useEffect(() => {
-    async function fetchCategories() {
-      const sidebarSlugs = [
-        "ai-video-surveillance",
-        "ai-voice-automation",
-        "ai-talent-intelligence",
-      ];
-      try {
-        const response = await fetch("/api/categories?includeSubCategories=true");
-        const data = await response.json();
-        if (data.data) {
-          const filtered = (data.data as Category[]).filter((c) =>
-            sidebarSlugs.includes(c.slug)
-          );
-          // Sort to match sidebar order
-          filtered.sort(
-            (a, b) => sidebarSlugs.indexOf(a.slug) - sidebarSlugs.indexOf(b.slug)
-          );
-          setCategories(filtered);
-        }
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    }
-
     async function fetchNavMenu() {
       try {
         const response = await fetch("/api/menus?location=header_main");
@@ -200,7 +201,6 @@ export function Header() {
       }
     }
 
-    fetchCategories();
     fetchNavMenu();
   }, []);
 
@@ -386,55 +386,35 @@ export function Header() {
                     <ChevronDown className="h-3 w-3" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-72 p-2 rounded-xl shadow-xl border-gray-200">
-                  {categoriesLoading ? (
-                    <div className="py-4 text-center text-sm text-gray-500">Loading...</div>
-                  ) : categories.length === 0 ? (
-                    <div className="py-4 text-center text-sm text-gray-500">No categories</div>
-                  ) : (
-                    categories.map((cat) => {
-                      const catToProduct: Record<string, string> = {
-                        "ai-video-surveillance": "/products/vsaas",
-                        "ai-voice-automation": "/products/deco-voice",
-                        "ai-talent-intelligence": "/products/deco-talent",
-                      };
-                      const href = catToProduct[cat.slug] || `/products?category=${cat.slug}`;
-                      return (
-                      <div key={cat.id}>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="w-7 h-7 rounded-lg bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
-                              {React.createElement(getIconComponent(cat.icon ?? null), {
-                                className: "h-3.5 w-3.5 text-[#1E2260]",
-                              })}
-                            </div>
-                            <span className="font-medium text-gray-900 text-sm">{cat.name}</span>
-                            {cat._count && cat._count.products > 0 && (
-                              <span className="ml-auto text-xs text-gray-400">({cat._count.products})</span>
-                            )}
-                          </Link>
-                        </DropdownMenuItem>
-                        {cat.subCategories && cat.subCategories.length > 0 && (
-                          <div className="ml-4 pl-3 border-l border-gray-100 mb-1">
-                            {cat.subCategories.map((sub) => (
-                              <DropdownMenuItem key={sub.id} asChild>
-                                <Link
-                                  href={`/products?category=${cat.slug}&subcategory=${sub.slug}`}
-                                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                  <span className="text-sm text-gray-600">{sub.name}</span>
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
-                          </div>
-                        )}
+                <DropdownMenuContent align="start" className="w-80 p-2 rounded-xl shadow-xl border-gray-200">
+                  {STATIC_CATEGORIES.map((cat, i) => (
+                    <div key={cat.slug}>
+                      {/* Category label */}
+                      <div className="flex items-center gap-2 px-3 pt-3 pb-1">
+                        <div className="w-6 h-6 rounded-md bg-[#1E2260]/10 flex items-center justify-center flex-shrink-0">
+                          <cat.Icon className="h-3 w-3 text-[#1E2260]" />
+                        </div>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{cat.name}</span>
                       </div>
-                    )})
-                  )}
+                      {/* Product under this category */}
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={cat.href}
+                          className="flex items-center gap-3 mx-1 px-3 py-2.5 rounded-lg hover:bg-[#EEF2FF] transition-colors"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-[#1E2260] flex items-center justify-center flex-shrink-0">
+                            <cat.Icon className="h-3.5 w-3.5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">{cat.productName}</p>
+                            <p className="text-xs text-gray-500">{cat.productDesc}</p>
+                          </div>
+                          <ChevronRight className="h-3.5 w-3.5 text-gray-400 ml-auto flex-shrink-0" />
+                        </Link>
+                      </DropdownMenuItem>
+                      {i < STATIC_CATEGORIES.length - 1 && <DropdownMenuSeparator className="my-2" />}
+                    </div>
+                  ))}
                   <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem asChild>
                     <Link href="/products" className="justify-center text-[#1E2260] font-medium text-sm">
@@ -486,52 +466,27 @@ export function Header() {
           {/* Categories */}
           <div className="mb-6">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Categories</p>
-            {categoriesLoading ? (
-              <div className="py-4 text-center text-sm text-gray-500">Loading...</div>
-            ) : categories.length === 0 ? (
-              <div className="py-4 text-center text-sm text-gray-500">No categories</div>
-            ) : (
-              <div className="space-y-1">
-                {categories.map((cat) => {
-                  const catToProduct: Record<string, string> = {
-                    "ai-video-surveillance": "/products/vsaas",
-                    "ai-voice-automation": "/products/deco-voice",
-                    "ai-talent-intelligence": "/products/deco-talent",
-                  };
-                  const mobileHref = catToProduct[cat.slug] || `/products?category=${cat.slug}`;
-                  return (
-                  <div key={cat.id}>
-                    <Link
-                      href={mobileHref}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[0.98] transition-all duration-200"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                        {React.createElement(getIconComponent(cat.icon ?? null), {
-                          className: "h-4 w-4 text-[#1E2260]",
-                        })}
-                      </div>
-                      <span className="truncate">{cat.name}</span>
-                    </Link>
-                    {cat.subCategories && cat.subCategories.length > 0 && (
-                      <div className="ml-4 pl-3 border-l border-gray-200 mt-1 space-y-1">
-                        {cat.subCategories.map((sub) => (
-                          <Link
-                            key={sub.id}
-                            href={`/products?category=${cat.slug}&subcategory=${sub.slug}`}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <ChevronRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                            {sub.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )})}
-              </div>
-            )}
+            <div className="space-y-3">
+              {STATIC_CATEGORIES.map((cat) => (
+                <div key={cat.slug}>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1 mb-1">{cat.name}</p>
+                  <Link
+                    href={cat.href}
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EEF2FF] active:scale-[0.98] transition-all duration-200"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[#1E2260] flex items-center justify-center flex-shrink-0">
+                      <cat.Icon className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{cat.productName}</p>
+                      <p className="text-xs text-gray-500">{cat.productDesc}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
+                  </Link>
+                </div>
+              ))}
+            </div>
             <Link
               href="/products"
               className="flex items-center justify-center gap-2 mt-3 py-2.5 text-sm font-medium text-[#1E2260] hover:bg-gray-50 rounded-xl transition-colors"
