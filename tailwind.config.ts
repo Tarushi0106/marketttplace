@@ -110,6 +110,14 @@ const config: Config = {
           from: { opacity: "1" },
           to: { opacity: "0" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -118,6 +126,8 @@ const config: Config = {
         "slide-out-right": "slide-out-right 0.3s ease-out",
         "fade-in": "fade-in 0.2s ease-out",
         "fade-out": "fade-out 0.2s ease-out",
+        "float": "float 4s ease-in-out infinite",
+        "float-slow": "float-slow 5.5s ease-in-out infinite",
       },
     },
   },

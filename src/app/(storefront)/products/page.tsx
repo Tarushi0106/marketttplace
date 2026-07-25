@@ -1,27 +1,29 @@
 ﻿import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import { ProductFilters, ProductSortSelect } from "@/components/storefront/ProductFilters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
-  Grid3X3,
-  LayoutGrid,
-  List,
-  Search,
-  Star,
-  Building2,
+  ChevronDown,
   ArrowRight,
-  Sparkles,
-  Package
+  Package,
+  Check,
+  Zap,
+  Globe,
+  Clock,
+  Infinity as InfinityIcon,
+  Grid3X3,
+  List,
+  MessageCircle,
+  TrendingUp,
+  Bell,
+  PlayCircle,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { ProductsGrid } from "@/components/storefront/ProductsGrid";
+import { ProductSortSelect } from "@/components/storefront/ProductFilters";
+import { cn } from "@/lib/utils";
 import type { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 
@@ -441,161 +443,91 @@ async function getFeaturedCount() {
   }
 }
 
+async function getFeaturedSpotlightProduct() {
+  const select = {
+    id: true,
+    name: true,
+    slug: true,
+    brandLogo: true,
+    shortDescription: true,
+    specifications: true,
+    category: { select: { name: true } },
+    subCategory: { select: { name: true } },
+    images: { orderBy: { sortOrder: "asc" as const }, take: 1 },
+  };
+
+  try {
+    // Deco Voice is the flagship spotlight product; fall back to any other
+    // featured product if it's ever unpublished.
+    const decoVoice = await prisma.product.findFirst({
+      where: { status: "ACTIVE", slug: "deco-voice" },
+      select,
+    });
+    if (decoVoice) return decoVoice;
+
+    return await prisma.product.findFirst({
+      where: { status: "ACTIVE", isFeatured: true },
+      orderBy: { sortOrder: "asc" },
+      select,
+    });
+  } catch (error) {
+    console.error("Error fetching featured spotlight product:", error);
+    return null;
+  }
+}
+
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
   const viewMode = params.view || "grid";
 
   // Fetch all data in parallel
-  const [{ products, pagination }, categories, priceRange, productTypes, featuredCount, sidebarSubCategories] = await Promise.all([
+  const [{ products, pagination }, categories, priceRange, productTypes, featuredCount, sidebarSubCategories, spotlightProduct] = await Promise.all([
     getProducts(params),
     getCategories(),
     getPriceRange(),
     getProductTypeCounts(),
     getFeaturedCount(),
     getSubCategoriesForSidebar(),
+    getFeaturedSpotlightProduct(),
   ]);
-
-  // Get current filter display info
-  const selectedCategories = Array.isArray(params.category)
-    ? params.category
-    : params.category
-    ? [params.category]
-    : [];
-
-  const categoryNames = categories
-    .filter((c: { value: string; label: string }) => selectedCategories.includes(c.value))
-    .map((c: { value: string; label: string }) => c.label);
-
-  // Build breadcrumb items
-  const breadcrumbItems = [{ label: "Products" }];
-  if (categoryNames.length === 1) {
-    breadcrumbItems.push({ label: categoryNames[0] });
-  }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Image */}
-      <section className="relative">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4">
-          <div className="relative h-[200px] md:h-[240px] rounded-2xl overflow-hidden">
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2072&q=80')`,
-              }}
-            />
-            {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-
-            {/* Content */}
-            <div className="relative h-full flex flex-col justify-end p-6 md:p-8">
-              {/* Breadcrumb */}
-              <nav className="mb-3">
-                <ol className="flex items-center gap-2 text-sm">
-                  <li>
-                    <Link href="/" className="text-gray-300 hover:text-white transition-colors">
-                      Home
-                    </Link>
-                  </li>
-                  <ChevronRight className="h-4 w-4 text-gray-500" />
-                  <li className="text-white font-medium">Products</li>
-                  {categoryNames.length === 1 && (
-                    <>
-                      <ChevronRight className="h-4 w-4 text-gray-500" />
-                      <li className="text-white font-medium">{categoryNames[0]}</li>
-                    </>
-                  )}
-                </ol>
-              </nav>
-
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
-                    {categoryNames.length === 1 ? categoryNames[0] : "All Products"}
-                  </h1>
-                  <p className="mt-1 text-gray-300">
-                    {pagination.total} products available
-                  </p>
-                </div>
-
-                {/* Search Bar */}
-                <div className="w-full md:w-80">
-                  <SearchForm initialSearch={params.search} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* Quick Filters Bar - Horizontal */}
-      <section className="bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <QuickFilterBar categories={categories} />
-        </div>
-      </section>
-
       {/* Main Content */}
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          <ProductFilters
-            categories={categories.filter((c: { value: string; label: string; count: number }) => ["ai-video-surveillance", "ai-voice-automation", "ai-talent-intelligence"].includes(c.value))}
-            subCategories={sidebarSubCategories}
-            productTypes={productTypes}
-            minPrice={priceRange.min}
-            maxPrice={priceRange.max}
-            totalProducts={pagination.total}
-          />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-10 py-10">
+        {/* Featured Product Spotlight */}
+        {spotlightProduct && <FeaturedSpotlight product={spotlightProduct} />}
 
-          {/* Product Grid Section */}
-          <div className="flex-1">
-            {/* Top bar with results count, view toggle, and sorting */}
-            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <div>
-                <p className="text-sm text-gray-500">
-                  Showing{" "}
-                  <span className="font-semibold text-gray-900">
-                    {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}
-                    {" - "}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-gray-900">{pagination.total}</span>{" "}
-                  products
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                {/* View Toggle */}
-                <ViewToggle currentView={viewMode} searchParams={params} />
-                <div className="hidden lg:block">
-                  <ProductSortSelect />
-                </div>
-              </div>
-            </div>
+        {/* Filter Toolbar */}
+        <FilterToolbar
+          categories={categories.filter((c: { value: string; label: string; count: number }) => ["ai-video-surveillance", "ai-voice-automation", "ai-talent-intelligence"].includes(c.value))}
+          productTypes={productTypes}
+          params={params}
+          viewMode={viewMode}
+          pagination={pagination}
+        />
 
-            {/* Active Filters Display */}
-            <ActiveFilters params={params} categories={categories} />
+        {/* Product Grid Section */}
+        <div>
+          {/* Active Filters Display */}
+          <ActiveFilters params={params} categories={categories} />
 
-            {/* Products Grid/List */}
-            <Suspense fallback={<ProductGridSkeleton viewMode={viewMode} />}>
-              <ProductsGrid
-                products={products}
-                viewMode={viewMode}
-              />
-            </Suspense>
+          {/* Products Grid/List */}
+          <Suspense fallback={<ProductGridSkeleton viewMode={viewMode} />}>
+            <ProductsGrid
+              products={products}
+              viewMode={viewMode}
+            />
+          </Suspense>
 
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <Pagination
-                currentPage={pagination.page}
-                totalPages={pagination.totalPages}
-                searchParams={params}
-              />
-            )}
-          </div>
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              searchParams={params}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -689,134 +621,320 @@ function CategoryProductsSection({
   );
 }
 
-// Search Form Component
-function SearchForm({ initialSearch }: { initialSearch?: string }) {
+// Icons cycled through the 2x2 feature card grid, in order
+const FEATURE_ICONS = [Zap, Globe, Clock, InfinityIcon];
+
+// Featured Product Spotlight — large rounded hero card with animated visual + feature grid
+function FeaturedSpotlight({ product }: { product: any }) {
+  const specs =
+    product.specifications && typeof product.specifications === "object" && !Array.isArray(product.specifications)
+      ? Object.entries(product.specifications as Record<string, string>).slice(0, 4)
+      : [];
+
   return (
-    <form action="/products" method="GET" className="relative">
-      <div className="flex items-center bg-white/10 border border-white/20 rounded-lg overflow-hidden focus-within:border-white/40 transition-colors">
-        <Search className="ml-3 h-4 w-4 text-gray-400" />
-        <input
-          type="search"
-          name="search"
-          defaultValue={initialSearch}
-          placeholder="Search products..."
-          className="flex-1 px-3 py-2.5 bg-transparent text-white placeholder:text-gray-400 focus:outline-none text-sm"
-        />
-        <Button
-          type="submit"
-          size="sm"
-          className="m-1 bg-[#1E2260] hover:bg-[#161848] text-white rounded-md px-4"
-        >
-          Search
-        </Button>
+    <div className="mb-8 grid gap-6 rounded-[24px] bg-gradient-to-br from-white via-[#F5F9FF] to-[#EAF3FF] p-5 shadow-[0_4px_24px_rgba(30,34,96,0.06)] md:grid-cols-[58fr_42fr] md:items-center md:p-7 lg:min-h-[340px]">
+      {/* Animated visual */}
+      <Link
+        href={`/products/${product.slug}`}
+        className="relative flex h-full min-h-[220px] items-center justify-center"
+      >
+        {/* Radial glow */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,132,216,0.16),transparent_70%)]" />
+
+        {/* Floating chat bubble */}
+        <div className="pointer-events-none absolute left-2 top-4 z-10 hidden animate-float items-center gap-1.5 rounded-full border border-[#ECECEC] bg-white px-3 py-2 shadow-md sm:flex">
+          <MessageCircle className="h-3.5 w-3.5 text-[#0A84D8]" />
+          <span className="text-xs font-medium text-gray-600">How can I help?</span>
+        </div>
+
+        {/* Floating analytics card */}
+        <div className="pointer-events-none absolute bottom-6 left-0 z-10 hidden animate-float-slow rounded-xl border border-[#ECECEC] bg-white px-3 py-2 shadow-md sm:block">
+          <div className="flex items-center gap-1.5 text-[#1E2260]">
+            <TrendingUp className="h-3.5 w-3.5" />
+            <span className="text-xs font-bold">+42%</span>
+          </div>
+          <span className="text-[10px] text-gray-400">Engagement</span>
+        </div>
+
+        {/* Floating notification bubble */}
+        <div className="pointer-events-none absolute right-2 top-8 z-10 hidden h-9 w-9 animate-float items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-md sm:flex [animation-delay:-1.5s]">
+          <Bell className="h-4 w-4 text-[#0A84D8]" />
+          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
+        </div>
+
+        {/* Tiny glowing particles */}
+        <span className="pointer-events-none absolute right-10 bottom-10 h-2 w-2 animate-pulse rounded-full bg-[#0A84D8]/60" />
+        <span className="pointer-events-none absolute right-24 top-14 h-1.5 w-1.5 animate-pulse rounded-full bg-[#0A84D8]/40 [animation-delay:-1s]" />
+
+        {/* White card with the animation */}
+        <div className="relative flex h-full w-full items-center justify-center rounded-[20px] border border-[#ECECEC] bg-white p-5 shadow-[0_8px_30px_rgba(30,34,96,0.08)]">
+          <img
+            src="/gif/bot-video.gif"
+            alt={`${product.name} demo`}
+            className="h-[65%] w-[65%] object-contain"
+          />
+        </div>
+      </Link>
+
+      <div className="flex flex-col justify-center">
+        {product.brandLogo ? (
+          <img src={product.brandLogo} alt={product.name} className="mb-3 h-8 w-auto object-contain" />
+        ) : (
+          (() => {
+            const [firstWord, ...rest] = product.name.split(" ");
+            const restLabel = rest.join(" ");
+            return (
+              <div className="mb-3 flex items-baseline gap-1.5">
+                <span className="text-base font-extrabold uppercase tracking-wide text-gray-900">{firstWord}</span>
+                {restLabel && (
+                  <span className="text-base font-medium italic text-[#1E2260]">{restLabel}</span>
+                )}
+              </div>
+            );
+          })()
+        )}
+
+        <h2 className="text-[36px] font-extrabold leading-tight tracking-tight text-[#1E2260]">
+          {product.subCategory?.name || product.category?.name || product.name}
+        </h2>
+
+        {product.shortDescription && (
+          <p className="mt-3 max-w-md text-base font-medium leading-relaxed text-[#5F6470]">
+            {product.shortDescription}
+          </p>
+        )}
+
+        {specs.length > 0 && (
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {specs.map(([label, value], i) => {
+              const Icon = FEATURE_ICONS[i % FEATURE_ICONS.length];
+              return (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_2px_10px_rgba(30,34,96,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(30,34,96,0.1)]"
+                >
+                  <Icon className="mb-2 h-5 w-5 text-[#1E2260]" />
+                  <p className="text-2xl font-bold leading-none text-[#1E2260]">{String(value)}</p>
+                  <p className="mt-1 text-sm text-gray-500">{label}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* CTA buttons */}
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href={`/products/${product.slug}`}
+            className="inline-flex items-center gap-2 rounded-full bg-[#1E2260] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#14184C] hover:shadow-lg"
+          >
+            Explore Product
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href={`/products/${product.slug}`}
+            className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#1E2260]/40 hover:shadow-md"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Watch Demo
+          </Link>
+        </div>
       </div>
-    </form>
+    </div>
   );
 }
 
-// Quick Filter Bar Component
-function QuickFilterBar({ categories }: { categories: { value: string; label: string; count: number }[] }) {
-  const customCategories = [
-    { value: "", label: "All Categories" },
-    { value: "tally-on-cloud", label: "Software as a Service - Tally on Cloud" },
-    { value: "business-applications", label: "Software as a Service - Business Applications" },
-    { value: "connectivity", label: "Connectivity" },
-    { value: "sdwan", label: "Connectivity - SDWAN" },
-    { value: "security", label: "Security" },
-    { value: "cyber-security", label: "Security - CyberSecurity" },
-    { value: "managed-infrastructure-services", label: "Managed Infrastructure Services" },
-    { value: "surveillance", label: "Managed Infrastructure Services - Surveillance & AI Analytics" },
-    { value: "wifi-as-a-service", label: "Managed Infrastructure Services - Wifi as a Service" },
-    { value: "mobility-iot", label: "Mobility & IoT" },
-    { value: "ai", label: "AI Products" },
-    { value: "hardware-logistics", label: "Hardware & Logistics" },
-  ];
-
+// Dropdown wrapper — native <details> styled as a rounded white pill, no client JS needed
+function FilterDropdown({ label, count, children }: { label: string; count: number; children: React.ReactNode }) {
   return (
-    <form action="/products" method="GET" className="py-4">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-        <span className="text-sm font-medium text-gray-700 whitespace-nowrap">I am looking for:</span>
-        <select
-          name="category"
-          className="h-10 px-4 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-[#1E2260] focus:ring-2 focus:ring-[#1E2260]/20 focus:outline-none cursor-pointer min-w-[280px]"
-        >
-          {customCategories.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label}
-            </option>
-          ))}
-        </select>
-
-        <Button
-          type="submit"
-          className="bg-[#1E2260] hover:bg-[#161848] text-white h-10 px-6 rounded-lg shadow-sm"
-        >
-          <Search className="h-4 w-4 mr-2" />
-          Find Solutions
-        </Button>
+    <details className="group relative">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-[#ECECEC] bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-[#0A84D8]/40 [&::-webkit-details-marker]:hidden">
+        {label}
+        {count > 0 && (
+          <span className="rounded-full bg-[#0A84D8]/10 px-1.5 py-0.5 text-xs font-semibold text-[#0A84D8]">
+            {count}
+          </span>
+        )}
+        <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="absolute left-0 top-[calc(100%+8px)] z-20 min-w-[220px] rounded-2xl border border-[#ECECEC] bg-white p-3 shadow-lg">
+        {children}
       </div>
-    </form>
+    </details>
   );
 }
 
-// View Toggle Component
-function ViewToggle({
-  currentView,
-  searchParams
-}: {
-  currentView: string;
-  searchParams: Record<string, any>;
-}) {
+// View Toggle — Grid / List
+function ViewToggle({ currentView, params }: { currentView: string; params: Record<string, any> }) {
   const buildViewUrl = (view: string) => {
-    const params = new URLSearchParams();
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (key !== "view" && value) {
-        if (Array.isArray(value)) {
-          value.forEach((v) => params.append(key, v));
-        } else {
-          params.set(key, value);
-        }
-      }
+    const p = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (k === "view" || !v) return;
+      if (Array.isArray(v)) v.forEach((vv: string) => p.append(k, vv));
+      else p.set(k, v as string);
     });
-    params.set("view", view);
-    return `/products?${params.toString()}`;
+    p.set("view", view);
+    return `/products?${p.toString()}`;
   };
 
   return (
-    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+    <div className="flex items-center gap-1 rounded-full border border-[#ECECEC] bg-white p-1 shadow-sm">
       <Link
         href={buildViewUrl("grid")}
-        className={`p-2 rounded-md transition-colors ${
-          currentView === "grid"
-            ? "bg-white shadow-sm text-[#1E2260]"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
+        className={cn(
+          "rounded-full p-2 transition-colors",
+          currentView === "grid" ? "bg-[#1E2260] text-white" : "text-gray-400 hover:text-gray-700"
+        )}
         title="Grid view"
       >
         <Grid3X3 className="h-4 w-4" />
       </Link>
       <Link
-        href={buildViewUrl("compact")}
-        className={`p-2 rounded-md transition-colors ${
-          currentView === "compact"
-            ? "bg-white shadow-sm text-[#1E2260]"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
-        title="Compact grid"
-      >
-        <LayoutGrid className="h-4 w-4" />
-      </Link>
-      <Link
         href={buildViewUrl("list")}
-        className={`p-2 rounded-md transition-colors ${
-          currentView === "list"
-            ? "bg-white shadow-sm text-[#1E2260]"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
+        className={cn(
+          "rounded-full p-2 transition-colors",
+          currentView === "list" ? "bg-[#1E2260] text-white" : "text-gray-400 hover:text-gray-700"
+        )}
         title="List view"
       >
         <List className="h-4 w-4" />
       </Link>
+    </div>
+  );
+}
+
+// Filter Toolbar — results count, dropdown filters, view toggle, and sort in one rounded bar
+function FilterToolbar({
+  categories,
+  productTypes,
+  params,
+  viewMode,
+  pagination,
+}: {
+  categories: { value: string; label: string; count: number }[];
+  productTypes: { value: string; label: string; count: number }[];
+  params: Record<string, any>;
+  viewMode: string;
+  pagination: { page: number; limit: number; total: number };
+}) {
+  const selectedCategories = Array.isArray(params.category)
+    ? params.category
+    : params.category
+    ? [params.category]
+    : [];
+  const selectedTypes = Array.isArray(params.type)
+    ? params.type
+    : params.type
+    ? [params.type]
+    : [];
+
+  const buildParams = (overrideKey?: string) => {
+    const p = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (k === overrideKey || k === "page") return;
+      if (Array.isArray(v)) v.forEach((vv: string) => p.append(k, vv));
+      else if (v) p.set(k, v as string);
+    });
+    return p;
+  };
+
+  const buildArrayToggleUrl = (key: string, value: string, current: string[]) => {
+    const p = buildParams(key);
+    const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+    next.forEach((v) => p.append(key, v));
+    return `/products?${p.toString()}`;
+  };
+
+  const buildBoolToggleUrl = (key: string, isActive: boolean) => {
+    const p = buildParams(key);
+    if (!isActive) p.set(key, "true");
+    return `/products?${p.toString()}`;
+  };
+
+  const availabilityCount = (params.inStock === "true" ? 1 : 0) + (params.featured === "true" ? 1 : 0);
+  const activeFilterCount = selectedCategories.length + selectedTypes.length + availabilityCount;
+
+  const CheckRow = ({ href, checked, label, count }: { href: string; checked: boolean; label: string; count?: number }) => (
+    <Link href={href} className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-sm hover:bg-[#F8F9FC]">
+      <span
+        className={cn(
+          "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border",
+          checked ? "border-[#1E2260] bg-[#1E2260]" : "border-gray-300"
+        )}
+      >
+        {checked && <Check className="h-3 w-3 text-white" />}
+      </span>
+      <span className="flex-1 whitespace-nowrap text-gray-700">{label}</span>
+      {count !== undefined && <span className="text-xs text-gray-400">({count})</span>}
+    </Link>
+  );
+
+  return (
+    <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      {/* Left: results count */}
+      <p className="whitespace-nowrap text-sm text-gray-500">
+        Showing{" "}
+        <span className="font-semibold text-gray-900">
+          {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}
+          {"-"}
+          {Math.min(pagination.page * pagination.limit, pagination.total)}
+        </span>{" "}
+        of <span className="font-semibold text-gray-900">{pagination.total}</span> products
+      </p>
+
+      {/* Center: dropdown filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        {categories.length > 0 && (
+          <FilterDropdown label="Categories" count={selectedCategories.length}>
+            {categories.map((c) => (
+              <CheckRow
+                key={c.value}
+                href={buildArrayToggleUrl("category", c.value, selectedCategories)}
+                checked={selectedCategories.includes(c.value)}
+                label={c.label}
+                count={c.count}
+              />
+            ))}
+          </FilterDropdown>
+        )}
+
+        <FilterDropdown label="Product Type" count={selectedTypes.length}>
+          {productTypes.map((t) => (
+            <CheckRow
+              key={t.value}
+              href={buildArrayToggleUrl("type", t.value, selectedTypes)}
+              checked={selectedTypes.includes(t.value)}
+              label={t.label}
+              count={t.count}
+            />
+          ))}
+        </FilterDropdown>
+
+        <FilterDropdown label="Availability" count={availabilityCount}>
+          <CheckRow
+            href={buildBoolToggleUrl("inStock", params.inStock === "true")}
+            checked={params.inStock === "true"}
+            label="In Stock Only"
+          />
+          <CheckRow
+            href={buildBoolToggleUrl("featured", params.featured === "true")}
+            checked={params.featured === "true"}
+            label="Featured Products"
+          />
+        </FilterDropdown>
+
+        {activeFilterCount > 0 && (
+          <Link href="/products" className="text-sm font-medium text-[#1E2260] hover:underline">
+            Clear all ({activeFilterCount})
+          </Link>
+        )}
+      </div>
+
+      {/* Right: view toggle + sort */}
+      <div className="flex items-center gap-3">
+        <ViewToggle currentView={viewMode} params={params} />
+        <ProductSortSelect />
+      </div>
     </div>
   );
 }
@@ -859,7 +977,7 @@ function ActiveFilters({
   };
 
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2 bg-gray-50 rounded-xl p-4 border border-gray-100">
+    <div className="mb-6 flex flex-wrap items-center gap-2 bg-[#F8F9FC] rounded-2xl p-4 border border-[#ECECEC]">
       <span className="text-sm font-medium text-gray-700">Active filters:</span>
 
       {params.search && (
@@ -1051,7 +1169,7 @@ function Pagination({
               variant={page === currentPage ? "default" : "outline"}
               size="sm"
               className={`min-w-[40px] rounded-xl ${
-                page === currentPage ? "bg-[#1E2260] hover:bg-[#161848]" : ""
+                page === currentPage ? "bg-[#1E2260] hover:bg-[#14184C]" : "border-[#ECECEC]"
               }`}
               asChild={page !== currentPage}
             >

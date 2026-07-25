@@ -117,7 +117,7 @@ export function ProductsGrid({ products, viewMode }: ProductsGridProps) {
 // Standard Grid View
 function GridView({ products }: { products: Product[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
@@ -188,16 +188,16 @@ function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
+    <div className="group flex h-[420px] flex-col overflow-hidden rounded-[18px] border border-[#ECECEC] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_32px_rgba(0,0,0,0.1)]">
       {/* Image / Icon Section */}
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <Link href={`/products/${product.slug}`}>
-          <div className="flex items-center justify-center h-28 bg-[#F8F9FF] overflow-hidden">
+          <div className="flex items-center justify-center h-52 bg-[#F8F9FC] overflow-hidden">
             {product.images[0]?.url ? (
               <img
                 src={product.images[0].url}
                 alt={product.images[0].alt || product.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain p-6 transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <div className="w-16 h-16 flex items-center justify-center rounded-xl bg-[#EEF2FF]">
@@ -211,7 +211,7 @@ function ProductCard({ product }: { product: Product }) {
           onClick={handleWishlistToggle}
           title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           className={cn(
-            "absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all",
+            "absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all",
             isWishlisted ? "bg-red-50 border border-red-200" : "bg-white/90 border border-gray-200 hover:border-red-200 hover:bg-red-50"
           )}
         >
@@ -220,11 +220,11 @@ function ProductCard({ product }: { product: Product }) {
       </div>
 
       {/* Content Section */}
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-6 flex-1 flex flex-col min-h-0">
         {/* Category Label */}
         {product.category && (
           <div className="mb-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#1E2260]/10 text-[#1E2260]">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#1E2260]/10 text-[#1E2260]">
               {product.category.name}
             </span>
           </div>
@@ -232,14 +232,14 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Title */}
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 group-hover:text-[#1E2260] transition-colors mb-2">
+          <h3 className="font-bold text-gray-900 group-hover:text-[#1E2260] transition-colors mb-2 line-clamp-1">
             {product.name}
           </h3>
         </Link>
 
         {/* Short Description */}
         {product.shortDescription && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3 flex-1">
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
             {product.shortDescription}
           </p>
         )}
@@ -247,7 +247,7 @@ function ProductCard({ product }: { product: Product }) {
         {/* CTA Button */}
         <div className="mt-auto">
           <Button
-            className="w-full bg-[#1E2260] hover:bg-[#161848] text-white text-sm font-medium py-2"
+            className="w-full h-11 rounded-xl bg-[#1E2260] hover:bg-[#14184C] text-white text-sm font-semibold transition-colors"
             asChild
           >
             <Link href={`/products/${product.slug}`}>
